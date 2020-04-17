@@ -1,26 +1,39 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React from "react";
+import "./App.scss";
+import NavBar from "./components/NavBar";
+import Login from "./routes/Login";
+import Profile from "./routes/Profile";
+import Home from "./routes/Home";
+import { BrowserRouter, Route, Switch } from "react-router-dom";
+import { Auth0Provider } from "./react-auth0-spa.js";
+import config from "./auth_config.json";
+import history from "./utils/history";
 
-function App() {
+const onRedirectCallback = (appState) => {
+  history.push(
+    appState && appState.targetUrl
+      ? appState.targetUrl
+      : window.location.pathname
+  );
+};
+export default function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <Auth0Provider
+      domain={config.domain}
+      client_id={config.clientId}
+      redirect_uri={window.location.origin}
+      onRedirectCallback={onRedirectCallback}
+    >
+      <BrowserRouter>
+        <NavBar>
+          <Switch>
+            <Route exact path="/" component={Home} />
+            <Route exact path="/login" component={Login} />
+            <Route exact path="/view-profile" component={Profile} />
+            <Route component={() => <div>404</div>} />
+          </Switch>
+        </NavBar>
+      </BrowserRouter>
+    </Auth0Provider>
   );
 }
-
-export default App;
