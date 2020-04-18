@@ -1,0 +1,625 @@
+[33mcommit 363529f8f3ae39ad2dc98d8fcf564016febbef41[m[33m ([m[1;36mHEAD -> [m[1;32mmaster[m[33m)[m
+Author: unknown <aeartixenter@gmail.com>
+Date:   Sat Apr 18 19:54:46 2020 +0800
+
+    Added expressjs as backened
+
+[1mdiff --git a/.gitignore b/.gitignore[m
+[1mindex 4d29575..11531fc 100644[m
+[1m--- a/.gitignore[m
+[1m+++ b/.gitignore[m
+[36m@@ -2,8 +2,10 @@[m
+ [m
+ # dependencies[m
+ /node_modules[m
+[32m+[m[32m/backend/node_modules[m
+ /.pnp[m
+ .pnp.js[m
+[32m+[m[32m.vscode[m
+ [m
+ # testing[m
+ /coverage[m
+[1mdiff --git a/README.md b/README.md[m
+[1mindex 5ec0ae7..9f79a76 100644[m
+[1m--- a/README.md[m
+[1m+++ b/README.md[m
+[36m@@ -1,2 +1,22 @@[m
+[31m-# schoolhub_web[m
+[32m+[m[32m# Schoolhub_web[m
+[32m+[m
+ Web application[m
+[32m+[m
+[32m+[m[32m##Prerequisites[m
+[32m+[m
+[32m+[m[32m- `node`,`npm`,`mysql`[m
+[32m+[m
+[32m+[m[32m##Setup[m
+[32m+[m
+[32m+[m[32m- Clone the project #####`git clone https://github.com/teamschoolhub/schoolhub_web.git`[m
+[32m+[m[32m- Enter the project directory #####`cd schoolhub_web`[m
+[32m+[m[32m- Install dependencies #####`npm install`[m
+[32m+[m[32m- Enter `backend` folder #####`cd backend`[m
+[32m+[m[32m- Install dependencies #####`npm install`[m
+[32m+[m[32m- Use your shell or mysql interface and create database called `schoolhub`[m
+[32m+[m[32m- Import `schema.sql` from `schoolhub_web` folder to your database.[m
+[32m+[m
+[32m+[m[32m##Run[m
+[32m+[m
+[32m+[m[32m- Start react app from `schoolhub_web` #####`npm start`[m
+[32m+[m[32m- Start express app from `backend` ####`npm start`[m
+[1mdiff --git a/backend/.env b/backend/.env[m
+[1mnew file mode 100644[m
+[1mindex 0000000..c3eb3a3[m
+[1m--- /dev/null[m
+[1m+++ b/backend/.env[m
+[36m@@ -0,0 +1,5 @@[m
+[32m+[m[32mmysql_host = localhost[m
+[32m+[m[32mmysql_user = root[m
+[32m+[m[32mmysql_password = 4244124[m
+[32m+[m[32mmysql_database = schoolhub[m
+[32m+[m[32mmysql_port = 3309[m
+\ No newline at end of file[m
+[1mdiff --git a/backend/app.js b/backend/app.js[m
+[1mnew file mode 100644[m
+[1mindex 0000000..807ed8f[m
+[1m--- /dev/null[m
+[1m+++ b/backend/app.js[m
+[36m@@ -0,0 +1,43 @@[m
+[32m+[m[32mvar createError = require("http-errors");[m
+[32m+[m[32mvar express = require("express");[m
+[32m+[m[32mvar path = require("path");[m
+[32m+[m[32mvar cookieParser = require("cookie-parser");[m
+[32m+[m[32mvar logger = require("morgan");[m
+[32m+[m
+[32m+[m[32mvar indexRouter = require("./routes/index");[m
+[32m+[m[32mvar usersRouter = require("./routes/users");[m
+[32m+[m
+[32m+[m[32mvar app = express();[m
+[32m+[m[32mvar bodyParser = require("body-parser");[m
+[32m+[m[32m// view engine setup[m
+[32m+[m[32mapp.set("views", path.join(__dirname, "views"));[m
+[32m+[m[32mapp.set("view engine", "jade");[m
+[32m+[m
+[32m+[m[32mapp.use(bodyParser.json());[m
+[32m+[m[32mapp.use(bodyParser.urlencoded({ extended: true }));[m
+[32m+[m[32mapp.use(logger("dev"));[m
+[32m+[m[32mapp.use(express.json());[m
+[32m+[m[32mapp.use(express.urlencoded({ extended: false }));[m
+[32m+[m[32mapp.use(cookieParser());[m
+[32m+[m[32mapp.use(express.static(path.join(__dirname, "public")));[m
+[32m+[m
+[32m+[m[32mapp.use("/", indexRouter);[m
+[32m+[m[32mapp.use("/users", usersRouter);[m
+[32m+[m
+[32m+[m[32m// catch 404 and forward to error handler[m
+[32m+[m[32mapp.use(function (req, res, next) {[m
+[32m+[m[32m  next(createError(404));[m
+[32m+[m[32m});[m
+[32m+[m
+[32m+[m[32m// error handler[m
+[32m+[m[32mapp.use(function (err, req, res, next) {[m
+[32m+[m[32m  // set locals, only providing error in development[m
+[32m+[m[32m  res.locals.message = err.message;[m
+[32m+[m[32m  res.locals.error = req.app.get("env") === "development" ? err : {};[m
+[32m+[m
+[32m+[m[32m  // render the error page[m
+[32m+[m[32m  res.status(err.status || 500);[m
+[32m+[m[32m  res.render("error");[m
+[32m+[m[32m});[m
+[32m+[m
+[32m+[m[32mmodule.exports = app;[m
+[1mdiff --git a/backend/bin/www b/backend/bin/www[m
+[1mnew file mode 100644[m
+[1mindex 0000000..192c6f3[m
+[1m--- /dev/null[m
+[1m+++ b/backend/bin/www[m
+[36m@@ -0,0 +1,90 @@[m
+[32m+[m[32m#!/usr/bin/env node[m
+[32m+[m
+[32m+[m[32m/**[m
+[32m+[m[32m * Module dependencies.[m
+[32m+[m[32m */[m
+[32m+[m
+[32m+[m[32mvar app = require('../app');[m
+[32m+[m[32mvar debug = require('debug')('backend:server');[m
+[32m+[m[32mvar http = require('http');[m
+[32m+[m
+[32m+[m[32m/**[m
+[32m+[m[32m * Get port from environment and store in Express.[m
+[32m+[m[32m */[m
+[32m+[m
+[32m+[m[32mvar port = normalizePort(process.env.PORT || '3000');[m
+[32m+[m[32mapp.set('port', port);[m
+[32m+[m
+[32m+[m[32m/**[m
+[32m+[m[32m * Create HTTP server.[m
+[32m+[m[32m */[m
+[32m+[m
+[32m+[m[32mvar server = http.createServer(app);[m
+[32m+[m
+[32m+[m[32m/**[m
+[32m+[m[32m * Listen on provided port, on all network interfaces.[m
+[32m+[m[32m */[m
+[32m+[m
+[32m+[m[32mserver.listen(port);[m
+[32m+[m[32mserver.on('error', onError);[m
+[32m+[m[32mserver.on('listening', onListening);[m
+[32m+[m
+[32m+[m[32m/**[m
+[32m+[m[32m * Normalize a port into a number, string, or false.[m
+[32m+[m[32m */[m
+[32m+[m
+[32m+[m[32mfunction normalizePort(val) {[m
+[32m+[m[32m  var port = parseInt(val, 10);[m
+[32m+[m
+[32m+[m[32m  if (isNaN(port)) {[m
+[32m+[m[32m    // named pipe[m
+[32m+[m[32m    return val;[m
+[32m+[m[32m  }[m
+[32m+[m
+[32m+[m[32m  if (port >= 0) {[m
+[32m+[m[32m    // port number[m
+[32m+[m[32m    return port;[m
+[32m+[m[32m  }[m
+[32m+[m
+[32m+[m[32m  return false;[m
+[32m+[m[32m}[m
+[32m+[m
+[32m+[m[32m/**[m
+[32m+[m[32m * Event listener for HTTP server "error" event.[m
+[32m+[m[32m */[m
+[32m+[m
+[32m+[m[32mfunction onError(error) {[m
+[32m+[m[32m  if (error.syscall !== 'listen') {[m
+[32m+[m[32m    throw error;[m
+[32m+[m[32m  }[m
+[32m+[m
+[32m+[m[32m  var bind = typeof port === 'string'[m
+[32m+[m[32m    ? 'Pipe ' + port[m
+[32m+[m[32m    : 'Port ' + port;[m
+[32m+[m
+[32m+[m[32m  // handle specific listen errors with friendly messages[m
+[32m+[m[32m  switch (error.code) {[m
+[32m+[m[32m    case 'EACCES':[m
+[32m+[m[32m      console.error(bind + ' requires elevated privileges');[m
+[32m+[m[32m      process.exit(1);[m
+[32m+[m[32m      break;[m
+[32m+[m[32m    case 'EADDRINUSE':[m
+[32m+[m[32m      console.error(bind + ' is already in use');[m
+[32m+[m[32m      process.exit(1);[m
+[32m+[m[32m      break;[m
+[32m+[m[32m    default:[m
+[32m+[m[32m      throw error;[m
+[32m+[m[32m  }[m
+[32m+[m[32m}[m
+[32m+[m
+[32m+[m[32m/**[m
+[32m+[m[32m * Event listener for HTTP server "listening" event.[m
+[32m+[m[32m */[m
+[32m+[m
+[32m+[m[32mfunction onListening() {[m
+[32m+[m[32m  var addr = server.address();[m
+[32m+[m[32m  var bind = typeof addr === 'string'[m
+[32m+[m[32m    ? 'pipe ' + addr[m
+[32m+[m[32m    : 'port ' + addr.port;[m
+[32m+[m[32m  debug('Listening on ' + bind);[m
+[32m+[m[32m}[m
+[1mdiff --git a/backend/connection.js b/backend/connection.js[m
+[1mnew file mode 100644[m
+[1mindex 0000000..e8efc18[m
+[1m--- /dev/null[m
+[1m+++ b/backend/connection.js[m
+[36m@@ -0,0 +1,105 @@[m
+[32m+[m[32mvar mysql = require("mysql");[m
+[32m+[m
+[32m+[m[32mvar pool = mysql.createPool({[m
+[32m+[m[32m  connectionLimit: process.env.mysql_connection_pool_Limit, // default:10[m
+[32m+[m[32m  host: process.env.mysql_host,[m
+[32m+[m[32m  user: process.env.mysql_user,[m
+[32m+[m[32m  password: process.env.mysql_password,[m
+[32m+[m[32m  database: process.env.mysql_database,[m
+[32m+[m[32m  port: process.env.mysql_port,[m
+[32m+[m[32m});[m
+[32m+[m
+[32m+[m[32mmodule.exports = {[m
+[32m+[m[32m  all: () => {[m
+[32m+[m[32m    return new Promise((resolve, reject) => {[m
+[32m+[m[32m      pool.query("SELECT * FROM users", (err, res) => {[m
+[32m+[m[32m        if (err) return reject(err);[m
+[32m+[m[32m        resolve(res);[m
+[32m+[m[32m      });[m
+[32m+[m[32m    });[m
+[32m+[m[32m  },[m
+[32m+[m[32m  isUserRegistered: (email) => {[m
+[32m+[m[32m    return new Promise((resolve, reject) => {[m
+[32m+[m[32m      pool.query("SELECT * FROM users WHERE ?", { email: email }, (err, res) =>[m
+[32m+[m[32m        err ? reject(err) : resolve(res.length && true)[m
+[32m+[m[32m      );[m
+[32m+[m[32m    });[m
+[32m+[m[32m  },[m
+[32m+[m[32m  registerUser: (user) => {[m
+[32m+[m[32m    return new Promise((resolve, reject) => {[m
+[32m+[m[32m      let data = {[m
+[32m+[m[32m        number: Math.floor(Math.random() * 9909),[m
+[32m+[m[32m        name: user.nickname,[m
+[32m+[m[32m        role: "Student",[m
+[32m+[m[32m        email: user.email,[m
+[32m+[m[32m      };[m
+[32m+[m[32m      pool.query("INSERT INTO users SET ?", data, (err, res) =>[m
+[32m+[m[32m        err ? reject(err) : resolve(true)[m
+[32m+[m[32m      );[m
+[32m+[m[32m    });[m
+[32m+[m[32m  },[m
+[32m+[m[32m  joinClass: (email, classCode) => {[m
+[32m+[m[32m    return new Promise((resolve, reject) => {[m
+[32m+[m[32m      let prevClasses = "";[m
+[32m+[m[32m      pool.query([m
+[32m+[m[32m        "SELECT classes FROM users WHERE email = ?",[m
+[32m+[m[32m        email,[m
+[32m+[m[32m        (err, res) => {[m
+[32m+[m[32m          if (res[0].classes.split(",").indexOf(classCode) >= 0) {[m
+[32m+[m[32m            resolve(res);[m
+[32m+[m[32m            return;[m
+[32m+[m[32m          }[m
+[32m+[m[32m          if (err) reject(err);[m
+[32m+[m[32m          prevClasses = res[0].classes;[m
+[32m+[m[32m          if (prevClasses.length) {[m
+[32m+[m[32m            prevClasses = [prevClasses + "," + classCode];[m
+[32m+[m[32m          } else {[m
+[32m+[m[32m            prevClasses = [classCode];[m
+[32m+[m[32m          }[m
+[32m+[m[32m          pool.query([m
+[32m+[m[32m            "UPDATE users SET classes = ? WHERE email = ?",[m
+[32m+[m[32m            [prevClasses.toString(), email],[m
+[32m+[m[32m            (e, r) => {[m
+[32m+[m[32m              resolve(r);[m
+[32m+[m[32m            }[m
+[32m+[m[32m          );[m
+[32m+[m[32m        }[m
+[32m+[m[32m      );[m
+[32m+[m[32m    });[m
+[32m+[m[32m  },[m
+[32m+[m[32m  getUserInfo: (email) => {[m
+[32m+[m[32m    return new Promise((resolve, reject) => {[m
+[32m+[m[32m      let buffer = null;[m
+[32m+[m[32m      pool.query("SELECT * FROM users WHERE email = ?", email, (err, res) => {[m
+[32m+[m[32m        if (err) reject(err);[m
+[32m+[m[32m        else {[m
+[32m+[m[32m          buffer = JSON.parse(JSON.stringify(res[0]));[m
+[32m+[m[32m          if (!buffer.classes.length) {[m
+[32m+[m[32m            buffer.classes = [];[m
+[32m+[m[32m            resolve(buffer);[m
+[32m+[m[32m            return;[m
+[32m+[m[32m          }[m
+[32m+[m[32m          let classNumbers =[m
+[32m+[m[32m            buffer.classes.indexOf(",") >= 0[m
+[32m+[m[32m              ? buffer.classes.split(",")[m
+[32m+[m[32m              : [buffer.classes];[m
+[32m+[m[32m          buffer.classes = [];[m
+[32m+[m[32m          classNumbers.map((c, i) => {[m
+[32m+[m[32m            pool.query("SELECT * FROM classes WHERE number = ?", c, (e, r) => {[m
+[32m+[m[32m              if (e) reject(err);[m
+[32m+[m[32m              else if (r[0]) {[m
+[32m+[m[32m                if (!r[0].img.length)[m
+[32m+[m[32m                  r[0].img =[m
+[32m+[m[32m                    "https://cdn.shopify.com/s/files/1/0010/9215/7503/t/5/assets/MothersDay-enchroma.jpg";[m
+[32m+[m[32m                buffer.classes.push(r);[m
+[32m+[m[32m              }[m
+[32m+[m[32m              if (i == classNumbers.length - 1) {[m
+[32m+[m[32m                resolve(buffer);[m
+[32m+[m[32m              }[m
+[32m+[m[32m            });[m
+[32m+[m[32m          });[m
+[32m+[m[32m        }[m
+[32m+[m[32m      });[m
+[32m+[m[32m    });[m
+[32m+[m[32m  },[m
+[32m+[m[32m};[m
+[1mdiff --git a/backend/index.js b/backend/index.js[m
+[1mnew file mode 100644[m
+[1mindex 0000000..1134d5a[m
+[1m--- /dev/null[m
+[1m+++ b/backend/index.js[m
+[36m@@ -0,0 +1,5 @@[m
+[32m+[m[32mconst app = require("./app");[m
+[32m+[m
+[32m+[m[32mapp.listen(3001, function () {[m
+[32m+[m[32m  console.log("Running Express on PORT 3001");[m
+[32m+[m[32m});[m
+[1mdiff --git a/backend/package-lock.json b/backend/package-lock.json[m
+[1mnew file mode 100644[m
+[1mindex 0000000..6ff3a08[m
+[1m--- /dev/null[m
+[1m+++ b/backend/package-lock.json[m
+[36m@@ -0,0 +1,1003 @@[m
+[32m+[m[32m{[m
+[32m+[m[32m  "name": "backend",[m
+[32m+[m[32m  "version": "0.0.0",[m
+[32m+[m[32m  "lockfileVersion": 1,[m
+[32m+[m[32m  "requires": true,[m
+[32m+[m[32m  "dependencies": {[m
+[32m+[m[32m    "accepts": {[m
+[32m+[m[32m      "version": "1.3.7",[m
+[32m+[m[32m      "resolved": "https://registry.npmjs.org/accepts/-/accepts-1.3.7.tgz",[m
+[32m+[m[32m      "integrity": "sha512-Il80Qs2WjYlJIBNzNkK6KYqlVMTbZLXgHx2oT0pU/fjRHyEp+PEfEPY0R3WCwAGVOtauxh1hOxNgIf5bv7dQpA==",[m
+[32m+[m[32m      "requires": {[m
+[32m+[m[32m        "mime-types": "~2.1.24",[m
+[32m+[m[32m        "negotiator": "0.6.2"[m
+[32m+[m[32m      }[m
+[32m+[m[32m    },[m
+[32m+[m[32m    "acorn": {[m
+[32m+[m[32m      "version": "2.7.0",[m
+[32m+[m[32m      "resolved": "https://registry.npmjs.org/acorn/-/acorn-2.7.0.tgz",[m
+[32m+[m[32m      "integrity": "sha1-q259nYhqrKiwhbwzEreaGYQz8Oc="[m
+[32m+[m[32m    },[m
+[32m+[m[32m    "acorn-globals": {[m
+[32m+[m[32m      "version": "1.0.9",[m
+[32m+[m[32m      "resolved": "https://registry.npmjs.org/acorn-globals/-/acorn-globals-1.0.9.tgz",[m
+[32m+[m[32m      "integrity": "sha1-VbtemGkVB7dFedBRNBMhfDgMVM8=",[m
+[32m+[m[32m      "requires": {[m
+[32m+[m[32m        "acorn": "^2.1.0"[m
+[32m+[m[32m      }[m
+[32m+[m[32m    },[m
+[32m+[m[32m    "align-text": {[m
+[32m+[m[32m      "version": "0.1.4",[m
+[32m+[m[32m      "resolved": "https://registry.npmjs.org/align-text/-/align-text-0.1.4.tgz",[m
+[32m+[m[32m      "integrity": "sha1-DNkKVhCT810KmSVsIrcGlDP60Rc=",[m
+[32m+[m[32m      "requires": {[m
+[32m+[m[32m        "kind-of": "^3.0.2",[m
+[32m+[m[32m        "longest": "^1.0.1",[m
+[32m+[m[32m        "repeat-string": "^1.5.2"[m
+[32m+[m[32m      }[m
+[32m+[m[32m    },[m
+[32m+[m[32m    "amdefine": {[m
+[32m+[m[32m      "version": "1.0.1",[m
+[32m+[m[32m      "resolved": "https://registry.npmjs.org/amdefine/-/amdefine-1.0.1.tgz",[m
+[32m+[m[32m      "integrity": "sha1-SlKCrBZHKek2Gbz9OtFR+BfOkfU="[m
+[32m+[m[32m    },[m
+[32m+[m[32m    "array-flatten": {[m
+[32m+[m[32m      "version": "1.1.1",[m
+[32m+[m[32m      "resolved": "https://registry.npmjs.org/array-flatten/-/array-flatten-1.1.1.tgz",[m
+[32m+[m[32m      "integrity": "sha1-ml9pkFGx5wczKPKgCJaLZOopVdI="[m
+[32m+[m[32m    },[m
+[32m+[m[32m    "asap": {[m
+[32m+[m[32m      "version": "1.0.0",[m
+[32m+[m[32m      "resolved": "https://registry.npmjs.org/asap/-/asap-1.0.0.tgz",[m
+[32m+[m[32m      "integrity": "sha1-sqRdpf36ILBJb8N2jMJ8EvqRan0="[m
+[32m+[m[32m    },[m
+[32m+[m[32m    "basic-auth": {[m
+[32m+[m[32m      "version": "2.0.1",[m
+[32m+[m[32m      "resolved": "https://registry.npmjs.org/basic-auth/-/basic-auth-2.0.1.tgz",[m
+[32m+[m[32m      "integrity": "sha512-NF+epuEdnUYVlGuhaxbbq+dvJttwLnGY+YixlXlME5KpQ5W3CnXA5cVTneY3SPbPDRkcjMbifrwmFYcClgOZeg==",[m
+[32m+[m[32m      "requires": {[m
+[32m+[m[32m        "safe-buffer": "5.1.2"[m
+[32m+[m[32m      }[m
+[32m+[m[32m    },[m
+[32m+[m[32m    "bignumber.js": {[m
+[32m+[m[32m      "version": "9.0.0",[m
+[32m+[m[32m      "resolved": "https://registry.npmjs.org/bignumber.js/-/bignumber.js-9.0.0.tgz",[m
+[32m+[m[32m      "integrity": "sha512-t/OYhhJ2SD+YGBQcjY8GzzDHEk9f3nerxjtfa6tlMXfe7frs/WozhvCNoGvpM0P3bNf3Gq5ZRMlGr5f3r4/N8A=="[m
+[32m+[m[32m    },[m
+[32m+[m[32m    "body-parser": {[m
+[32m+[m[32m      "version": "1.19.0",[m
+[32m+[m[32m      "resolved": "https://registry.npmjs.org/body-parser/-/body-parser-1.19.0.tgz",[m
+[32m+[m[32m      "integrity": "sha512-dhEPs72UPbDnAQJ9ZKMNTP6ptJaionhP5cBb541nXPlW60Jepo9RV/a4fX4XWW9CuFNK22krhrj1+rgzifNCsw==",[m
+[32m+[m[32m      "requires": {[m
+[32m+[m[32m        "bytes": "3.1.0",[m
+[32m+[m[32m        "content-type": "~1.0.4",[m
+[32m+[m[32m        "debug": "2.6.9",[m
+[32m+[m[32m        "depd": "~1.1.2",[m
+[32m+[m[32m        "http-errors": "1.7.2",[m
+[32m+[m[32m        "iconv-lite": "0.4.24",[m
+[32m+[m[32m        "on-finished": "~2.3.0",[m
+[32m+[m[32m        "qs": "6.7.0",[m
+[32m+[m[32m        "raw-body": "2.4.0",[m
+[32m+[m[32m        "type-is": "~1.6.17"[m
+[32m+[m[32m      },[m
+[32m+[m[32m      "dependencies": {[m
+[32m+[m[32m        "http-errors": {[m
+[32m+[m[32m          "version": "1.7.2",[m
+[32m+[m[32m          "resolved": "https://registry.npmjs.org/http-errors/-/http-errors-1.7.2.tgz",[m
+[32m+[m[32m          "integrity": "sha512-uUQBt3H/cSIVfch6i1EuPNy/YsRSOUBXTVfZ+yR7Zjez3qjBz6i9+i4zjNaoqcoFVI4lQJ5plg63TvGfRSDCRg==",[m
+[32m+[m[32m          "requires": {[m
+[32m+[m[32m            "depd": "~1.1.2",[m
+[32m+[m[32m            "inherits": "2.0.3",[m
+[32m+[m[32m            "setprototypeof": "1.1.1",[m
+[32m+[m[32m            "statuses": ">= 1.5.0 < 2",[m
+[32m+[m[32m            "toidentifier": "1.0.0"[m
+[32m+[m[32m          }[m
+[32m+[m[32m        },[m
+[32m+[m[32m        "qs": {[m
+[32m+[m[32m          "version": "6.7.0",[m
+[32m+[m[32m          "resolved": "https://registry.npmjs.org/qs/-/qs-6.7.0.tgz",[m
+[32m+[m[32m          "integrity": "sha512-VCdBRNFTX1fyE7Nb6FYoURo/SPe62QCaAyzJvUjwRaIsc+NePBEniHlvxFmmX56+HZphIGtV0XeCirBtpDrTyQ=="[m
+[32m+[m[32m        },[m
+[32m+[m[32m        "setprototypeof": {[m
+[32m+[m[32m          "version": "1.1.1",[m
+[32m+[m[32m          "resolved": "https://registry.npmjs.org/setprototypeof/-/setprototypeof-1.1.1.tgz",[m
+[32m+[m[32m          "integrity": "sha512-JvdAWfbXeIGaZ9cILp38HntZSFSo3mWg6xGcJJsd+d4aRMOqauag1C63dJfDw7OaMYwEbHMOxEZ1lqVRYP2OAw=="[m
+[32m+[m[32m        },[m
+[32m+[m[32m        "statuses": {[m
+[32m+[m[32m          "version": "1.5.0",[m
+[32m+[m[32m          "resolved": "https://registry.npmjs.org/statuses/-/statuses-1.5.0.tgz",[m
+[32m+[m[32m          "integrity": "sha1-Fhx9rBd2Wf2YEfQ3cfqZOBR4Yow="[m
+[32m+[m[32m        }[m
+[32m+[m[32m      }[m
+[32m+[m[32m    },[m
+[32m+[m[32m    "buffer-equal-constant-time": {[m
+[32m+[m[32m      "version": "1.0.1",[m
+[32m+[m[32m      "resolved": "https://registry.npmjs.org/buffer-equal-constant-time/-/buffer-equal-constant-time-1.0.1.tgz",[m
+[32m+[m[32m      "integrity": "sha1-+OcRMvf/5uAaXJaXpMbz5I1cyBk="[m
+[32m+[m[32m    },[m
+[32m+[m[32m    "bytes": {[m
+[32m+[m[32m      "version": "3.1.0",[m
+[32m+[m[32m      "resolved": "https://registry.npmjs.org/bytes/-/bytes-3.1.0.tgz",[m
+[32m+[m[32m      "integrity": "sha512-zauLjrfCG+xvoyaqLoV8bLVXXNGC4JqlxFCutSDWA6fJrTo2ZuvLYTqZ7aHBLZSMOopbzwv8f+wZcVzfVTI2Dg=="[m
+[32m+[m[32m    },[m
+[32m+[m[32m    "camelcase": {[m
+[32m+[m[32m      "version": "1.2.1",[m
+[32m+[m[32m      "resolved": "https://registry.npmjs.org/camelcase/-/camelcase-1.2.1.tgz",[m
+[32m+[m[32m      "integrity": "sha1-m7UwTS4LVmmLLHWLCKPqqdqlijk="[m
+[32m+[m[32m    },[m
+[32m+[m[32m    "center-align": {[m
+[32m+[m[32m      "version": "0.1.3",[m
+[32m+[m[32m      "resolved": "https://registry.npmjs.org/center-align/-/center-align-0.1.3.tgz",[m
+[32m+[m[32m      "integrity": "sha1-qg0yYptu6XIgBBHL1EYckHvCt60=",[m
+[32m+[m[32m      "requires": {[m
+[32m+[m[32m        "align-text": "^0.1.3",[m
+[32m+[m[32m        "lazy-cache": "^1.0.3"[m
+[32m+[m[32m      }[m
+[32m+[m[32m    },[m
+[32m+[m[32m    "character-parser": {[m
+[32m+[m[32m      "version": "1.2.1",[m
+[32m+[m[32m      "resolved": "https://registry.npmjs.org/character-parser/-/character-parser-1.2.1.tgz",[m
+[32m+[m[32m      "integrity": "sha1-wN3kqxgnE7kZuXCVmhI+zBow/NY="[m
+[32m+[m[32m    },[m
+[32m+[m[32m    "clean-css": {[m
+[32m+[m[32m      "version": "3.4.28",[m
+[32m+[m[32m      "resolved": "https://registry.npmjs.org/clean-css/-/clean-css-3.4.28.tgz",[m
+[32m+[m[32m      "integrity": "sha1-vxlF6C/ICPVWlebd6uwBQA79A/8=",[m
+[32m+[m[32m      "requires": {[m
+[32m+[m[32m        "commander": "2.8.x",[m
+[32m+[m[32m        "source-map": "0.4.x"[m
+[32m+[m[32m      },[m
+[32m+[m[32m      "dependencies": {[m
+[32m+[m[32m        "commander": {[m
+[32m+[m[32m          "version": "2.8.1",[m
+[32m+[m[32m          "resolved": "https://registry.npmjs.org/commander/-/commander-2.8.1.tgz",[m
+[32m+[m[32m          "integrity": "sha1-Br42f+v9oMMwqh4qBy09yXYkJdQ=",[m
+[32m+[m[32m          "requires": {[m
+[32m+[m[32m            "graceful-readlink": ">= 1.0.0"[m
+[32m+[m[32m          }[m
+[32m+[m[32m        }[m
+[32m+[m[32m      }[m
+[32m+[m[32m    },[m
+[32m+[m[32m    "cliui": {[m
+[32m+[m[32m      "version": "2.1.0",[m
+[32m+[m[32m      "resolved": "https://registry.npmjs.org/cliui/-/cliui-2.1.0.tgz",[m
+[32m+[m[32m      "integrity": "sha1-S0dXYP+AJkx2LDoXGQMukcf+oNE=",[m
+[32m+[m[32m      "requires": {[m
+[32m+[m[32m        "center-align": "^0.1.1",[m
+[32m+[m[32m        "right-align": "^0.1.1",[m
+[32m+[m[32m        "wordwrap": "0.0.2"[m
+[32m+[m[32m      },[m
+[32m+[m[32m      "dependencies": {[m
+[32m+[m[32m        "wordwrap": {[m
+[32m+[m[32m          "version": "0.0.2",[m
+[32m+[m[32m          "resolved": "https://registry.npmjs.org/wordwrap/-/wordwrap-0.0.2.tgz",[m
+[32m+[m[32m          "integrity": "sha1-t5Zpu0LstAn4PVg8rVLKF+qhZD8="[m
+[32m+[m[32m        }[m
+[32m+[m[32m      }[m
+[32m+[m[32m    },[m
+[32m+[m[32m    "commander": {[m
+[32m+[m[32m      "version": "2.6.0",[m
+[32m+[m[32m      "resolved": "https://registry.npmjs.org/commander/-/commander-2.6.0.tgz",[m
+[32m+[m[32m      "integrity": "sha1-nfflL7Kgyw+4kFjugMMQQiXzfh0="[m
+[32m+[m[32m    },[m
+[32m+[m[32m    "constantinople": {[m
+[32m+[m[32m      "version": "3.0.2",[m
+[32m+[m[32m      "resolved": "https://registry.npmjs.org/constantinople/-/constantinople-3.0.2.tgz",[m
+[32m+[m[32m      "integrity": "sha1-S5RdmTeQe82Y7ldRIsOBdRZUQUE=",[m
+[32m+[m[32m      "requires": {[m
+[32m+[m[32m        "acorn": "^2.1.0"[m
+[32m+[m[32m      }[m
+[32m+[m[32m    },[m
+[32m+[m[32m    "content-disposition": {[m
+[32m+[m[32m      "version": "0.5.2",[m
+[32m+[m[32m      "resolved": "https://registry.npmjs.org/content-disposition/-/content-disposition-0.5.2.tgz",[m
+[32m+[m[32m      "integrity": "sha1-DPaLud318r55YcOoUXjLhdunjLQ="[m
+[32m+[m[32m    },[m
+[32m+[m[32m    "content-type": {[m
+[32m+[m[32m      "version": "1.0.4",[m
+[32m+[m[32m      "resolved": "https://registry.npmjs.org/content-type/-/content-type-1.0.4.tgz",[m
+[32m+[m[32m      "integrity": "sha512-hIP3EEPs8tB9AT1L+NUqtwOAps4mk2Zob89MWXMHjHWg9milF/j4osnnQLXBCBFBk/tvIG/tUc9mOUJiPBhPXA=="[m
+[32m+[m[32m    },[m
+[32m+[m[32m    "cookie": {[m
+[32m+[m[32m      "version": "0.4.0",[m
+[32m+[m[32m      "resolved": "https://registry.npmjs.org/cookie/-/cookie-0.4.0.tgz",[m
+[32m+[m[32m      "integrity": "sha512-+Hp8fLp57wnUSt0tY0tHEXh4voZRDnoIrZPqlo3DPiI4y9lwg/jqx+1Om94/W6ZaPDOUbnjOt/99w66zk+l1Xg=="[m
+[32m+[m[32m    },[m
+[32m+[m[32m    "cookie-parser": {[m
+[32m+[m[32m      "version": "1.4.5",[m
+[32m+[m[32m      "resolved": "https://registry.npmjs.org/cookie-parser/-/cookie-parser-1.4.5.tgz",[m
+[32m+[m[32m      "integrity": "sha512-f13bPUj/gG/5mDr+xLmSxxDsB9DQiTIfhJS/sqjrmfAWiAN+x2O4i/XguTL9yDZ+/IFDanJ+5x7hC4CXT9Tdzw==",[m
+[32m+[m[32m      "requires": {[m
+[32m+[m[32m        "cookie": "0.4.0",[m
+[32m+[m[32m        "cookie-signature": "1.0.6"[m
+[32m+[m[32m      }[m
+[32m+[m[32m    },[m
+[32m+[m[32m    "cookie-signature": {[m
+[32m+[m[32m      "version": "1.0.6",[m
+[32m+[m[32m      "resolved": "https://registry.npmjs.org/cookie-signature/-/cookie-signature-1.0.6.tgz",[m
+[32m+[m[32m      "integrity": "sha1-4wOogrNCzD7oylE6eZmXNNqzriw="[m
+[32m+[m[32m    },[m
+[32m+[m[32m    "core-util-is": {[m
+[32m+[m[32m      "version": "1.0.2",[m
+[32m+[m[32m      "resolved": "https://registry.npmjs.org/core-util-is/-/core-util-is-1.0.2.tgz",[m
+[32m+[m[32m      "integrity": "sha1-tf1UIgqivFq1eqtxQMlAdUUDwac="[m
+[32m+[m[32m    },[m
+[32m+[m[32m    "css": {[m
+[32m+[m[32m      "version": "1.0.8",[m
+[32m+[m[32m      "resolved": "https://registry.npmjs.org/css/-/css-1.0.8.tgz",[m
+[32m+[m[32m      "integrity": "sha1-k4aBHKgrzMnuf7WnMrHioxfIo+c=",[m
+[32m+[m[32m      "requires": {[m
+[32m+[m[32m        "css-parse": "1.0.4",[m
+[32m+[m[32m        "css-stringify": "1.0.5"[m
+[32m+[m[32m      }[m
+[32m+[m[32m    },[m
+[32m+[m[32m    "css-parse": {[m
+[32m+[m[32m      "version": "1.0.4",[m
+[32m+[m[32m      "resolved": "https://registry.npmjs.org/css-parse/-/css-parse-1.0.4.tgz",[m
+[32m+[m[32m      "integrity": "sha1-OLBQP7+dqfVOnB29pg4UXHcRe90="[m
+[32m+[m[32m    },[m
+[32m+[m[32m    "css-stringify": {[m
+[32m+[m[32m      "version": "1.0.5",[m
+[32m+[m[32m      "resolved": "https://registry.npmjs.org/css-stringify/-/css-stringify-1.0.5.tgz",[m
+[32m+[m[32m      "integrity": "sha1-sNBClG2ylTu50pKQCmy19tASIDE="[m
+[32m+[m[32m    },[m
+[32m+[m[32m    "debug": {[m
+[32m+[m[32m      "version": "2.6.9",[m
+[32m+[m[32m      "resolved": "https://registry.npmjs.org/debug/-/debug-2.6.9.tgz",[m
+[32m+[m[32m      "integrity": "sha512-bC7ElrdJaJnPbAP+1EotYvqZsb3ecl5wi6Bfi6BJTUcNowp6cvspg0jXznRTKDjm/E7AdgFBVeAPVMNcKGsHMA==",[m
+[32m+[m[32m      "requires": {[m
+[32m+[m[32m        "ms": "2.0.0"[m
+[32m+[m[32m      }[m
+[32m+[m[32m    },[m
+[32m+[m[32m    "decamelize": {[m
+[32m+[m[32m      "version": "1.2.0",[m
+[32m+[m[32m      "resolved": "https://registry.npmjs.org/decamelize/-/decamelize-1.2.0.tgz",[m
+[32m+[m[32m      "integrity": "sha1-9lNNFRSCabIDUue+4m9QH5oZEpA="[m
+[32m+[m[32m    },[m
+[32m+[m[32m    "depd": {[m
+[32m+[m[32m      "version": "1.1.2",[m
+[32m+[m[32m      "resolved": "https://registry.npmjs.org/depd/-/depd-1.1.2.tgz",[m
+[32m+[m[32m      "integrity": "sha1-m81S4UwJd2PnSbJ0xDRu0uVgtak="[m
+[32m+[m[32m    },[m
+[32m+[m[32m    "destroy": {[m
+[32m+[m[32m      "version": "1.0.4",[m
+[32m+[m[32m      "resolved": "https://registry.npmjs.org/destroy/-/destroy-1.0.4.tgz",[m
+[32m+[m[32m      "integrity": "sha1-l4hXRCxEdJ5CBmE+N5RiBYJqvYA="[m
+[32m+[m[32m    },[m
+[32m+[m[32m    "dotenv": {[m
+[32m+[m[32m      "version": "8.2.0",[m
+[32m+[m[32m      "resolved": "https://registry.npmjs.org/dotenv/-/dotenv-8.2.0.tgz",[m
+[32m+[m[32m      "integrity": "sha512-8sJ78ElpbDJBHNeBzUbUVLsqKdccaa/BXF1uPTw3GrvQTBgrQrtObr2mUrE38vzYd8cEv+m/JBfDLioYcfXoaw=="[m
+[32m+[m[32m    },[m
+[32m+[m[32m    "ecdsa-sig-formatter": {[m
+[32m+[m[32m      "version": "1.0.11",[m
+[32m+[m[32m      "resolved": "https://registry.npmjs.org/ecdsa-sig-formatter/-/ecdsa-sig-formatter-1.0.11.tgz",[m
+[32m+[m[32m      "integrity": "sha512-nagl3RYrbNv6kQkeJIpt6NJZy8twLB/2vtz6yN9Z4vRKHN4/QZJIEbqohALSgwKdnksuY3k5Addp5lg8sVoVcQ==",[m
+[32m+[m[32m      "requires": {[m
+[32m+[m[32m        "safe-buffer": "^5.0.1"[m
+[32m+[m[32m      }[m
+[32m+[m[32m    },[m
+[32m+[m[32m    "ee-first": {[m
+[32m+[m[32m      "version": "1.1.1",[m
+[32m+[m[32m      "resolved": "https://registry.npmjs.org/ee-first/-/ee-first-1.1.1.tgz",[m
+[32m+[m[32m      "integrity": "sha1-WQxhFWsK4vTwJVcyoViyZrxWsh0="[m
+[32m+[m[32m    },[m
+[32m+[m[32m    "encodeurl": {[m
+[32m+[m[32m      "version": "1.0.2",[m
+[32m+[m[32m      "resolved": "https://registry.npmjs.org/encodeurl/-/encodeurl-1.0.2.tgz",[m
+[32m+[m[32m      "integrity": "sha1-rT/0yG7C0CkyL1oCw6mmBslbP1k="[m
+[32m+[m[32m    },[m
+[32m+[m[32m    "escape-html": {[m
+[32m

@@ -1,8 +1,11 @@
-@import 'styles/colors';
+@import "styles/colors";
 
 .MuiAppBar-colorPrimary {
-    background: $theme_color!important;
+  background: $theme_color !important;
+}
+.background-theme {
+  background: $theme_color;
 }
 * a:hover {
-    text-decoration: none!important;
+  text-decoration: none !important;
 }
