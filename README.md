@@ -35,5 +35,7 @@ Web application
 
 ## Run
 
-- Start react app from `schoolhub_web` #####`npm start`
-- Start express app from `backend` ####`npm start`
+- Start react app from `schoolhub_web` 
+#####`npm start`
+- Start express app from `backend` 
+####`npm start`
