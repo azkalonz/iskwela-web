@@ -18,22 +18,22 @@ const onRedirectCallback = (appState) => {
 };
 export default function App() {
   return (
-    <Auth0Provider
-      domain={config.domain}
-      client_id={config.clientId}
-      redirect_uri={window.location.origin}
-      onRedirectCallback={onRedirectCallback}
-    >
+    // <Auth0Provider
+    //   domain={config.domain}
+    //   client_id={config.clientId}
+    //   redirect_uri={window.location.origin}
+    //   onRedirectCallback={onRedirectCallback}
+    // >
       <BrowserRouter>
-        <NavBar>
+        {/* <NavBar> */}
           <Switch>
-            <Route exact path="/" component={Home} />
+            <Route exact path="/" component={Login} />
             <Route exact path="/login" component={Login} />
-            <Route exact path="/view-profile" component={Profile} />
-            <Route component={() => <div>404</div>} />
+            {/* <Route exact path="/view-profile" component={Profile} />
+            <Route component={() => <div>404</div>} /> */}
           </Switch>
-        </NavBar>
+        {/* </NavBar> */}
       </BrowserRouter>
-    </Auth0Provider>
+    // </Auth0Provider>
   );
 }

@@ -1,0 +1,10 @@
+{
+    "login": {
+        "forgotPassword": "Forgot Password?",
+        "idNumber": "ID Number",
+        "password": "Password",
+        "rememberMe": "Keep me signed in",
+        "signIn": "Sign In",
+        "title": "Sign in to your SchoolHub Account"
+    }
+}
