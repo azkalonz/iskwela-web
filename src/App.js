@@ -29,6 +29,7 @@ export default function App() {
           <Switch>
             <Route exact path="/" component={Login} />
             <Route exact path="/login" component={Login} />
+            <Route exact path="/dashboard" component={Home} />
             {/* <Route exact path="/view-profile" component={Profile} />
             <Route component={() => <div>404</div>} /> */}
           </Switch>

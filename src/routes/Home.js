@@ -1,27 +1,34 @@
-import React, { useEffect } from "react";
-import { useAuth0 } from "../react-auth0-spa.js";
-import Loader from "../components/Loader";
-import Alert from "@material-ui/lab/Alert";
-import { apiAuth } from "../components/Connection";
+import React from "react";
+import {
+  Container,
+  Grid,
+} from '@material-ui/core';
+import { grey } from '@material-ui/core/colors';
+import { makeStyles } from '@material-ui/core/styles';
+import Dashboard from "../components/Dashboard";
+
+const useStyles = makeStyles((theme) => ({
+  root: {
+    background: grey[400],
+    minHeight: "100vh",
+    padding: theme.spacing(5)
+  }
+}));
+
 function Home() {
-  const { loading, user } = useAuth0();
-  useEffect(() => {
-    if (!loading) {
-    }
-    if (user) {
-      apiAuth(user);
-    } else {
-      localStorage.removeItem("token");
-    }
-  }, [user, loading]);
+
+  const classes = useStyles();
 
   return (
-    <div>
-      <Loader display={loading ? "flex" : "none"} />
-      {!user && <Alert severity="warning">Please login to continue</Alert>}
-      {user && <h1>Welcome {user.nickname}!</h1>}
-    </div>
-  );
+    <Container 
+      component="main" 
+      maxWidth="lg" 
+      className={classes.root}
+    >
+      <Dashboard />
+    </Container>
+  )
+  
 }
 
 export default Home;

@@ -1,17 +1,20 @@
 import React from 'react';
-import Avatar from '@material-ui/core/Avatar';
-import Box from '@material-ui/core/Box';
-import Button from '@material-ui/core/Button';
-import Checkbox from '@material-ui/core/Checkbox';
-import Container from '@material-ui/core/Container';
-import CssBaseline from '@material-ui/core/CssBaseline';
-import FormControlLabel from '@material-ui/core/FormControlLabel';
-import Grid from '@material-ui/core/Grid';
+import { 
+  Avatar,
+  Box,
+  Button,
+  Checkbox,
+  Container,
+  CssBaseline,
+  FormControlLabel,
+  Grid,
+  TextField,
+  Typography
+} from '@material-ui/core';
 import { LockOutlined } from '@material-ui/icons';
 import Link from '@material-ui/core/Link';
 import { makeStyles } from '@material-ui/core/styles';
-import TextField from '@material-ui/core/TextField';
-import Typography from '@material-ui/core/Typography';
+import { useHistory } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 
 function Copyright() {
@@ -54,8 +57,13 @@ const useStyles = makeStyles((theme) => ({
 
 
 export default function Login() {
+  const history = useHistory();
   const { t } = useTranslation();
   const classes = useStyles();
+
+  const handleClick = () => {
+    history.push('/dashboard');
+  }
 
   return (
     <Container component="main" maxWidth="xs">
@@ -115,6 +123,7 @@ export default function Login() {
             variant="contained"
             className={classes.submit}
             color="primary"
+            onClick={handleClick}
           >
             { t('common:login.signIn') }
           </Button>
