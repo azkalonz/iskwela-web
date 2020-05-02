@@ -2,11 +2,13 @@ import React from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import clsx from 'clsx';
 import {
+  Avatar,
   Card,
   CardActions,
   CardContent,
   Collapse,
   IconButton,
+  Paper,
   Typography,
   Container,
   Grid,
@@ -41,11 +43,26 @@ const useStyles = makeStyles((theme) => ({
     marginLeft: theme.spacing(1),
   },
   scheduleDate: {
-    marginTop: theme.spacing(1),
+    /*marginTop: theme.spacing(1),*/
+    display: 'flex',
+  },
+  teacherAvatar:{
+    marginLeft: "auto", 
+    float: 'right',
+  },
+  teacherName: {
+    color: "black",
+    marginLeft: 'auto',
   },
   footer: {
     background: grey[200],
     direction: "column",
+  },
+  notif: {
+    color: 'white',
+    marginLeft: theme.spacing(2),
+    paddingTop: theme.spacing(1),
+    paddingBottom: theme.spacing(1),
   }
 }));
 
@@ -86,7 +103,7 @@ export default function ClassCard(props) {
       </CardContent>
       <CardActions disableSpacing className={classes.footer}>
         <Grid container direction="column">
-          <Grid container direction="row">
+          <Grid container direction="row" style={{ display: "flex" }}>
             <Schedule />
             <Typography 
               variant="body2" 
@@ -96,6 +113,7 @@ export default function ClassCard(props) {
             >
               {props.schedule}
             </Typography>
+            <Avatar src={props.teacherAvatar} style={{border:props.teacherStatus}} className={classes.teacherAvatar}/>
           </Grid>
           <Grid container direction="row" className={classes.scheduleDate}>
             <CalendarToday />
@@ -107,9 +125,25 @@ export default function ClassCard(props) {
             >
               { new Date().toDateString() }
             </Typography>
+            <Typography
+              variant="body2" 
+              color="textSecondary" 
+              component="h5"
+              className={classes.teacherName}
+              style={{float: 'right'}}
+            >
+              {props.teacherName}
+            </Typography>
           </Grid>
         </Grid>
       </CardActions>
+      { (!props.classStatus) ? null :
+        (<div style={{backgroundColor:props.notifColor}}>
+          <Typography variant="body2" component='p' className={classes.notif}>
+            {props.classStatus}
+          </Typography>
+        </div>)
+      }
     </Card>
   );
 }
