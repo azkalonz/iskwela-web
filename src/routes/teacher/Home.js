@@ -15,8 +15,8 @@ import {
   LibraryBooks,
   SettingsApplications,
 } from '@material-ui/icons';
-import Dashboard from "../components/Dashboard";
-import NavBar from "../components/NavBar";
+import Dashboard from "../../components/teacher/Dashboard";
+import NavBar from "../../components/NavBar";
 
 const useStyles = makeStyles((theme) => ({
   root: {

@@ -6,14 +6,14 @@ import {
 } from '@material-ui/core';
 import PropTypes from 'prop-types';
 import { grey } from '@material-ui/core/colors';
-import ClassCard from './ClassCard';
+import ClassCard from '../ClassCard';
 import { makeStyles, withStyles } from '@material-ui/core/styles';
 import { 
   Apps,
   List,
 } from '@material-ui/icons';
-import "../../node_modules/react-grid-layout/css/styles.css"
-import "../../node_modules/react-resizable/css/styles.css"
+import "../../../node_modules/react-grid-layout/css/styles.css"
+import "../../../node_modules/react-resizable/css/styles.css"
 import GridLayout, { Responsive as ResponsiveLayout } from 'react-grid-layout';
 import _ from "lodash";
 
