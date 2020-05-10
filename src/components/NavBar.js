@@ -1,29 +1,32 @@
 import React, { useState } from "react";
 import clsx from "clsx";
 import { makeStyles, useTheme, withStyles } from "@material-ui/core/styles";
-import Drawer from "@material-ui/core/Drawer";
-import Menu from "@material-ui/core/Menu";
-import MenuItem from "@material-ui/core/MenuItem";
-import AppBar from "@material-ui/core/AppBar";
-import Toolbar from "@material-ui/core/Toolbar";
-import Button from "@material-ui/core/Button";
-import List from "@material-ui/core/List";
-import CssBaseline from "@material-ui/core/CssBaseline";
-import Typography from "@material-ui/core/Typography";
-import Link from "@material-ui/core/Link";
-import Divider from "@material-ui/core/Divider";
-import IconButton from "@material-ui/core/IconButton";
+import {
+  AppBar,
+  Button,
+  CssBaseline,
+  Divider,
+  Drawer,
+  IconButton,
+  Link,
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemText,
+  Menu,
+  MenuItem,
+  Toolbar,
+  Typography,
+} from "@material-ui/core";
 import MenuIcon from "@material-ui/icons/Menu";
 import ChevronLeftIcon from "@material-ui/icons/ChevronLeft";
 import ChevronRightIcon from "@material-ui/icons/ChevronRight";
-import ListItem from "@material-ui/core/ListItem";
-import ListItemIcon from "@material-ui/core/ListItemIcon";
-import ListItemText from "@material-ui/core/ListItemText";
 import { useAuth0 } from "../react-auth0-spa.js";
 import SettingsApplicationsIcon from "@material-ui/icons/SettingsApplications";
 import FaceIcon from "@material-ui/icons/Face";
 import LibraryBooksIcon from "@material-ui/icons/LibraryBooks";
 import JoinClassDialog from "../components/JoinClass";
+import { Apps } from "@material-ui/icons";
 
 const drawerWidth = 240;
 
@@ -86,7 +89,7 @@ const useStyles = makeStyles((theme) => ({
   content: {
     position: "relative",
     flexGrow: 1,
-    padding: theme.spacing(3),
+    // padding: theme.spacing(3),
   },
   title: {
     flexGrow: 1,
@@ -132,34 +135,8 @@ export default function NavBar(props) {
   const [openDialog, setOpenDialog] = useState(false);
   const [open, setOpen] = React.useState(false);
   const [anchorEl, setAnchorEl] = React.useState(null);
-  const { isAuthenticated, loginWithRedirect, logout } = useAuth0();
-  const sideBarLinks = [
-    {
-      title: "Me",
-      icon: <FaceIcon />,
-      auth: true,
-      sub: [
-        {
-          title: "View Profile",
-          href: "/view-profile",
-          icon: <FaceIcon />,
-        },
-        {
-          title: "Join Class",
-          href: "#",
-          onClick: () => {
-            setOpenDialog(true);
-          },
-          icon: <LibraryBooksIcon />,
-        },
-        {
-          title: "Account Settings",
-          href: "/settings",
-          icon: <SettingsApplicationsIcon />,
-        },
-      ],
-    },
-  ];
+  // const { isAuthenticated, loginWithRedirect, logout } = useAuth0();
+  
   const handleDrawerOpen = () => {
     setOpen(true);
   };
@@ -179,7 +156,7 @@ export default function NavBar(props) {
   const makeSidebar = (link, index) => {
     let buffer = [];
     if (!link.sub) {
-      if (link.auth && !isAuthenticated) return;
+      // if (link.auth && !isAuthenticated) return;
       buffer.push(
         <Link
           key={index}
@@ -194,7 +171,7 @@ export default function NavBar(props) {
         </Link>
       );
     } else {
-      if (link.auth && !isAuthenticated) return;
+      // if (link.auth && !isAuthenticated) return;
       buffer.push(
         <div key={index}>
           <Link style={{ color: "#222" }} onClick={link.onClick || null}>
@@ -218,8 +195,9 @@ export default function NavBar(props) {
             open={Boolean(anchorEl)}
             onClose={handleClose}
           >
+            {/* sublink.auth && !isAuthenticated ? null :  */}
             {link.sub.map((sublink, subindex) =>
-              sublink.auth && !isAuthenticated ? null : (
+              (
                 <StyledMenuItem
                   key={subindex}
                   onClick={sublink.onClick || null}
@@ -256,7 +234,7 @@ export default function NavBar(props) {
         })}
       >
         <Toolbar>
-          <IconButton
+          {/* <IconButton
             color="inherit"
             aria-label="open drawer"
             onClick={handleDrawerOpen}
@@ -266,13 +244,13 @@ export default function NavBar(props) {
             })}
           >
             <MenuIcon />
-          </IconButton>
+          </IconButton> */}
           <Typography variant="h6" className={classes.title}>
             <Link className={classes.link} href="/">
-              SchoolHub
+              { props.title ? props.title : 'SchoolHub' }
             </Link>
           </Typography>
-          {!isAuthenticated && (
+          {/* {!isAuthenticated && (
             <Button color="inherit" onClick={() => loginWithRedirect({})}>
               Login
             </Button>
@@ -281,7 +259,7 @@ export default function NavBar(props) {
             <Button color="inherit" onClick={() => logout()}>
               Log out
             </Button>
-          )}
+          )} */}
         </Toolbar>
       </AppBar>
       <Drawer
@@ -308,12 +286,12 @@ export default function NavBar(props) {
         </div>
         <Divider />
         <List>
-          {sideBarLinks.map((link, index) => makeSidebar(link, index))}
+          {props.sideBarLinks.map((link, index) => makeSidebar(link, index))}
         </List>
       </Drawer>
       <main className={classes.content}>
         <div className={classes.toolbar} />
-        <JoinClassDialog handleClose={handleDialogClose} open={openDialog} />
+        {/* <JoinClassDialog handleClose={handleDialogClose} open={openDialog} /> */}
         {props.children}
       </main>
     </div>
