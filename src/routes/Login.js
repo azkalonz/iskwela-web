@@ -62,7 +62,7 @@ export default function Login() {
   const classes = useStyles();
 
   const handleClick = () => {
-    history.push('/dashboard');
+    history.push('/teacher/dashboard');
   }
 
   return (
