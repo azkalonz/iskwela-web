@@ -3,6 +3,7 @@ import clsx from "clsx";
 import { makeStyles, useTheme, withStyles } from "@material-ui/core/styles";
 import {
   AppBar,
+  Avatar,
   Button,
   CssBaseline,
   Divider,
@@ -21,12 +22,16 @@ import {
 import MenuIcon from "@material-ui/icons/Menu";
 import ChevronLeftIcon from "@material-ui/icons/ChevronLeft";
 import ChevronRightIcon from "@material-ui/icons/ChevronRight";
+import { grey } from "@material-ui/core/colors";
 import { useAuth0 } from "../react-auth0-spa.js";
-import SettingsApplicationsIcon from "@material-ui/icons/SettingsApplications";
-import FaceIcon from "@material-ui/icons/Face";
-import LibraryBooksIcon from "@material-ui/icons/LibraryBooks";
+import {
+  Add,
+  Apps,
+  Face,
+  LibraryBooks,
+  SettingsApplications,
+} from '@material-ui/icons';
 import JoinClassDialog from "../components/JoinClass";
-import { Apps } from "@material-ui/icons";
 
 const drawerWidth = 240;
 
@@ -97,6 +102,20 @@ const useStyles = makeStyles((theme) => ({
   link: {
     color: "#fff",
   },
+  avatarLight: {
+    background: grey[300],
+  },
+  avatarDark: {
+    background: grey[800],
+  },
+  sideBarIconLight: {
+    color: "black",
+    fontWeight: theme.typography.fontWeightBold,
+  },
+  sidebarIconDark: {
+    color: grey[50],
+    fontWeight: theme.typography.fontWeightBold,
+  }
 }));
 const StyledMenu = withStyles({
   paper: {
@@ -161,7 +180,7 @@ export default function NavBar(props) {
         <Link
           key={index}
           href={link.href}
-          style={{ color: "#222" }}
+          style={{ color: grey[50], backgroundColor: grey[800] }}
           onClick={link.onClick || null}
         >
           <ListItem button key={index}>
@@ -174,7 +193,7 @@ export default function NavBar(props) {
       // if (link.auth && !isAuthenticated) return;
       buffer.push(
         <div key={index}>
-          <Link style={{ color: "#222" }} onClick={link.onClick || null}>
+          <Link style={{ color: grey[50], backgroundColor: grey[800] }} onClick={link.onClick || null}>
             <ListItem
               button
               key={index}
@@ -224,6 +243,81 @@ export default function NavBar(props) {
     }
     return buffer;
   };
+
+  const createSidebar = (styles, subjects) => {
+    let links =[
+      {
+        title: "Me",
+        icon: (
+          <Avatar 
+            className={styles.avatarLight}
+          >
+            <Apps className={styles.sideBarIconLight} />
+          </Avatar>
+        ),
+        auth: true,
+      },
+    ];
+    subjects.forEach(subject => {
+      links.push({
+        title: "Me",
+        icon: (
+          <Avatar 
+            className={styles.avatarDark}
+          >
+              <Typography className={styles.sidebarIconDark}>
+                {subject.title.charAt(0).toUpperCase()}
+              </Typography>
+          </Avatar>
+        ),
+        auth: true,
+        sub: [
+          {
+            title: "View Profile",
+            href: "/view-profile",
+            icon: <Face />,
+          },
+          {
+            title: "Join Class",
+            href: "#",
+            onClick: () => {
+              // setOpenDialog(true);
+            },
+            icon: <LibraryBooks />,
+          },
+          {
+            title: "Account Settings",
+            href: "/settings",
+            icon: <SettingsApplications />,
+          },
+        ],
+      });
+    });
+    // links.push({
+    //   title: "Me",
+    //   icon: (
+    //     <Avatar 
+    //       className={styles.avatar}
+    //     >
+    //         <Add className={styles.sidebarIcon} />
+    //     </Avatar>
+    //   ),
+    //   auth: true,
+    // });
+    return links;
+  }
+
+  const subjects = [
+    {
+      title: 'Physics'
+    },
+    {
+      title: 'Logistics'
+    }
+  ];
+  
+  const sideBarLinks = createSidebar(classes, subjects);
+
   return (
     <div className={classes.root}>
       <CssBaseline />
@@ -286,7 +380,7 @@ export default function NavBar(props) {
         </div>
         <Divider />
         <List>
-          {props.sideBarLinks.map((link, index) => makeSidebar(link, index))}
+          {sideBarLinks.map((link, index) => makeSidebar(link, index))}
         </List>
       </Drawer>
       <main className={classes.content}>
