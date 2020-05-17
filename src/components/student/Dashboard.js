@@ -2,7 +2,8 @@ import React from "react";
 import {
   Container,
   Grid,
-  FormLabel,
+  InputAdornment,
+  TextField,
 } from '@material-ui/core';
 import PropTypes from 'prop-types';
 import { grey } from '@material-ui/core/colors';
@@ -11,7 +12,9 @@ import { makeStyles, withStyles } from '@material-ui/core/styles';
 import { 
   Apps,
   List,
+  SearchOutlined,
 } from '@material-ui/icons';
+import Autocomplete from '@material-ui/lab/Autocomplete';
 import "../../../node_modules/react-grid-layout/css/styles.css"
 import "../../../node_modules/react-resizable/css/styles.css"
 import GridLayout, { Responsive as ResponsiveLayout } from 'react-grid-layout';
@@ -27,7 +30,10 @@ const useStyles = theme => ({
     background: grey[300],
     minHeight: "100vh",
     padding: theme.spacing(4)
-  }
+  },
+  classFilter: {
+    marginLeft: theme.spacing(2),
+  },
 });
 
 const subjects = [
@@ -75,6 +81,11 @@ const subjects = [
     teacherName: 'Santa',
     teacherAvatar: 'https://upload.wikimedia.org/wikipedia/commons/4/49/Jonathan_G_Meath_portrays_Santa_Claus.jpg'
   },
+];
+
+const classList = [
+  { title: 'Physics' },
+  { title: 'Logistics' }
 ];
 
 class Dashboard extends React.Component {
@@ -130,19 +141,36 @@ class Dashboard extends React.Component {
         <Grid 
           container
           direction="row"
-          justify="space-between"
+          justify="flex-end"
           className={classes.grid}>
           {/* <Grid item>
             <Apps />
             <List />
           </Grid> */}
           <Grid item>
-            <FormLabel
-              label={'Class'}
-            >Class</FormLabel>
-            <FormLabel
-              label={'Date'}
-            >Date</FormLabel>
+            <TextField 
+              id="outlined-search" 
+              label="Search" 
+              type="search" 
+              variant="outlined"
+              style={{ width: 200 }}
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <SearchOutlined />
+                  </InputAdornment>
+                ),
+              }}
+            />
+          </Grid>
+          <Grid item className={classes.classFilter}>
+            <Autocomplete
+              id="combo-box-demo"
+              options={classList}
+              getOptionLabel={(option) => option.title}
+              style={{ width: 200 }}
+              renderInput={(params) => <TextField {...params} label="Class" variant="outlined" />}
+            />
           </Grid>
         </Grid>
         {/* <ResponsiveLayout  */}
