@@ -11,11 +11,11 @@ import {
   TextField,
   Typography
 } from '@material-ui/core';
-import { LockOutlined } from '@material-ui/icons';
 import Link from '@material-ui/core/Link';
 import { makeStyles } from '@material-ui/core/styles';
 import { useHistory } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import logo from '../static/images/logo.png'
 
 function Copyright() {
   return (
@@ -38,8 +38,10 @@ const useStyles = makeStyles((theme) => ({
     alignItems: 'center',
   },
   avatar: {
-    margin: theme.spacing(1),
     backgroundColor: theme.palette.secondary.main,
+    height: theme.spacing(8),
+    margin: theme.spacing(1),
+    width: theme.spacing(8),
   },
   form: {
     width: '100%', // Fix IE 11 issue.
@@ -69,9 +71,7 @@ export default function Login() {
     <Container component="main" maxWidth="xs">
       <CssBaseline />
       <div className={classes.paper}>
-        <Avatar className={classes.avatar}>
-          <LockOutlined />
-        </Avatar>
+        <Avatar className={classes.avatar} alt="SH" src={logo} />
         <Typography component="h1" variant="h5" className={classes.title}>
         { t('common:login.title') }
         </Typography>
