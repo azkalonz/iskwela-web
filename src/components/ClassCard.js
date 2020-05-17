@@ -19,6 +19,7 @@ import {
   CalendarToday,
   Schedule, 
 } from '@material-ui/icons';
+import { useHistory } from 'react-router-dom';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -68,6 +69,7 @@ const useStyles = makeStyles((theme) => ({
 
 export default function ClassCard(props) {
   const classes = useStyles();
+  const history = useHistory();
   const [expanded, setExpanded] = React.useState(false);
 
   if (props.new) {
@@ -83,8 +85,12 @@ export default function ClassCard(props) {
     )
   }
 
+  const handleClick = () => {
+    history.push('/teacher/class/join');
+  }
+
   return (
-    <Card className={classes.root}>
+    <Card className={classes.root} onClick={handleClick}>
       <CardContent className={classes.subject}>
         <Typography variant="h5" color="primary" component="h5">
           {props.subjectName}

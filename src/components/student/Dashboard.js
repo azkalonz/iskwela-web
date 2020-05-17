@@ -132,10 +132,10 @@ class Dashboard extends React.Component {
           direction="row"
           justify="space-between"
           className={classes.grid}>
-          <Grid item>
+          {/* <Grid item>
             <Apps />
             <List />
-          </Grid>
+          </Grid> */}
           <Grid item>
             <FormLabel
               label={'Class'}

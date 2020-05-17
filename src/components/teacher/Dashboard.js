@@ -147,12 +147,12 @@ class Dashboard extends React.Component {
         <Grid 
           container
           direction="row"
-          justify="space-between"
+          justify="flex-end"
           className={classes.grid}>
-          <Grid item>
+          {/* <Grid item>
             <Apps />
             <List />
-          </Grid>
+          </Grid> */}
           <Grid item>
             <FormLabel
               label={'Class'}
