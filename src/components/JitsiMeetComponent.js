@@ -5,7 +5,7 @@ function JitsiMeetComponent(props) {
     const [loading, setLoading] = useState(true);
     const containerStyle = {
         width: '800px',
-        height: '400px',
+        height: '720px',
     };
 
     const jitsiContainerStyle = {
@@ -16,7 +16,7 @@ function JitsiMeetComponent(props) {
 
     function startConference() {
         try {
-        const domain = 'meet.jit.si';
+        const domain = 'meet.jit.si'; // jitsi.iskwela.net
         const options = {
             roomName: props.roomName,
             height: 400,
@@ -53,11 +53,11 @@ function JitsiMeetComponent(props) {
 
  return (
     <div style={containerStyle}>
-    {loading && <ProgressComponent />}
-    <div
-        id="jitsi-container"
-        style={jitsiContainerStyle}
-    />
+        {loading && <ProgressComponent />}
+        <div
+            id="jitsi-container"
+            style={jitsiContainerStyle}
+        />
     </div>
  );
 }

@@ -30,7 +30,7 @@ const useStyles = makeStyles((theme) => ({
 function Class() {
     const classes = useStyles();
   
-    const displayName = 'Jacquelyn Amaya';
+    const displayName = '';
     const email = 'amaya.jacque@gmail.com'
     const roomName = '123e4567-e89b-12d3-a456-426655440000';
     const password = 'zkw7tvbr';
