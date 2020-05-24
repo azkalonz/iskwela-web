@@ -1,0 +1,26 @@
+[
+  {
+    "id": 1,
+    "first_name": "SchoolHub",
+    "last_name": "Student",
+    "user_id": "3",
+    "type": "student",
+    "avatar": "https://source.unsplash.com/random/500x500"
+  },
+  {
+    "id": 2,
+    "first_name": "SchoolHub",
+    "last_name": "Student",
+    "user_id": "2",
+    "type": "student",
+    "avatar": "https://source.unsplash.com/random/500x500"
+  },
+  {
+    "id": 3,
+    "first_name": "SchoolHub",
+    "last_name": "Teacher",
+    "user_id": "1",
+    "type": "teacher",
+    "avatar": "https://source.unsplash.com/random/500x500"
+  }
+]

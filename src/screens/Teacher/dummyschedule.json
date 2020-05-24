@@ -1,0 +1,102 @@
+[
+  {
+    "id": 1,
+    "from": "2020-05-15 01:00:00",
+    "to": "2020-05-15 02:00:00",
+    "teacher": {
+      "id": 9,
+      "first_name": "teacher jayson",
+      "last_name": "barino"
+    },
+    "status": 1,
+    "materials": [
+      {
+        "id": 1,
+        "title": "English Writing Part 1",
+        "instruction": "read the textbook",
+        "description": "learn english writing",
+        "uploaded_file": null,
+        "resource_link": "https://sample-lesson-link.com/english-writing-part1",
+        "added_by": {
+          "id": 8,
+          "name": null
+        }
+      },
+      {
+        "id": 2,
+        "title": "English Writing Part 1",
+        "instruction": "read the textbook",
+        "description": "learn english writing",
+        "uploaded_file": null,
+        "resource_link": "https://sample-lesson-link.com/english-writing-part2",
+        "added_by": {
+          "id": 8,
+          "name": null
+        }
+      }
+    ],
+    "activities": [
+      {
+        "id": 1,
+        "title": "English Assignment 1",
+        "instruction": "read it",
+        "available_from": "2020-05-11",
+        "available_to": "2020-05-15",
+        "questions": [
+          {
+            "id": 1,
+            "question": "what is noun?"
+          },
+          {
+            "id": 2,
+            "question": "what is adverb"
+          },
+          {
+            "id": 3,
+            "question": "what is predicate?"
+          }
+        ],
+        "materials": [
+          {
+            "id": 1,
+            "uploaded_file": "",
+            "resource_link": "http://read-english.com/basics"
+          },
+          {
+            "id": 2,
+            "uploaded_file": "",
+            "resource_link": "http://read-english.com/basics2"
+          }
+        ]
+      },
+      {
+        "id": 2,
+        "title": "English Assignment 2",
+        "instruction": "read it",
+        "available_from": "2020-05-20",
+        "available_to": "2020-05-30",
+        "questions": [
+          {
+            "id": 4,
+            "question": "what is pronoun?"
+          },
+          {
+            "id": 5,
+            "question": "what is subject"
+          },
+          {
+            "id": 6,
+            "question": "what is plural?"
+          }
+        ],
+        "materials": [
+          {
+            "id": 3,
+            "uploaded_file": "",
+            "resource_link": "http://read-english.com/basics3"
+          }
+        ]
+      }
+    ]
+  }
+]
