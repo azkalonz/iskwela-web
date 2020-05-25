@@ -61,7 +61,7 @@ function Login(props) {
         <LockOutlinedIcon />
       </Avatar> */}
             <Typography component="h1" variant="h5">
-              Sign in to your SchoolHub Account
+              {t("common:login.title")}
             </Typography>
             <form className={classes.form} noValidate onSubmit={_handleLogin}>
               <TextField
@@ -83,7 +83,7 @@ function Login(props) {
                 required
                 fullWidth
                 name="password"
-                label="Password"
+                label={t("common:login.password")}
                 value="123456"
                 type="password"
                 id="password"
@@ -94,7 +94,7 @@ function Login(props) {
                 <Grid item xs>
                   <FormControlLabel
                     control={<Checkbox value="remember" color="primary" />}
-                    label="Keep me signed in"
+                    label={t("common:login.rememberMe")}
                   />
                 </Grid>
                 <Grid item>
@@ -103,7 +103,7 @@ function Login(props) {
                     variant="body2"
                     style={{ fontStyle: "italic", color: "gray" }}
                   >
-                    Forgot password?
+                    {t("common:login.forgotPassword")}
                   </Link>
                 </Grid>
               </Grid>
@@ -114,7 +114,7 @@ function Login(props) {
                 color="primary"
                 className={classes.submit}
               >
-                Sign In
+                {t("common:login.signIn")}
               </Button>
             </form>
           </div>
