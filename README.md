@@ -4,7 +4,7 @@ Web application
 
 ## Prerequisites
 
-- `node`,`npm`,`mysql`
+- `node`,`npm`
 
 ## Setup
 
@@ -20,22 +20,6 @@ Web application
 
 ##### `npm install`
 
-- Enter `backend` folder
-
-##### `cd backend`
-
-- Install dependencies
-
-##### `npm install`
-
-- Configure database file
-  - `backened` -> `.env`
-  - Use your shell or mysql interface and create database called `schoolhub`
-  - Import `schema.sql` from `schoolhub_web` folder to your database.
-
 ## Run
 
-- Start react app from `schoolhub_web` 
-#####`npm start`
-- Start express app from `backend` 
-####`npm start`
+- Start react app from `schoolhub_web` #####`npm start`

@@ -1,0 +1,143 @@
+{
+  "id": 1,
+  "name": "English 101",
+  "description": "learn basics",
+  "frequency": "M,W,F",
+  "date_from": "2020-05-11",
+  "date_to": "2020-05-15",
+  "time_from": "09:00:00",
+  "time_to": "10:00:00",
+  "subject": {
+    "id": 1,
+    "name": "English"
+  },
+  "teacher": {
+    "id": 8,
+    "name": "teacher tom"
+  },
+  "schedules": [
+    {
+      "id": 1,
+      "date": "2020-05-11",
+      "status": 0,
+      "is_active": false,
+      "materials": [
+        {
+          "id": 1,
+          "title": "English Writing Part 1",
+          "uploaded_file": null,
+          "resource_link": "https://sample-lesson-link.com/english-writing-part1",
+          "added_by": {
+            "id": 8,
+            "name": "teacher tom"
+          }
+        },
+        {
+          "id": 2,
+          "title": "English Writing Part 1",
+          "uploaded_file": null,
+          "resource_link": "https://sample-lesson-link.com/english-writing-part2",
+          "added_by": {
+            "id": 8,
+            "name": "teacher tom"
+          }
+        }
+      ],
+      "activities": [
+        {
+          "id": 1,
+          "title": "English Assignment 1",
+          "instruction": "read it",
+          "available_from": "2020-05-11",
+          "available_to": "2020-05-15",
+          "materials": [
+            {
+              "id": 1,
+              "uploaded_file": "",
+              "resource_link": "http://read-english.com/basics"
+            },
+            {
+              "id": 2,
+              "uploaded_file": "",
+              "resource_link": "http://read-english.com/basics2"
+            }
+          ]
+        },
+        {
+          "id": 2,
+          "title": "English Assignment 2",
+          "instruction": "read it",
+          "available_from": "2020-05-20",
+          "available_to": "2020-05-30",
+          "materials": [
+            {
+              "id": 3,
+              "uploaded_file": "",
+              "resource_link": "http://read-english.com/basics3"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "date": "2020-05-13",
+      "status": 0,
+      "is_active": false,
+      "materials": [
+        {
+          "id": 3,
+          "title": "English Speaking",
+          "uploaded_file": null,
+          "resource_link": "https://sample-lesson-link.com/english-speaking",
+          "added_by": {
+            "id": 8,
+            "name": "teacher tom"
+          }
+        }
+      ],
+      "activities": []
+    },
+    {
+      "id": 3,
+      "date": "2020-05-15",
+      "status": 0,
+      "is_active": true,
+      "materials": [
+        {
+          "id": 4,
+          "title": "English Grammar",
+          "uploaded_file": null,
+          "resource_link": "https://sample-lesson-link.com/english-grammar",
+          "added_by": {
+            "id": 8,
+            "name": "teacher tom"
+          }
+        }
+      ],
+      "activities": []
+    }
+  ],
+  "students": [
+    {
+      "id": 1,
+      "name": "jayson",
+      "user_type": "s"
+    },
+    {
+      "id": 2,
+      "name": "grace",
+      "user_type": "s"
+    },
+    {
+      "id": 3,
+      "name": "jen",
+      "user_type": "s"
+    },
+    {
+      "id": 4,
+      "name": "davy",
+      "user_type": "s"
+    }
+  ]
+}
