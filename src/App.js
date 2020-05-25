@@ -1,7 +1,7 @@
 import React from "react";
 import "./App.scss";
 import NavBar from "./components/NavBar";
-import Login from "./routes/Login";
+import Login from "./screens/Login";
 import Profile from "./routes/Profile";
 import TeacherHome from "./routes/teacher/Home";
 import TeacherJoinClass from "./routes/teacher/Class";

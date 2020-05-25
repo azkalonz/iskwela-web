@@ -17,11 +17,14 @@ import {
 import { useHistory } from "react-router-dom";
 import LockOutlinedIcon from "@material-ui/icons/LockOutlined";
 import actions from "../components/redux/actions";
+import { useTranslation } from "react-i18next";
+import logo from "../static/images/logo.png";
 
 const dummyusers = require("./dummyusers.json");
 
 function Login(props) {
   const history = useHistory();
+  const { t } = useTranslation();
   const classes = useStyles();
   const [username, setUsername] = useState();
   const [password, setPassword] = useState();
@@ -53,6 +56,7 @@ function Login(props) {
         <Container component="main" maxWidth="xs">
           <CssBaseline />
           <div className={classes.paper}>
+            <Avatar className={classes.avatar} alt="SH" src={logo} />
             {/* <Avatar className={classes.avatar}>
         <LockOutlinedIcon />
       </Avatar> */}
@@ -67,7 +71,7 @@ function Login(props) {
                 required
                 fullWidth
                 id="email"
-                label="1 = teacher / 2 = student"
+                label={t("common:login.idNumber")}
                 name="email"
                 autoComplete="email"
                 autoFocus
@@ -128,8 +132,10 @@ const useStyles = makeStyles((theme) => ({
     alignItems: "center",
   },
   avatar: {
-    margin: theme.spacing(1),
     backgroundColor: theme.palette.secondary.main,
+    height: theme.spacing(8),
+    margin: theme.spacing(1),
+    width: theme.spacing(8),
   },
   form: {
     width: "100%", // Fix IE 11 issue.
