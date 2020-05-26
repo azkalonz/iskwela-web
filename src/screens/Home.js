@@ -19,22 +19,24 @@ import CalendarTodayOutlinedIcon from "@material-ui/icons/CalendarTodayOutlined"
 import Skeleton from "react-loading-skeleton";
 import moment from "moment";
 import VideocamIcon from "@material-ui/icons/Videocam";
-
-const classes = require("../components/classes.json");
+import store from "../components/redux/store";
 
 function Home(props) {
   const styles = useStyles();
   const [loading, setLoading] = useState(true);
   const [userInfo, setUserInfo] = useState();
   const history = useHistory();
+  const [classes, setClasses] = useState();
+
   useEffect(() => {
-    if (localStorage["user"]) setUserInfo(JSON.parse(localStorage["user"]));
-    setTimeout(() => {
-      setLoading(false);
-    }, 1000);
+    _getClasses();
   }, []);
-  const fakeLoader = () => (
-    <Card className={styles.root}>
+  const _getClasses = () => {
+    if (store.getState().classes) setClasses(store.getState().classes);
+    setLoading(false);
+  };
+  const fakeLoader = (i) => (
+    <Card key={i} className={styles.root}>
       <CardActionArea style={{ position: "relative" }}>
         <div style={{ position: "relative" }}>
           <CardMedia className={styles.media} />
@@ -66,34 +68,24 @@ function Home(props) {
     </Card>
   );
   const classItem = (c) => {
+    let status = null;
     let videoConferenceLink =
       "/class/" +
       c.id +
       "/" +
       c.name.replace(" ", "-") +
       "/activity/video-conference/roomid";
-    let upcomingSched = c.schedules[0];
-    c.schedules.forEach((s) => {
-      let a = moment(s.date + " " + c.time_from).diff(new Date());
-      let b = moment(upcomingSched.date + " " + c.time_from).diff(new Date());
-      if (a > b) {
-        upcomingSched = s;
-      }
-    });
-    let message = "started";
-    let diff = moment(upcomingSched.date).diff(new Date());
-
-    if (upcomingSched.status) {
+    if (c.next_schedule.length) {
+      let message = "started";
+      let diff = moment(c.next_schedule.from).diff(new Date());
       if (diff > 0) message = "starts";
-      else if (!upcomingSched.is_active) message = "ended";
-    } else {
-      message = "cancelled";
+
+      status = {
+        time: moment(c.next_schedule.from).fromNow(),
+        diff: diff,
+        message,
+      };
     }
-    let status = {
-      time: moment(upcomingSched.date + " " + c.time_from).fromNow(),
-      diff: diff,
-      message,
-    };
 
     return (
       <div className={styles.root} key={c.id}>
@@ -107,7 +99,10 @@ function Home(props) {
                     c.id +
                     "/" +
                     c.name.replace(" ", "-") +
-                    "/activity"
+                    "/activity" +
+                    (c.next_schedule.from
+                      ? "?schedule=" + c.next_schedule.from.replace(" ", "_")
+                      : "")
                 )
               }
             >
@@ -155,7 +150,11 @@ function Home(props) {
                   variant="body2"
                   style={{ fontSize: "0.8rem", marginLeft: 5 }}
                 >
-                  {c.schedules[0].date}
+                  {c.next_schedule.length
+                    ? moment(c.next_schedule.from).format("MMM D, YYYY")
+                    : moment(c.date_from + " " + c.time_from).format(
+                        "MMM D,YYYY"
+                      )}
                 </Typography>
               </Box>
               <Box
@@ -167,7 +166,13 @@ function Home(props) {
                   variant="body2"
                   style={{ fontSize: "0.75rem", marginLeft: 5 }}
                 >
-                  {c.time_from} - {c.time_to}
+                  {c.next_schedule.length
+                    ? moment(c.next_schedule.from).format("hh:mm") +
+                      " - " +
+                      moment(c.next_schedule.to).format("hh:mm")
+                    : moment(c.date_from + " " + c.time_from).format("hh:mm") +
+                      " - " +
+                      moment(c.date_to + " " + c.time_to).format("hh:mm")}
                 </Typography>
               </Box>
               <div style={{ position: "absolute", top: -40, right: 0 }}>
@@ -187,13 +192,13 @@ function Home(props) {
               </div>
               <div style={{ position: "absolute", right: 0, bottom: 6 }}>
                 <Typography variant="body1" style={{ fontWeight: "bold" }}>
-                  {c.teacher.name}
+                  {c.teacher.first_name} {c.teacher.last_name}
                 </Typography>
               </div>
             </Box>
           </CardActions>
         </Card>
-        {userInfo && userInfo.type === "student" && (
+        {status && (
           <Paper
             onClick={() =>
               history.push(
@@ -223,9 +228,8 @@ function Home(props) {
       <Drawer {...props}>
         <NavBar title="Classes" />
         <Box m={2} display="flex" flexWrap="wrap">
-          {loading
-            ? [1, 1, 1].map((c) => fakeLoader())
-            : classes.map((c) => classItem(c))}
+          {loading && [1, 1, 1].map((c, i) => fakeLoader(i))}
+          {!loading && classes && classes.map((c) => classItem(c))}
         </Box>
       </Drawer>
     </div>

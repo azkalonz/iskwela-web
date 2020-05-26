@@ -46,7 +46,7 @@ function NavBar(props) {
     setAnchorEl(null);
   };
   const handleLogout = () => {
-    localStorage.clear();
+    localStorage.removeItem("auth");
     window.location = "/login";
   };
   const _handleThemeType = () => {

@@ -1,7 +1,6 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { connect } from "react-redux";
 import {
-  Avatar,
   Button,
   CssBaseline,
   TextField,
@@ -14,37 +13,38 @@ import {
   makeStyles,
   Container,
 } from "@material-ui/core";
-import { useHistory } from "react-router-dom";
-import LockOutlinedIcon from "@material-ui/icons/LockOutlined";
+import MuiAlert from "@material-ui/lab/Alert";
 import actions from "../components/redux/actions";
+import Api from "../api";
 
-const dummyusers = require("./dummyusers.json");
+function Alert(props) {
+  return <MuiAlert elevation={6} variant="filled" {...props} />;
+}
 
 function Login(props) {
-  const history = useHistory();
   const classes = useStyles();
   const [username, setUsername] = useState();
   const [password, setPassword] = useState();
 
-  useEffect(() => {
-    if (localStorage["user"]) window.location = "/";
-  }, []);
-
-  const _handleLogin = (e) => {
+  const _handleLogin = async (e) => {
+    props.setLoading(true);
     e.preventDefault();
-    let user = dummyusers.find((u) => u.user_id === username);
-    if (!user) return;
-    let dummyresponse = {
-      access_token:
-        "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOlwvXC90YWxpbmEubG9jYWw6ODA4MFwvYXBpXC9sb2dpbiIsImlhdCI6MTU4OTE5OTE4NSwiZXhwIjoxNTg5MjAyNzg1LCJuYmYiOjE1ODkxOTkxODUsImp0aSI6ImN2TVhWakdhNjRTT0x3NmkiLCJzdWIiOiJKREpWSkdELTdhbjZlbDUiLCJwcnYiOiIyM2JkNWM4OTQ5ZjYwMGFkYjM5ZTcwMWM0MDA4NzJkYjdhNTk3NmY3Iiwia2V5Ijo4fQ.V_9sTyiSHk5VuaIm6uy3cGzigvqDRBoL4Ek7SjR49Vg",
-      token_type: "Bearer",
-      expires_in: 3600,
-    };
-    user = { ...dummyresponse, ...user, isLoggedIn: true };
-    props.setUserInfo(user);
-    localStorage["user"] = JSON.stringify(user);
-    window.location = "/";
-    return false;
+    window.login_error = undefined;
+    try {
+      let res = await Api.post(
+        "api/login?username=" + username + "&password=" + password
+      );
+      if (!res.error) {
+        localStorage["auth"] = JSON.stringify(res);
+        window.location = "/";
+        return;
+      } else {
+        window.login_error = "Invalid username/password";
+      }
+    } catch (e) {
+      window.login_error = "Server error";
+    }
+    props.setLoading(false);
   };
 
   return (
@@ -57,9 +57,13 @@ function Login(props) {
         <LockOutlinedIcon />
       </Avatar> */}
             <Typography component="h1" variant="h5">
-              Sign in to your SchoolHub Account
+              iSkwela
             </Typography>
+
             <form className={classes.form} noValidate onSubmit={_handleLogin}>
+              {window.login_error && (
+                <Alert severity="error">{window.login_error}</Alert>
+              )}
               <TextField
                 variant="outlined"
                 onChange={(e) => setUsername(e.target.value)}
@@ -67,7 +71,7 @@ function Login(props) {
                 required
                 fullWidth
                 id="email"
-                label="1 = teacher / 2 = student"
+                label="Username"
                 name="email"
                 autoComplete="email"
                 autoFocus
@@ -80,7 +84,6 @@ function Login(props) {
                 fullWidth
                 name="password"
                 label="Password"
-                value="123456"
                 type="password"
                 id="password"
                 autoComplete="current-password"

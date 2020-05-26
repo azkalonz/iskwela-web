@@ -18,9 +18,7 @@ import DashboardOutlined from "@material-ui/icons/DashboardOutlined";
 import { connect } from "react-redux";
 import actions from "./redux/actions";
 import { Link as RouteLink, useHistory } from "react-router-dom";
-
-// GET student/teacher classes from API
-const classes = require("./classes.json");
+import store from "./redux/store";
 
 function Drawer(props) {
   const styles = useStyles();
@@ -89,7 +87,7 @@ function Drawer(props) {
             </Box>
           </Box>
         ))}
-        {classes.map((item, index) => (
+        {store.getState().classes.map((item, index) => (
           <Box
             {...listItem.container}
             key={index}
