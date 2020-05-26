@@ -1,0 +1,17 @@
+{
+    "dashboard": {
+        "class": "Class",
+        "classPlaceholder": "All Class",
+        "date": "Date",
+        "datePlaceholder": "Select Date",
+        "title": "My Class"
+    },
+    "login": {
+        "forgotPassword": "Forgot Password?",
+        "idNumber": "ID Number",
+        "password": "Password",
+        "rememberMe": "Keep me signed in",
+        "signIn": "Sign In",
+        "title": "Sign in to your SchoolHub Account"
+    }
+}

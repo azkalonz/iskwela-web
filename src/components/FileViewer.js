@@ -22,11 +22,13 @@ function FV(props) {
     setAbort(false);
     setLoading(true);
     console.log("Opening file from ", url);
-    document.getElementById("file-viewer").src += "";
+    let u = url;
+    document.getElementById("file-viewer").src = "";
+    document.getElementById("file-viewer").src = url;
     document.getElementById("file-viewer").onload = () => setLoading(false);
     setTimeout(() => {
       setTimer(true);
-    }, 5000);
+    }, 10000);
   };
   useEffect(() => {
     if (timer) {

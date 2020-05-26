@@ -1,0 +1,17 @@
+#material-maker {
+  width: 100%;
+  padding: 20px;
+  background: red;
+  & .slide,
+  & .add-slide {
+    width: 120px;
+    height: 120px;
+    background: Blue;
+  }
+  & .slides-container {
+    display: flex;
+    flex-direction: column;
+    background: green;
+    width: 125px;
+  }
+}

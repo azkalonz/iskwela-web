@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from "react";
-import { BrowserRouter, Route, Switch, Redirect } from "react-router-dom";
 import Login from "./screens/Login";
-import Home from "./screens/Home";
 import Class from "./containers/Class";
+import Home from "./screens/Home";
+
+import { BrowserRouter, Route, Switch, Redirect } from "react-router-dom";
 import {
   createMuiTheme,
   MuiThemeProvider,
@@ -102,7 +103,7 @@ function App(props) {
                   <Route exact path="/" component={Home} />
                   <Route path="/class/:id/:name" component={Class} />
                   <Route path="*">
-                    <Redirect to="/login" />
+                    <Redirect to="/" />
                   </Route>
                 </Switch>
               </BrowserRouter>

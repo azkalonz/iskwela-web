@@ -16,6 +16,7 @@ import {
 import MuiAlert from "@material-ui/lab/Alert";
 import actions from "../components/redux/actions";
 import Api from "../api";
+import { useTranslation } from "react-i18next";
 
 function Alert(props) {
   return <MuiAlert elevation={6} variant="filled" {...props} />;
@@ -25,6 +26,7 @@ function Login(props) {
   const classes = useStyles();
   const [username, setUsername] = useState();
   const [password, setPassword] = useState();
+  const { t } = useTranslation();
 
   const _handleLogin = async (e) => {
     props.setLoading(true);
@@ -53,9 +55,6 @@ function Login(props) {
         <Container component="main" maxWidth="xs">
           <CssBaseline />
           <div className={classes.paper}>
-            {/* <Avatar className={classes.avatar}>
-        <LockOutlinedIcon />
-      </Avatar> */}
             <Typography component="h1" variant="h5">
               iSkwela
             </Typography>
@@ -93,7 +92,7 @@ function Login(props) {
                 <Grid item xs>
                   <FormControlLabel
                     control={<Checkbox value="remember" color="primary" />}
-                    label="Keep me signed in"
+                    label={t("common:login.rememberMe")}
                   />
                 </Grid>
                 <Grid item>
@@ -102,7 +101,7 @@ function Login(props) {
                     variant="body2"
                     style={{ fontStyle: "italic", color: "gray" }}
                   >
-                    Forgot password?
+                    {t("common:login.forgotPassword")}
                   </Link>
                 </Grid>
               </Grid>
@@ -113,7 +112,7 @@ function Login(props) {
                 color="primary"
                 className={classes.submit}
               >
-                Sign In
+                {t("common:login.signIn")}
               </Button>
             </form>
           </div>
@@ -131,8 +130,10 @@ const useStyles = makeStyles((theme) => ({
     alignItems: "center",
   },
   avatar: {
-    margin: theme.spacing(1),
     backgroundColor: theme.palette.secondary.main,
+    height: theme.spacing(8),
+    margin: theme.spacing(1),
+    width: theme.spacing(8),
   },
   form: {
     width: "100%", // Fix IE 11 issue.

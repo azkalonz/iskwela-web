@@ -48,7 +48,6 @@ function ClassScheduleNavigator(props) {
   const [sched, setSched] = useState(
     queryString.parse(props.location.search).schedule
   );
-
   return (
     <div>
       {store.getState().classSchedules[props.match.params.id] && (
@@ -64,12 +63,14 @@ function ClassScheduleNavigator(props) {
               store.getState().classSchedules[props.match.params.id]
             ).map((k, i) => {
               return (
-                <MenuItem
-                  value={k}
-                  key={i}
-                  onClick={() => history.push("?schedule=" + k)}
-                >
-                  {moment(k.replace("_", " ")).format("LLLL")}
+                <MenuItem value={k} key={i}>
+                  <div
+                    onClick={() => {
+                      history.push(`?schedule=${k}`);
+                    }}
+                  >
+                    {moment(k.replace("_", " ")).format("LLLL")}
+                  </div>
                 </MenuItem>
               );
             })}
@@ -365,7 +366,14 @@ function Class(props) {
               )}
             />
             <NavBar
-              title={currentOption}
+              title={
+                currentOption
+                  ? rightPanelOptions.find(
+                      (o) =>
+                        o.link.toLowerCase() === currentOption.toLowerCase()
+                    ).title
+                  : ""
+              }
               left={
                 !collapsePanel ? (
                   <IconButton
