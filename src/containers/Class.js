@@ -16,6 +16,10 @@ import {
   IconButton,
   Typography,
   Slide,
+  InputLabel,
+  FormControl,
+  Select,
+  MenuItem,
   Divider,
   withWidth,
 } from "@material-ui/core";
@@ -28,35 +32,74 @@ import ScreenShareOutlinedIcon from "@material-ui/icons/ScreenShareOutlined";
 import VideoConference from "../containers/VideoConference";
 import ArrowBackIosRoundedIcon from "@material-ui/icons/ArrowBackIosRounded";
 import ArrowForwardIosRoundedIcon from "@material-ui/icons/ArrowForwardIosRounded";
-import Activity from "../screens/Teacher/Activity";
-import LessonPlan from "../screens/Teacher/LessonPlan";
-import Schedule from "../screens/Teacher/Schedule";
-import Students from "../screens/Teacher/Students";
-import InstructionalMaterials from "../screens/Teacher/InstructionalMaterials";
-import PrivateRoute from "../components/PrivateRoute";
+import Activity from "../screens/class/Activity";
+import LessonPlan from "../screens/class/LessonPlan";
+import Schedule from "../screens/class/Schedule";
+import Students from "../screens/class/Students";
+import InstructionalMaterials from "../screens/class/InstructionalMaterials";
+import Api from "../api";
+import moment from "moment";
+import store from "../components/redux/store";
 
-const CLASSES = require("../components/classes.json");
-const ASYNC_TIME_DURATION = 1000;
+const queryString = require("query-string");
+function ClassScheduleNavigator(props) {
+  const styles = useStyles();
+  const history = useHistory();
+  const [sched, setSched] = useState(
+    queryString.parse(props.location.search).schedule
+  );
+  return (
+    <div>
+      {store.getState().classSchedules[props.match.params.id] && (
+        <FormControl variant="outlined" className={styles.formControl}>
+          <InputLabel style={{ top: -8 }}>Schedule</InputLabel>
+          <Select
+            label="Schedule"
+            value={sched}
+            onChange={(e) => setSched(e.target.value)}
+            padding={10}
+          >
+            {Object.keys(
+              store.getState().classSchedules[props.match.params.id]
+            ).map((k, i) => {
+              return (
+                <MenuItem value={k} key={i}>
+                  <div
+                    onClick={() => {
+                      history.push(`?schedule=${k}`);
+                    }}
+                  >
+                    {moment(k.replace("_", " ")).format("LLLL")}
+                  </div>
+                </MenuItem>
+              );
+            })}
+          </Select>
+        </FormControl>
+      )}
+    </div>
+  );
+}
 
 function ClassRightPanel(props) {
   let View = null;
   switch (props.match.params.option.toLowerCase()) {
     case "activity":
-      View = <Activity />;
+      View = Activity;
       break;
     case "lesson-plan":
-      View = <LessonPlan />;
+      View = LessonPlan;
       break;
     case "schedule":
-      View = <Schedule />;
+      View = Schedule;
       break;
     case "students":
-      View = <Students />;
+      View = Students;
       break;
     case "instructional-materials":
-      View = <InstructionalMaterials />;
+      View = InstructionalMaterials;
   }
-  return View;
+  return <View {...props} />;
 }
 
 function Class(props) {
@@ -66,49 +109,42 @@ function Class(props) {
   const [loading, setLoading] = useState(true);
   const [CLASS, setCLASS] = useState();
   const [currentOption, setCurrentOption] = useState();
-  const userInfo = JSON.parse(window.localStorage["user"]);
-  const isTeacher = userInfo.type === "teacher" ? true : false;
+  const userInfo = store.getState().userInfo;
+  const [sched, setSched] = useState();
+  const isTeacher = userInfo.user_type === "t" ? true : false;
 
+  useEffect(() => {
+    setSched(queryString.parse(props.location.search).schedule);
+  }, [props.location.search]);
   useEffect(() => {
     const path = window.location.pathname.split("/");
     setLoading(true);
-    if (CLASS) {
-      if (parseInt(props.match.params.id) === parseInt(CLASS.id)) {
-        setTimeout(() => {
-          setLoading(false);
-        }, ASYNC_TIME_DURATION);
-        return;
-      }
-    }
     let opt = rightPanelOptions.find(
-      (o) =>
-        o.title.toLowerCase() ===
-        path[path.length - 1].replace("-", " ").toLowerCase()
+      (o) => o.link.toLowerCase() === path[path.length - 1].toLowerCase()
     );
-    setCurrentOption(opt ? opt.title : "Activity");
-    setCLASS(undefined);
-    _getClassInfo(props.match.params.id).then((res) => {
-      setTimeout(() => {
-        if (res !== undefined) setCLASS(res);
-        setLoading(false);
-      }, ASYNC_TIME_DURATION);
-    });
+    setCurrentOption(opt ? opt.link : "Activity");
+    _getClass();
   }, [window.location.pathname]);
+
   useEffect(() => {
     if (props.width === "sm" || props.width === "xs") setCollapsePanel(false);
     else setCollapsePanel(true);
   }, [props.width]);
 
-  const _getClassInfo = async () => {
-    return CLASSES.find(
-      (c) => c.name.replace(" ", "-") === props.match.params.name
-    );
+  const _getClass = async () => {
+    await Api.auth();
+    if (store.getState().classDetails)
+      setCLASS(store.getState().classDetails[props.match.params.id]);
+    else setCLASS(undefined);
+    setLoading(false);
+    return;
   };
   const panelOption = (p) => (
     <div key={p.id}>
       <Typography
+        component="div"
         onClick={() => {
-          setCurrentOption(p.title);
+          setCurrentOption(p.link);
           history.push(
             "/class/" +
               CLASS.id +
@@ -117,7 +153,9 @@ function Class(props) {
               "/" +
               p.link +
               (window.location.pathname.indexOf("video-conference") >= 0
-                ? "/video-conference/roomid"
+                ? "/video-conference/roomid" + (sched && "?schedule=" + sched)
+                : sched
+                ? "?schedule=" + sched
                 : "")
           );
         }}
@@ -126,7 +164,7 @@ function Class(props) {
         <ListItem
           style={{
             backgroundColor:
-              currentOption === p.title ? "rgba(98, 0, 239,0.1)" : "",
+              currentOption === p.link ? "rgba(98, 0, 239,0.1)" : "",
           }}
           button
         >
@@ -155,7 +193,7 @@ function Class(props) {
             unmountOnExit
             style={{ height: "100vh", overflow: "auto" }}
           >
-            <Paper alignSelf="stretch" className={styles.panel} width="100vw">
+            <Paper className={styles.panel} width="100vw">
               {CLASS !== undefined ? (
                 <div>
                   <Toolbar
@@ -208,7 +246,7 @@ function Class(props) {
                         variant="body2"
                         style={{ fontSize: "0.8rem", marginLeft: 5 }}
                       >
-                        {CLASS.schedules[0].date}
+                        {CLASS.date_from}
                       </Typography>
                     </Box>
                     <Divider
@@ -242,17 +280,17 @@ function Class(props) {
                       bgcolor="grey.500"
                       overflow="hidden"
                     >
-                      <img src={userInfo.avatar} width="100%" height="auto" />
+                      {/* <img src={userInfo.avatar} width="100%" height="auto" /> */}
                     </Box>
                     <Box p={1}>
                       <Typography
                         variant="body1"
                         style={{ fontWeight: "bold" }}
                       >
-                        {userInfo.first_name} {userInfo.last_name}
+                        {CLASS.teacher.first_name} {CLASS.teacher.last_name}
                       </Typography>
                       <Typography variant="body1">
-                        #{userInfo.user_id}
+                        {CLASS.subject.name} Teacher
                       </Typography>
                     </Box>
                   </Box>
@@ -260,7 +298,9 @@ function Class(props) {
                   <Box p={2} className={styles.centered}>
                     <Box flex={1}>
                       <Button
+                        style={{ width: "100%" }}
                         size="small"
+                        disabled={!sched ? true : false}
                         variant="contained"
                         onClick={() => {
                           history.push(
@@ -277,18 +317,7 @@ function Class(props) {
                         }}
                       >
                         <VideocamOutlinedIcon color="primary" />
-                        {userInfo.type === "teacher"
-                          ? "Start Class"
-                          : "Join Class"}
-                      </Button>
-                    </Box>
-                    <Box flex={1}>
-                      <Button
-                        size="small"
-                        variant="contained"
-                        disabled={userInfo.type !== "teacher"}
-                      >
-                        <ScreenShareOutlinedIcon color="primary" /> Share Screen
+                        {isTeacher ? "Start Class" : "Join Class"}
                       </Button>
                     </Box>
                   </Box>
@@ -318,9 +347,8 @@ function Class(props) {
             </Paper>
           </Slide>
           <Box flex={1} overflow="hidden auto" height="100vh">
-            <PrivateRoute
-              authed={localStorage["user"]}
-              path="/class/:id/:name/:option/video-conference/:id"
+            <Route
+              path="/class/:id/:name/:option/video-conference/:roomid"
               component={(p) => (
                 <VideoConference
                   {...p}
@@ -338,7 +366,14 @@ function Class(props) {
               )}
             />
             <NavBar
-              title={currentOption}
+              title={
+                currentOption
+                  ? rightPanelOptions.find(
+                      (o) =>
+                        o.link.toLowerCase() === currentOption.toLowerCase()
+                    ).title
+                  : ""
+              }
               left={
                 !collapsePanel ? (
                   <IconButton
@@ -383,6 +418,7 @@ function Class(props) {
                 </Box>
               )}
               {!loading && !CLASS && (
+                //handle invalid class id
                 <div>
                   <Typography variant="h2" fontWeight="bold" component="h2">
                     404
@@ -392,10 +428,20 @@ function Class(props) {
                   </Typography>
                 </div>
               )}
+
               {!loading && CLASS && (
                 <Route
                   path="/class/:id/:name/:option"
-                  component={ClassRightPanel}
+                  component={(p) => (
+                    <ClassRightPanel
+                      utilities={
+                        <Box>
+                          <ClassScheduleNavigator {...p} />
+                        </Box>
+                      }
+                      {...p}
+                    />
+                  )}
                 />
               )}
             </Box>
@@ -434,7 +480,7 @@ const rightPanelOptionsStudents = [
   },
   {
     title: "Lesson Materials",
-    link: "lesson-materials",
+    link: "instructional-materials",
   },
   {
     title: "Schedule",
@@ -451,6 +497,10 @@ const useStyles = makeStyles((theme) => ({
     zIndex: 12,
     position: "relative",
     width: "calc(100vw-0px)",
+  },
+  formControl: {
+    margin: theme.spacing(1),
+    minWidth: 120,
   },
   centered: {
     display: "flex",
