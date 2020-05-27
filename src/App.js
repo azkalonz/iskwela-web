@@ -149,6 +149,14 @@ const theme = createMuiTheme({
         marginTop: 1,
       },
     },
+    MuiListItem: {
+      root: {
+        "&:hover": {
+          cursor: "pointer!important",
+          backgroundColor: "#fff",
+        },
+      },
+    },
     MuiSelect: {
       root: {
         padding: 10,

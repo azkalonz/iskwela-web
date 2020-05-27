@@ -105,7 +105,9 @@ function Class(props) {
   const [CLASS, setCLASS] = useState();
   const [currentOption, setCurrentOption] = useState();
   const userInfo = store.getState().userInfo;
-  const [sched, setSched] = useState();
+  const [sched, setSched] = useState(
+    queryString.parse(props.location.search).schedule
+  );
   const isTeacher = userInfo.user_type === "t" ? true : false;
 
   useEffect(() => {

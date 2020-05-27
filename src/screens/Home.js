@@ -20,6 +20,7 @@ import Skeleton from "react-loading-skeleton";
 import moment from "moment";
 import VideocamIcon from "@material-ui/icons/Videocam";
 import store from "../components/redux/store";
+import Grow from "@material-ui/core/Grow";
 
 function Home(props) {
   const styles = useStyles();
@@ -88,138 +89,142 @@ function Home(props) {
     }
 
     return (
-      <div className={styles.root} key={c.id}>
-        <Card style={{ position: "relative", zIndex: 2, borderRadius: 17 }}>
-          <CardActionArea style={{ position: "relative" }}>
-            <div
-              style={{ position: "relative", cursor: "pointer" }}
+      <Grow in={true} key={c.id}>
+        <div className={styles.root}>
+          <Card style={{ position: "relative", zIndex: 2, borderRadius: 17 }}>
+            <CardActionArea style={{ position: "relative" }}>
+              <div
+                style={{ position: "relative", cursor: "pointer" }}
+                onClick={() =>
+                  history.push(
+                    "/class/" +
+                      c.id +
+                      "/" +
+                      c.name.replace(" ", "-") +
+                      "/activity" +
+                      (c.next_schedule.from
+                        ? "?schedule=" + c.next_schedule.from.replace(" ", "_")
+                        : "")
+                  )
+                }
+              >
+                <CardMedia
+                  className={styles.media}
+                  image="https://source.unsplash.com/random/600x500"
+                  title={c.name}
+                />
+                <div className={styles.mediaOverlay} />
+              </div>
+              <CardContent style={{ position: "absolute", top: 0, left: 0 }}>
+                <Typography
+                  gutterBottom
+                  variant="h5"
+                  component="h2"
+                  color="primary"
+                >
+                  {c.name}
+                </Typography>
+                <Typography
+                  gutterBottom
+                  variant="body2"
+                  component="h3"
+                  style={{ color: "#222" }}
+                >
+                  {c.description}
+                </Typography>
+              </CardContent>
+            </CardActionArea>
+            <CardActions style={{ background: "grey.300" }}>
+              <Box
+                p={1}
+                className={styles.start}
+                width="100%"
+                flexDirection="column"
+                position="relative"
+              >
+                <Box
+                  flex={1}
+                  className={[styles.centered, styles.start].join(" ")}
+                  style={{ marginBottom: 6 }}
+                >
+                  <CalendarTodayOutlinedIcon />
+                  <Typography
+                    variant="body2"
+                    style={{ fontSize: "0.8rem", marginLeft: 5 }}
+                  >
+                    {c.next_schedule.length
+                      ? moment(c.next_schedule.from).format("MMM D, YYYY")
+                      : moment(c.date_from + " " + c.time_from).format(
+                          "MMM D,YYYY"
+                        )}
+                  </Typography>
+                </Box>
+                <Box
+                  flex={1}
+                  className={[styles.centered, styles.start].join(" ")}
+                >
+                  <QueryBuilderOutlinedIcon />
+                  <Typography
+                    variant="body2"
+                    style={{ fontSize: "0.75rem", marginLeft: 5 }}
+                  >
+                    {c.next_schedule.length
+                      ? moment(c.next_schedule.from).format("hh:mm") +
+                        " - " +
+                        moment(c.next_schedule.to).format("hh:mm")
+                      : moment(c.date_from + " " + c.time_from).format(
+                          "hh:mm"
+                        ) +
+                        " - " +
+                        moment(c.date_to + " " + c.time_to).format("hh:mm")}
+                  </Typography>
+                </Box>
+                <div style={{ position: "absolute", top: -40, right: 0 }}>
+                  <Box
+                    borderRadius="50%"
+                    width={60}
+                    height={60}
+                    bgcolor="grey.500"
+                    overflow="hidden"
+                  >
+                    <img
+                      src="https://source.unsplash.com/random/500x500"
+                      width="100%"
+                      height="auto"
+                    />
+                  </Box>
+                </div>
+                <div style={{ position: "absolute", right: 0, bottom: 6 }}>
+                  <Typography variant="body1" style={{ fontWeight: "bold" }}>
+                    {c.teacher.first_name} {c.teacher.last_name}
+                  </Typography>
+                </div>
+              </Box>
+            </CardActions>
+          </Card>
+          {status && (
+            <Paper
               onClick={() =>
                 history.push(
-                  "/class/" +
-                    c.id +
-                    "/" +
-                    c.name.replace(" ", "-") +
-                    "/activity" +
-                    (c.next_schedule.from
-                      ? "?schedule=" + c.next_schedule.from.replace(" ", "_")
-                      : "")
+                  status.message === "started" ? videoConferenceLink : "/"
                 )
               }
+              className={[styles.classStatus, styles[status.message]].join(" ")}
             >
-              <CardMedia
-                className={styles.media}
-                image="https://source.unsplash.com/random/600x500"
-                title={c.name}
-              />
-              <div className={styles.mediaOverlay} />
-            </div>
-            <CardContent style={{ position: "absolute", top: 0, left: 0 }}>
-              <Typography
-                gutterBottom
-                variant="h5"
-                component="h2"
-                color="primary"
-              >
-                {c.name}
+              <Typography variant="body1">
+                {status.message === "ended"
+                  ? "Ended " + status.time
+                  : status.message === "starts"
+                  ? "Starts " + status.time
+                  : status.message === "cancelled"
+                  ? "Class was cancelled"
+                  : "Class has started join call?"}
               </Typography>
-              <Typography
-                gutterBottom
-                variant="body2"
-                component="h3"
-                style={{ color: "#222" }}
-              >
-                {c.description}
-              </Typography>
-            </CardContent>
-          </CardActionArea>
-          <CardActions style={{ background: "grey.300" }}>
-            <Box
-              p={1}
-              className={styles.start}
-              width="100%"
-              flexDirection="column"
-              position="relative"
-            >
-              <Box
-                flex={1}
-                className={[styles.centered, styles.start].join(" ")}
-                style={{ marginBottom: 6 }}
-              >
-                <CalendarTodayOutlinedIcon />
-                <Typography
-                  variant="body2"
-                  style={{ fontSize: "0.8rem", marginLeft: 5 }}
-                >
-                  {c.next_schedule.length
-                    ? moment(c.next_schedule.from).format("MMM D, YYYY")
-                    : moment(c.date_from + " " + c.time_from).format(
-                        "MMM D,YYYY"
-                      )}
-                </Typography>
-              </Box>
-              <Box
-                flex={1}
-                className={[styles.centered, styles.start].join(" ")}
-              >
-                <QueryBuilderOutlinedIcon />
-                <Typography
-                  variant="body2"
-                  style={{ fontSize: "0.75rem", marginLeft: 5 }}
-                >
-                  {c.next_schedule.length
-                    ? moment(c.next_schedule.from).format("hh:mm") +
-                      " - " +
-                      moment(c.next_schedule.to).format("hh:mm")
-                    : moment(c.date_from + " " + c.time_from).format("hh:mm") +
-                      " - " +
-                      moment(c.date_to + " " + c.time_to).format("hh:mm")}
-                </Typography>
-              </Box>
-              <div style={{ position: "absolute", top: -40, right: 0 }}>
-                <Box
-                  borderRadius="50%"
-                  width={60}
-                  height={60}
-                  bgcolor="grey.500"
-                  overflow="hidden"
-                >
-                  <img
-                    src="https://source.unsplash.com/random/500x500"
-                    width="100%"
-                    height="auto"
-                  />
-                </Box>
-              </div>
-              <div style={{ position: "absolute", right: 0, bottom: 6 }}>
-                <Typography variant="body1" style={{ fontWeight: "bold" }}>
-                  {c.teacher.first_name} {c.teacher.last_name}
-                </Typography>
-              </div>
-            </Box>
-          </CardActions>
-        </Card>
-        {status && (
-          <Paper
-            onClick={() =>
-              history.push(
-                status.message === "started" ? videoConferenceLink : "/"
-              )
-            }
-            className={[styles.classStatus, styles[status.message]].join(" ")}
-          >
-            <Typography variant="body1">
-              {status.message === "ended"
-                ? "Ended " + status.time
-                : status.message === "starts"
-                ? "Starts " + status.time
-                : status.message === "cancelled"
-                ? "Class was cancelled"
-                : "Class has started join call?"}
-            </Typography>
-            {status.message === "started" && <VideocamIcon />}
-          </Paper>
-        )}
-      </div>
+              {status.message === "started" && <VideocamIcon />}
+            </Paper>
+          )}
+        </div>
+      </Grow>
     );
   };
 

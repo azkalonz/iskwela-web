@@ -10,6 +10,7 @@ import {
   DialogContentText,
   DialogTitle,
   Menu,
+  Paper,
   MenuItem,
   withStyles,
   Box,
@@ -20,6 +21,7 @@ import {
   ListItemSecondaryAction,
   makeStyles,
   Typography,
+  Link,
 } from "@material-ui/core";
 import RootRef from "@material-ui/core/RootRef";
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
@@ -32,6 +34,10 @@ import SearchIcon from "@material-ui/icons/Search";
 import AttachFileOutlinedIcon from "@material-ui/icons/AttachFileOutlined";
 import store from "../../components/redux/store";
 import FileViewer from "../../components/FileViewer";
+import moment from "moment";
+import { useHistory } from "react-router-dom";
+import LaunchIcon from "@material-ui/icons/Launch";
+
 const queryString = require("query-string");
 
 function Activity(props) {
@@ -45,6 +51,8 @@ function Activity(props) {
   const isTeacher = store.getState().userInfo.user_type === "t" ? true : false;
   const styles = useStyles();
   const classSched = props.classSched;
+  const [currentActivity, setCurrentActivity] = useState();
+  const history = useHistory();
 
   useEffect(() => console.log(classSched), [classSched]);
   const _handleFileOption = (option, file) => {
@@ -132,6 +140,11 @@ function Activity(props) {
   const handleClose = () => {
     setOpen(false);
   };
+  const _handleItemClick = (item) => {
+    setCurrentActivity(
+      currentActivity && item.id === currentActivity.id ? undefined : item
+    );
+  };
 
   return (
     <Box width="100%" alignSelf="flex-start" height="100%">
@@ -185,6 +198,73 @@ function Activity(props) {
           </Box>
         </Box>
       </Box>
+      {currentActivity && currentActivity && (
+        <Box p={2}>
+          <Paper>
+            <Box p={2}>
+              <Box display="flex" justifyContent="space-between">
+                <Typography style={{ fontWeight: "bold" }} variant="body1">
+                  {currentActivity.title}
+                </Typography>
+                <Typography>
+                  {moment(currentActivity.available_from).format("LL")} -{" "}
+                  {moment(currentActivity.available_to).format("LL")}
+                </Typography>
+              </Box>
+              <Box m={2} style={{ marginLeft: 0, marginRight: 0 }}>
+                <Typography>{currentActivity.description}</Typography>
+              </Box>
+              <Box display="inline-block">
+                <Typography color="textSecondary">Resources</Typography>
+                {currentActivity.materials.map((m) => (
+                  <Typography component="div">
+                    <Link
+                      component="div"
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        cursor: "pointer",
+                      }}
+                      onClick={() => window.open(m.resource_link)}
+                    >
+                      {m.resource_link}
+                      <LaunchIcon fontSize="small" />
+                    </Link>
+                  </Typography>
+                ))}
+              </Box>
+            </Box>
+          </Paper>
+          <Box marginTop={2}>
+            <Typography
+              style={{ fontWeight: "bold", marginBottom: 7 }}
+              color="textSecondary"
+            >
+              Upload your Answer
+            </Typography>
+
+            <Paper>
+              <Box width="100%" p={2} style={{ boxSizing: "border-box" }}>
+                <Box className={styles.upload}>
+                  <Link
+                    component="div"
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      cursor: "pointer",
+                      fontWeight: "bold",
+                    }}
+                  >
+                    <AttachFileOutlinedIcon fontSize="small" />
+                    Add file&nbsp;
+                  </Link>
+                  or drag file in here
+                </Box>
+              </Box>
+            </Paper>
+          </Box>
+        </Box>
+      )}
       {!activities && (
         <Box
           width="100%"
@@ -208,6 +288,7 @@ function Activity(props) {
                   display: "flex",
                   flexDirection: "row",
                   justifyContent: "space-between",
+                  backgroundColor: "transparent",
                 }}
               >
                 <Button size="small" onClick={_handleSort}>
@@ -259,18 +340,29 @@ function Activity(props) {
                                 ContainerProps={{ ref: provided.innerRef }}
                                 {...provided.draggableProps}
                                 {...provided.dragHandleProps}
+                                onClick={() => _handleItemClick(item)}
                                 className={styles.listItem}
-                                style={getItemStyle(
-                                  snapshot.isDragging,
-                                  provided.draggableProps.style
-                                )}
+                                style={{
+                                  ...getItemStyle(
+                                    snapshot.isDragging,
+                                    provided.draggableProps.style
+                                  ),
+                                  ...(currentActivity &&
+                                  item.id === currentActivity.id
+                                    ? {
+                                        background: "#fff",
+                                      }
+                                    : {}),
+                                }}
                               >
                                 <ListItemIcon>
                                   <InsertDriveFileOutlinedIcon />
                                 </ListItemIcon>
                                 <ListItemText
                                   primary={item.title}
-                                  secondary={item.description}
+                                  secondary={
+                                    item.description.substr(0, 50) + "..."
+                                  }
                                 />
                                 <Typography
                                   variant="body1"
@@ -453,6 +545,28 @@ const useStyles = makeStyles((theme) => ({
     textField: {
       marginLeft: theme.spacing(1),
       marginRight: theme.spacing(1),
+    },
+  },
+  upload: {
+    borderColor: theme.palette.primary.main,
+    borderWidth: 2,
+    borderRadius: 6,
+    height: 170,
+    width: "100%",
+    borderStyle: "dashed",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    position: "relative",
+    "&:before": {
+      content: "''",
+      position: "absolute",
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      backgroundColor: theme.palette.primary.main,
+      opacity: 0.1,
     },
   },
   listItem: {
