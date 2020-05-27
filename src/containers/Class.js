@@ -119,6 +119,7 @@ function Class(props) {
   }, [props.match.params.id]);
 
   useEffect(() => {
+    setCLASS(undefined);
     const path = window.location.pathname.split("/");
     setLoading(true);
     let opt = rightPanelOptions.find(
@@ -162,13 +163,7 @@ function Class(props) {
         }}
         style={{ cursor: "pointer" }}
       >
-        <ListItem
-          style={{
-            backgroundColor:
-              currentOption === p.link ? "rgba(98, 0, 239,0.1)" : "",
-          }}
-          button
-        >
+        <ListItem id={currentOption === p.link ? "selected-option" : ""} button>
           <ListItemIcon>
             <VideocamOutlinedIcon />
           </ListItemIcon>
@@ -197,15 +192,7 @@ function Class(props) {
             <Paper className={styles.panel} width="100vw">
               {CLASS !== undefined ? (
                 <div>
-                  <Toolbar
-                    style={{
-                      position: "sticky",
-                      top: 0,
-                      left: 0,
-                      right: 0,
-                      zIndex: 9,
-                    }}
-                  >
+                  <Toolbar className={styles.toolbar}>
                     <Typography variant="body1" style={{ fontWeight: "bold" }}>
                       {CLASS.name}
                     </Typography>
@@ -502,6 +489,14 @@ const useStyles = makeStyles((theme) => ({
     zIndex: 12,
     position: "relative",
     width: "calc(100vw-0px)",
+  },
+  toolbar: {
+    position: "sticky",
+    top: 0,
+    left: 0,
+    right: 0,
+    background: theme.palette.grey[200],
+    zIndex: 9,
   },
   formControl: {
     margin: theme.spacing(1),

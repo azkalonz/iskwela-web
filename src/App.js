@@ -18,6 +18,9 @@ import { Paper } from "@material-ui/core";
 import Api from "./api";
 import store from "./components/redux/store";
 import moment from "moment";
+import CssBaseline from "@material-ui/core/CssBaseline";
+
+const primaryColor = "#6200ef";
 
 async function asyncForEach(array, callback) {
   for (let index = 0; index < array.length; index++) {
@@ -87,6 +90,7 @@ function App(props) {
   }, []);
   return (
     <MuiThemeProvider theme={theme}>
+      <CssBaseline />
       <StylesProvider>
         <SkeletonTheme {...skeletonCustomTheme}>
           <Paper
@@ -134,9 +138,12 @@ function App(props) {
 }
 
 const defaultTheme = createMuiTheme();
-const mode = window.localStorage["mode"]
-  ? window.localStorage["mode"]
-  : "light";
+let mode = window.localStorage["mode"] ? window.localStorage["mode"] : "light";
+mode = mode === "dark" || mode === "lgiht" ? mode : "light";
+store.dispatch({
+  type: "SET_THEME",
+  theme: mode,
+});
 const useStyles = makeStyles((theme) => ({
   root: {
     background: mode === "dark" ? "#222222" : theme.palette.grey[300],
@@ -144,6 +151,28 @@ const useStyles = makeStyles((theme) => ({
 }));
 const theme = createMuiTheme({
   overrides: {
+    MuiCssBaseline: {
+      "@global": {
+        "::selection": {
+          backgroundColor: primaryColor,
+          color: "#fff",
+        },
+        "#selected-option": {
+          position: "relative",
+          "&:before": {
+            content: "''",
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: primaryColor,
+            opacity: 0.2,
+            zIndex: -1,
+          },
+        },
+      },
+    },
     MuiDivider: {
       root: {
         marginTop: 1,
@@ -201,13 +230,13 @@ const theme = createMuiTheme({
   palette: {
     type: mode,
     primary: {
-      main: "#6200ef",
+      main: primaryColor,
     },
     grey:
       mode === "dark"
         ? {
             100: "#171717",
-            200: "#202020",
+            200: "#191919",
             300: "#1e1e1e",
           }
         : {},
@@ -217,8 +246,8 @@ const theme = createMuiTheme({
 const skeletonCustomTheme =
   mode === "dark"
     ? {
-        color: "#787878",
-        highlightColor: "#9f9f9f",
+        color: "#474747",
+        highlightColor: "#575757",
       }
     : {
         color: "#d9d9d9",

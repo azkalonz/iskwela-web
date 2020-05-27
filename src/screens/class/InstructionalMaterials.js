@@ -229,6 +229,7 @@ function InstructionalMaterials(props) {
                   display: "flex",
                   flexDirection: "row",
                   justifyContent: "space-between",
+                  backgroundColor: "transparent",
                 }}
               >
                 <Button size="small" onClick={_handleSort}>

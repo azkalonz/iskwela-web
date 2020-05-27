@@ -237,34 +237,36 @@ function Activity(props) {
                 </Box>
               </Box>
             </Paper>
-            <Box marginTop={2}>
-              <Typography
-                style={{ fontWeight: "bold", marginBottom: 7 }}
-                color="textSecondary"
-              >
-                Upload your Answer
-              </Typography>
+            {!isTeacher && (
+              <Box marginTop={2}>
+                <Typography
+                  style={{ fontWeight: "bold", marginBottom: 7 }}
+                  color="textSecondary"
+                >
+                  Upload your Answer
+                </Typography>
 
-              <Paper>
-                <Box width="100%" p={2} style={{ boxSizing: "border-box" }}>
-                  <Box className={styles.upload}>
-                    <Link
-                      component="div"
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        cursor: "pointer",
-                        fontWeight: "bold",
-                      }}
-                    >
-                      <AttachFileOutlinedIcon fontSize="small" />
-                      Add file&nbsp;
-                    </Link>
-                    or drag file in here
+                <Paper>
+                  <Box width="100%" p={2} style={{ boxSizing: "border-box" }}>
+                    <Box className={styles.upload}>
+                      <Link
+                        component="div"
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          cursor: "pointer",
+                          fontWeight: "bold",
+                        }}
+                      >
+                        <AttachFileOutlinedIcon fontSize="small" />
+                        Add file&nbsp;
+                      </Link>
+                      or drag file in here
+                    </Box>
                   </Box>
-                </Box>
-              </Paper>
-            </Box>
+                </Paper>
+              </Box>
+            )}
           </Box>
         </Grow>
       )}
@@ -353,7 +355,10 @@ function Activity(props) {
                                   ...(currentActivity &&
                                   item.id === currentActivity.id
                                     ? {
-                                        background: "#fff",
+                                        background:
+                                          store.getState().theme === "dark"
+                                            ? "#111"
+                                            : "#fff",
                                       }
                                     : {}),
                                 }}

@@ -44,6 +44,14 @@ const classSchedules = (state = {}, action) => {
       return state;
   }
 };
+const theme = (state = "light", action) => {
+  switch (action.type) {
+    case "SET_THEME":
+      return action.theme;
+    default:
+      return state;
+  }
+};
 
 export default combineReducers({
   userInfo,
@@ -51,4 +59,5 @@ export default combineReducers({
   route,
   classDetails,
   classSchedules,
+  theme,
 });

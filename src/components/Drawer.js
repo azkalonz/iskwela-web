@@ -167,7 +167,6 @@ const listItem = {
     display: "flex",
     justifyContent: "center",
     borderColor: "primary.main",
-    style: { display: "block" },
   },
   item: {
     borderRadius: "50%",

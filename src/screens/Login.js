@@ -17,6 +17,7 @@ import MuiAlert from "@material-ui/lab/Alert";
 import actions from "../components/redux/actions";
 import Api from "../api";
 import { useTranslation } from "react-i18next";
+const queryString = require("query-string");
 
 function Alert(props) {
   return <MuiAlert elevation={6} variant="filled" {...props} />;
@@ -37,13 +38,15 @@ function Login(props) {
         "api/login?username=" + username + "&password=" + password
       );
       if (!res.error) {
+        let redirect_url = queryString.parse(window.location.search).r;
         localStorage["auth"] = JSON.stringify(res);
-        window.location = "/";
+        window.location = redirect_url ? redirect_url : "/";
         return;
       } else {
         window.login_error = "Invalid username/password";
       }
     } catch (e) {
+      console.log(e);
       window.login_error = "Server error";
     }
     props.setLoading(false);
