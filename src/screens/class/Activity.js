@@ -37,6 +37,7 @@ import FileViewer from "../../components/FileViewer";
 import moment from "moment";
 import { useHistory } from "react-router-dom";
 import LaunchIcon from "@material-ui/icons/Launch";
+import Grow from "@material-ui/core/Grow";
 
 const queryString = require("query-string");
 
@@ -199,71 +200,73 @@ function Activity(props) {
         </Box>
       </Box>
       {currentActivity && currentActivity && (
-        <Box p={2}>
-          <Paper>
-            <Box p={2}>
-              <Box display="flex" justifyContent="space-between">
-                <Typography style={{ fontWeight: "bold" }} variant="body1">
-                  {currentActivity.title}
-                </Typography>
-                <Typography>
-                  {moment(currentActivity.available_from).format("LL")} -{" "}
-                  {moment(currentActivity.available_to).format("LL")}
-                </Typography>
+        <Grow in={true}>
+          <Box p={2}>
+            <Paper>
+              <Box p={2}>
+                <Box display="flex" justifyContent="space-between">
+                  <Typography style={{ fontWeight: "bold" }} variant="body1">
+                    {currentActivity.title}
+                  </Typography>
+                  <Typography>
+                    {moment(currentActivity.available_from).format("LL")} -{" "}
+                    {moment(currentActivity.available_to).format("LL")}
+                  </Typography>
+                </Box>
+                <Box m={2} style={{ marginLeft: 0, marginRight: 0 }}>
+                  <Typography>{currentActivity.description}</Typography>
+                </Box>
+                <Box display="inline-block">
+                  <Typography color="textSecondary">Resources</Typography>
+                  {currentActivity.materials.map((m) => (
+                    <Typography component="div">
+                      <Link
+                        component="div"
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          cursor: "pointer",
+                        }}
+                        onClick={() => window.open(m.resource_link)}
+                      >
+                        {m.resource_link}
+                        <LaunchIcon fontSize="small" />
+                      </Link>
+                    </Typography>
+                  ))}
+                </Box>
               </Box>
-              <Box m={2} style={{ marginLeft: 0, marginRight: 0 }}>
-                <Typography>{currentActivity.description}</Typography>
-              </Box>
-              <Box display="inline-block">
-                <Typography color="textSecondary">Resources</Typography>
-                {currentActivity.materials.map((m) => (
-                  <Typography component="div">
+            </Paper>
+            <Box marginTop={2}>
+              <Typography
+                style={{ fontWeight: "bold", marginBottom: 7 }}
+                color="textSecondary"
+              >
+                Upload your Answer
+              </Typography>
+
+              <Paper>
+                <Box width="100%" p={2} style={{ boxSizing: "border-box" }}>
+                  <Box className={styles.upload}>
                     <Link
                       component="div"
                       style={{
                         display: "flex",
                         alignItems: "center",
                         cursor: "pointer",
+                        fontWeight: "bold",
                       }}
-                      onClick={() => window.open(m.resource_link)}
                     >
-                      {m.resource_link}
-                      <LaunchIcon fontSize="small" />
+                      <AttachFileOutlinedIcon fontSize="small" />
+                      Add file&nbsp;
                     </Link>
-                  </Typography>
-                ))}
-              </Box>
-            </Box>
-          </Paper>
-          <Box marginTop={2}>
-            <Typography
-              style={{ fontWeight: "bold", marginBottom: 7 }}
-              color="textSecondary"
-            >
-              Upload your Answer
-            </Typography>
-
-            <Paper>
-              <Box width="100%" p={2} style={{ boxSizing: "border-box" }}>
-                <Box className={styles.upload}>
-                  <Link
-                    component="div"
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      cursor: "pointer",
-                      fontWeight: "bold",
-                    }}
-                  >
-                    <AttachFileOutlinedIcon fontSize="small" />
-                    Add file&nbsp;
-                  </Link>
-                  or drag file in here
+                    or drag file in here
+                  </Box>
                 </Box>
-              </Box>
-            </Paper>
+              </Paper>
+            </Box>
           </Box>
-        </Box>
+        </Grow>
       )}
       {!activities && (
         <Box

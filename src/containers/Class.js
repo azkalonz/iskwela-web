@@ -126,7 +126,6 @@ function Class(props) {
   }, [props.width]);
 
   const _getClass = async () => {
-    await Api.auth();
     if (store.getState().classDetails)
       setCLASS(store.getState().classDetails[props.match.params.id]);
     else setCLASS(undefined);
@@ -383,7 +382,7 @@ function Class(props) {
               flex={1}
               display="flex"
               alignItems="center"
-              height="100%"
+              height="86%"
               justifyContent="center"
             >
               {loading && (

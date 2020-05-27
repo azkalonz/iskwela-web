@@ -13,6 +13,7 @@ import { connect } from "react-redux";
 import actions from "./redux/actions";
 import { useHistory } from "react-router-dom";
 import Brightness6Icon from "@material-ui/icons/Brightness6";
+import ArrowDropDownIcon from "@material-ui/icons/ArrowDropDown";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -86,7 +87,7 @@ function NavBar(props) {
                 aria-haspopup="true"
                 onClick={handleMenu}
               >
-                <AccountCircle />
+                <ArrowDropDownIcon />
               </IconButton>
               <Menu
                 id="menu-appbar"
