@@ -41,6 +41,7 @@ import FileViewer from "../../components/FileViewer";
 const queryString = require("query-string");
 
 function InstructionalMaterials(props) {
+  const { class_id } = props.match.params;
   const [materials, setMaterials] = useState();
   const [search, setSearch] = useState("");
   const [sortType, setSortType] = useState("DESCENDING");
@@ -77,9 +78,7 @@ function InstructionalMaterials(props) {
   const _getMaterials = () => {
     if (!classSched) return;
     try {
-      let a = store.getState().classSchedules[props.match.params.id][
-        classSched
-      ];
+      let a = store.getState().classSchedules[class_id][classSched];
       a = a.materials.map((i) => ({ ...i, id: "item-" + i.id }));
       setMaterials(a);
     } catch (e) {

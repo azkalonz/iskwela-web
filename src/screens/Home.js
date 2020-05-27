@@ -21,6 +21,7 @@ import moment from "moment";
 import VideocamIcon from "@material-ui/icons/Videocam";
 import store from "../components/redux/store";
 import Grow from "@material-ui/core/Grow";
+import { makeLinkTo } from "../components/router-dom";
 
 function Home(props) {
   const styles = useStyles();
@@ -70,12 +71,7 @@ function Home(props) {
   );
   const classItem = (c) => {
     let status = null;
-    let videoConferenceLink =
-      "/class/" +
-      c.id +
-      "/" +
-      c.name.replace(" ", "-") +
-      "/activity/video-conference/roomid";
+    let videoConferenceLink = makeLinkTo(["class", c.id, "activity", "roomid"]);
     if (c.next_schedule.length) {
       let message = "started";
       let diff = moment(c.next_schedule.from).diff(new Date());
@@ -97,14 +93,11 @@ function Home(props) {
                 style={{ position: "relative", cursor: "pointer" }}
                 onClick={() =>
                   history.push(
-                    "/class/" +
-                      c.id +
-                      "/" +
-                      c.name.replace(" ", "-") +
-                      "/activity" +
-                      (c.next_schedule.from
+                    makeLinkTo(["class", c.id, "activity", "sched"], {
+                      sched: c.next_schedule.from
                         ? "?schedule=" + c.next_schedule.from.replace(" ", "_")
-                        : "")
+                        : "",
+                    })
                   )
                 }
               >

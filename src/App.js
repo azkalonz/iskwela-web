@@ -105,7 +105,14 @@ function App(props) {
                   </Route>
 
                   <Route exact path="/" component={Home} />
-                  <Route path="/class/:id/:name" component={Class} />
+                  <Route
+                    path="/class/:class_id/:option_name/:room_name"
+                    component={Class}
+                  />
+                  <Route
+                    path="/class/:class_id/:option_name"
+                    component={Class}
+                  />
                   <Route path="*">
                     <Redirect to="/" />
                   </Route>

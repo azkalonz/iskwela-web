@@ -62,10 +62,11 @@ const useStyles = makeStyles((theme) => ({
     width: 1,
   },
 }));
-console.log(store.getState().classDetails);
+
 function Students(props) {
+  const { class_id } = props.match.params;
   const [students, setStudents] = useState(
-    store.getState().classDetails[props.match.params.id].students
+    store.getState().classDetails[class_id].students
   );
   const [orderBy, setOrderBy] = React.useState("calories");
   const [order, setOrder] = React.useState("asc");

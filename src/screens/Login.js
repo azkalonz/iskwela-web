@@ -46,7 +46,6 @@ function Login(props) {
         window.login_error = "Invalid username/password";
       }
     } catch (e) {
-      console.log(e);
       window.login_error = "Server error";
     }
     props.setLoading(false);

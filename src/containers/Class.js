@@ -40,9 +40,16 @@ import InstructionalMaterials from "../screens/class/InstructionalMaterials";
 import Api from "../api";
 import moment from "moment";
 import store from "../components/redux/store";
+import {
+  makeLinkTo,
+  rightPanelOptionsStudents,
+  rightPanelOptions,
+  isValidOption,
+} from "../components/router-dom";
 
 const queryString = require("query-string");
 function ClassScheduleNavigator(props) {
+  const { class_id } = props.match.params;
   const styles = useStyles();
   const history = useHistory();
   const [sched, setSched] = useState(props.classSched);
@@ -51,7 +58,7 @@ function ClassScheduleNavigator(props) {
   }, [sched]);
   return (
     <div>
-      {store.getState().classSchedules[props.match.params.id] && (
+      {store.getState().classSchedules[class_id] && (
         <FormControl variant="outlined" className={styles.formControl}>
           <InputLabel style={{ top: -8 }}>Schedule</InputLabel>
           <Select
@@ -60,15 +67,15 @@ function ClassScheduleNavigator(props) {
             onChange={(e) => setSched(e.target.value)}
             padding={10}
           >
-            {Object.keys(
-              store.getState().classSchedules[props.match.params.id]
-            ).map((k, i) => {
-              return (
-                <MenuItem value={k} key={i}>
-                  {moment(k.replace("_", " ")).format("LLLL")}
-                </MenuItem>
-              );
-            })}
+            {Object.keys(store.getState().classSchedules[class_id]).map(
+              (k, i) => {
+                return (
+                  <MenuItem value={k} key={i}>
+                    {moment(k.replace("_", " ")).format("LLLL")}
+                  </MenuItem>
+                );
+              }
+            )}
           </Select>
         </FormControl>
       )}
@@ -77,8 +84,12 @@ function ClassScheduleNavigator(props) {
 }
 
 function ClassRightPanel(props) {
+  const { option_name } = props.match.params;
+  if (!isValidOption(option_name)) {
+    return null;
+  }
   let View = null;
-  switch (props.match.params.option.toLowerCase()) {
+  switch (option_name.toLowerCase()) {
     case "activity":
       View = Activity;
       break;
@@ -98,12 +109,13 @@ function ClassRightPanel(props) {
 }
 
 function Class(props) {
+  const { room_name, class_id } = props.match.params;
+  const option_name = props.match.params.option_name;
   const history = useHistory();
   const styles = useStyles();
   const [collapsePanel, setCollapsePanel] = useState(false);
   const [loading, setLoading] = useState(true);
   const [CLASS, setCLASS] = useState();
-  const [currentOption, setCurrentOption] = useState();
   const userInfo = store.getState().userInfo;
   const [sched, setSched] = useState(
     queryString.parse(props.location.search).schedule
@@ -111,21 +123,17 @@ function Class(props) {
   const isTeacher = userInfo.user_type === "t" ? true : false;
 
   useEffect(() => {
-    let s = store.getState().classSchedules[props.match.params.id];
+    let s = store.getState().classSchedules[class_id];
     if (s) {
       let keys = Object.keys(s);
       if (keys) setSched(keys[keys.length - 1]);
     }
-  }, [props.match.params.id]);
+  }, [class_id]);
 
   useEffect(() => {
     setCLASS(undefined);
     const path = window.location.pathname.split("/");
     setLoading(true);
-    let opt = rightPanelOptions.find(
-      (o) => o.link.toLowerCase() === path[path.length - 1].toLowerCase()
-    );
-    setCurrentOption(opt ? opt.link : "Activity");
     _getClass();
   }, [window.location.pathname]);
 
@@ -136,34 +144,27 @@ function Class(props) {
 
   const _getClass = async () => {
     if (store.getState().classDetails)
-      setCLASS(store.getState().classDetails[props.match.params.id]);
+      setCLASS(store.getState().classDetails[class_id]);
     else setCLASS(undefined);
     setLoading(false);
     return;
   };
+
   const panelOption = (p) => (
     <div key={p.id}>
       <Typography
         component="div"
         onClick={() => {
-          setCurrentOption(p.link);
           history.push(
-            "/class/" +
-              CLASS.id +
-              "/" +
-              CLASS.name.replace(" ", "-") +
-              "/" +
-              p.link +
-              (window.location.pathname.indexOf("video-conference") >= 0
-                ? "/video-conference/roomid" + (sched && "?schedule=" + sched)
-                : sched
-                ? "?schedule=" + sched
-                : "")
+            makeLinkTo(["class", CLASS.id, p.link, "room_name", "sc"], {
+              room_name: room_name ? "/roomid" : "",
+              sc: sched ? "?schedule=" + sched : "",
+            })
           );
         }}
         style={{ cursor: "pointer" }}
       >
-        <ListItem id={currentOption === p.link ? "selected-option" : ""} button>
+        <ListItem id={option_name === p.link ? "selected-option" : ""} button>
           <ListItemIcon>
             <VideocamOutlinedIcon />
           </ListItemIcon>
@@ -291,15 +292,10 @@ function Class(props) {
                         variant="contained"
                         onClick={() => {
                           history.push(
-                            "/class/" +
-                              props.match.params.id +
-                              "/" +
-                              props.match.params.name.replace(" ", "-") +
-                              (currentOption
-                                ? "/" +
-                                  currentOption.replace(" ", "-").toLowerCase()
-                                : "") +
-                              "/video-conference/roomid"
+                            makeLinkTo(
+                              ["class", CLASS.id, option_name, "roomid", "sc"],
+                              { sc: sched ? "?schedule=" + sched : "" }
+                            )
                           );
                         }}
                       >
@@ -334,33 +330,24 @@ function Class(props) {
             </Paper>
           </Slide>
           <Box flex={1} overflow="hidden auto" height="100vh">
-            <Route
-              path="/class/:id/:name/:option/video-conference/:roomid"
-              component={(p) => (
-                <VideoConference
-                  {...p}
-                  left={
-                    !collapsePanel ? (
-                      <IconButton
-                        aria-label="Collapse Panel"
-                        onClick={() => setCollapsePanel(!collapsePanel)}
-                      >
-                        <ArrowForwardIosRoundedIcon />
-                      </IconButton>
-                    ) : null
-                  }
-                />
-              )}
-            />
+            {room_name && CLASS && sched && (
+              <VideoConference
+                roomName={room_name}
+                left={
+                  !collapsePanel ? (
+                    <IconButton
+                      aria-label="Collapse Panel"
+                      onClick={() => setCollapsePanel(!collapsePanel)}
+                    >
+                      <ArrowForwardIosRoundedIcon />
+                    </IconButton>
+                  ) : null
+                }
+              />
+            )}
+
             <NavBar
-              title={
-                currentOption
-                  ? rightPanelOptions.find(
-                      (o) =>
-                        o.link.toLowerCase() === currentOption.toLowerCase()
-                    ).title
-                  : ""
-              }
+              title={isValidOption(option_name).title}
               left={
                 !collapsePanel ? (
                   <IconButton
@@ -418,7 +405,7 @@ function Class(props) {
 
               {!loading && CLASS && (
                 <Route
-                  path="/class/:id/:name/:option"
+                  path="/class/:class_id/:option_name"
                   component={(p) => (
                     <ClassRightPanel
                       classSched={sched}
@@ -443,42 +430,6 @@ function Class(props) {
     </div>
   );
 }
-const rightPanelOptions = [
-  {
-    title: "Activity",
-    link: "activity",
-  },
-  {
-    title: "Lesson Plan",
-    link: "lesson-plan",
-  },
-  {
-    title: "Instructional Materials",
-    link: "instructional-materials",
-  },
-  {
-    title: "Schedule",
-    link: "schedule",
-  },
-  {
-    title: "Students",
-    link: "students",
-  },
-];
-const rightPanelOptionsStudents = [
-  {
-    title: "Activity",
-    link: "activity",
-  },
-  {
-    title: "Lesson Materials",
-    link: "instructional-materials",
-  },
-  {
-    title: "Schedule",
-    link: "schedule",
-  },
-];
 const useStyles = makeStyles((theme) => ({
   panel: {
     [theme.breakpoints.up("sm")]: {

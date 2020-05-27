@@ -19,6 +19,7 @@ import { connect } from "react-redux";
 import actions from "./redux/actions";
 import { Link as RouteLink, useHistory } from "react-router-dom";
 import store from "./redux/store";
+import { makeLinkTo } from "./router-dom";
 
 function Drawer(props) {
   const styles = useStyles();
@@ -47,7 +48,7 @@ function Drawer(props) {
           style={{ width: "100%", cursor: "pointer" }}
           onClick={() => {
             props.setRoute({ index: 0, title: "Class" });
-            history.push("/");
+            history.push(makeLinkTo(["/"]));
           }}
         >
           SH
@@ -93,13 +94,7 @@ function Drawer(props) {
             borderLeft={5}
             onClick={() => {
               props.setRoute({ index, title: item.title });
-              history.push(
-                "/class/" +
-                  item.id +
-                  "/" +
-                  item.name.replace(" ", "-") +
-                  "/Activity"
-              );
+              history.push(makeLinkTo(["class", item.id, "activity"]));
             }}
             borderColor={
               ("/class/" + item.id + "/" + item.name.replace(" ", "-")).indexOf(

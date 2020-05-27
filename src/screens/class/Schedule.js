@@ -43,8 +43,9 @@ const objectToArray = (x, filter) =>
     .map((k) => Object.keys(x[k]).map((kk) => x[k][kk]))[0];
 
 function Schedule(props) {
+  const { class_id } = props.match.params;
   const [schedules, setSchedules] = useState(
-    objectToArray(store.getState().classSchedules, props.match.params.id)
+    objectToArray(store.getState().classSchedules, class_id)
   );
   const [sortType, setSortType] = useState("DESCENDING");
   const [modals, setModals] = useState([false, false]);
@@ -57,7 +58,6 @@ function Schedule(props) {
   const styles = useStyles();
 
   useEffect(() => {
-    console.log("s", schedules);
     if (schedules)
       setAnchorEl(() => {
         let a = {};

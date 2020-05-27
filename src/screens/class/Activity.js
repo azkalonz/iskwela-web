@@ -42,6 +42,7 @@ import Grow from "@material-ui/core/Grow";
 const queryString = require("query-string");
 
 function Activity(props) {
+  const { class_id } = props.match.params;
   const [activities, setActivities] = useState();
   const [sortType, setSortType] = useState("DESCENDING");
   const [search, setSearch] = useState("");
@@ -55,7 +56,6 @@ function Activity(props) {
   const [currentActivity, setCurrentActivity] = useState();
   const history = useHistory();
 
-  useEffect(() => console.log(classSched), [classSched]);
   const _handleFileOption = (option, file) => {
     setAnchorEl(() => {
       let a = {};
@@ -79,9 +79,7 @@ function Activity(props) {
   const _getActivities = () => {
     if (!classSched) return;
     try {
-      let a = store.getState().classSchedules[props.match.params.id][
-        classSched
-      ];
+      let a = store.getState().classSchedules[class_id][classSched];
       a = a.activities.map((i) => ({ ...i, id: "item-" + i.id }));
       setActivities(a);
     } catch (e) {
@@ -453,7 +451,10 @@ function Activity(props) {
       >
         <DialogTitle id="alert-dialog-slide-title">Create Activity</DialogTitle>
         <DialogContent>
-          <DialogContentText id="alert-dialog-slide-description">
+          <DialogContentText
+            id="alert-dialog-slide-description"
+            component="div"
+          >
             <Box display="flex" flexWrap="wrap">
               <TextField
                 label="Title"

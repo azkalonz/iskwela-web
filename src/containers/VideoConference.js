@@ -10,7 +10,7 @@ function VideoConference(props) {
   const [roomName, setRoomName] = useState();
 
   useEffect(() => {
-    setRoomName(props.match.params.roomid);
+    setRoomName(props.roomName);
   }, []);
   const handleAPI = (JitsiApi) => {
     JitsiApi.executeCommand("toggleVideo");
