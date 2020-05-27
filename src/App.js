@@ -139,7 +139,7 @@ const mode = window.localStorage["mode"]
   : "light";
 const useStyles = makeStyles((theme) => ({
   root: {
-    background: mode === "dark" ? "#575757" : theme.palette.grey[300],
+    background: mode === "dark" ? "#222222" : theme.palette.grey[300],
   },
 }));
 const theme = createMuiTheme({
@@ -147,6 +147,11 @@ const theme = createMuiTheme({
     MuiDivider: {
       root: {
         marginTop: 1,
+      },
+    },
+    MuiPaper: {
+      root: {
+        ...(mode === "dark" ? { backgroundColor: "#111" } : {}),
       },
     },
     MuiToolbar: {
@@ -159,7 +164,9 @@ const theme = createMuiTheme({
       root: {
         "&:hover": {
           cursor: "pointer!important",
-          backgroundColor: "#fff",
+          ...(mode === "dark"
+            ? { backgroundColor: "#111" }
+            : { backgroundColor: "#fff" }),
         },
       },
     },
@@ -199,8 +206,9 @@ const theme = createMuiTheme({
     grey:
       mode === "dark"
         ? {
-            100: "#424242",
-            200: "#424242",
+            100: "#171717",
+            200: "#202020",
+            300: "#1e1e1e",
           }
         : {},
   },
