@@ -53,7 +53,6 @@ function Drawer(props) {
           SH
         </Typography>
       </Toolbar>
-      <Divider />
       <List>
         {listItems.map((item, index) => (
           <Box

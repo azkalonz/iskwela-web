@@ -149,6 +149,12 @@ const theme = createMuiTheme({
         marginTop: 1,
       },
     },
+    MuiToolbar: {
+      regular: {
+        minHeight: "51px!important",
+        borderBottom: "1px solid rgba(0, 0, 0, 0.12)",
+      },
+    },
     MuiListItem: {
       root: {
         "&:hover": {

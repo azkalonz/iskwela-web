@@ -111,6 +111,14 @@ function Class(props) {
   const isTeacher = userInfo.user_type === "t" ? true : false;
 
   useEffect(() => {
+    let s = store.getState().classSchedules[props.match.params.id];
+    if (s) {
+      let keys = Object.keys(s);
+      if (keys) setSched(keys[keys.length - 1]);
+    }
+  }, [props.match.params.id]);
+
+  useEffect(() => {
     const path = window.location.pathname.split("/");
     setLoading(true);
     let opt = rightPanelOptions.find(
@@ -191,7 +199,6 @@ function Class(props) {
                 <div>
                   <Toolbar
                     style={{
-                      minHeight: 50,
                       position: "sticky",
                       top: 0,
                       left: 0,

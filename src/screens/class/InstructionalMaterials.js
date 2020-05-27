@@ -271,6 +271,7 @@ function InstructionalMaterials(props) {
                                   snapshot.isDragging,
                                   provided.draggableProps.style
                                 )}
+                                onClick={() => _handleFileOption("view", item)}
                                 className={styles.listItem}
                               >
                                 <ListItemIcon>
