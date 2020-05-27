@@ -45,9 +45,10 @@ const queryString = require("query-string");
 function ClassScheduleNavigator(props) {
   const styles = useStyles();
   const history = useHistory();
-  const [sched, setSched] = useState(
-    queryString.parse(props.location.search).schedule
-  );
+  const [sched, setSched] = useState(props.classSched);
+  useEffect(() => {
+    if (sched) props.changeClassSched(sched);
+  }, [sched]);
   return (
     <div>
       {store.getState().classSchedules[props.match.params.id] && (
@@ -64,13 +65,7 @@ function ClassScheduleNavigator(props) {
             ).map((k, i) => {
               return (
                 <MenuItem value={k} key={i}>
-                  <div
-                    onClick={() => {
-                      history.push(`?schedule=${k}`);
-                    }}
-                  >
-                    {moment(k.replace("_", " ")).format("LLLL")}
-                  </div>
+                  {moment(k.replace("_", " ")).format("LLLL")}
                 </MenuItem>
               );
             })}
@@ -108,6 +103,7 @@ function Class(props) {
   const [collapsePanel, setCollapsePanel] = useState(false);
   const [loading, setLoading] = useState(true);
   const [CLASS, setCLASS] = useState();
+  const [classSched, setClassSched] = useState();
   const [currentOption, setCurrentOption] = useState();
   const userInfo = store.getState().userInfo;
   const [sched, setSched] = useState();
@@ -434,9 +430,14 @@ function Class(props) {
                   path="/class/:id/:name/:option"
                   component={(p) => (
                     <ClassRightPanel
+                      classSched={classSched}
                       utilities={
                         <Box>
-                          <ClassScheduleNavigator {...p} />
+                          <ClassScheduleNavigator
+                            {...p}
+                            classSched={classSched}
+                            changeClassSched={(sched) => setClassSched(sched)}
+                          />
                         </Box>
                       }
                       {...p}

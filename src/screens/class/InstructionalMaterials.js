@@ -47,7 +47,7 @@ function InstructionalMaterials(props) {
   const [modals, setModals] = useState([false, false]);
   const [anchorEl, setAnchorEl] = useState(null);
   const [addNewFileAnchor, setAddNewFileAnchor] = useState(null);
-  const classSched = queryString.parse(props.location.search).schedule;
+  const classSched = props.classSched;
   const isTeacher = store.getState().userInfo.user_type === "t" ? true : false;
   const styles = useStyles();
   const [file, setFile] = useState();

@@ -59,7 +59,7 @@ function NavBar(props) {
   return (
     <div className={classes.root}>
       <AppBar position="static" className={classes.appbar}>
-        <Toolbar style={{ minHeight: 50 }}>
+        <Toolbar style={{ minHeight: 51 }}>
           {props.left}
           <Typography
             variant="body1"

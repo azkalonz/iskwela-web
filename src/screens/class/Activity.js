@@ -44,8 +44,9 @@ function Activity(props) {
   const [fileViewerOpen, setfileViewerOpen] = useState(false);
   const isTeacher = store.getState().userInfo.user_type === "t" ? true : false;
   const styles = useStyles();
-  const classSched = queryString.parse(props.location.search).schedule;
+  const classSched = props.classSched;
 
+  useEffect(() => console.log(classSched), [classSched]);
   const _handleFileOption = (option, file) => {
     setAnchorEl(() => {
       let a = {};
