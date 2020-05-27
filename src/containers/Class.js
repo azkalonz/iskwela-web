@@ -103,15 +103,11 @@ function Class(props) {
   const [collapsePanel, setCollapsePanel] = useState(false);
   const [loading, setLoading] = useState(true);
   const [CLASS, setCLASS] = useState();
-  const [classSched, setClassSched] = useState();
   const [currentOption, setCurrentOption] = useState();
   const userInfo = store.getState().userInfo;
   const [sched, setSched] = useState();
   const isTeacher = userInfo.user_type === "t" ? true : false;
 
-  useEffect(() => {
-    setSched(queryString.parse(props.location.search).schedule);
-  }, [props.location.search]);
   useEffect(() => {
     const path = window.location.pathname.split("/");
     setLoading(true);
@@ -430,13 +426,13 @@ function Class(props) {
                   path="/class/:id/:name/:option"
                   component={(p) => (
                     <ClassRightPanel
-                      classSched={classSched}
+                      classSched={sched}
                       utilities={
                         <Box>
                           <ClassScheduleNavigator
                             {...p}
-                            classSched={classSched}
-                            changeClassSched={(sched) => setClassSched(sched)}
+                            classSched={sched}
+                            changeClassSched={(s) => setSched(s)}
                           />
                         </Box>
                       }
