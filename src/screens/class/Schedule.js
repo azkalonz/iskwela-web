@@ -217,79 +217,85 @@ function Schedule(props) {
                       color: styles[row.status + "_color"],
                     };
                     return (
-                      <TableRow
-                        key={row.name}
-                        className={[styles.row, status.color].join(" ")}
-                      >
-                        <TableCell component="th" scope="row">
-                          {moment(row.from).format("MMMM D, YYYY")}
-                        </TableCell>
-                        <TableCell align="right">
-                          {moment(row.from).format("h:mm A")} -{" "}
-                          {moment(row.to).format("h:mm A")}
-                        </TableCell>
-                        <TableCell align="right">{row.teacher_name}</TableCell>
-                        <TableCell align="right">
-                          <Chip
-                            label={status.label.toUpperCase()}
-                            className={status.className}
-                          />
-                        </TableCell>
-                        <TableCell align="right">
-                          <IconButton
-                            onClick={(event) =>
-                              setAnchorEl(() => {
-                                let a = {};
-                                a[row.id] = event.currentTarget;
-                                return { ...anchorEl, ...a };
-                              })
-                            }
-                          >
-                            <MoreHorizOutlinedIcon />
-                          </IconButton>
-                          {anchorEl && (
-                            <StyledMenu
-                              id="customized-menu"
-                              anchorEl={anchorEl[row.id]}
-                              keepMounted
-                              open={Boolean(anchorEl[row.id])}
-                              onClose={() =>
+                      <Grow in={true}>
+                        <TableRow
+                          key={row.name}
+                          className={[styles.row, status.color].join(" ")}
+                        >
+                          <TableCell component="th" scope="row">
+                            {moment(row.from).format("MMMM D, YYYY")}
+                          </TableCell>
+                          <TableCell align="right">
+                            {moment(row.from).format("h:mm A")} -{" "}
+                            {moment(row.to).format("h:mm A")}
+                          </TableCell>
+                          <TableCell align="right">
+                            {row.teacher_name}
+                          </TableCell>
+                          <TableCell align="right">
+                            <Chip
+                              label={status.label.toUpperCase()}
+                              className={status.className}
+                            />
+                          </TableCell>
+                          <TableCell align="right">
+                            <IconButton
+                              onClick={(event) =>
                                 setAnchorEl(() => {
                                   let a = {};
-                                  a[row.id] = null;
+                                  a[row.id] = event.currentTarget;
                                   return { ...anchorEl, ...a };
                                 })
                               }
                             >
-                              <StyledMenuItem
-                                disabled={
-                                  row.status !== "ONGOING" ? true : false
+                              <MoreHorizOutlinedIcon />
+                            </IconButton>
+                            {anchorEl && (
+                              <StyledMenu
+                                id="customized-menu"
+                                anchorEl={anchorEl[row.id]}
+                                keepMounted
+                                open={Boolean(anchorEl[row.id])}
+                                onClose={() =>
+                                  setAnchorEl(() => {
+                                    let a = {};
+                                    a[row.id] = null;
+                                    return { ...anchorEl, ...a };
+                                  })
                                 }
                               >
-                                <ListItemText
-                                  primary="Join"
-                                  onClick={() => _handleFileOption("join", row)}
-                                />
-                              </StyledMenuItem>
-                              {isTeacher && (
-                                <div>
-                                  <StyledMenuItem>
-                                    <ListItemText
-                                      primary="Edit"
-                                      onClick={() =>
-                                        _handleFileOption("edit", row)
-                                      }
-                                    />
-                                  </StyledMenuItem>
-                                  <StyledMenuItem>
-                                    <ListItemText primary="Delete" />
-                                  </StyledMenuItem>
-                                </div>
-                              )}
-                            </StyledMenu>
-                          )}
-                        </TableCell>
-                      </TableRow>
+                                <StyledMenuItem
+                                  disabled={
+                                    row.status !== "ONGOING" ? true : false
+                                  }
+                                >
+                                  <ListItemText
+                                    primary="Join"
+                                    onClick={() =>
+                                      _handleFileOption("join", row)
+                                    }
+                                  />
+                                </StyledMenuItem>
+                                {isTeacher && (
+                                  <div>
+                                    <StyledMenuItem>
+                                      <ListItemText
+                                        primary="Edit"
+                                        onClick={() =>
+                                          _handleFileOption("edit", row)
+                                        }
+                                      />
+                                    </StyledMenuItem>
+                                    <StyledMenuItem>
+                                      <ListItemText primary="Delete" />
+                                    </StyledMenuItem>
+                                  </div>
+                                )}
+                              </StyledMenu>
+                            )}
+                          </TableCell>
+                        </TableRow>
+                      </Grow>
                     );
                   })}
             </TableBody>

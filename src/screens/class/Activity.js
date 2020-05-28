@@ -495,119 +495,126 @@ function Activity(props) {
               <Droppable droppableId="droppable">
                 {(provided, snapshot) => (
                   <RootRef rootRef={provided.innerRef}>
-                    <List style={getListStyle(snapshot.isDraggingOver)}>
-                      {activities
-                        .filter(
-                          (a) =>
-                            JSON.stringify(a).toLowerCase().indexOf(search) >= 0
-                        )
-                        .reverse()
-                        .map((item, index) => (
-                          <Draggable
-                            key={item.id}
-                            draggableId={item.id}
-                            index={index}
-                          >
-                            {(provided, snapshot) => (
-                              <ListItem
-                                ContainerComponent="li"
-                                ContainerProps={{ ref: provided.innerRef }}
-                                {...provided.draggableProps}
-                                {...provided.dragHandleProps}
-                                onClick={() => _handleItemClick(item)}
-                                className={styles.listItem}
-                                style={{
-                                  ...getItemStyle(
-                                    snapshot.isDragging,
-                                    provided.draggableProps.style
-                                  ),
-                                  ...(currentActivity &&
-                                  item.id === currentActivity.id
-                                    ? {
-                                        background:
-                                          props.theme === "dark"
-                                            ? "#111"
-                                            : "#fff",
-                                      }
-                                    : {}),
-                                }}
-                              >
-                                <ListItemIcon>
-                                  <InsertDriveFileOutlinedIcon />
-                                </ListItemIcon>
-                                <ListItemText
-                                  primary={item.title}
-                                  secondary={
-                                    item.description.substr(0, 50) + "..."
-                                  }
-                                />
-                                <Typography
-                                  variant="body1"
-                                  component="div"
-                                  style={{ marginRight: 10 }}
+                    <Grow in={true}>
+                      <List style={getListStyle(snapshot.isDraggingOver)}>
+                        {activities
+                          .filter(
+                            (a) =>
+                              JSON.stringify(a).toLowerCase().indexOf(search) >=
+                              0
+                          )
+                          .filter((a) => a.status === "published")
+                          .reverse()
+                          .map((item, index) => (
+                            <Draggable
+                              key={item.id}
+                              draggableId={item.id}
+                              index={index}
+                            >
+                              {(provided, snapshot) => (
+                                <ListItem
+                                  ContainerComponent="li"
+                                  ContainerProps={{ ref: provided.innerRef }}
+                                  {...provided.draggableProps}
+                                  {...provided.dragHandleProps}
+                                  onClick={() => _handleItemClick(item)}
+                                  className={styles.listItem}
+                                  style={{
+                                    ...getItemStyle(
+                                      snapshot.isDragging,
+                                      provided.draggableProps.style
+                                    ),
+                                    ...(currentActivity &&
+                                    item.id === currentActivity.id
+                                      ? {
+                                          background:
+                                            props.theme === "dark"
+                                              ? "#111"
+                                              : "#fff",
+                                        }
+                                      : {}),
+                                  }}
                                 >
-                                  {moment(item.available_from).format("LL")}
-                                  &nbsp;-&nbsp;
-                                  {moment(item.available_from).format("LL")}
-                                </Typography>
-                                <ListItemSecondaryAction>
-                                  <IconButton
-                                    onClick={(event) =>
-                                      setAnchorEl(() => {
-                                        let a = {};
-                                        a[item.id] = event.currentTarget;
-                                        return { ...anchorEl, ...a };
-                                      })
+                                  <ListItemIcon>
+                                    <InsertDriveFileOutlinedIcon />
+                                  </ListItemIcon>
+                                  <ListItemText
+                                    primary={item.title}
+                                    secondary={
+                                      item.description.substr(0, 50) + "..."
                                     }
+                                  />
+                                  <Typography
+                                    variant="body1"
+                                    component="div"
+                                    style={{ marginRight: 10 }}
                                   >
-                                    <MoreHorizOutlinedIcon />
-                                  </IconButton>
-                                  {anchorEl && (
-                                    <StyledMenu
-                                      id="customized-menu"
-                                      anchorEl={anchorEl[item.id]}
-                                      keepMounted
-                                      open={Boolean(anchorEl[item.id])}
-                                      onClose={() =>
+                                    {moment(item.available_from).format("LL")}
+                                    &nbsp;-&nbsp;
+                                    {moment(item.available_from).format("LL")}
+                                  </Typography>
+                                  <ListItemSecondaryAction>
+                                    <IconButton
+                                      onClick={(event) =>
                                         setAnchorEl(() => {
                                           let a = {};
-                                          a[item.id] = null;
+                                          a[item.id] = event.currentTarget;
                                           return { ...anchorEl, ...a };
                                         })
                                       }
                                     >
-                                      <StyledMenuItem>
-                                        <ListItemText
-                                          primary="View"
-                                          onClick={() =>
-                                            _handleFileOption("view", item)
-                                          }
-                                        />
-                                      </StyledMenuItem>
-                                      {isTeacher && (
-                                        <div>
-                                          <StyledMenuItem>
-                                            <ListItemText
-                                              primary="Edit"
-                                              onClick={() =>
-                                                _handleFileOption("edit", item)
-                                              }
-                                            />
-                                          </StyledMenuItem>
-                                          <StyledMenuItem>
-                                            <ListItemText primary="Delete" />
-                                          </StyledMenuItem>
-                                        </div>
-                                      )}
-                                    </StyledMenu>
-                                  )}
-                                </ListItemSecondaryAction>
-                              </ListItem>
-                            )}
-                          </Draggable>
-                        ))}
-                      {provided.placeholder}
-                    </List>
+                                      <MoreHorizOutlinedIcon />
+                                    </IconButton>
+                                    {anchorEl && (
+                                      <StyledMenu
+                                        id="customized-menu"
+                                        anchorEl={anchorEl[item.id]}
+                                        keepMounted
+                                        open={Boolean(anchorEl[item.id])}
+                                        onClose={() =>
+                                          setAnchorEl(() => {
+                                            let a = {};
+                                            a[item.id] = null;
+                                            return { ...anchorEl, ...a };
+                                          })
+                                        }
+                                      >
+                                        <StyledMenuItem>
+                                          <ListItemText
+                                            primary="View"
+                                            onClick={() =>
+                                              _handleFileOption("view", item)
+                                            }
+                                          />
+                                        </StyledMenuItem>
+                                        {isTeacher && (
+                                          <div>
+                                            <StyledMenuItem>
+                                              <ListItemText
+                                                primary="Edit"
+                                                onClick={() =>
+                                                  _handleFileOption(
+                                                    "edit",
+                                                    item
+                                                  )
+                                                }
+                                              />
+                                            </StyledMenuItem>
+                                            <StyledMenuItem>
+                                              <ListItemText primary="Delete" />
+                                            </StyledMenuItem>
+                                          </div>
+                                        )}
+                                      </StyledMenu>
+                                    )}
+                                  </ListItemSecondaryAction>
+                                </ListItem>
+                              )}
+                            </Draggable>
+                          ))}
+                        {provided.placeholder}
+                      </List>
+                    </Grow>
                   </RootRef>
                 )}
               </Droppable>
