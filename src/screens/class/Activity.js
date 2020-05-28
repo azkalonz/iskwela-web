@@ -6,6 +6,7 @@ import {
   ListItemIcon,
   Dialog,
   DialogActions,
+  Input,
   DialogContent,
   DialogContentText,
   DialogTitle,
@@ -38,12 +39,15 @@ import moment from "moment";
 import { useHistory } from "react-router-dom";
 import LaunchIcon from "@material-ui/icons/Launch";
 import Grow from "@material-ui/core/Grow";
+import FileUpload, { stageFiles } from "../../components/FileUpload";
 
 const queryString = require("query-string");
 
 function Activity(props) {
+  const [hasFiles, setHasFiles] = useState(FileUpload.files);
   const { class_id } = props.match.params;
   const [activities, setActivities] = useState();
+  const [dragover, setDragover] = useState(false);
   const [sortType, setSortType] = useState("DESCENDING");
   const [search, setSearch] = useState("");
   const [open, setOpen] = React.useState(false);
@@ -79,7 +83,7 @@ function Activity(props) {
   const _getActivities = () => {
     if (!classSched) return;
     try {
-      let a = store.getState().classSchedules[class_id][classSched];
+      let a = store.getState().classDetails[class_id].schedules[classSched];
       a = a.activities.map((i) => ({ ...i, id: "item-" + i.id }));
       setActivities(a);
     } catch (e) {
@@ -144,7 +148,6 @@ function Activity(props) {
       currentActivity && item.id === currentActivity.id ? undefined : item
     );
   };
-
   return (
     <Box width="100%" alignSelf="flex-start" height="100%">
       <Dialog
@@ -245,21 +248,102 @@ function Activity(props) {
                 </Typography>
 
                 <Paper>
-                  <Box width="100%" p={2} style={{ boxSizing: "border-box" }}>
+                  <Box
+                    width="100%"
+                    p={2}
+                    style={{ boxSizing: "border-box" }}
+                    onDragOver={(e) => {
+                      e.preventDefault();
+                      setDragover(true);
+                      return false;
+                    }}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      stageFiles(e.dataTransfer.files, (files) => {
+                        setHasFiles(files);
+                      });
+                      return false;
+                    }}
+                    onDragLeave={(e) => {
+                      e.preventDefault();
+                      setDragover(false);
+                      return false;
+                    }}
+                  >
+                    <Input
+                      type="file"
+                      id="file-upload"
+                      style={{ display: "none" }}
+                      onChange={() => {
+                        stageFiles(
+                          document.querySelector("#file-upload").files
+                        );
+                        setHasFiles(true);
+                      }}
+                    />
                     <Box className={styles.upload}>
-                      <Link
-                        component="div"
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          cursor: "pointer",
-                          fontWeight: "bold",
-                        }}
-                      >
-                        <AttachFileOutlinedIcon fontSize="small" />
-                        Add file&nbsp;
-                      </Link>
-                      or drag file in here
+                      {!hasFiles ? (
+                        <div>
+                          {!dragover ? (
+                            <div
+                              style={{
+                                display: "flex",
+                                alignItems: "center",
+                              }}
+                            >
+                              <Link
+                                component="div"
+                                style={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                  cursor: "pointer",
+                                  fontWeight: "bold",
+                                }}
+                                onClick={() =>
+                                  document.querySelector("#file-upload").click()
+                                }
+                              >
+                                <AttachFileOutlinedIcon fontSize="small" />
+                                Add file&nbsp;
+                              </Link>
+                              or drag file in here
+                            </div>
+                          ) : (
+                            <div>Drop here</div>
+                          )}
+                        </div>
+                      ) : (
+                        <div>
+                          <Box
+                            display="flex"
+                            flexDirection="column"
+                            alignItems="center"
+                            justifyContent="center"
+                          >
+                            <div>
+                              {FileUpload.getFiles().map((f) => (
+                                <Typography variant="body1" color="primary">
+                                  {f}
+                                </Typography>
+                              ))}
+                            </div>
+                            <div>
+                              <Button onClick={() => new FileUpload().upload()}>
+                                Upload
+                              </Button>
+                              <Button
+                                onClick={() => {
+                                  FileUpload.removeFiles();
+                                  setDragover(false);
+                                  setHasFiles(false);
+                                }}
+                              >
+                                Remove
+                              </Button>
+                            </div>
+                          </Box>
+                        </div>
+                      )}
                     </Box>
                   </Box>
                 </Paper>
@@ -560,13 +644,17 @@ const useStyles = makeStyles((theme) => ({
     borderColor: theme.palette.primary.main,
     borderWidth: 2,
     borderRadius: 6,
-    height: 170,
-    width: "100%",
     borderStyle: "dashed",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
     position: "relative",
+    "& > div": {
+      position: "relative",
+      zIndex: 1,
+      height: 170,
+      width: "100%",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+    },
     "&:before": {
       content: "''",
       position: "absolute",

@@ -48,7 +48,7 @@ function Drawer(props) {
           style={{ width: "100%", cursor: "pointer" }}
           onClick={() => {
             props.setRoute({ index: 0, title: "Class" });
-            history.push(makeLinkTo(["/"]));
+            history.push("/");
           }}
         >
           SH
@@ -87,49 +87,62 @@ function Drawer(props) {
             </Box>
           </Box>
         ))}
-        {store.getState().classes.map((item, index) => (
-          <Box
-            {...listItem.container}
-            key={index}
-            borderLeft={5}
-            onClick={() => {
-              props.setRoute({ index, title: item.title });
-              history.push(makeLinkTo(["class", item.id, "activity"]));
-            }}
-            borderColor={
-              ("/class/" + item.id + "/" + item.name.replace(" ", "-")).indexOf(
-                "/" +
-                  window.location.pathname.split("/")[1] +
-                  "/" +
-                  window.location.pathname.split("/")[2]
-              ) >= 0
-                ? "primary.main"
-                : "transparent"
-            }
-            style={{ cursor: "pointer" }}
-          >
+        {store.getState().classes.map((item, index) => {
+          let scheds = store.getState().classDetails[item.id].schedules;
+          let sched_id = "";
+          for (let i in scheds) {
+            sched_id = i;
+            break;
+          }
+          return (
             <Box
-              {...listItem.item}
-              {...item.props}
-              style={{
-                alignItems: "center",
-                justifyContent: "center",
-                display: "flex",
-                transform: "translateX(-5px)",
+              {...listItem.container}
+              key={index}
+              borderLeft={5}
+              onClick={() => {
+                props.setRoute({ index, title: item.title });
+                history.push(makeLinkTo(["class", item.id, sched_id]));
               }}
-              bgcolor="grey.700"
+              borderColor={
+                (
+                  "/class/" +
+                  item.id +
+                  "/" +
+                  item.name.replace(" ", "-")
+                ).indexOf(
+                  "/" +
+                    window.location.pathname.split("/")[1] +
+                    "/" +
+                    window.location.pathname.split("/")[2]
+                ) >= 0
+                  ? "primary.main"
+                  : "transparent"
+              }
+              style={{ cursor: "pointer" }}
             >
-              <Typography
-                variant="body1"
-                component="h2"
-                style={{ color: "#fff" }}
+              <Box
+                {...listItem.item}
+                {...item.props}
+                style={{
+                  alignItems: "center",
+                  justifyContent: "center",
+                  display: "flex",
+                  transform: "translateX(-5px)",
+                }}
+                bgcolor="grey.700"
               >
-                {item.name[0].toUpperCase()}
-                {item.name.split(" ")[1]}
-              </Typography>
+                <Typography
+                  variant="body1"
+                  component="h2"
+                  style={{ color: "#fff" }}
+                >
+                  {item.name[0].toUpperCase()}
+                  {item.name.split(" ")[1]}
+                </Typography>
+              </Box>
             </Box>
-          </Box>
-        ))}
+          );
+        })}
       </List>
     </div>
   );

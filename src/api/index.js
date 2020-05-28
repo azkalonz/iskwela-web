@@ -17,20 +17,21 @@ Api.post = (endpoint, params = {}) =>
     ...params.config,
   }).then((resp) => resp.json());
 
-Api.auth = async (callback = { success: () => {}, fail: () => {} }) => {
+Api.auth = async (callback = {}) => {
   if (localStorage["auth"]) {
     try {
       let u = JSON.parse(localStorage["auth"]);
       Api.token = u.access_token;
-      u = await Api.get("/api/student/classes");
+      u = await Api.get("/api/user");
       if (!u.error) {
-        callback.success();
-        return u.access_token;
+        return callback.success ? callback.success(u) : u;
       }
-    } catch (e) {}
+    } catch (e) {
+      return callback.fail ? callback.fail(e) : e;
+    }
   }
   localStorage.removeItem("auth");
-  callback.fail();
+  callback.fail && callback.fail();
   if (window.location.pathname !== "/login")
     window.location = "/login?r=" + window.location.pathname;
 };

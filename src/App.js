@@ -28,49 +28,47 @@ async function asyncForEach(array, callback) {
   }
 }
 
-async function getUserData() {
+async function getUserData(user) {
   let data = {};
-  data.user = await Api.get("/api/student/classes");
-  if (data.user.user_type === "s") {
-    data.classes = data.user.classes;
+  if (user.user_type === "s") {
+    let c = await Api.get("/api/student/classes");
+    data.classes = c.classes;
   } else {
     data.classes = await Api.get("/api/teacher/classes");
   }
 
   data.classDetails = {};
-  data.classSchedules = {};
   await asyncForEach(data.classes, async (c) => {
-    data.classSchedules[c.id] = {};
     let classDetails = await Api.get(
       "/api/teacher/class/" + c.id + "?include=schedules,students"
     );
-    let classSchedules = await Api.get(
-      "/api/teacher/class-schedules/" + c.id + "?include=materials, activities"
-    );
-    classSchedules.forEach((sched) => {
-      data.classSchedules[c.id][sched.from.replace(" ", "_")] = sched;
-      data.classSchedules[c.id][sched.from.replace(" ", "_")].date = moment(
+    data.classDetails[c.id] = classDetails;
+    let schedCopy = [...data.classDetails[c.id].schedules];
+    data.classDetails[c.id].schedules = [];
+    await asyncForEach(schedCopy, async (sched) => {
+      let scheduleDetails = await Api.get(
+        "/api/schedule/" +
+          sched.id +
+          "?include=materials, activities, lessonPlans"
+      );
+      data.classDetails[c.id].schedules[sched.id] = scheduleDetails;
+      data.classDetails[c.id].schedules[sched.id].date = moment(
         sched.from
       ).format("LL");
-      data.classSchedules[c.id][sched.from.replace(" ", "_")].time = moment(
+      data.classDetails[c.id].schedules[sched.id].time = moment(
         sched.from
       ).format("LT");
-      data.classSchedules[c.id][sched.from.replace(" ", "_")].teacher_name =
+      data.classDetails[c.id].schedules[sched.id].teacher_name =
         sched.teacher.first_name + " " + sched.teacher.last_name;
     });
-    data.classDetails[c.id] = classDetails;
   });
-
-  store.dispatch({
-    type: "SET_CLASS_SCHEDULES",
-    class_schedules: data.classSchedules,
-  });
+  console.log(data);
   store.dispatch({
     type: "SET_CLASS_DETAILS",
     class_details: data.classDetails,
   });
   store.dispatch({ type: "SET_CLASSES", classes: data.classes });
-  store.dispatch({ type: "SET_USERINFO", user: data.user });
+  store.dispatch({ type: "SET_USERINFO", user: user });
 }
 
 function App(props) {
@@ -79,8 +77,8 @@ function App(props) {
 
   useEffect(() => {
     Api.auth({
-      success: async () => {
-        await getUserData();
+      success: async (user) => {
+        await getUserData(user);
         setLoading(false);
       },
       fail: () => {
@@ -106,13 +104,18 @@ function App(props) {
 
                   <Route exact path="/" component={Home} />
                   <Route
-                    path="/class/:class_id/:option_name/:room_name"
+                    path="/class/:class_id/:schedule_id/:option_name/:room_name"
                     component={Class}
                   />
                   <Route
-                    path="/class/:class_id/:option_name"
+                    path="/class/:class_id/:schedule_id/:option_name"
                     component={Class}
                   />
+                  <Route
+                    path="/class/:class_id/:schedule_id"
+                    component={Class}
+                  />
+                  <Route path="/class/:class_id" component={Class} />
                   <Route path="*">
                     <Redirect to="/" />
                   </Route>

@@ -37,7 +37,6 @@ import LessonPlan from "../screens/class/LessonPlan";
 import Schedule from "../screens/class/Schedule";
 import Students from "../screens/class/Students";
 import InstructionalMaterials from "../screens/class/InstructionalMaterials";
-import Api from "../api";
 import moment from "moment";
 import store from "../components/redux/store";
 import {
@@ -47,18 +46,25 @@ import {
   isValidOption,
 } from "../components/router-dom";
 
-const queryString = require("query-string");
 function ClassScheduleNavigator(props) {
-  const { class_id } = props.match.params;
+  const { class_id, schedule_id } = props.match.params;
   const styles = useStyles();
-  const history = useHistory();
   const [sched, setSched] = useState(props.classSched);
+  const [classid, setClassId] = useState(class_id);
   useEffect(() => {
-    if (sched) props.changeClassSched(sched);
-  }, [sched]);
+    console.log(sched, schedule_id);
+    if (eval(sched != schedule_id)) {
+      setSched(sched);
+      props.changeClassSched(sched);
+    }
+    if (eval(class_id != classid)) {
+      setSched(schedule_id);
+      setClassId(class_id);
+    }
+  }, [sched, class_id]);
   return (
     <div>
-      {store.getState().classSchedules[class_id] && (
+      {store.getState().classDetails[class_id] && (
         <FormControl variant="outlined" className={styles.formControl}>
           <InputLabel style={{ top: -8 }}>Schedule</InputLabel>
           <Select
@@ -67,15 +73,13 @@ function ClassScheduleNavigator(props) {
             onChange={(e) => setSched(e.target.value)}
             padding={10}
           >
-            {Object.keys(store.getState().classSchedules[class_id]).map(
-              (k, i) => {
-                return (
-                  <MenuItem value={k} key={i}>
-                    {moment(k.replace("_", " ")).format("LLLL")}
-                  </MenuItem>
-                );
-              }
-            )}
+            {store.getState().classDetails[class_id].schedules.map((k, i) => {
+              return (
+                <MenuItem value={k.id} key={i}>
+                  {moment(k.from).format("LLLL")}
+                </MenuItem>
+              );
+            })}
           </Select>
         </FormControl>
       )}
@@ -109,26 +113,23 @@ function ClassRightPanel(props) {
 }
 
 function Class(props) {
-  const { room_name, class_id } = props.match.params;
-  const option_name = props.match.params.option_name;
+  const { room_name, class_id, schedule_id, option_name } = props.match.params;
   const history = useHistory();
   const styles = useStyles();
   const [collapsePanel, setCollapsePanel] = useState(false);
   const [loading, setLoading] = useState(true);
   const [CLASS, setCLASS] = useState();
   const userInfo = store.getState().userInfo;
-  const [sched, setSched] = useState(
-    queryString.parse(props.location.search).schedule
-  );
   const isTeacher = userInfo.user_type === "t" ? true : false;
 
   useEffect(() => {
-    let s = store.getState().classSchedules[class_id];
-    if (s) {
-      let keys = Object.keys(s);
-      if (keys) setSched(keys[keys.length - 1]);
+    let s = store.getState().classDetails[class_id];
+    if (!s.schedules[schedule_id] && schedule_id) {
+      window.location = "/";
+    } else if (!option_name && schedule_id) {
+      history.push(makeLinkTo(["class", class_id, schedule_id, "activity"]));
     }
-  }, [class_id]);
+  }, [class_id, schedule_id]);
 
   useEffect(() => {
     setCLASS(undefined);
@@ -150,30 +151,32 @@ function Class(props) {
     return;
   };
 
-  const panelOption = (p) => (
-    <div key={p.id}>
-      <Typography
-        component="div"
-        onClick={() => {
-          history.push(
-            makeLinkTo(["class", CLASS.id, p.link, "room_name", "sc"], {
-              room_name: room_name ? "/roomid" : "",
-              sc: sched ? "?schedule=" + sched : "",
-            })
-          );
-        }}
-        style={{ cursor: "pointer" }}
-      >
-        <ListItem id={option_name === p.link ? "selected-option" : ""} button>
-          <ListItemIcon>
-            <VideocamOutlinedIcon />
-          </ListItemIcon>
-          <ListItemText primary={p.title} />
-        </ListItem>
-      </Typography>
-      <Divider />
-    </div>
-  );
+  const panelOption = (p) => {
+    return (
+      <div key={p.id}>
+        <Typography
+          component="div"
+          onClick={() => {
+            history.push(
+              makeLinkTo(["class", CLASS.id, "sc", p.link, "room_name"], {
+                room_name: room_name ? "/roomid" : "",
+                sc: schedule_id ? schedule_id : "",
+              })
+            );
+          }}
+          style={{ cursor: "pointer" }}
+        >
+          <ListItem id={option_name === p.link ? "selected-option" : ""} button>
+            <ListItemIcon>
+              <VideocamOutlinedIcon />
+            </ListItemIcon>
+            <ListItemText primary={p.title} />
+          </ListItem>
+        </Typography>
+        <Divider />
+      </div>
+    );
+  };
   return (
     <div>
       <Drawer {...props}>
@@ -207,7 +210,7 @@ function Class(props) {
                   </Toolbar>
                   <Box
                     width="100%"
-                    height={170}
+                    height={140}
                     position="relative"
                     overflow="hidden"
                   >
@@ -284,17 +287,39 @@ function Class(props) {
                   </Box>
                   <Divider />
                   <Box p={2} className={styles.centered}>
-                    <Box flex={1}>
+                    <Box flex={1} style={{ width: "100%" }}>
+                      <Box>
+                        <ClassScheduleNavigator
+                          {...props}
+                          classSched={schedule_id}
+                          changeClassSched={(s) =>
+                            history.push(
+                              makeLinkTo(
+                                [
+                                  "class",
+                                  CLASS.id,
+                                  s,
+                                  "option_name",
+                                  "room_name",
+                                ],
+                                {
+                                  option_name: option_name ? option_name : "",
+                                  room_name: room_name ? room_name : "",
+                                }
+                              )
+                            )
+                          }
+                        />
+                      </Box>
                       <Button
                         style={{ width: "100%" }}
                         size="small"
-                        disabled={!sched ? true : false}
                         variant="contained"
                         onClick={() => {
                           history.push(
                             makeLinkTo(
-                              ["class", CLASS.id, option_name, "roomid", "sc"],
-                              { sc: sched ? "?schedule=" + sched : "" }
+                              ["class", CLASS.id, "sc", option_name, "roomid"],
+                              { sc: schedule_id ? schedule_id : "" }
                             )
                           );
                         }}
@@ -330,7 +355,7 @@ function Class(props) {
             </Paper>
           </Slide>
           <Box flex={1} overflow="hidden auto" height="100vh">
-            {room_name && CLASS && sched && (
+            {room_name && CLASS && schedule_id && (
               <VideoConference
                 roomName={room_name}
                 left={
@@ -347,7 +372,11 @@ function Class(props) {
             )}
 
             <NavBar
-              title={isValidOption(option_name).title}
+              title={
+                isValidOption(option_name)
+                  ? isValidOption(option_name).title
+                  : ""
+              }
               left={
                 !collapsePanel ? (
                   <IconButton
@@ -402,24 +431,11 @@ function Class(props) {
                   </Typography>
                 </div>
               )}
-
-              {!loading && CLASS && (
+              {!loading && CLASS && class_id && (
                 <Route
-                  path="/class/:class_id/:option_name"
+                  path="/class/:class_id/:schedule_id/:option_name"
                   component={(p) => (
-                    <ClassRightPanel
-                      classSched={sched}
-                      utilities={
-                        <Box>
-                          <ClassScheduleNavigator
-                            {...p}
-                            classSched={sched}
-                            changeClassSched={(s) => setSched(s)}
-                          />
-                        </Box>
-                      }
-                      {...p}
-                    />
+                    <ClassRightPanel classSched={schedule_id} {...p} />
                   )}
                 />
               )}
@@ -450,8 +466,8 @@ const useStyles = makeStyles((theme) => ({
     zIndex: 9,
   },
   formControl: {
-    margin: theme.spacing(1),
-    minWidth: 120,
+    width: "100%",
+    marginBottom: theme.spacing(1),
   },
   centered: {
     display: "flex",

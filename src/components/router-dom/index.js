@@ -50,6 +50,7 @@ export const rightPanelOptionsStudents = [
 ];
 
 export function isValidOption(name) {
+  if (!name) return;
   return rightPanelOptions
     .concat(rightPanelOptionsStudents)
     .find((o) => o.link.toLowerCase() === name.toLowerCase());
