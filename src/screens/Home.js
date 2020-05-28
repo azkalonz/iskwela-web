@@ -19,9 +19,9 @@ import CalendarTodayOutlinedIcon from "@material-ui/icons/CalendarTodayOutlined"
 import Skeleton from "react-loading-skeleton";
 import moment from "moment";
 import VideocamIcon from "@material-ui/icons/Videocam";
-import store from "../components/redux/store";
 import Grow from "@material-ui/core/Grow";
 import { makeLinkTo } from "../components/router-dom";
+import { connect } from "react-redux";
 
 function Home(props) {
   const styles = useStyles();
@@ -34,7 +34,7 @@ function Home(props) {
     _getClasses();
   }, []);
   const _getClasses = () => {
-    if (store.getState().classes) setClasses(store.getState().classes);
+    if (props.classes) setClasses(props.classes);
     setLoading(false);
   };
   const fakeLoader = (i) => (
@@ -70,20 +70,41 @@ function Home(props) {
     </Card>
   );
   const classItem = (c) => {
-    let status = null;
-    let videoConferenceLink = makeLinkTo(["class", c.id, "activity", "roomid"]);
-    if (c.next_schedule.length) {
-      let message = "started";
-      let diff = moment(c.next_schedule.from).diff(new Date());
-      if (diff > 0) message = "starts";
+    let cd = props.classDetails[c.id].schedules;
+    let status = {
+      ongoing: Object.keys(cd).filter((s) => cd[s].status === "ONGOING"),
+      pending: Object.keys(cd).filter((s) => cd[s].status === "PENDING"),
+      cancelled: Object.keys(cd).filter((s) => cd[s].status === "CANCELLED"),
+    };
+    status = status.ongoing
+      ? cd[status.ongoing[0]]
+      : status.pending
+      ? cd[status.pending[0]]
+      : status.cancelled
+      ? cd[status.cancelled[0]]
+      : null;
 
-      status = {
-        time: moment(c.next_schedule.from).fromNow(),
-        diff: diff,
-        message,
-      };
+    if (status) {
+      let diff = moment(new Date()).diff(moment(status.from));
+      switch (status.status) {
+        case "ONGOING":
+          status.message = "Class has started. Join Call?";
+          break;
+        case "CANCELLED":
+          status.message = "Cancelled";
+          break;
+        case "PENDING":
+          status.message =
+            diff < 0 ? "Starts " : "Ended " + moment(status.from).fromNow();
+          break;
+      }
     }
-
+    let videoConferenceLink = makeLinkTo(
+      ["class", c.id, "sched", "activity", "roomid"],
+      {
+        sched: status ? status.id : "",
+      }
+    );
     return (
       <Grow in={true} key={c.id}>
         <div className={styles.root}>
@@ -93,11 +114,11 @@ function Home(props) {
                 style={{ position: "relative", cursor: "pointer" }}
                 onClick={() =>
                   history.push(
-                    makeLinkTo(["class", c.id, "activity", "sched"], {
-                      sched: c.next_schedule.from
-                        ? "?schedule=" + c.next_schedule.from.replace(" ", "_")
-                        : "",
-                    })
+                    status.status === "ONGOING"
+                      ? videoConferenceLink
+                      : makeLinkTo(["class", c.id, "sched", "activity"], {
+                          sched: status ? status.id : "",
+                        })
                   )
                 }
               >
@@ -145,8 +166,8 @@ function Home(props) {
                     variant="body2"
                     style={{ fontSize: "0.8rem", marginLeft: 5 }}
                   >
-                    {c.next_schedule.length
-                      ? moment(c.next_schedule.from).format("MMM D, YYYY")
+                    {status
+                      ? moment(status.from).format("MMM D, YYYY")
                       : moment(c.date_from + " " + c.time_from).format(
                           "MMM D,YYYY"
                         )}
@@ -161,10 +182,10 @@ function Home(props) {
                     variant="body2"
                     style={{ fontSize: "0.75rem", marginLeft: 5 }}
                   >
-                    {c.next_schedule.length
-                      ? moment(c.next_schedule.from).format("hh:mm") +
+                    {status
+                      ? moment(status.from).format("hh:mm") +
                         " - " +
-                        moment(c.next_schedule.to).format("hh:mm")
+                        moment(status.to).format("hh:mm")
                       : moment(c.date_from + " " + c.time_from).format(
                           "hh:mm"
                         ) +
@@ -199,21 +220,13 @@ function Home(props) {
             <Paper
               onClick={() =>
                 history.push(
-                  status.message === "started" ? videoConferenceLink : "/"
+                  status.status === "ONGOING" ? videoConferenceLink : "/"
                 )
               }
-              className={[styles.classStatus, styles[status.message]].join(" ")}
+              className={[styles.classStatus, styles[status.status]].join(" ")}
             >
-              <Typography variant="body1">
-                {status.message === "ended"
-                  ? "Ended " + status.time
-                  : status.message === "starts"
-                  ? "Starts " + status.time
-                  : status.message === "cancelled"
-                  ? "Class was cancelled"
-                  : "Class has started join call?"}
-              </Typography>
-              {status.message === "started" && <VideocamIcon />}
+              <Typography variant="body1">{status.message}</Typography>
+              {status.status === "ONGOING" && <VideocamIcon />}
             </Paper>
           )}
         </div>
@@ -245,19 +258,19 @@ const useStyles = makeStyles((theme) => ({
     marginBottom: 60,
     borderRadius: 20,
   },
-  started: {
+  ONGOING: {
     background: theme.palette.primary.main,
     color: "#fff",
   },
-  ended: {
+  DONE: {
     background: theme.palette.common.white,
     color: theme.palette.common.black,
   },
-  starts: {
+  PENDING: {
     color: theme.palette.common.white,
     background: theme.palette.common.black,
   },
-  cancelled: {
+  CANCELLED: {
     color: theme.palette.common.white,
     background: theme.palette.error.main,
   },
@@ -289,9 +302,9 @@ const useStyles = makeStyles((theme) => ({
     position: "absolute",
     cursor: "pointer",
     left: 0,
-    bottom: -45,
+    bottom: -40,
     zIndex: 0,
-    height: 30,
+    height: 70,
     width: "80%",
     textDecoration: "none",
     padding: 7,
@@ -304,4 +317,7 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-export default Home;
+export default connect((states) => ({
+  classes: states.classes,
+  classDetails: states.classDetails,
+}))(Home);

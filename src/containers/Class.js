@@ -149,6 +149,12 @@ function Class(props) {
   const _getClass = async () => {
     if (props.classDetails) setCLASS(props.classDetails[class_id]);
     else setCLASS(undefined);
+    if (classSched.status === "ONGOING" && !room_name)
+      history.push(
+        makeLinkTo(["class", class_id, schedule_id, "opt", "roomid"], {
+          opt: option_name ? option_name : "activity",
+        })
+      );
     setLoading(false);
     return;
   };
