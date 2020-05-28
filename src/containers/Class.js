@@ -21,7 +21,6 @@ import {
   Select,
   MenuItem,
   Divider,
-  withWidth,
 } from "@material-ui/core";
 import Skeleton from "react-loading-skeleton";
 import CreateOutlined from "@material-ui/icons/CreateOutlined";
@@ -38,13 +37,13 @@ import Schedule from "../screens/class/Schedule";
 import Students from "../screens/class/Students";
 import InstructionalMaterials from "../screens/class/InstructionalMaterials";
 import moment from "moment";
-import store from "../components/redux/store";
 import {
   makeLinkTo,
   rightPanelOptionsStudents,
   rightPanelOptions,
   isValidOption,
 } from "../components/router-dom";
+import { connect } from "react-redux";
 
 function ClassScheduleNavigator(props) {
   const { class_id, schedule_id } = props.match.params;
@@ -64,7 +63,7 @@ function ClassScheduleNavigator(props) {
   }, [sched, class_id]);
   return (
     <div>
-      {store.getState().classDetails[class_id] && (
+      {props.classDetails[class_id] && (
         <FormControl variant="outlined" className={styles.formControl}>
           <InputLabel style={{ top: -8 }}>Schedule</InputLabel>
           <Select
@@ -73,7 +72,7 @@ function ClassScheduleNavigator(props) {
             onChange={(e) => setSched(e.target.value)}
             padding={10}
           >
-            {store.getState().classDetails[class_id].schedules.map((k, i) => {
+            {props.classDetails[class_id].schedules.map((k, i) => {
               return (
                 <MenuItem value={k.id} key={i}>
                   {moment(k.from).format("LLLL")}
@@ -119,11 +118,11 @@ function Class(props) {
   const [collapsePanel, setCollapsePanel] = useState(false);
   const [loading, setLoading] = useState(true);
   const [CLASS, setCLASS] = useState();
-  const userInfo = store.getState().userInfo;
+  const userInfo = props.userInfo;
   const isTeacher = userInfo.user_type === "t" ? true : false;
 
   useEffect(() => {
-    let s = store.getState().classDetails[class_id];
+    let s = props.classDetails[class_id];
     if (!s.schedules[schedule_id] && schedule_id) {
       window.location = "/";
     } else if (!option_name && schedule_id) {
@@ -144,12 +143,14 @@ function Class(props) {
   }, [props.width]);
 
   const _getClass = async () => {
-    if (store.getState().classDetails)
-      setCLASS(store.getState().classDetails[class_id]);
+    if (props.classDetails) setCLASS(props.classDetails[class_id]);
     else setCLASS(undefined);
     setLoading(false);
     return;
   };
+  useEffect(() => {
+    _getClass();
+  }, [props.classDetails]);
 
   const panelOption = (p) => {
     return (
@@ -481,4 +482,7 @@ const useStyles = makeStyles((theme) => ({
     justifyContent: "flex-start",
   },
 }));
-export default withWidth()(Class);
+export default connect((states) => ({
+  userInfo: states.userInfo,
+  classDetails: states.classDetails,
+}))(Class);

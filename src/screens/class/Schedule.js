@@ -10,6 +10,7 @@ import {
   DialogContentText,
   DialogTitle,
   TableSortLabel,
+  CircularProgress,
   Chip,
   Table,
   TableBody,
@@ -22,6 +23,7 @@ import {
   withStyles,
   Slide,
   Box,
+  Grow,
   Button,
   TextField,
   IconButton,
@@ -31,31 +33,47 @@ import {
   Typography,
   Paper,
 } from "@material-ui/core";
-import RootRef from "@material-ui/core/RootRef";
 import MoreHorizOutlinedIcon from "@material-ui/icons/MoreHorizOutlined";
-import moment from "moment";
 import SearchIcon from "@material-ui/icons/Search";
-import store from "../../components/redux/store";
+import { makeLinkTo } from "../../components/router-dom";
+import { useHistory } from "react-router-dom";
+import { connect } from "react-redux";
+import MuiAlert from "@material-ui/lab/Alert";
+import MomentUtils from "@date-io/moment";
+import moment from "moment";
+import {
+  MuiPickersUtilsProvider,
+  KeyboardTimePicker,
+  KeyboardDatePicker,
+} from "@material-ui/pickers";
+import Form from "../../components/Form";
+import getUserData from "../../components/getUserData";
 
-const objectToArray = (x, filter) =>
-  Object.keys(x)
-    .filter((i) => parseInt(i) === parseInt(filter))
-    .map((k) => Object.keys(x[k]).map((kk) => x[k][kk]))[0];
-
+function Alert(props) {
+  return <MuiAlert elevation={6} variant="filled" {...props} />;
+}
 function Schedule(props) {
-  const { class_id } = props.match.params;
+  const history = useHistory();
+  const { class_id, schedule_id, option_name } = props.match.params;
   const [schedules, setSchedules] = useState(
-    objectToArray(store.getState().classSchedules, class_id)
+    props.classDetails[class_id].schedules
   );
+  const [saving, setSaving] = useState(false);
   const [sortType, setSortType] = useState("DESCENDING");
-  const [modals, setModals] = useState([false, false]);
+  const [errors, setErrors] = useState([]);
+  const [open, setOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState(null);
   const [orderBy, setOrderBy] = React.useState("calories");
   const [order, setOrder] = React.useState("asc");
   const [search, setSearch] = useState("");
-  const isTeacher = store.getState().userInfo.user_type === "t" ? true : false;
-
+  const isTeacher = props.userInfo.user_type === "t" ? true : false;
   const styles = useStyles();
+  const [form, setForm] = useState({
+    id: schedule_id,
+    date_from: moment(new Date()).format("YYYY-MM-DD H:mm:ss"),
+    date_to: moment(new Date()).format("YYYY-MM-DD H:mm:ss"),
+    teacher_id: props.userInfo.id,
+  });
 
   useEffect(() => {
     if (schedules)
@@ -67,6 +85,31 @@ function Schedule(props) {
         return a;
       });
   }, [schedules]);
+
+  useEffect(() => {
+    setSchedules(props.classDetails[class_id].schedules);
+  }, [props.classDetails]);
+
+  const _handleFileOption = (option, file) => {
+    setAnchorEl(() => {
+      let a = {};
+      a[file.id] = null;
+      return { ...anchorEl, ...a };
+    });
+    switch (option) {
+      case "join":
+        history.push(
+          makeLinkTo(["class", class_id, schedule_id, "opt", "roomid"], {
+            opt: option_name ? option_name : "",
+          })
+        );
+        return;
+      case "edit":
+        setOpen(true);
+        setForm({ ...file, date_from: file.from, date_to: file.to });
+        return;
+    }
+  };
 
   const _handleSort = (sortBy, order) => {
     setOrderBy(sortBy);
@@ -96,6 +139,25 @@ function Schedule(props) {
     },
     { id: "status", numeric: true, disablePadding: false, label: "Status" },
   ];
+  const _handleEditSchedule = async () => {
+    setSaving(true);
+    let formData = new Form(form);
+    let res = await formData.send("/api/schedule/save");
+    setErrors(null);
+    if (res) {
+      if (!res.errors) {
+        await getUserData(props.userInfo);
+        setOpen(false);
+      } else {
+        let err = [];
+        for (let e in res.errors) {
+          err.push(res.errors[e][0]);
+        }
+        setErrors(err);
+      }
+    }
+    setSaving(false);
+  };
   return (
     <Box width="100%" alignSelf="flex-start">
       <Box m={2} display="flex" justifyContent="flex-end" flexWrap="wrap">
@@ -149,16 +211,10 @@ function Schedule(props) {
                     (i) => JSON.stringify(i).toLowerCase().indexOf(search) >= 0
                   )
                   .map((row) => {
-                    let stat =
-                      row.status > 0
-                        ? "done"
-                        : row.status < 0
-                        ? "pending"
-                        : "cancelled";
                     let status = {
-                      className: styles[stat],
-                      label: stat,
-                      color: styles[stat + "_color"],
+                      className: styles[row.status],
+                      label: row.status,
+                      color: styles[row.status + "_color"],
                     };
                     return (
                       <TableRow
@@ -166,9 +222,12 @@ function Schedule(props) {
                         className={[styles.row, status.color].join(" ")}
                       >
                         <TableCell component="th" scope="row">
-                          {row.date}
+                          {moment(row.from).format("MMMM D, YYYY")}
                         </TableCell>
-                        <TableCell align="right">{row.time}</TableCell>
+                        <TableCell align="right">
+                          {moment(row.from).format("h:mm A")} -{" "}
+                          {moment(row.to).format("h:mm A")}
+                        </TableCell>
                         <TableCell align="right">{row.teacher_name}</TableCell>
                         <TableCell align="right">
                           <Chip
@@ -202,16 +261,25 @@ function Schedule(props) {
                                 })
                               }
                             >
-                              <StyledMenuItem>
-                                <ListItemText primary="View" />
-                              </StyledMenuItem>
-                              <StyledMenuItem>
-                                <ListItemText primary="Download" />
+                              <StyledMenuItem
+                                disabled={
+                                  row.status !== "ONGOING" ? true : false
+                                }
+                              >
+                                <ListItemText
+                                  primary="Join"
+                                  onClick={() => _handleFileOption("join", row)}
+                                />
                               </StyledMenuItem>
                               {isTeacher && (
                                 <div>
                                   <StyledMenuItem>
-                                    <ListItemText primary="Edit" />
+                                    <ListItemText
+                                      primary="Edit"
+                                      onClick={() =>
+                                        _handleFileOption("edit", row)
+                                      }
+                                    />
                                   </StyledMenuItem>
                                   <StyledMenuItem>
                                     <ListItemText primary="Delete" />
@@ -228,6 +296,146 @@ function Schedule(props) {
           </Table>
         </TableContainer>
       </Box>
+      <Dialog
+        open={open}
+        onClose={() => setOpen(false)}
+        keepMounted
+        aria-labelledby="alert-dialog-slide-title"
+        aria-describedby="alert-dialog-slide-description"
+      >
+        <DialogTitle id="alert-dialog-slide-title">Edit Schedule</DialogTitle>
+        <DialogContent>
+          <Box style={{ marginBottom: 18 }}>
+            {errors &&
+              errors.map((e, i) => (
+                <Grow in={true}>
+                  <Alert key={i} style={{ marginBottom: 9 }} severity="error">
+                    {e}
+                  </Alert>
+                </Grow>
+              ))}
+          </Box>
+          <DialogContentText
+            id="alert-dialog-slide-description"
+            component="div"
+          >
+            <Box display="flex" flexWrap="wrap">
+              <MuiPickersUtilsProvider utils={MomentUtils}>
+                <Box
+                  display="flex"
+                  width="100%"
+                  justifyContent="space-between"
+                  alignItems="center"
+                  flexWrap="wrap"
+                >
+                  <Box
+                    justifyContent="space-between"
+                    display="flex"
+                    width="100%"
+                  >
+                    <KeyboardDatePicker
+                      disableToolbar
+                      fullWidth
+                      variant="inline"
+                      format="MMM DD, YYYY"
+                      margin="normal"
+                      label="Date"
+                      value={form.date_from}
+                      onChange={(e) =>
+                        setForm({
+                          ...form,
+                          date_from:
+                            moment(e).format("YYYY-MM-DD") +
+                            " " +
+                            moment(form.date_from).format("H:mm:ss"),
+                          date_to:
+                            moment(e).format("YYYY-MM-DD") +
+                            " " +
+                            moment(form.date_to).format("H:mm:ss"),
+                        })
+                      }
+                      KeyboardButtonProps={{
+                        "aria-label": "change date",
+                      }}
+                    />
+                  </Box>
+                  <Box
+                    justifyContent="space-between"
+                    display="flex"
+                    width="100%"
+                  >
+                    <KeyboardTimePicker
+                      margin="normal"
+                      label="Time From"
+                      format="hh:mm A"
+                      value={form.date_from}
+                      KeyboardButtonProps={{
+                        "aria-label": "change time",
+                      }}
+                      onChange={(e) =>
+                        setForm({
+                          ...form,
+                          date_from:
+                            moment(form.date_from).format("YYYY-MM-DD") +
+                            " " +
+                            moment(e).format("H:mm:ss"),
+                          date_to:
+                            moment(form.date_to).format("YYYY-MM-DD") +
+                            " " +
+                            moment(form.date_to).format("H:mm:ss"),
+                        })
+                      }
+                    />
+                    <KeyboardTimePicker
+                      margin="normal"
+                      format="hh:mm A"
+                      value={form.date_to}
+                      label="Time To"
+                      KeyboardButtonProps={{
+                        "aria-label": "change time",
+                      }}
+                      onChange={(e) =>
+                        setForm({
+                          ...form,
+                          date_from:
+                            moment(form.date_from).format("YYYY-MM-DD") +
+                            " " +
+                            moment(form.date_from).format("H:mm:ss"),
+                          date_to:
+                            moment(form.date_to).format("YYYY-MM-DD") +
+                            " " +
+                            moment(e).format("H:mm:ss"),
+                        })
+                      }
+                    />
+                  </Box>
+                </Box>
+              </MuiPickersUtilsProvider>
+            </Box>
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions style={{ justifyContent: "flex-end" }}>
+          <DialogActions>
+            <Button variant="outlined" onClick={() => setOpen(false)}>
+              Cancel
+            </Button>
+            <div style={{ position: "relative" }}>
+              <Button
+                variant="contained"
+                color="primary"
+                className={styles.wrapper}
+                disabled={saving}
+                onClick={() => _handleEditSchedule()}
+              >
+                Save
+              </Button>
+              {saving && (
+                <CircularProgress size={24} className={styles.buttonProgress} />
+              )}
+            </div>
+          </DialogActions>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 }
@@ -242,6 +450,14 @@ const useStyles = makeStyles((theme) => ({
       marginRight: theme.spacing(1),
     },
   },
+  buttonProgress: {
+    position: "absolute",
+    top: "50%",
+    left: "50%",
+    marginTop: -12,
+    marginLeft: -12,
+  },
+  wrapper: { margin: theme.spacing(1), position: "relative" },
   row: {
     backgroundColor: theme.palette.grey[200],
     borderLeft: "4px solid",
@@ -257,24 +473,30 @@ const useStyles = makeStyles((theme) => ({
     top: 20,
     width: 1,
   },
-  cancelled: {
+  PENDING: {
     backgroundColor: theme.palette.error.main,
     borderColor: theme.palette.error.main,
     color: theme.palette.common.white,
   },
-  pending: {
+  PENDING: {
     backgroundColor: theme.palette.warning.main,
     borderColor: theme.palette.warning.main,
     color: theme.palette.common.white,
   },
-  done: {
+  ONGOING: {
     backgroundColor: theme.palette.success.main,
     borderColor: theme.palette.success.main,
     color: theme.palette.common.white,
   },
-  done_color: { borderColor: theme.palette.success.main },
-  cancelled_color: { borderColor: theme.palette.error.main },
-  pending_color: { borderColor: theme.palette.warning.main },
+  DONE: {
+    backgroundColor: theme.palette.success.main,
+    borderColor: theme.palette.success.main,
+    color: theme.palette.common.white,
+  },
+  DONE_color: { borderColor: theme.palette.success.main },
+  CANCELLED_color: { borderColor: theme.palette.error.main },
+  PENDING_color: { borderColor: theme.palette.warning.main },
+  ONGOING_color: { borderColor: theme.palette.success.main },
 }));
 const StyledMenu = withStyles({
   paper: {
@@ -307,4 +529,7 @@ const StyledMenuItem = withStyles((theme) => ({
   },
 }))(MenuItem);
 
-export default Schedule;
+export default connect((states) => ({
+  userInfo: states.userInfo,
+  classDetails: states.classDetails,
+}))(Schedule);

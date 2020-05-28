@@ -5,6 +5,7 @@ import {
   ListItemText,
   ListItemIcon,
   Dialog,
+  CircularProgress,
   DialogActions,
   Input,
   DialogContent,
@@ -33,18 +34,30 @@ import ArrowDownwardOutlinedIcon from "@material-ui/icons/ArrowDownwardOutlined"
 import ArrowUpwardOutlinedIcon from "@material-ui/icons/ArrowUpwardOutlined";
 import SearchIcon from "@material-ui/icons/Search";
 import AttachFileOutlinedIcon from "@material-ui/icons/AttachFileOutlined";
-import store from "../../components/redux/store";
 import FileViewer from "../../components/FileViewer";
 import moment from "moment";
-import { useHistory } from "react-router-dom";
 import LaunchIcon from "@material-ui/icons/Launch";
 import Grow from "@material-ui/core/Grow";
 import FileUpload, { stageFiles } from "../../components/FileUpload";
+import Form from "../../components/Form";
+import MuiAlert from "@material-ui/lab/Alert";
+import MomentUtils from "@date-io/moment";
+import CancelIcon from "@material-ui/icons/Cancel";
+import { connect } from "react-redux";
+import getUserData from "../../components/getUserData";
+import {
+  MuiPickersUtilsProvider,
+  KeyboardDatePicker,
+} from "@material-ui/pickers";
+import Api from "../../api";
 
-const queryString = require("query-string");
+function Alert(props) {
+  return <MuiAlert elevation={6} variant="filled" {...props} />;
+}
 
 function Activity(props) {
-  const [hasFiles, setHasFiles] = useState(FileUpload.files);
+  const [saving, setSaving] = useState(false);
+  const [hasFiles, setHasFiles] = useState([false, false]);
   const { class_id } = props.match.params;
   const [activities, setActivities] = useState();
   const [dragover, setDragover] = useState(false);
@@ -54,11 +67,23 @@ function Activity(props) {
   const [anchorEl, setAnchorEl] = React.useState(null);
   const [file, setFile] = useState();
   const [fileViewerOpen, setfileViewerOpen] = useState(false);
-  const isTeacher = store.getState().userInfo.user_type === "t" ? true : false;
+  const isTeacher = props.userInfo.user_type === "t" ? true : false;
   const styles = useStyles();
   const classSched = props.classSched;
   const [currentActivity, setCurrentActivity] = useState();
-  const history = useHistory();
+  const [errors, setErrors] = useState();
+  const formTemplate = {
+    activity_type: 1,
+    title: "",
+    description: "",
+    available_from: moment(new Date()).format("YYYY-MM-DD"),
+    available_to: moment(new Date()).format("YYYY-MM-DD"),
+    schedule_id: classSched,
+    subject_id: props.classDetails[class_id].subject.id,
+    published: 0,
+    class_id,
+  };
+  const [form, setForm] = useState(formTemplate);
 
   const _handleFileOption = (option, file) => {
     setAnchorEl(() => {
@@ -68,22 +93,37 @@ function Activity(props) {
     });
     switch (option) {
       case "view":
-        setFile({
-          url:
-            file.id === "item-1"
-              ? "https://gsi.berkeley.edu/media/Learning.pdf"
-              : "https://sustainabledevelopment.un.org/content/documents/1545Climate_Action_Plan_Publication_Part_1.pdf",
-          title: file.title,
-        });
-        setfileViewerOpen(true);
+        _handleItemClick(file);
+        // setFile({
+        //   url:
+        //     file.id === "item-1"
+        //       ? "https://gsi.berkeley.edu/media/Learning.pdf"
+        //       : "https://sustainabledevelopment.un.org/content/documents/1545Climate_Action_Plan_Publication_Part_1.pdf",
+        //   title: file.title,
+        // });
+        // setfileViewerOpen(true);
         return;
-      case "download":
+      case "edit":
+        handleClickOpen();
+        setForm({
+          ...file,
+          activity_type: file.activity_type == "class activity" ? 1 : 2,
+          published: file.status == "unpublished" ? 0 : 1,
+          schedule_id: classSched,
+          subject_id: props.classDetails[class_id].subject.id,
+          id: file.id.substr(file.id.indexOf("-") + 1, file.id.length),
+          class_id,
+        });
+        return;
     }
   };
+  useEffect(() => {
+    _getActivities();
+  }, [props.classDetails]);
   const _getActivities = () => {
     if (!classSched) return;
     try {
-      let a = store.getState().classDetails[class_id].schedules[classSched];
+      let a = props.classDetails[class_id].schedules[classSched];
       a = a.activities.map((i) => ({ ...i, id: "item-" + i.id }));
       setActivities(a);
     } catch (e) {
@@ -148,6 +188,40 @@ function Activity(props) {
       currentActivity && item.id === currentActivity.id ? undefined : item
     );
   };
+  const _handleCreateActivity = async (params = {}) => {
+    setSaving(true);
+    let formData = new Form({ ...form, ...params });
+    let res = await formData.send("/api/class/activity/save");
+    if (formData.data.published && formData.data.id) {
+      let rr = await Api.post(
+        "/api/class/activity/publish/" + formData.data.id
+      );
+    }
+    setErrors(null);
+    if (res) {
+      if (!res.errors) {
+        await getUserData(props.userInfo);
+        setOpen(false);
+        _handleFileOption("view", res);
+        new FileUpload("activity-materials").upload(
+          "/api/upload/activity/material",
+          {
+            body: {
+              assignment_id: res.id,
+            },
+          }
+        );
+      } else {
+        let err = [];
+        for (let e in res.errors) {
+          err.push(res.errors[e][0]);
+        }
+        setErrors(err);
+      }
+    }
+    setSaving(false);
+  };
+
   return (
     <Box width="100%" alignSelf="flex-start" height="100%">
       <Dialog
@@ -172,7 +246,14 @@ function Activity(props) {
         alignItems="center"
       >
         {isTeacher && (
-          <Button variant="contained" color="primary" onClick={handleClickOpen}>
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={() => {
+              handleClickOpen();
+              setForm(formTemplate);
+            }}
+          >
             Add New Activity
           </Button>
         )}
@@ -259,8 +340,8 @@ function Activity(props) {
                     }}
                     onDrop={(e) => {
                       e.preventDefault();
-                      stageFiles(e.dataTransfer.files, (files) => {
-                        setHasFiles(files);
+                      stageFiles("answers", e.dataTransfer.files, (files) => {
+                        setHasFiles([true, hasFiles[1]]);
                       });
                       return false;
                     }}
@@ -276,13 +357,14 @@ function Activity(props) {
                       style={{ display: "none" }}
                       onChange={() => {
                         stageFiles(
+                          "answers",
                           document.querySelector("#file-upload").files
                         );
-                        setHasFiles(true);
+                        setHasFiles([true, hasFiles[1]]);
                       }}
                     />
                     <Box className={styles.upload}>
-                      {!hasFiles ? (
+                      {!hasFiles[0] ? (
                         <div>
                           {!dragover ? (
                             <div
@@ -321,21 +403,25 @@ function Activity(props) {
                             justifyContent="center"
                           >
                             <div>
-                              {FileUpload.getFiles().map((f) => (
+                              {FileUpload.getFiles("answers").map((f) => (
                                 <Typography variant="body1" color="primary">
-                                  {f}
+                                  {f.name}
                                 </Typography>
                               ))}
                             </div>
                             <div>
-                              <Button onClick={() => new FileUpload().upload()}>
+                              <Button
+                                onClick={() =>
+                                  new FileUpload("answers").upload()
+                                }
+                              >
                                 Upload
                               </Button>
                               <Button
                                 onClick={() => {
                                   FileUpload.removeFiles();
                                   setDragover(false);
-                                  setHasFiles(false);
+                                  setHasFiles([false, hasFiles[1]]);
                                 }}
                               >
                                 Remove
@@ -387,7 +473,7 @@ function Activity(props) {
                   )}
                 </Button>
                 <Typography variant="body1" style={{ marginRight: 10 }}>
-                  MODIFIED
+                  DATE
                 </Typography>
                 <ListItemSecondaryAction></ListItemSecondaryAction>
               </ListItem>
@@ -415,6 +501,7 @@ function Activity(props) {
                           (a) =>
                             JSON.stringify(a).toLowerCase().indexOf(search) >= 0
                         )
+                        .reverse()
                         .map((item, index) => (
                           <Draggable
                             key={item.id}
@@ -438,7 +525,7 @@ function Activity(props) {
                                   item.id === currentActivity.id
                                     ? {
                                         background:
-                                          store.getState().theme === "dark"
+                                          props.theme === "dark"
                                             ? "#111"
                                             : "#fff",
                                       }
@@ -459,12 +546,9 @@ function Activity(props) {
                                   component="div"
                                   style={{ marginRight: 10 }}
                                 >
-                                  <Moment
-                                    className={styles.hideonmobile}
-                                    fromNow
-                                  >
-                                    {item.available_from}
-                                  </Moment>
+                                  {moment(item.available_from).format("LL")}
+                                  &nbsp;-&nbsp;
+                                  {moment(item.available_from).format("LL")}
                                 </Typography>
                                 <ListItemSecondaryAction>
                                   <IconButton
@@ -503,7 +587,12 @@ function Activity(props) {
                                       {isTeacher && (
                                         <div>
                                           <StyledMenuItem>
-                                            <ListItemText primary="Edit" />
+                                            <ListItemText
+                                              primary="Edit"
+                                              onClick={() =>
+                                                _handleFileOption("edit", item)
+                                              }
+                                            />
                                           </StyledMenuItem>
                                           <StyledMenuItem>
                                             <ListItemText primary="Delete" />
@@ -533,8 +622,20 @@ function Activity(props) {
         aria-labelledby="alert-dialog-slide-title"
         aria-describedby="alert-dialog-slide-description"
       >
-        <DialogTitle id="alert-dialog-slide-title">Create Activity</DialogTitle>
+        <DialogTitle id="alert-dialog-slide-title">
+          {form.id ? "Edit Activity" : "Create Activity"}
+        </DialogTitle>
         <DialogContent>
+          <Box style={{ marginBottom: 18 }}>
+            {errors &&
+              errors.map((e, i) => (
+                <Grow in={true}>
+                  <Alert key={i} style={{ marginBottom: 9 }} severity="error">
+                    {e}
+                  </Alert>
+                </Grow>
+              ))}
+          </Box>
           <DialogContentText
             id="alert-dialog-slide-description"
             component="div"
@@ -546,39 +647,158 @@ function Activity(props) {
                 InputLabelProps={{
                   shrink: true,
                 }}
+                value={form.title}
+                onChange={(e) => setForm({ ...form, title: e.target.value })}
                 fullWidth
               />
               <TextField
                 label="Description"
                 style={{ marginTop: 13 }}
                 rows={4}
+                value={form.description}
                 multiline={true}
                 InputLabelProps={{
                   shrink: true,
                 }}
+                onChange={(e) =>
+                  setForm({ ...form, description: e.target.value })
+                }
                 fullWidth
               />
+              <MuiPickersUtilsProvider utils={MomentUtils}>
+                <Box
+                  display="flex"
+                  width="100%"
+                  justifyContent="space-between"
+                  alignItems="center"
+                >
+                  <KeyboardDatePicker
+                    disableToolbar
+                    variant="inline"
+                    format="MMM DD, YYYY"
+                    margin="normal"
+                    id="date-picker-inline"
+                    label="From"
+                    value={moment(form.available_from).format("YYYY-MM-DD")}
+                    onChange={(date) =>
+                      setForm({
+                        ...form,
+                        available_from: moment(date).format("YYYY-MM-DD"),
+                      })
+                    }
+                    KeyboardButtonProps={{
+                      "aria-label": "change date",
+                    }}
+                  />
+                  <KeyboardDatePicker
+                    disableToolbar
+                    variant="inline"
+                    format="MMM DD, YYYY"
+                    margin="normal"
+                    id="date-picker-inline"
+                    label="To"
+                    value={moment(form.available_to).format("YYYY-MM-DD")}
+                    onChange={(date) =>
+                      setForm({
+                        ...form,
+                        available_to: moment(date).format("YYYY-MM-DD"),
+                      })
+                    }
+                    KeyboardButtonProps={{
+                      "aria-label": "change date",
+                    }}
+                  />
+                </Box>
+              </MuiPickersUtilsProvider>
             </Box>
+            {hasFiles[1] && (
+              <Box style={{ marginTop: 7 }}>
+                <Typography variant="body1" color="textSecondary">
+                  Activity Materials
+                </Typography>
+                {FileUpload.getFiles("activity-materials").map((f) => (
+                  <List dense={true}>
+                    <ListItem>
+                      <ListItemText primary={f.name} />
+                      <ListItemSecondaryAction>
+                        <IconButton
+                          edge="end"
+                          aria-label="delete"
+                          onClick={() => {
+                            FileUpload.removeFiles("activity-materials");
+                            setHasFiles([hasFiles[0], false]);
+                          }}
+                        >
+                          <CancelIcon />
+                        </IconButton>
+                      </ListItemSecondaryAction>
+                    </ListItem>
+                  </List>
+                ))}
+              </Box>
+            )}
           </DialogContentText>
         </DialogContent>
         <DialogActions style={{ justifyContent: "space-between" }}>
           <div>
+            <input
+              type="file"
+              id="activity-material"
+              style={{ display: "none" }}
+              onChange={(e) => {
+                stageFiles(
+                  "activity-materials",
+                  document.querySelector("#activity-material").files
+                );
+                setHasFiles([hasFiles[0], true]);
+              }}
+              multiple
+            />
             <Button
-              onClick={handleClose}
+              onClick={() =>
+                document.querySelector("#activity-material").click()
+              }
               variant="outlined"
               style={{ float: "left" }}
             >
               <AttachFileOutlinedIcon />
-              Add
+              Add File
             </Button>
           </div>
           <DialogActions>
-            <Button onClick={handleClose} variant="outlined">
+            <Button variant="outlined" onClick={handleClose}>
               Cancel
             </Button>
-            <Button variant="contained" onClick={handleClose} color="primary">
-              Done
-            </Button>
+            <div style={{ position: "relative" }}>
+              <Button
+                variant="contained"
+                onClick={() => _handleCreateActivity()}
+                color="primary"
+                className={styles.wrapper}
+                disabled={saving}
+              >
+                Save
+              </Button>
+              {saving && (
+                <CircularProgress size={24} className={styles.buttonProgress} />
+              )}
+            </div>
+            <div style={{ position: "relative" }}>
+              <Button
+                disabled={saving}
+                className={styles.wrapper}
+                variant="contained"
+                onClick={() =>
+                  _handleCreateActivity({ published: form.published ? 0 : 1 })
+                }
+                color="primary"
+              >
+                {form.published ? "Unpublish" : "Publish"}
+              </Button>
+              {saving && (
+                <CircularProgress size={24} className={styles.buttonProgress} />
+              )}
+            </div>
           </DialogActions>
         </DialogActions>
       </Dialog>
@@ -640,6 +860,14 @@ const useStyles = makeStyles((theme) => ({
       marginRight: theme.spacing(1),
     },
   },
+  buttonProgress: {
+    position: "absolute",
+    top: "50%",
+    left: "50%",
+    marginTop: -12,
+    marginLeft: -12,
+  },
+  wrapper: { margin: theme.spacing(1), position: "relative" },
   upload: {
     borderColor: theme.palette.primary.main,
     borderWidth: 2,
@@ -673,4 +901,8 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-export default Activity;
+export default connect((state) => ({
+  userInfo: state.userInfo,
+  theme: state.theme,
+  classDetails: state.classDetails,
+}))(Activity);

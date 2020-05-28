@@ -7,15 +7,19 @@ Api.get = (endpoint, params = {}) =>
     },
     ...params.config,
   }).then((resp) => resp.json());
-Api.post = (endpoint, params = {}) =>
-  fetch(endpoint, {
-    method: "POST",
+Api.post = (endpoint, params = {}) => {
+  console.log(JSON.stringify(params.body));
+  return fetch(endpoint, {
+    method: "post",
     headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json",
       Authorization: "Bearer " + Api.token,
     },
-    body: params.body,
+    body: JSON.stringify(params.body),
     ...params.config,
   }).then((resp) => resp.json());
+};
 
 Api.auth = async (callback = {}) => {
   if (localStorage["auth"]) {
