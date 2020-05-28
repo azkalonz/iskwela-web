@@ -44,6 +44,8 @@ import {
   isValidOption,
 } from "../components/router-dom";
 import { connect } from "react-redux";
+import Api from "../api";
+import getUserData from "../components/getUserData";
 
 function ClassScheduleNavigator(props) {
   const { class_id, schedule_id } = props.match.params;
@@ -120,6 +122,8 @@ function Class(props) {
   const [CLASS, setCLASS] = useState();
   const userInfo = props.userInfo;
   const isTeacher = userInfo.user_type === "t" ? true : false;
+  const classSched = props.classDetails[class_id].schedules[schedule_id];
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     let s = props.classDetails[class_id];
@@ -177,6 +181,55 @@ function Class(props) {
         <Divider />
       </div>
     );
+  };
+  const updateClass = async (status) => {
+    setSaving(true);
+    let user = await Api.auth();
+    if (!user.error) {
+      let res = await Api.post("/api/schedule/save", {
+        body: {
+          id: classSched.id,
+          date_from: classSched.from,
+          date_to: classSched.to,
+          teacher_id: user.id,
+          status: status,
+        },
+      });
+      await getUserData(user);
+    }
+    setSaving(false);
+  };
+  const _handleJoinClass = async () => {
+    if (isTeacher) {
+      switch (classSched.status) {
+        case "ONGOING":
+          await updateClass("PENDING");
+          history.push(
+            makeLinkTo(["class", CLASS.id, "sc", option_name], {
+              sc: schedule_id ? schedule_id : "",
+            })
+          );
+          return;
+        case "PENDING":
+          await updateClass("ONGOING");
+          history.push(
+            makeLinkTo(["class", CLASS.id, "sc", option_name, "roomid"], {
+              sc: schedule_id ? schedule_id : "",
+            })
+          );
+          return;
+        default:
+          return;
+      }
+    } else {
+      if (classSched.status === "ONGOING") {
+        history.push(
+          makeLinkTo(["class", CLASS.id, "sc", option_name, "roomid"], {
+            sc: schedule_id ? schedule_id : "",
+          })
+        );
+      }
+    }
   };
   return (
     <div>
@@ -312,22 +365,45 @@ function Class(props) {
                           }
                         />
                       </Box>
-                      <Button
-                        style={{ width: "100%" }}
-                        size="small"
-                        variant="contained"
-                        onClick={() => {
-                          history.push(
-                            makeLinkTo(
-                              ["class", CLASS.id, "sc", option_name, "roomid"],
-                              { sc: schedule_id ? schedule_id : "" }
-                            )
-                          );
-                        }}
-                      >
-                        <VideocamOutlinedIcon color="primary" />
-                        {isTeacher ? "Start Class" : "Join Class"}
-                      </Button>
+                      <div className={styles.wrapper}>
+                        <Button
+                          style={{
+                            width: "100%",
+                          }}
+                          className={
+                            isTeacher && classSched.status === "ONGOING"
+                              ? styles.endClass
+                              : styles.startClass
+                          }
+                          size="small"
+                          variant="contained"
+                          disabled={
+                            saving
+                              ? true
+                              : isTeacher
+                              ? classSched.status !== "ONGOING" &&
+                                classSched.status !== "PENDING"
+                              : classSched.status !== "ONGOING"
+                          }
+                          onClick={() => _handleJoinClass()}
+                        >
+                          <VideocamOutlinedIcon
+                            color="inherit"
+                            style={{ marginRight: 8 }}
+                          />
+                          {isTeacher
+                            ? classSched.status === "ONGOING"
+                              ? "End Class"
+                              : "Start Class"
+                            : "Join Class"}
+                        </Button>
+                        {saving && (
+                          <CircularProgress
+                            className={styles.buttonProgress}
+                            size={24}
+                          />
+                        )}
+                      </div>
                     </Box>
                   </Box>
                   <Divider />
@@ -356,21 +432,24 @@ function Class(props) {
             </Paper>
           </Slide>
           <Box flex={1} overflow="hidden auto" height="100vh">
-            {room_name && CLASS && schedule_id && (
-              <VideoConference
-                roomName={room_name}
-                left={
-                  !collapsePanel ? (
-                    <IconButton
-                      aria-label="Collapse Panel"
-                      onClick={() => setCollapsePanel(!collapsePanel)}
-                    >
-                      <ArrowForwardIosRoundedIcon />
-                    </IconButton>
-                  ) : null
-                }
-              />
-            )}
+            {room_name &&
+              CLASS &&
+              schedule_id &&
+              classSched.status === "ONGOING" && (
+                <VideoConference
+                  roomName={room_name}
+                  left={
+                    !collapsePanel ? (
+                      <IconButton
+                        aria-label="Collapse Panel"
+                        onClick={() => setCollapsePanel(!collapsePanel)}
+                      >
+                        <ArrowForwardIosRoundedIcon />
+                      </IconButton>
+                    ) : null
+                  }
+                />
+              )}
 
             <NavBar
               title={
@@ -448,6 +527,14 @@ function Class(props) {
   );
 }
 const useStyles = makeStyles((theme) => ({
+  endClass: {
+    background: theme.palette.error.main,
+    color: theme.palette.common.white,
+  },
+  startClass: {
+    color: theme.palette.primary.main,
+    background: theme.palette.common.white,
+  },
   panel: {
     [theme.breakpoints.up("sm")]: {
       width: 320,
@@ -466,6 +553,14 @@ const useStyles = makeStyles((theme) => ({
     background: theme.palette.grey[200],
     zIndex: 9,
   },
+  buttonProgress: {
+    position: "absolute",
+    top: "50%",
+    left: "50%",
+    marginTop: -12,
+    marginLeft: -12,
+  },
+  wrapper: { margin: theme.spacing(1), position: "relative" },
   formControl: {
     width: "100%",
     marginBottom: theme.spacing(1),
