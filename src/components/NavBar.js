@@ -67,6 +67,7 @@ function NavBar(props) {
             color="textPrimary"
             className={classes.title}
             style={{ fontWeight: "bold" }}
+            id="navbar-title"
           >
             {props.title || ""}
           </Typography>

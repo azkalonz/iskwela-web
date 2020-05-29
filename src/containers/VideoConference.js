@@ -7,16 +7,19 @@ import ShareOutlinedIcon from "@material-ui/icons/ShareOutlined";
 import Jitsi from "react-jitsi";
 
 function VideoConference(props) {
-  const [roomName, setRoomName] = useState();
-
-  useEffect(() => {
-    setRoomName(props.roomName);
-  }, []);
+  const { getRoom } = props;
+  const room = getRoom();
+  const [loading, setLoading] = useState(false);
+  console.log(room);
   const handleAPI = (JitsiApi) => {
     JitsiApi.executeCommand("toggleVideo");
+    JitsiApi.on("readyToClose", () => {
+      setLoading(true);
+      props.updateClass("PENDING");
+    });
   };
-  return (
-    <Box width="100%">
+  return loading ? null : (
+    <Box width="100%" id="video-conference-container" overflow="hidden">
       <NavBar
         title="Video Conference"
         right={
@@ -38,11 +41,12 @@ function VideoConference(props) {
         left={props.left}
       />
       <Box width="100%" justifyContent="center" alignItems="center">
-        {roomName && (
+        {room.name && (
           <Jitsi
-            roomName={roomName}
+            domain="jitsi.iskwela.net"
+            displayName={room.displayName}
+            roomName={room.name}
             onAPILoad={handleAPI}
-            displayName="testing"
             containerStyle={{ margin: "0 auto", width: "100%" }}
           />
         )}

@@ -99,9 +99,12 @@ function Schedule(props) {
     switch (option) {
       case "join":
         history.push(
-          makeLinkTo(["class", class_id, schedule_id, "opt", "roomid"], {
-            opt: option_name ? option_name : "",
-          })
+          makeLinkTo(
+            ["class", class_id, schedule_id, "opt", "video-conference"],
+            {
+              opt: option_name ? option_name : "",
+            }
+          )
         );
         return;
       case "edit":

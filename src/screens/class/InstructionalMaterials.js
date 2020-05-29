@@ -35,8 +35,8 @@ import AttachFileOutlinedIcon from "@material-ui/icons/AttachFileOutlined";
 import ExpandMoreOutlinedIcon from "@material-ui/icons/ExpandMoreOutlined";
 import InsertLinkOutlinedIcon from "@material-ui/icons/InsertLinkOutlined";
 import CloudUploadOutlinedIcon from "@material-ui/icons/CloudUploadOutlined";
-import store from "../../components/redux/store";
 import FileViewer from "../../components/FileViewer";
+import { connect } from "react-redux";
 
 const queryString = require("query-string");
 
@@ -49,7 +49,7 @@ function InstructionalMaterials(props) {
   const [anchorEl, setAnchorEl] = useState(null);
   const [addNewFileAnchor, setAddNewFileAnchor] = useState(null);
   const classSched = props.classSched;
-  const isTeacher = store.getState().userInfo.user_type === "t" ? true : false;
+  const isTeacher = props.userInfo.user_type === "t" ? true : false;
   const styles = useStyles();
   const [file, setFile] = useState();
   const [fileViewerOpen, setfileViewerOpen] = useState(false);
@@ -78,7 +78,8 @@ function InstructionalMaterials(props) {
   const _getMaterials = () => {
     if (!classSched) return;
     try {
-      let a = store.getState().classSchedules[class_id][classSched];
+      let a =
+        props.classDetails[class_id].schedules[props.match.params.schedule_id];
       a = a.materials.map((i) => ({ ...i, id: "item-" + i.id }));
       setMaterials(a);
     } catch (e) {
@@ -518,4 +519,7 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-export default InstructionalMaterials;
+export default connect((states) => ({
+  userInfo: states.userInfo,
+  classDetails: states.classDetails,
+}))(InstructionalMaterials);

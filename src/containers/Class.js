@@ -46,6 +46,7 @@ import {
 import { connect } from "react-redux";
 import Api from "../api";
 import getUserData from "../components/getUserData";
+import $ from "jquery";
 
 function ClassScheduleNavigator(props) {
   const { class_id, schedule_id } = props.match.params;
@@ -151,9 +152,12 @@ function Class(props) {
     else setCLASS(undefined);
     if (classSched.status === "ONGOING" && !room_name)
       history.push(
-        makeLinkTo(["class", class_id, schedule_id, "opt", "roomid"], {
-          opt: option_name ? option_name : "activity",
-        })
+        makeLinkTo(
+          ["class", class_id, schedule_id, "opt", "video-conference"],
+          {
+            opt: option_name ? option_name : "activity",
+          }
+        )
       );
     setLoading(false);
     return;
@@ -170,7 +174,7 @@ function Class(props) {
           onClick={() => {
             history.push(
               makeLinkTo(["class", CLASS.id, "sc", p.link, "room_name"], {
-                room_name: room_name ? "/roomid" : "",
+                room_name: room_name ? "/video-conference" : "",
                 sc: schedule_id ? schedule_id : "",
               })
             );
@@ -202,6 +206,8 @@ function Class(props) {
         },
       });
       await getUserData(user);
+      if (room_name)
+        history.push(makeLinkTo(["class", class_id, schedule_id, option_name]));
     }
     setSaving(false);
   };
@@ -219,9 +225,12 @@ function Class(props) {
         case "PENDING":
           await updateClass("ONGOING");
           history.push(
-            makeLinkTo(["class", CLASS.id, "sc", option_name, "roomid"], {
-              sc: schedule_id ? schedule_id : "",
-            })
+            makeLinkTo(
+              ["class", CLASS.id, "sc", option_name, "video-conferece"],
+              {
+                sc: schedule_id ? schedule_id : "",
+              }
+            )
           );
           return;
         default:
@@ -230,13 +239,25 @@ function Class(props) {
     } else {
       if (classSched.status === "ONGOING") {
         history.push(
-          makeLinkTo(["class", CLASS.id, "sc", option_name, "roomid"], {
-            sc: schedule_id ? schedule_id : "",
-          })
+          makeLinkTo(
+            ["class", CLASS.id, "sc", option_name, "video-conference"],
+            {
+              sc: schedule_id ? schedule_id : "",
+            }
+          )
         );
       }
     }
   };
+  const getRoom = () => {
+    let s = props.classDetails[CLASS.id].schedules[schedule_id];
+    let n = CLASS.name + "-" + moment(s.from).format("YYYY-MM-DD-H-mm-ss");
+    return {
+      name: n.replace(" ", "-"),
+      displayName: s.teacher.first_name + " " + s.teacher.last_name,
+    };
+  };
+
   return (
     <div>
       <Drawer {...props}>
@@ -437,13 +458,51 @@ function Class(props) {
               )}
             </Paper>
           </Slide>
-          <Box flex={1} overflow="hidden auto" height="100vh">
+          <Box
+            flex={1}
+            overflow="hidden auto"
+            height="100vh"
+            id="right-panel"
+            onScroll={(e) => {
+              const clamp = (v, min = 0, max = 1) =>
+                Math.min(max, Math.max(min, v));
+              function p5map(n, start1, stop1, start2, stop2) {
+                return (
+                  ((n - start1) / (stop1 - start1)) * (stop2 - start2) + start2
+                );
+              }
+
+              if ($("#activity-preview")[0]) {
+                let x = $("#activity-preview");
+                let offset = $("#video-conference-container");
+                offset = offset[0] ? offset[0].offsetHeight : 0;
+                let top = e.target.scrollTop - offset;
+                let height = e.target.scrollHeight;
+                x.css(
+                  "opacity",
+                  clamp(
+                    p5map(
+                      top,
+                      0,
+                      $("#activity-preview")[0].clientHeight - 50,
+                      1,
+                      0
+                    ),
+                    0,
+                    1
+                  )
+                );
+              }
+            }}
+          >
             {room_name &&
               CLASS &&
               schedule_id &&
               classSched.status === "ONGOING" && (
                 <VideoConference
-                  roomName={room_name}
+                  match={props.match}
+                  getRoom={() => getRoom()}
+                  updateClass={(e) => updateClass(e)}
                   left={
                     !collapsePanel ? (
                       <IconButton

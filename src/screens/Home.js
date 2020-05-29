@@ -100,7 +100,7 @@ function Home(props) {
       }
     }
     let videoConferenceLink = makeLinkTo(
-      ["class", c.id, "sched", "activity", "roomid"],
+      ["class", c.id, "sched", "activity", "video-conferece"],
       {
         sched: status ? status.id : "",
       }

@@ -8,6 +8,9 @@ import {
   CircularProgress,
   DialogActions,
   Input,
+  ExpansionPanel,
+  ExpansionPanelSummary,
+  ExpansionPanelDetails,
   DialogContent,
   DialogContentText,
   DialogTitle,
@@ -25,8 +28,6 @@ import {
   Typography,
   Link,
 } from "@material-ui/core";
-import RootRef from "@material-ui/core/RootRef";
-import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 import InsertDriveFileOutlinedIcon from "@material-ui/icons/InsertDriveFileOutlined";
 import MoreHorizOutlinedIcon from "@material-ui/icons/MoreHorizOutlined";
 import Moment from "react-moment";
@@ -50,6 +51,7 @@ import {
   KeyboardDatePicker,
 } from "@material-ui/pickers";
 import Api from "../../api";
+import $ from "jquery";
 
 function Alert(props) {
   return <MuiAlert elevation={6} variant="filled" {...props} />;
@@ -63,7 +65,7 @@ function Activity(props) {
   const [dragover, setDragover] = useState(false);
   const [sortType, setSortType] = useState("DESCENDING");
   const [search, setSearch] = useState("");
-  const [open, setOpen] = React.useState(false);
+  const [modals, setModals] = React.useState([false, false]);
   const [anchorEl, setAnchorEl] = React.useState(null);
   const [file, setFile] = useState();
   const [fileViewerOpen, setfileViewerOpen] = useState(false);
@@ -72,6 +74,7 @@ function Activity(props) {
   const classSched = props.classSched;
   const [currentActivity, setCurrentActivity] = useState();
   const [errors, setErrors] = useState();
+  const [newMaterial, setNewMaterial] = useState({});
   const formTemplate = {
     activity_type: 1,
     title: "",
@@ -120,6 +123,12 @@ function Activity(props) {
   useEffect(() => {
     _getActivities();
   }, [props.classDetails]);
+  useEffect(() => {
+    if (currentActivity) {
+      document.querySelector("#right-panel").scrollTop = 0;
+      $("#navbar-title").text(currentActivity.title);
+    }
+  }, [currentActivity]);
   const _getActivities = () => {
     if (!classSched) return;
     try {
@@ -147,17 +156,6 @@ function Activity(props) {
       });
     }
   }, [activities]);
-  const onDragEnd = (result) => {
-    if (!result.destination) {
-      return;
-    }
-    const items = reorder(
-      activities,
-      result.source.index,
-      result.destination.index
-    );
-    setActivities(items);
-  };
 
   const _handleSort = () => {
     if (sortType === "ASCENDING") {
@@ -177,11 +175,11 @@ function Activity(props) {
   };
 
   const handleClickOpen = () => {
-    setOpen(true);
+    setModals([true, modals[1]]);
   };
 
   const handleClose = () => {
-    setOpen(false);
+    if (!saving) setModals([false, modals[1]]);
   };
   const _handleItemClick = (item) => {
     setCurrentActivity(
@@ -189,6 +187,7 @@ function Activity(props) {
     );
   };
   const _handleCreateActivity = async (params = {}) => {
+    setErrors(null);
     setSaving(true);
     let formData = new Form({ ...form, ...params });
     let res = await formData.send("/api/class/activity/save");
@@ -197,20 +196,19 @@ function Activity(props) {
         "/api/class/activity/publish/" + formData.data.id
       );
     }
-    setErrors(null);
     if (res) {
       if (!res.errors) {
         await getUserData(props.userInfo);
-        setOpen(false);
         _handleFileOption("view", res);
-        new FileUpload("activity-materials").upload(
-          "/api/upload/activity/material",
-          {
-            body: {
-              assignment_id: res.id,
-            },
-          }
-        );
+        setModals([modals[0], false]);
+        // new FileUpload("activity-materials").upload(
+        //   "/api/upload/activity/material",
+        //   {
+        //     body: {
+        //       assignment_id: res.id,
+        //     },
+        //   }
+        // );
       } else {
         let err = [];
         for (let e in res.errors) {
@@ -283,7 +281,14 @@ function Activity(props) {
       </Box>
       {currentActivity && currentActivity && (
         <Grow in={true}>
-          <Box p={2}>
+          <Box
+            p={2}
+            id="activity-preview"
+            style={{
+              position: "relative",
+              zIndex: 10,
+            }}
+          >
             <Paper>
               <Box p={2}>
                 <Box display="flex" justifyContent="space-between">
@@ -296,7 +301,9 @@ function Activity(props) {
                   </Typography>
                 </Box>
                 <Box m={2} style={{ marginLeft: 0, marginRight: 0 }}>
-                  <Typography>{currentActivity.description}</Typography>
+                  <Typography style={{ whiteSpace: "pre-wrap" }}>
+                    {currentActivity.description}
+                  </Typography>
                 </Box>
                 <Box display="inline-block">
                   <Typography color="textSecondary">Resources</Typography>
@@ -491,139 +498,119 @@ function Activity(props) {
                 </Typography>
               </Box>
             )}
-            <DragDropContext onDragEnd={onDragEnd}>
-              <Droppable droppableId="droppable">
-                {(provided, snapshot) => (
-                  <RootRef rootRef={provided.innerRef}>
-                    <Grow in={true}>
-                      <List style={getListStyle(snapshot.isDraggingOver)}>
-                        {activities
-                          .filter(
-                            (a) =>
-                              JSON.stringify(a).toLowerCase().indexOf(search) >=
-                              0
-                          )
-                          .filter((a) => a.status === "published")
-                          .reverse()
-                          .map((item, index) => (
-                            <Draggable
-                              key={item.id}
-                              draggableId={item.id}
-                              index={index}
-                            >
-                              {(provided, snapshot) => (
-                                <ListItem
-                                  ContainerComponent="li"
-                                  ContainerProps={{ ref: provided.innerRef }}
-                                  {...provided.draggableProps}
-                                  {...provided.dragHandleProps}
-                                  onClick={() => _handleItemClick(item)}
-                                  className={styles.listItem}
-                                  style={{
-                                    ...getItemStyle(
-                                      snapshot.isDragging,
-                                      provided.draggableProps.style
-                                    ),
-                                    ...(currentActivity &&
-                                    item.id === currentActivity.id
-                                      ? {
-                                          background:
-                                            props.theme === "dark"
-                                              ? "#111"
-                                              : "#fff",
-                                        }
-                                      : {}),
-                                  }}
-                                >
-                                  <ListItemIcon>
-                                    <InsertDriveFileOutlinedIcon />
-                                  </ListItemIcon>
+            <Grow in={activities ? true : false}>
+              <List>
+                {activities
+                  .filter(
+                    (a) => JSON.stringify(a).toLowerCase().indexOf(search) >= 0
+                  )
+                  .filter((a) => (isTeacher ? true : a.status === "published"))
+                  .reverse()
+                  .map((item, index) => (
+                    <ListItem
+                      className={styles.listItem}
+                      style={{
+                        ...(currentActivity && item.id === currentActivity.id
+                          ? {
+                              background:
+                                props.theme === "dark" ? "#111" : "#fff",
+                            }
+                          : {}),
+                      }}
+                    >
+                      <ExpansionPanel
+                        style={{
+                          width: "100%",
+                          boxShadow: "none",
+                          background: "transparent",
+                        }}
+                      >
+                        <ExpansionPanelSummary
+                          style={{
+                            border: 0,
+                            alignItems: "center",
+                          }}
+                        >
+                          <ListItemIcon>
+                            <InsertDriveFileOutlinedIcon />
+                          </ListItemIcon>
+                          <ListItemText
+                            primary={item.title}
+                            secondary={item.description.substr(0, 50) + "..."}
+                          />
+                          <Typography
+                            variant="body1"
+                            component="div"
+                            style={{ marginRight: 7 }}
+                          >
+                            {moment(item.available_from).format("LL")}
+                            &nbsp;-&nbsp;
+                            {moment(item.available_from).format("LL")}
+                          </Typography>
+                        </ExpansionPanelSummary>
+                        <ExpansionPanelDetails>
+                          {item.description}
+                        </ExpansionPanelDetails>
+                      </ExpansionPanel>
+                      <ListItemSecondaryAction>
+                        <IconButton
+                          onClick={(event) =>
+                            setAnchorEl(() => {
+                              let a = {};
+                              a[item.id] = event.currentTarget;
+                              return { ...anchorEl, ...a };
+                            })
+                          }
+                        >
+                          <MoreHorizOutlinedIcon />
+                        </IconButton>
+                        {anchorEl && (
+                          <StyledMenu
+                            id="customized-menu"
+                            anchorEl={anchorEl[item.id]}
+                            keepMounted
+                            open={Boolean(anchorEl[item.id])}
+                            onClose={() =>
+                              setAnchorEl(() => {
+                                let a = {};
+                                a[item.id] = null;
+                                return { ...anchorEl, ...a };
+                              })
+                            }
+                          >
+                            <StyledMenuItem>
+                              <ListItemText
+                                primary="View"
+                                onClick={() => _handleFileOption("view", item)}
+                              />
+                            </StyledMenuItem>
+                            {isTeacher && (
+                              <div>
+                                <StyledMenuItem>
                                   <ListItemText
-                                    primary={item.title}
-                                    secondary={
-                                      item.description.substr(0, 50) + "..."
+                                    primary="Edit"
+                                    onClick={() =>
+                                      _handleFileOption("edit", item)
                                     }
                                   />
-                                  <Typography
-                                    variant="body1"
-                                    component="div"
-                                    style={{ marginRight: 10 }}
-                                  >
-                                    {moment(item.available_from).format("LL")}
-                                    &nbsp;-&nbsp;
-                                    {moment(item.available_from).format("LL")}
-                                  </Typography>
-                                  <ListItemSecondaryAction>
-                                    <IconButton
-                                      onClick={(event) =>
-                                        setAnchorEl(() => {
-                                          let a = {};
-                                          a[item.id] = event.currentTarget;
-                                          return { ...anchorEl, ...a };
-                                        })
-                                      }
-                                    >
-                                      <MoreHorizOutlinedIcon />
-                                    </IconButton>
-                                    {anchorEl && (
-                                      <StyledMenu
-                                        id="customized-menu"
-                                        anchorEl={anchorEl[item.id]}
-                                        keepMounted
-                                        open={Boolean(anchorEl[item.id])}
-                                        onClose={() =>
-                                          setAnchorEl(() => {
-                                            let a = {};
-                                            a[item.id] = null;
-                                            return { ...anchorEl, ...a };
-                                          })
-                                        }
-                                      >
-                                        <StyledMenuItem>
-                                          <ListItemText
-                                            primary="View"
-                                            onClick={() =>
-                                              _handleFileOption("view", item)
-                                            }
-                                          />
-                                        </StyledMenuItem>
-                                        {isTeacher && (
-                                          <div>
-                                            <StyledMenuItem>
-                                              <ListItemText
-                                                primary="Edit"
-                                                onClick={() =>
-                                                  _handleFileOption(
-                                                    "edit",
-                                                    item
-                                                  )
-                                                }
-                                              />
-                                            </StyledMenuItem>
-                                            <StyledMenuItem>
-                                              <ListItemText primary="Delete" />
-                                            </StyledMenuItem>
-                                          </div>
-                                        )}
-                                      </StyledMenu>
-                                    )}
-                                  </ListItemSecondaryAction>
-                                </ListItem>
-                              )}
-                            </Draggable>
-                          ))}
-                        {provided.placeholder}
-                      </List>
-                    </Grow>
-                  </RootRef>
-                )}
-              </Droppable>
-            </DragDropContext>
+                                </StyledMenuItem>
+                                <StyledMenuItem>
+                                  <ListItemText primary="Delete" />
+                                </StyledMenuItem>
+                              </div>
+                            )}
+                          </StyledMenu>
+                        )}
+                      </ListItemSecondaryAction>
+                    </ListItem>
+                  ))}
+              </List>
+            </Grow>
           </Box>
         </Box>
       )}
       <Dialog
-        open={open}
+        open={modals[0]}
         keepMounted
         onClose={handleClose}
         aria-labelledby="alert-dialog-slide-title"
@@ -718,30 +705,34 @@ function Activity(props) {
                 </Box>
               </MuiPickersUtilsProvider>
             </Box>
-            {hasFiles[1] && (
+            {form.materials && (
               <Box style={{ marginTop: 7 }}>
                 <Typography variant="body1" color="textSecondary">
                   Activity Materials
                 </Typography>
-                {FileUpload.getFiles("activity-materials").map((f) => (
-                  <List dense={true}>
-                    <ListItem>
-                      <ListItemText primary={f.name} />
-                      <ListItemSecondaryAction>
-                        <IconButton
-                          edge="end"
-                          aria-label="delete"
-                          onClick={() => {
-                            FileUpload.removeFiles("activity-materials");
-                            setHasFiles([hasFiles[0], false]);
-                          }}
-                        >
-                          <CancelIcon />
-                        </IconButton>
-                      </ListItemSecondaryAction>
-                    </ListItem>
-                  </List>
-                ))}
+                {FileUpload.getFiles("activity-materials")
+                  .concat(form.materials)
+                  .map((f) => (
+                    <List dense={true}>
+                      <ListItem>
+                        <ListItemText primary={f.title} />
+                        <ListItemSecondaryAction>
+                          <IconButton
+                            edge="end"
+                            aria-label="delete"
+                            onClick={() => {
+                              if (f.isFile) {
+                                FileUpload.removeFiles("activity-materials");
+                                setHasFiles([hasFiles[0], false]);
+                              }
+                            }}
+                          >
+                            <CancelIcon />
+                          </IconButton>
+                        </ListItemSecondaryAction>
+                      </ListItem>
+                    </List>
+                  ))}
               </Box>
             )}
           </DialogContentText>
@@ -770,6 +761,13 @@ function Activity(props) {
             >
               <AttachFileOutlinedIcon />
               Add File
+            </Button>
+            <Button
+              onClick={() => setModals([modals[0], true])}
+              variant="outlined"
+              style={{ float: "left" }}
+            >
+              Add Link
             </Button>
           </div>
           <DialogActions>
@@ -809,23 +807,74 @@ function Activity(props) {
           </DialogActions>
         </DialogActions>
       </Dialog>
+
+      <Dialog
+        open={modals[1]}
+        keepMounted
+        onClose={() => {
+          setNewMaterial(null);
+          setModals([modals[0], false]);
+        }}
+        aria-labelledby="alert-dialog-slide-title"
+        aria-describedby="alert-dialog-slide-description"
+      >
+        <DialogTitle id="alert-dialog-slide-title">Web Link</DialogTitle>
+        <DialogContent>
+          <DialogContentText id="alert-dialog-slide-description">
+            <Box display="flex" flexWrap="wrap">
+              <TextField
+                label="Title"
+                className={styles.textField}
+                InputLabelProps={{
+                  shrink: true,
+                }}
+                onChange={(e) => {
+                  setNewMaterial({ ...newMaterial, title: e.target.value });
+                }}
+                fullWidth
+              />
+              <TextField
+                label="link"
+                variant="filled"
+                onChange={(e) => {
+                  setNewMaterial({
+                    ...newMaterial,
+                    resource_link: e.target.value,
+                  });
+                }}
+                InputLabelProps={{
+                  shrink: true,
+                }}
+                fullWidth
+              />
+            </Box>
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={() => {
+              setNewMaterial(null);
+              setModals([modals[0], false]);
+            }}
+            variant="outlined"
+          >
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={() => {
+              setForm({ ...form, materials: [newMaterial, ...form.materials] });
+              setModals([modals[0], false]);
+            }}
+          >
+            Add Link
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 }
-
-const reorder = (list, startIndex, endIndex) => {
-  const result = Array.from(list);
-  const [removed] = result.splice(startIndex, 1);
-  result.splice(endIndex, 0, removed);
-
-  return result;
-};
-
-const getItemStyle = (isDragging, draggableStyle) => ({
-  ...draggableStyle,
-});
-
-const getListStyle = (isDraggingOver) => ({});
 const StyledMenu = withStyles({
   paper: {
     border: "1px solid #d3d4d5",
@@ -845,7 +894,6 @@ const StyledMenu = withStyles({
     {...props}
   />
 ));
-
 const StyledMenuItem = withStyles((theme) => ({
   root: {
     "&:focus": {
@@ -902,6 +950,7 @@ const useStyles = makeStyles((theme) => ({
     },
   },
   listItem: {
+    pdading: 0,
     backgroundColor: theme.palette.grey[100],
     borderLeft: "4px solid #fff",
     marginBottom: 7,
