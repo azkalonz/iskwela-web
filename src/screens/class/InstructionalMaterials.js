@@ -21,7 +21,10 @@ import {
   ListItemSecondaryAction,
   makeStyles,
   Typography,
+  Snackbar,
   Paper,
+  CircularProgress,
+  Grow,
 } from "@material-ui/core";
 import RootRef from "@material-ui/core/RootRef";
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
@@ -37,11 +40,17 @@ import InsertLinkOutlinedIcon from "@material-ui/icons/InsertLinkOutlined";
 import CloudUploadOutlinedIcon from "@material-ui/icons/CloudUploadOutlined";
 import FileViewer from "../../components/FileViewer";
 import { connect } from "react-redux";
+import FileUpload, { stageFiles } from "../../components/FileUpload";
+import MuiAlert from "@material-ui/lab/Alert";
+import getUserData from "../../components/getUserData";
 
+function Alert(props) {
+  return <MuiAlert elevation={6} variant="filled" {...props} />;
+}
 const queryString = require("query-string");
 
 function InstructionalMaterials(props) {
-  const { class_id } = props.match.params;
+  const { class_id, schedule_id } = props.match.params;
   const [materials, setMaterials] = useState();
   const [search, setSearch] = useState("");
   const [sortType, setSortType] = useState("DESCENDING");
@@ -53,6 +62,11 @@ function InstructionalMaterials(props) {
   const styles = useStyles();
   const [file, setFile] = useState();
   const [fileViewerOpen, setfileViewerOpen] = useState(false);
+  const [form, setForm] = useState();
+  const [hasFiles, setHasFiles] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [errors, setErrors] = useState();
 
   const _handleFileOption = (option, file) => {
     setAnchorEl(() => {
@@ -139,8 +153,62 @@ function InstructionalMaterials(props) {
   const handleClose = () => {
     setAddNewFileAnchor(null);
   };
+
+  async function asyncForEach(array, callback) {
+    for (let index = 0; index < array.length; index++) {
+      await callback(array[index], index, array);
+    }
+  }
+
+  const _handleMaterialUpload = async () => {
+    if (!form) {
+      setErrors(["Invalid title"]);
+      return;
+    }
+    let m = document.querySelector("#materials-upload");
+    if (!m.files.length) {
+      setErrors(["Attach file/s"]);
+      return;
+    }
+    let err = [];
+    setErrors(null);
+    setSaving(true);
+    await asyncForEach(m.files, async (file) => {
+      let body = new FormData();
+      body.append("class_id", class_id);
+      body.append("file", file);
+      body.append("schedule_id", schedule_id);
+      body.append("title", form.title);
+      let res = await FileUpload.upload("/api/upload/class/material", {
+        body,
+      });
+      if (res.errors) {
+        for (let e in res.errors) {
+          err.push(res.errors[e][0]);
+        }
+      }
+    });
+    if (!err.length) {
+      setSuccess(true);
+      await getUserData(props.userInfo);
+      FileUpload.removeFiles("materials");
+      setHasFiles(false);
+      setModals([modals[0], false]);
+    } else setErrors(err);
+    setSaving(true);
+    setErrors(null);
+  };
   return (
     <Box width="100%" alignSelf="flex-start">
+      <Snackbar
+        open={success}
+        autoHideDuration={6000}
+        onClose={() => setSuccess(false)}
+      >
+        <Alert severity="success" onClose={() => setSuccess(false)}>
+          Success
+        </Alert>
+      </Snackbar>
       <Dialog
         open={fileViewerOpen}
         keepMounted
@@ -256,6 +324,7 @@ function InstructionalMaterials(props) {
                           (i) =>
                             JSON.stringify(i).toLowerCase().indexOf(search) >= 0
                         )
+                        .reverse()
                         .map((item, index) => (
                           <Draggable
                             key={item.id}
@@ -280,7 +349,11 @@ function InstructionalMaterials(props) {
                                 </ListItemIcon>
                                 <ListItemText
                                   primary={item.title}
-                                  secondary={item.resource_link}
+                                  secondary={
+                                    item.resource_link
+                                      ? item.resource_link
+                                      : item.uploaded_file
+                                  }
                                 />
                                 <Typography
                                   variant="body1"
@@ -397,27 +470,36 @@ function InstructionalMaterials(props) {
       <Dialog
         open={modals[1]}
         keepMounted
-        onClose={() => setModals([modals[0], !modals[1]])}
+        onClose={() => {
+          if (!saving) {
+            FileUpload.removeFiles("materials");
+            setHasFiles(false);
+            setForm(null);
+            setModals([modals[0], !modals[1]]);
+          }
+        }}
         aria-labelledby="alert-dialog-slide-title"
         aria-describedby="alert-dialog-slide-description"
       >
         <DialogTitle id="alert-dialog-slide-title">Upload</DialogTitle>
         <DialogContent>
+          <Box style={{ marginBottom: 18 }}>
+            {errors &&
+              errors.map((e, i) => (
+                <Grow in={true}>
+                  <Alert key={i} style={{ marginBottom: 9 }} severity="error">
+                    {e}
+                  </Alert>
+                </Grow>
+              ))}
+          </Box>
           <DialogContentText id="alert-dialog-slide-description">
             <Box display="flex" flexWrap="wrap">
               <TextField
                 label="Title"
                 className={styles.textField}
-                InputLabelProps={{
-                  shrink: true,
-                }}
-                fullWidth
-              />
-              <TextField
-                label="Description"
-                style={{ marginTop: 13 }}
-                rows={4}
-                multiline={true}
+                value={form && form.title}
+                onChange={(e) => setForm({ title: e.target.value })}
                 InputLabelProps={{
                   shrink: true,
                 }}
@@ -425,13 +507,30 @@ function InstructionalMaterials(props) {
               />
             </Box>
           </DialogContentText>
+          {hasFiles &&
+            FileUpload.getFiles("materials").map((f) => (
+              <div>{f.uploaded_file}</div>
+            ))}
         </DialogContent>
         <DialogActions style={{ justifyContent: "space-between" }}>
           <div>
+            <input
+              style={{ display: "none" }}
+              type="file"
+              id="materials-upload"
+              onChange={(e) => {
+                stageFiles("materials", e.target.files);
+                setHasFiles(true);
+              }}
+              multiple
+            />
             <Button
-              onClick={handleClose}
+              onClick={() =>
+                document.querySelector("#materials-upload").click()
+              }
               variant="outlined"
               style={{ float: "left" }}
+              disabled={saving ? true : false}
             >
               <AttachFileOutlinedIcon />
               Add
@@ -439,18 +538,33 @@ function InstructionalMaterials(props) {
           </div>
           <DialogActions>
             <Button
-              onClick={() => setModals(modals[0], false)}
+              onClick={() => {
+                if (!saving) {
+                  FileUpload.removeFiles("materials");
+                  setHasFiles(false);
+                  setForm(null);
+                  setModals([modals[0], false]);
+                }
+              }}
+              disabled={saving ? true : false}
               variant="outlined"
             >
               Cancel
             </Button>
-            <Button
-              variant="contained"
-              onClick={() => setModals(modals[0], false)}
-              color="primary"
-            >
-              Done
-            </Button>
+            <div style={{ position: "relative" }}>
+              <Button
+                variant="contained"
+                onClick={_handleMaterialUpload}
+                className={styles.wrapper}
+                color="primary"
+                disabled={saving ? true : false}
+              >
+                Upload
+              </Button>
+              {saving && (
+                <CircularProgress size={24} className={styles.buttonProgress} />
+              )}
+            </div>
           </DialogActions>
         </DialogActions>
       </Dialog>
@@ -503,6 +617,14 @@ const StyledMenuItem = withStyles((theme) => ({
 }))(MenuItem);
 
 const useStyles = makeStyles((theme) => ({
+  buttonProgress: {
+    position: "absolute",
+    top: "50%",
+    left: "50%",
+    marginTop: -12,
+    marginLeft: -12,
+  },
+  wrapper: { margin: theme.spacing(1), position: "relative" },
   hideonmobile: {
     [theme.breakpoints.down("xs")]: {
       display: "none",

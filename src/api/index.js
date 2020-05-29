@@ -1,8 +1,7 @@
 function Api() {}
-const domain = "https://dev-middleware.iskwela.net";
-Api.domain = domain;
+
 Api.get = (endpoint, params = {}) =>
-  fetch(domain + endpoint, {
+  fetch(endpoint, {
     method: "GET",
     headers: {
       Authorization: "Bearer " + Api.token,
@@ -10,7 +9,18 @@ Api.get = (endpoint, params = {}) =>
     ...params.config,
   }).then((resp) => resp.json());
 Api.post = (endpoint, params = {}) => {
-  return fetch(domain + endpoint, {
+  console.log({
+    method: "post",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+      Authorization: "Bearer " + Api.token,
+      ...params.headers,
+    },
+    body: JSON.stringify(params.body),
+    ...params.config,
+  });
+  return fetch(endpoint, {
     method: "post",
     headers: {
       Accept: "application/json",
@@ -28,7 +38,7 @@ Api.auth = async (callback = {}) => {
     try {
       let u = JSON.parse(localStorage["auth"]);
       Api.token = u.access_token;
-      u = await Api.get("/api/user");
+      u = await Api.get("/api/user?include=preferences");
       if (!u.error) {
         return callback.success ? callback.success(u) : u;
       }

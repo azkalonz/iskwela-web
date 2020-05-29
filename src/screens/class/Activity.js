@@ -42,7 +42,6 @@ import LaunchIcon from "@material-ui/icons/Launch";
 import Grow from "@material-ui/core/Grow";
 import FileUpload, { stageFiles } from "../../components/FileUpload";
 import Form from "../../components/Form";
-import MuiAlert from "@material-ui/lab/Alert";
 import MomentUtils from "@date-io/moment";
 import CancelIcon from "@material-ui/icons/Cancel";
 import { connect } from "react-redux";
@@ -54,6 +53,7 @@ import {
 import Api from "../../api";
 import $ from "jquery";
 import axios from "axios";
+import MuiAlert from "@material-ui/lab/Alert";
 
 function Alert(props) {
   return <MuiAlert elevation={6} variant="filled" {...props} />;
@@ -194,7 +194,7 @@ function Activity(props) {
     if (res) {
       if (!res.errors) {
         let file = document.querySelector("#activity-material");
-        if (file.files) {
+        if (file.files.length) {
           let body = new FormData();
           body.append("file", file.files[0]);
           body.append("assignment_id", res.id);

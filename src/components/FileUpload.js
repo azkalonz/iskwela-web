@@ -6,14 +6,14 @@ FileUpload.upload = async (endpoint, params = {}) => {
   if (!params.body) return;
   let isAuth = await Api.auth();
   if (!isAuth) return;
-  let res = axios.post(Api.domain + endpoint, params.body, {
+  let req = axios.post(endpoint, params.body, {
     headers: {
       Accept: "application/json",
       "Content-Type": "multipart/form-data",
       Authorization: "Bearer " + Api.token,
     },
   });
-  return res;
+  return req;
 };
 
 FileUpload.removeFiles = (id) => {

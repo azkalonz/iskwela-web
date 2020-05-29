@@ -115,7 +115,7 @@ function NavBar(props) {
                 <Avatar
                   style={{ height: 25, width: 25 }}
                   alt={props.userInfo.first_name}
-                  src="/static/images/avatar/1.jpg"
+                  src={props.userInfo.preferences.profile_picture}
                 />
               </IconButton>
               <IconButton
@@ -345,7 +345,7 @@ const ProfilePicDialog = React.memo(function (props) {
             alt={props.userInfo.first_name}
             con
             id="preview"
-            src={preview ? preview : "/static/images/avatar/1.jpg"}
+            src={preview ? preview : props.userInfo.preferences.profile_picture}
             style={{ width: 500, height: 500 }}
             variant="square"
           />
