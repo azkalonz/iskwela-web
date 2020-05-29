@@ -26,11 +26,12 @@ const primaryColor = "#6200ef";
 function App(props) {
   const styles = useStyles();
   const [loading, setLoading] = useState(true);
+  const [loadingProgress, setLoadingProgress] = useState(0);
 
   useEffect(() => {
     Api.auth({
       success: async (user) => {
-        await getUserData(user);
+        await getUserData(user, setLoadingProgress);
         setLoading(false);
       },
       fail: () => {
@@ -85,7 +86,9 @@ function App(props) {
                 flexDirection="column"
               >
                 <Box p={2}>
-                  <CircularProgress
+                  <CircularProgressWithLabel
+                    value={loadingProgress}
+                    variant="static"
                     color={mode === "dark" ? "white" : "primary"}
                   />
                 </Box>
@@ -99,6 +102,29 @@ function App(props) {
   );
 }
 
+function CircularProgressWithLabel(props) {
+  return (
+    <Box position="relative" display="inline-flex">
+      <CircularProgress variant="static" {...props} />
+      <Box
+        top={0}
+        left={0}
+        bottom={0}
+        right={0}
+        position="absolute"
+        display="flex"
+        alignItems="center"
+        justifyContent="center"
+      >
+        <Typography
+          variant="caption"
+          component="div"
+          color="textSecondary"
+        >{`${Math.round(props.value)}%`}</Typography>
+      </Box>
+    </Box>
+  );
+}
 const defaultTheme = createMuiTheme();
 let mode = window.localStorage["mode"] ? window.localStorage["mode"] : "light";
 mode = mode === "dark" || mode === "lgiht" ? mode : "light";

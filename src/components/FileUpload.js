@@ -9,23 +9,17 @@ async function asyncForEach(array, callback) {
 }
 
 function FileUpload(id) {
-  this.FILE_ID = id;
   this.upload = async (endpoint, params = {}) => {
-    if (!FileUpload.files[this.FILE_ID]) return;
+    if (!FileUpload.files[id]) return;
     let isAuth = await Api.auth();
     if (!isAuth) return;
-    await asyncForEach(FileUpload.files[this.FILE_ID], async (f) => {
-      console.log({
+    let req = await Api.post(endpoint, {
+      body: {
         ...params.body,
-        file: f,
-      });
-      let req = await Api.post(endpoint, {
-        body: {
-          ...params.body,
-          file: f,
-        },
-      });
+      },
     });
+    return req;
+    console.log(FileUpload.files[id]);
   };
 }
 

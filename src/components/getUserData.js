@@ -6,9 +6,10 @@ async function asyncForEach(array, callback) {
     await callback(array[index], index, array);
   }
 }
-
-export default async function getUserData(user) {
+export default async function getUserData(user, setProgress = null) {
+  let totalReq = 0;
   let data = {};
+  let counter = 1;
   if (user.user_type === "s") {
     let c = await Api.get("/api/student/classes");
     data.classes = c.classes;
@@ -21,15 +22,22 @@ export default async function getUserData(user) {
     let classDetails = await Api.get(
       "/api/teacher/class/" + c.id + "?include=schedules,students"
     );
+    if (!totalReq) {
+      totalReq = data.classes.length;
+    }
+    setProgress((counter / totalReq) * 100);
     data.classDetails[c.id] = classDetails;
     let schedCopy = [...data.classDetails[c.id].schedules];
     data.classDetails[c.id].schedules = [];
     await asyncForEach(schedCopy, async (sched) => {
+      totalReq += 1;
       let scheduleDetails = await Api.get(
         "/api/schedule/" +
           sched.id +
           "?include=materials, activities, lessonPlans"
       );
+      counter++;
+      setProgress((counter / totalReq) * 100);
       data.classDetails[c.id].schedules[sched.id] = scheduleDetails;
       data.classDetails[c.id].schedules[sched.id].date = moment(
         sched.from
@@ -48,4 +56,5 @@ export default async function getUserData(user) {
   });
   store.dispatch({ type: "SET_CLASSES", classes: data.classes });
   store.dispatch({ type: "SET_USERINFO", user: user });
+  setProgress(100);
 }

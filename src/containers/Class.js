@@ -123,12 +123,14 @@ function Class(props) {
   const [CLASS, setCLASS] = useState();
   const userInfo = props.userInfo;
   const isTeacher = userInfo.user_type === "t" ? true : false;
-  const classSched = props.classDetails[class_id].schedules[schedule_id];
+  const classSched = props.classDetails[class_id]
+    ? props.classDetails[class_id].schedules[schedule_id]
+    : null;
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     let s = props.classDetails[class_id];
-    if (!s.schedules[schedule_id] && schedule_id) {
+    if (!s) {
       window.location = "/";
     } else if (!option_name && schedule_id) {
       history.push(makeLinkTo(["class", class_id, schedule_id, "activity"]));
@@ -481,13 +483,7 @@ function Class(props) {
                 x.css(
                   "opacity",
                   clamp(
-                    p5map(
-                      top,
-                      0,
-                      $("#activity-preview")[0].clientHeight - 50,
-                      1,
-                      0
-                    ),
+                    p5map(top, 0, $("#activity-preview")[0].clientHeight, 1, 0),
                     0,
                     1
                   )

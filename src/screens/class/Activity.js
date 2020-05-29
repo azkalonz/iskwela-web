@@ -281,15 +281,8 @@ function Activity(props) {
       </Box>
       {currentActivity && currentActivity && (
         <Grow in={true}>
-          <Box
-            p={2}
-            id="activity-preview"
-            style={{
-              position: "relative",
-              zIndex: 10,
-            }}
-          >
-            <Paper>
+          <Box p={2}>
+            <Paper id="activity-preview">
               <Box p={2}>
                 <Box display="flex" justifyContent="space-between">
                   <Typography style={{ fontWeight: "bold" }} variant="body1">
@@ -412,7 +405,7 @@ function Activity(props) {
                             <div>
                               {FileUpload.getFiles("answers").map((f) => (
                                 <Typography variant="body1" color="primary">
-                                  {f.name}
+                                  {f.title}
                                 </Typography>
                               ))}
                             </div>
@@ -548,7 +541,9 @@ function Activity(props) {
                             {moment(item.available_from).format("LL")}
                           </Typography>
                         </ExpansionPanelSummary>
-                        <ExpansionPanelDetails>
+                        <ExpansionPanelDetails
+                          className={styles.expansionDetails}
+                        >
                           {item.description}
                         </ExpansionPanelDetails>
                       </ExpansionPanel>
@@ -864,7 +859,10 @@ function Activity(props) {
             variant="contained"
             color="primary"
             onClick={() => {
-              setForm({ ...form, materials: [newMaterial, ...form.materials] });
+              let m = form.materials
+                ? [newMaterial, ...form.materials]
+                : [newMaterial];
+              setForm({ ...form, materials: m });
               setModals([modals[0], false]);
             }}
           >
@@ -906,6 +904,10 @@ const StyledMenuItem = withStyles((theme) => ({
 }))(MenuItem);
 
 const useStyles = makeStyles((theme) => ({
+  expansionDetails: {
+    background: theme.palette.type === "dark" ? "#111" : "#fff",
+    marginRight: 30,
+  },
   hideonmobile: {
     [theme.breakpoints.down("xs")]: {
       display: "none",
