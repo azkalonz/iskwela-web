@@ -1,5 +1,5 @@
 function Api() {}
-const domain = "http://dev-middleware.iskwela.net";
+const domain = "https://dev-middleware.iskwela.net";
 Api.domain = domain;
 Api.get = (endpoint, params = {}) =>
   fetch(domain + endpoint, {
