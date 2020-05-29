@@ -139,10 +139,9 @@ function Class(props) {
 
   useEffect(() => {
     setCLASS(undefined);
-    const path = window.location.pathname.split("/");
     setLoading(true);
     _getClass();
-  }, [window.location.pathname]);
+  }, [class_id]);
 
   useEffect(() => {
     if (props.width === "sm" || props.width === "xs") setCollapsePanel(false);
@@ -150,6 +149,7 @@ function Class(props) {
   }, [props.width]);
 
   const _getClass = async () => {
+    await Api.auth();
     if (props.classDetails) setCLASS(props.classDetails[class_id]);
     else setCLASS(undefined);
     if (classSched.status === "ONGOING" && !room_name)
