@@ -1,27 +1,20 @@
 import Api from "../api";
+import axios from "axios";
 
-const MAX_FILES = 1;
-
-async function asyncForEach(array, callback) {
-  for (let index = 0; index < array.length; index++) {
-    await callback(array[index], index, array);
-  }
-}
-
-function FileUpload(id) {
-  this.upload = async (endpoint, params = {}) => {
-    if (!FileUpload.files[id]) return;
-    let isAuth = await Api.auth();
-    if (!isAuth) return;
-    let req = await Api.post(endpoint, {
-      body: {
-        ...params.body,
-      },
-    });
-    return req;
-    console.log(FileUpload.files[id]);
-  };
-}
+function FileUpload() {}
+FileUpload.upload = async (endpoint, params = {}) => {
+  if (!params.body) return;
+  let isAuth = await Api.auth();
+  if (!isAuth) return;
+  let res = axios.post(Api.domain + endpoint, params.body, {
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "multipart/form-data",
+      Authorization: "Bearer " + Api.token,
+    },
+  });
+  return res;
+};
 
 FileUpload.removeFiles = (id) => {
   delete FileUpload.files[id];
@@ -30,7 +23,7 @@ FileUpload.getFiles = (id) => {
   return FileUpload.files[id]
     ? Object.keys(FileUpload.files[id]).map((k) => ({
         id: k,
-        title: FileUpload.files[id][k].name,
+        uploaded_file: FileUpload.files[id][k].name,
         isFile: true,
       }))
     : [];

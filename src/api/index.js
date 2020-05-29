@@ -1,6 +1,8 @@
 function Api() {}
+const domain = "http://dev-middleware.iskwela.net";
+Api.domain = domain;
 Api.get = (endpoint, params = {}) =>
-  fetch(endpoint, {
+  fetch(domain + endpoint, {
     method: "GET",
     headers: {
       Authorization: "Bearer " + Api.token,
@@ -8,13 +10,13 @@ Api.get = (endpoint, params = {}) =>
     ...params.config,
   }).then((resp) => resp.json());
 Api.post = (endpoint, params = {}) => {
-  console.log(JSON.stringify(params.body));
-  return fetch(endpoint, {
+  return fetch(domain + endpoint, {
     method: "post",
     headers: {
       Accept: "application/json",
       "Content-Type": "application/json",
       Authorization: "Bearer " + Api.token,
+      ...params.headers,
     },
     body: JSON.stringify(params.body),
     ...params.config,

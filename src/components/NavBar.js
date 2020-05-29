@@ -27,9 +27,9 @@ import Brightness6Icon from "@material-ui/icons/Brightness6";
 import ArrowDropDownIcon from "@material-ui/icons/ArrowDropDown";
 import FileUpload, { stageFiles } from "./FileUpload";
 import CloseIcon from "@material-ui/icons/Close";
-import MuiAlert from "@material-ui/lab/Alert";
 import Form from "./Form";
 import Api from "../api";
+import MuiAlert from "@material-ui/lab/Alert";
 
 function Alert(props) {
   return <MuiAlert elevation={6} variant="filled" {...props} />;
@@ -272,20 +272,19 @@ const ProfilePicDialog = React.memo(function (props) {
   const [preview, setPreview] = useState();
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState();
+
   const _handleUpload = async () => {
-    if (!FileUpload.files["pic"]) return;
+    let file = document.querySelector("#profile-pic-upload");
+    if (!file.files) return;
     setSaving(true);
     setErrors(false);
-    let res = await new FileUpload("pic").upload(
-      "/api/upload/user/profile-picture",
-      {
-        body: {
-          profile_picture: FileUpload.files["pic"][0],
-        },
-      }
-    );
+    let body = new FormData();
+    body.append("profile_picture", file.files[0]);
+    let res = await FileUpload.upload("/api/upload/user/profile-picture", {
+      body,
+    });
     if (!res.errors) {
-      //success
+      console.log(res);
     } else {
       let err = [];
       for (let e in res.errors) {

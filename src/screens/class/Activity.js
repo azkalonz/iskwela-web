@@ -53,6 +53,7 @@ import {
 } from "@material-ui/pickers";
 import Api from "../../api";
 import $ from "jquery";
+import axios from "axios";
 
 function Alert(props) {
   return <MuiAlert elevation={6} variant="filled" {...props} />;
@@ -99,14 +100,6 @@ function Activity(props) {
     switch (option) {
       case "view":
         _handleItemClick(file);
-        // setFile({
-        //   url:
-        //     file.id === "item-1"
-        //       ? "https://gsi.berkeley.edu/media/Learning.pdf"
-        //       : "https://sustainabledevelopment.un.org/content/documents/1545Climate_Action_Plan_Publication_Part_1.pdf",
-        //   title: file.title,
-        // });
-        // setfileViewerOpen(true);
         return;
       case "edit":
         handleClickOpen();
@@ -200,18 +193,19 @@ function Activity(props) {
     }
     if (res) {
       if (!res.errors) {
+        let file = document.querySelector("#activity-material");
+        if (file.files) {
+          let body = new FormData();
+          body.append("file", file.files[0]);
+          body.append("assignment_id", res.id);
+          let a = await FileUpload.upload("/api/upload/activity/material", {
+            body,
+          });
+        }
         setSuccess(true);
         await getUserData(props.userInfo);
         _handleFileOption("view", res);
         setModals([modals[0], false]);
-        // new FileUpload("activity-materials").upload(
-        //   "/api/upload/activity/material",
-        //   {
-        //     body: {
-        //       assignment_id: res.id,
-        //     },
-        //   }
-        // );
       } else {
         let err = [];
         for (let e in res.errors) {
@@ -321,9 +315,19 @@ function Activity(props) {
                           alignItems: "center",
                           cursor: "pointer",
                         }}
-                        onClick={() => window.open(m.resource_link)}
+                        onClick={() => {
+                          setFile({
+                            url: m.resource_link
+                              ? m.resource_link
+                              : m.uploaded_file,
+                            title: m.resource_link
+                              ? m.resource_link
+                              : m.uploaded_file,
+                          });
+                          setfileViewerOpen(true);
+                        }}
                       >
-                        {m.resource_link}
+                        {m.resource_link ? m.resource_link : m.uploaded_file}
                         <LaunchIcon fontSize="small" />
                       </Link>
                     </Typography>
@@ -531,10 +535,7 @@ function Activity(props) {
                         }}
                       >
                         <ExpansionPanelSummary
-                          style={{
-                            border: 0,
-                            alignItems: "center",
-                          }}
+                          className={styles.expansionSummary}
                         >
                           <ListItemIcon>
                             <InsertDriveFileOutlinedIcon />
@@ -546,7 +547,7 @@ function Activity(props) {
                           <Typography
                             variant="body1"
                             component="div"
-                            style={{ marginRight: 7 }}
+                            style={{ marginRight: 55 }}
                           >
                             {moment(item.available_from).format("LL")}
                             &nbsp;-&nbsp;
@@ -556,10 +557,47 @@ function Activity(props) {
                         <ExpansionPanelDetails
                           className={styles.expansionDetails}
                         >
-                          {item.description}
+                          <Box width="100%">{item.description}</Box>
+                          <Box width="100%">
+                            <Typography color="textSecondary">
+                              Resources
+                            </Typography>
+                            {item.materials.map((m) => (
+                              <Typography component="div">
+                                <Link
+                                  component="div"
+                                  style={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                    cursor: "pointer",
+                                  }}
+                                  onClick={() => {
+                                    setFile({
+                                      url: m.resource_link
+                                        ? m.resource_link
+                                        : m.uploaded_file,
+                                      title: m.resource_link
+                                        ? m.resource_link
+                                        : m.uploaded_file,
+                                    });
+                                    setfileViewerOpen(true);
+                                  }}
+                                >
+                                  {m.resource_link
+                                    ? m.resource_link
+                                    : m.uploaded_file}
+                                  <LaunchIcon fontSize="small" />
+                                </Link>
+                              </Typography>
+                            ))}
+                          </Box>
                         </ExpansionPanelDetails>
                       </ExpansionPanel>
-                      <ListItemSecondaryAction>
+                      <ListItemSecondaryAction
+                        style={{
+                          top: 40,
+                        }}
+                      >
                         <IconButton
                           onClick={(event) =>
                             setAnchorEl(() => {
@@ -722,7 +760,11 @@ function Activity(props) {
                   .map((f) => (
                     <List dense={true}>
                       <ListItem>
-                        <ListItemText primary={f.title} />
+                        <ListItemText
+                          primary={
+                            f.resource_link ? f.resource_link : f.uploaded_file
+                          }
+                        />
                         <ListItemSecondaryAction>
                           <IconButton
                             edge="end"
@@ -916,9 +958,15 @@ const StyledMenuItem = withStyles((theme) => ({
 }))(MenuItem);
 
 const useStyles = makeStyles((theme) => ({
+  expansionSummary: {
+    "& > div": {
+      alignItems: "center",
+    },
+  },
   expansionDetails: {
+    flexWrap: "wrap",
     background: theme.palette.type === "dark" ? "#111" : "#fff",
-    marginRight: 30,
+    paddingRight: 30,
   },
   hideonmobile: {
     [theme.breakpoints.down("xs")]: {
@@ -964,7 +1012,7 @@ const useStyles = makeStyles((theme) => ({
     },
   },
   listItem: {
-    pdading: 0,
+    padding: 0,
     backgroundColor: theme.palette.grey[100],
     borderLeft: "4px solid #fff",
     marginBottom: 7,
