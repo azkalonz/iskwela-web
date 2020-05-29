@@ -6,7 +6,7 @@ async function asyncForEach(array, callback) {
     await callback(array[index], index, array);
   }
 }
-export default async function getUserData(user, setProgress = null) {
+export default async function getUserData(user, setProgress = (e) => {}) {
   let totalReq = 0;
   let data = {};
   let counter = 1;

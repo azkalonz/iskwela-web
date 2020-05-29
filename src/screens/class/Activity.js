@@ -15,6 +15,7 @@ import {
   DialogContentText,
   DialogTitle,
   Menu,
+  Snackbar,
   Paper,
   MenuItem,
   withStyles,
@@ -75,6 +76,7 @@ function Activity(props) {
   const [currentActivity, setCurrentActivity] = useState();
   const [errors, setErrors] = useState();
   const [newMaterial, setNewMaterial] = useState({});
+  const [success, setSuccess] = useState(false);
   const formTemplate = {
     activity_type: 1,
     title: "",
@@ -198,6 +200,7 @@ function Activity(props) {
     }
     if (res) {
       if (!res.errors) {
+        setSuccess(true);
         await getUserData(props.userInfo);
         _handleFileOption("view", res);
         setModals([modals[0], false]);
@@ -222,6 +225,15 @@ function Activity(props) {
 
   return (
     <Box width="100%" alignSelf="flex-start" height="100%">
+      <Snackbar
+        open={success}
+        autoHideDuration={6000}
+        onClose={() => setSuccess(false)}
+      >
+        <Alert severity="success" onClose={() => setSuccess(false)}>
+          Success
+        </Alert>
+      </Snackbar>
       <Dialog
         open={fileViewerOpen}
         keepMounted

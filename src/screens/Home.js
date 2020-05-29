@@ -9,6 +9,7 @@ import {
   CardActions,
   CardContent,
   CardMedia,
+  Snackbar,
   Button,
   Typography,
   Box,
@@ -22,12 +23,17 @@ import VideocamIcon from "@material-ui/icons/Videocam";
 import Grow from "@material-ui/core/Grow";
 import { makeLinkTo } from "../components/router-dom";
 import { connect } from "react-redux";
+import MuiAlert from "@material-ui/lab/Alert";
+
+function Alert(props) {
+  return <MuiAlert elevation={6} variant="filled" {...props} />;
+}
 
 function Home(props) {
   const styles = useStyles();
   const [loading, setLoading] = useState(true);
-  const [userInfo, setUserInfo] = useState();
   const history = useHistory();
+  const [greeting, setGreeting] = useState(true);
   const [classes, setClasses] = useState();
 
   useEffect(() => {
@@ -76,14 +82,15 @@ function Home(props) {
       pending: Object.keys(cd).filter((s) => cd[s].status === "PENDING"),
       cancelled: Object.keys(cd).filter((s) => cd[s].status === "CANCELLED"),
     };
-    status = status.ongoing
+    console.log(status);
+    status = status.ongoing.length
       ? cd[status.ongoing[0]]
-      : status.pending
+      : status.pending.length
       ? cd[status.pending[0]]
-      : status.cancelled
+      : status.cancelled.length
       ? cd[status.cancelled[0]]
       : null;
-
+    console.log(status);
     if (status) {
       let diff = moment(new Date()).diff(moment(status.from));
       switch (status.status) {
@@ -95,16 +102,19 @@ function Home(props) {
           break;
         case "PENDING":
           status.message =
-            diff < 0 ? "Starts " : "Ended " + moment(status.from).fromNow();
+            diff < 0
+              ? "Starts " + moment(status.from).fromNow()
+              : "Ended " + moment(status.from).fromNow();
           break;
       }
     }
     let videoConferenceLink = makeLinkTo(
-      ["class", c.id, "sched", "activity", "video-conferece"],
+      ["class", c.id, "sched", "activity", "video-conference"],
       {
         sched: status ? status.id : "",
       }
     );
+    console.log(status);
     return (
       <Grow in={true} key={c.id}>
         <div className={styles.root}>
@@ -242,6 +252,15 @@ function Home(props) {
           {loading && [1, 1, 1].map((c, i) => fakeLoader(i))}
           {!loading && classes && classes.map((c) => classItem(c))}
         </Box>
+        <Snackbar
+          open={greeting}
+          autoHideDuration={12000}
+          onClose={() => setGreeting(false)}
+        >
+          <Alert severity="info" onClose={() => setGreeting(false)}>
+            Welcome back! <b>{props.userInfo.first_name}!</b>
+          </Alert>
+        </Snackbar>
       </Drawer>
     </div>
   );
@@ -319,5 +338,6 @@ const useStyles = makeStyles((theme) => ({
 
 export default connect((states) => ({
   classes: states.classes,
+  userInfo: states.userInfo,
   classDetails: states.classDetails,
 }))(Home);

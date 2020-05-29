@@ -32,7 +32,10 @@ function App(props) {
     Api.auth({
       success: async (user) => {
         await getUserData(user, setLoadingProgress);
-        setLoading(false);
+        setLoadingProgress(100);
+        setTimeout(() => {
+          setLoading(false);
+        }, 1000);
       },
       fail: () => {
         if (window.location.pathname === "/login") setLoading(false);
