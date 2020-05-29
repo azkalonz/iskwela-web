@@ -799,7 +799,6 @@ function Activity(props) {
                 );
                 setHasFiles([hasFiles[0], true]);
               }}
-              multiple
             />
             <Button
               onClick={() =>
