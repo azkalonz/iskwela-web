@@ -119,19 +119,19 @@ function Home(props) {
       <Grow in={true} key={c.id}>
         <div className={styles.root}>
           <Card style={{ position: "relative", zIndex: 2, borderRadius: 17 }}>
-            <CardActionArea style={{ position: "relative" }}>
-              <div
-                style={{ position: "relative", cursor: "pointer" }}
-                onClick={() =>
-                  history.push(
-                    status.status === "ONGOING"
-                      ? videoConferenceLink
-                      : makeLinkTo(["class", c.id, "sched", "activity"], {
-                          sched: status ? status.id : "",
-                        })
-                  )
-                }
-              >
+            <CardActionArea
+              style={{ position: "relative" }}
+              onClick={() =>
+                history.push(
+                  status.status === "ONGOING"
+                    ? videoConferenceLink
+                    : makeLinkTo(["class", c.id, "sched", "activity"], {
+                        sched: status ? status.id : "",
+                      })
+                )
+              }
+            >
+              <div style={{ position: "relative", cursor: "pointer" }}>
                 <CardMedia
                   className={styles.media}
                   image="https://source.unsplash.com/random/600x500"

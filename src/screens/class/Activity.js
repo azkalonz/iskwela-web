@@ -28,6 +28,9 @@ import {
   makeStyles,
   Typography,
   Link,
+  FormControl,
+  InputLabel,
+  Select,
 } from "@material-ui/core";
 import InsertDriveFileOutlinedIcon from "@material-ui/icons/InsertDriveFileOutlined";
 import MoreHorizOutlinedIcon from "@material-ui/icons/MoreHorizOutlined";
@@ -80,13 +83,13 @@ function Activity(props) {
   const [success, setSuccess] = useState(false);
   const [confirmed, setConfirmed] = useState(false);
   const [savingId, setSavingId] = useState();
+  const [selectedSched, setSelectedSched] = useState();
   const formTemplate = {
     activity_type: 1,
     title: "",
     description: "",
     available_from: moment(new Date()).format("YYYY-MM-DD"),
     available_to: moment(new Date()).format("YYYY-MM-DD"),
-    schedule_id: classSched,
     subject_id: props.classDetails[class_id].subject.id,
     published: 0,
     class_id,
@@ -109,7 +112,7 @@ function Activity(props) {
           ...file,
           activity_type: file.activity_type == "class activity" ? 1 : 2,
           published: file.status == "unpublished" ? 0 : 1,
-          schedule_id: classSched,
+          schedule_id: selectedSched ? selectedSched : classSched,
           subject_id: props.classDetails[class_id].subject.id,
           id: file.id,
           class_id,
@@ -132,8 +135,15 @@ function Activity(props) {
   const _getActivities = () => {
     if (!classSched) return;
     try {
-      let a = props.classDetails[class_id].schedules[classSched];
-      setActivities(a.activities);
+      let a = props.classDetails[class_id].schedules;
+      let allActivities = [];
+      a.forEach((s) => {
+        s.activities.forEach((ss) => {
+          allActivities.push({ ...ss, schedule_id: s.id });
+        });
+      });
+      console.log(allActivities);
+      setActivities(allActivities);
     } catch (e) {
       // handle invalid schedule
     }
@@ -141,6 +151,7 @@ function Activity(props) {
   useEffect(() => {
     _getActivities();
   }, []);
+
   useEffect(() => {
     if (!fileViewerOpen) setFile();
   }, [fileViewerOpen]);
@@ -193,7 +204,12 @@ function Activity(props) {
     setErrors(null);
     setSaving(true);
     let err = [];
-    let formData = new Form({ ...form, ...params });
+
+    let formData = new Form({
+      ...form,
+      ...params,
+      schedule_id: selectedSched ? selectedSched : classSched,
+    });
     let res = await formData.send("/api/class/activity/save");
     if (formData.data.published && formData.data.id) {
       let rr = await Api.post(
@@ -203,14 +219,27 @@ function Activity(props) {
     if (res) {
       if (!res.errors) {
         let materialFiles = document.querySelector("#activity-material");
+        if (form.materials) {
+          await asyncForEach(form.materials, async (m) => {
+            await Api.post("/api/class/activity-material/save", {
+              body: {
+                ...(m.id ? { id: m.id } : {}),
+                url: m.resource_link,
+                activity_id: res.id,
+              },
+            });
+          });
+        }
         if (materialFiles.files.length) {
           await asyncForEach(materialFiles.files, async (file) => {
             let body = new FormData();
             body.append("file", file);
             body.append("assignment_id", res.id);
+            console.log("uploading");
             let a = await FileUpload.upload("/api/upload/activity/material", {
               body,
             });
+            console.log(a);
             if (a.errors) {
               for (let e in a.errors) {
                 err.push(a.errors[e][0]);
@@ -231,6 +260,9 @@ function Activity(props) {
     }
     setSaving(false);
   };
+  useEffect(() => {
+    console.log(form);
+  }, [form]);
   const _handleRemoveActivity = (activity) => {
     setConfirmed({
       yes: async () => {
@@ -259,9 +291,16 @@ function Activity(props) {
       },
     });
   };
-  const _handleRemoveMaterial = (material) => {
+  const _handleRemoveMaterial = (material, index) => {
     setConfirmed({
       yes: async () => {
+        if (!material.id) {
+          let m = [...form.materials];
+          m.splice(index, 1);
+          setForm({ ...form, materials: m });
+          setConfirmed(null);
+          return;
+        }
         setSaving(true);
         setErrors(null);
         setConfirmed(null);
@@ -286,6 +325,16 @@ function Activity(props) {
         setSaving(false);
       },
     });
+  };
+  const _handleOpenFile = async (f) => {
+    setFile({
+      title: "file",
+    });
+    setfileViewerOpen(true);
+    let res = await Api.postBlob(
+      "/api/download/activity/material/" + f.id
+    ).then((resp) => (resp.ok ? resp.blob() : null));
+    setFile({ ...file, url: URL.createObjectURL(res), type: res.type });
   };
   return (
     <Box width="100%" alignSelf="flex-start" height="100%">
@@ -333,7 +382,9 @@ function Activity(props) {
         aria-describedby="alert-dialog-slide-description"
       >
         <DialogContent>
-          {file && <FileViewer url={file.url} title={file.title} />}
+          {file && (
+            <FileViewer url={file.url} title={file.title} type={file.type} />
+          )}
         </DialogContent>
       </Dialog>
       <Box
@@ -362,7 +413,30 @@ function Activity(props) {
           justifyContent="space-between"
           alignItems="center"
         >
-          {props.utilities}
+          <FormControl style={{ width: 160 }} variant="outlined">
+            <InputLabel style={{ top: -8 }}>Date</InputLabel>
+
+            <Select
+              label="Schedule"
+              value={selectedSched ? selectedSched : -1}
+              onChange={(e) =>
+                setSelectedSched(
+                  parseInt(e.target.value) !== -1 ? e.target.value : null
+                )
+              }
+              padding={10}
+            >
+              <MenuItem value={-1}>All</MenuItem>
+              {props.classDetails[class_id].schedules.map((k, i) => {
+                return (
+                  <MenuItem value={k.id} key={i}>
+                    {moment(k.from).format("LLLL")}
+                  </MenuItem>
+                );
+              })}
+            </Select>
+          </FormControl>
+          &nbsp;
           <Box border={1} p={0.3} borderRadius={7}>
             <InputBase
               onChange={(e) => _handleSearch(e.target.value)}
@@ -410,15 +484,16 @@ function Activity(props) {
                           cursor: "pointer",
                         }}
                         onClick={() => {
-                          setFile({
-                            url: m.resource_link
-                              ? m.resource_link
-                              : m.uploaded_file,
-                            title: m.resource_link
-                              ? m.resource_link
-                              : m.uploaded_file,
-                          });
-                          setfileViewerOpen(true);
+                          _handleOpenFile(m);
+                          // setFile({
+                          //   url: m.resource_link
+                          //     ? m.resource_link
+                          //     : m.uploaded_file,
+                          //   title: m.resource_link
+                          //     ? m.resource_link
+                          //     : m.uploaded_file,
+                          // });
+                          // setfileViewerOpen(true);
                         }}
                       >
                         {m.resource_link ? m.resource_link : m.uploaded_file}
@@ -604,6 +679,9 @@ function Activity(props) {
                     (a) => JSON.stringify(a).toLowerCase().indexOf(search) >= 0
                   )
                   .filter((a) => (isTeacher ? true : a.status === "published"))
+                  .filter((a) =>
+                    selectedSched ? selectedSched == a.schedule_id : true
+                  )
                   .reverse()
                   .map((item, index) => (
                     <ListItem
@@ -882,7 +960,7 @@ function Activity(props) {
                 <Typography variant="body1" color="textSecondary">
                   Activity Materials
                 </Typography>
-                {form.materials.map((f) => (
+                {form.materials.map((f, i) => (
                   <List dense={true}>
                     <ListItem>
                       <ListItemText
@@ -895,7 +973,7 @@ function Activity(props) {
                           edge="end"
                           aria-label="delete"
                           onClick={() => {
-                            if (!saving) _handleRemoveMaterial(f);
+                            if (!saving) _handleRemoveMaterial(f, i);
                           }}
                         >
                           <CancelIcon />
@@ -959,22 +1037,17 @@ function Activity(props) {
                 <CircularProgress size={24} className={styles.buttonProgress} />
               )}
             </div>
-            <div style={{ position: "relative" }}>
-              <Button
-                disabled={saving}
-                className={styles.wrapper}
-                variant="contained"
-                onClick={() =>
-                  _handleCreateActivity({ published: form.published ? 0 : 1 })
-                }
-                color="primary"
-              >
-                {form.published ? "Unpublish" : "Publish"}
-              </Button>
-              {saving && (
-                <CircularProgress size={24} className={styles.buttonProgress} />
-              )}
-            </div>
+            <Button
+              disabled={saving}
+              className={styles.wrapper}
+              variant="contained"
+              onClick={() =>
+                _handleCreateActivity({ published: form.published ? 0 : 1 })
+              }
+              color="primary"
+            >
+              {form.published ? "Unpublish" : "Publish"}
+            </Button>
           </DialogActions>
         </DialogActions>
       </Dialog>

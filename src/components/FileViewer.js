@@ -1,48 +1,59 @@
 import React, { useState, useEffect } from "react";
 import { Box, CircularProgress, Typography, Link } from "@material-ui/core";
 import LaunchIcon from "@material-ui/icons/Launch";
+import FileView from "react-file-viewer";
 
 function FV(props) {
   const [loading, setLoading] = useState(true);
-  const [url, setUrl] = useState();
-  const [timer, setTimer] = useState();
-  const [abort, setAbort] = useState(false);
+  const [type, setType] = useState();
+  const types = [
+    "image/jpeg",
+    "image/bmp",
+    "image/png",
+    "image/gif",
+    "application/pdf",
+    "application/msword",
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    "text/plain",
+  ];
+  const viewAbleTypes = [
+    "application/pdf",
+    "image/jpeg",
+    "image/bmp",
+    "image/png",
+    "image/gif",
+  ];
 
   useEffect(() => {
-    setUrl(props.url);
-  }, [props.url]);
-  useEffect(() => {
-    if (url && !abort) {
-      loadFile();
+    if (props.url && props.type) {
+      if (types.indexOf(props.type) >= 0)
+        setType(types[types.indexOf(props.type)]);
+    } else {
+      setLoading(true);
     }
-  }, [url]);
+  }, [props.url, props.type]);
+  useEffect(() => {
+    if (type) loadFile();
+  }, [type]);
 
-  const loadFile = () => {
-    setTimer(false);
-    setAbort(false);
-    setLoading(true);
-    console.log("Opening file from ", url);
-    let u = url;
-    document.getElementById("file-viewer").src = "";
-    document.getElementById("file-viewer").src = url;
-    document.getElementById("file-viewer").onload = () => setLoading(false);
-    setTimeout(() => {
-      setTimer(true);
-    }, 10000);
+  const isViewable = () => {
+    return type && viewAbleTypes.indexOf(type) >= 0 ? true : false;
   };
-  useEffect(() => {
-    if (timer) {
-      if (loading) setAbort(true);
+  const loadFile = () => {
+    if (!isViewable()) {
+      setLoading(false);
+      setType(null);
+      return;
     }
-  }, [timer]);
-
-  const reload = () => {
-    loadFile();
+    setLoading(true);
+    document.getElementById("file-viewer").src = "";
+    document.getElementById("file-viewer").src = props.url;
+    document.getElementById("file-viewer").onload = () => setLoading(false);
   };
 
   return (
     <Box width="100%" height="90vh" overflow="hidden">
-      {loading && url && !abort && (
+      {loading && (
         <Box
           display="flex"
           justifyContent="center"
@@ -57,7 +68,7 @@ function FV(props) {
         </Box>
       )}
 
-      {abort && (
+      {!type && !loading && (
         <Box
           display="flex"
           justifyContent="center"
@@ -67,28 +78,28 @@ function FV(props) {
         >
           <Typography variant="body2">
             No preview is available.
-            <Link
+            {/* <Link
               variant="body2"
               style={{ cursor: "pointer" }}
               onClick={() => reload()}
             >
               &nbsp;Try again?
-            </Link>
+            </Link> */}
             &nbsp;or&nbsp;
             <Link
               variant="body2"
               style={{ cursor: "pointer" }}
-              onClick={() => window.open(url, "_blank")}
+              onClick={() => window.open(props.url, "_blank")}
             >
               Open the file in new tab insted <LaunchIcon fontSize="small" />
             </Link>
           </Typography>
         </Box>
       )}
-      {url && (
+      {type && (
         <iframe
           id="file-viewer"
-          src={`https://docs.google.com/gview?url=${url}&embedded=true`}
+          src={props.url}
           width="100%"
           height="100%"
           style={{ border: "none" }}

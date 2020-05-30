@@ -63,6 +63,7 @@ function App(props) {
                     path="/class/:class_id/:schedule_id/:option_name/:room_name"
                     component={Class}
                   />
+
                   <Route
                     path="/class/:class_id/:schedule_id/:option_name"
                     component={Class}

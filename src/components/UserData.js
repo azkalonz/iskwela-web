@@ -60,7 +60,7 @@ const UserData = {
         "/api/teacher/class/" + c.id + "?include=schedules,students"
       );
       if (!totalReq) {
-        totalReq = data.classes.length;
+        totalReq = data.classes.length + classDetails.schedules.length;
       }
       setProgress((counter / totalReq) * 100);
       data.classDetails[c.id] = classDetails;

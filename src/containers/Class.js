@@ -48,47 +48,6 @@ import Api from "../api";
 import UserData from "../components/UserData";
 import $ from "jquery";
 
-function ClassScheduleNavigator(props) {
-  const { class_id, schedule_id } = props.match.params;
-  const styles = useStyles();
-  const [sched, setSched] = useState(props.classSched);
-  const [classid, setClassId] = useState(class_id);
-  useEffect(() => {
-    console.log(sched, schedule_id);
-    if (eval(sched != schedule_id)) {
-      setSched(sched);
-      props.changeClassSched(sched);
-    }
-    if (eval(class_id != classid)) {
-      setSched(schedule_id);
-      setClassId(class_id);
-    }
-  }, [sched, class_id]);
-  return (
-    <div>
-      {props.classDetails[class_id] && (
-        <FormControl variant="outlined" className={styles.formControl}>
-          <InputLabel style={{ top: -8 }}>Schedule</InputLabel>
-          <Select
-            label="Schedule"
-            value={sched}
-            onChange={(e) => setSched(e.target.value)}
-            padding={10}
-          >
-            {props.classDetails[class_id].schedules.map((k, i) => {
-              return (
-                <MenuItem value={k.id} key={i}>
-                  {moment(k.from).format("LLLL")}
-                </MenuItem>
-              );
-            })}
-          </Select>
-        </FormControl>
-      )}
-    </div>
-  );
-}
-
 function ClassRightPanel(props) {
   const { option_name } = props.match.params;
   if (!isValidOption(option_name)) {
@@ -152,6 +111,7 @@ function Class(props) {
     await Api.auth();
     if (props.classDetails) setCLASS(props.classDetails[class_id]);
     else setCLASS(undefined);
+    console.log(props.classDetails[class_id]);
     if (classSched.status === "ONGOING" && !room_name)
       history.push(
         makeLinkTo(
@@ -371,29 +331,6 @@ function Class(props) {
                   <Divider />
                   <Box p={2} className={styles.centered}>
                     <Box flex={1} style={{ width: "100%" }}>
-                      <Box>
-                        <ClassScheduleNavigator
-                          {...props}
-                          classSched={schedule_id}
-                          changeClassSched={(s) =>
-                            history.push(
-                              makeLinkTo(
-                                [
-                                  "class",
-                                  CLASS.id,
-                                  s,
-                                  "option_name",
-                                  "room_name",
-                                ],
-                                {
-                                  option_name: option_name ? option_name : "",
-                                  room_name: room_name ? room_name : "",
-                                }
-                              )
-                            )
-                          }
-                        />
-                      </Box>
                       <div className={styles.wrapper}>
                         <Button
                           style={{

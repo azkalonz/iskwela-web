@@ -35,7 +35,7 @@ function Login(props) {
     window.login_error = undefined;
     try {
       let res = await Api.post(
-        "api/login?username=" + username + "&password=" + password
+        "/api/login?username=" + username + "&password=" + password
       );
       if (!res.error) {
         let redirect_url = queryString.parse(window.location.search).r;

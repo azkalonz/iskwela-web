@@ -487,7 +487,10 @@ function InstructionalMaterials(props) {
       <Dialog
         open={modals[0]}
         keepMounted
-        onClose={() => setModals([!modals[0], modals[1]])}
+        onClose={() => {
+          setForm(null);
+          setModals([!modals[0], modals[1]]);
+        }}
         aria-labelledby="alert-dialog-slide-title"
         aria-describedby="alert-dialog-slide-description"
       >
@@ -501,6 +504,8 @@ function InstructionalMaterials(props) {
                 InputLabelProps={{
                   shrink: true,
                 }}
+                value={form && form.title}
+                onChange={(e) => setForm({ title: e.target.value })}
                 fullWidth
               />
               <TextField
@@ -509,6 +514,8 @@ function InstructionalMaterials(props) {
                 InputLabelProps={{
                   shrink: true,
                 }}
+                value={form && form.url}
+                onChange={(e) => setForm({ url: e.target.value })}
                 fullWidth
               />
             </Box>
