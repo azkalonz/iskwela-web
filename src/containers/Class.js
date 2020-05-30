@@ -256,7 +256,7 @@ function Class(props) {
     let n = CLASS.name + "-" + moment(s.from).format("YYYY-MM-DD-H-mm-ss");
     return {
       name: n.replace(" ", "-"),
-      displayName: s.teacher.first_name + " " + s.teacher.last_name,
+      displayName: props.userInfo.first_name + " " + props.userInfo.last_name,
     };
   };
 
