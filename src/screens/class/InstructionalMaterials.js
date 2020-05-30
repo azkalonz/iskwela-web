@@ -69,6 +69,7 @@ function InstructionalMaterials(props) {
   const [success, setSuccess] = useState(false);
   const [errors, setErrors] = useState();
   const [confirmed, setConfirmed] = useState();
+  const [savingId, setSavingId] = useState();
 
   const _handleFileOption = (option, file) => {
     setAnchorEl(() => {
@@ -202,6 +203,7 @@ function InstructionalMaterials(props) {
         setErrors(null);
         setSaving(true);
         setConfirmed(null);
+        setSavingId(activity.id);
         let id = parseInt(activity.id.replace("item-", ""));
         let res = await Api.post("/api/teacher/remove/class-material/" + id, {
           body: {
@@ -393,7 +395,7 @@ function InstructionalMaterials(props) {
                                 onClick={() => _handleFileOption("view", item)}
                                 className={styles.listItem}
                               >
-                                {saving && (
+                                {saving && savingId === item.id && (
                                   <div className={styles.itemLoading}>
                                     <CircularProgress />
                                   </div>

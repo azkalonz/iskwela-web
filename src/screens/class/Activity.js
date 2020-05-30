@@ -79,7 +79,7 @@ function Activity(props) {
   const [newMaterial, setNewMaterial] = useState({});
   const [success, setSuccess] = useState(false);
   const [confirmed, setConfirmed] = useState(false);
-
+  const [savingId, setSavingId] = useState();
   const formTemplate = {
     activity_type: 1,
     title: "",
@@ -133,8 +133,7 @@ function Activity(props) {
     if (!classSched) return;
     try {
       let a = props.classDetails[class_id].schedules[classSched];
-      a = a.activities.map((i) => ({ ...i, id: "item-" + i.id }));
-      setActivities(a);
+      setActivities(a.activities);
     } catch (e) {
       // handle invalid schedule
     }
@@ -238,8 +237,9 @@ function Activity(props) {
         setErrors(null);
         setSaving(true);
         setConfirmed(null);
+        setSavingId(activity.id);
         let id = parseInt(activity.id);
-        let res = await Api.post("/api/teacher/remove/class-activity/" + id, {
+        let res = await Api.post("api/teacher/remove/class-activity/" + id, {
           body: {
             id,
           },
@@ -617,7 +617,7 @@ function Activity(props) {
                           : {}),
                       }}
                     >
-                      {saving && (
+                      {saving && savingId === item.id && (
                         <div className={styles.itemLoading}>
                           <CircularProgress />
                         </div>
