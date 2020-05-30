@@ -47,7 +47,13 @@ function VideoConference(props) {
             displayName={room.displayName}
             roomName={room.name}
             onAPILoad={handleAPI}
-            containerStyle={{ margin: "0 auto", width: "100%" }}
+            containerStyle={{
+              margin: "0 auto",
+              width: "100%",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
           />
         )}
       </Box>

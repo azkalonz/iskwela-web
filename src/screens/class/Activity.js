@@ -116,6 +116,8 @@ function Activity(props) {
         });
         return;
       case "delete":
+        _handleRemoveActivity(file);
+        return;
     }
   };
   useEffect(() => {
@@ -229,6 +231,33 @@ function Activity(props) {
       }
     }
     setSaving(false);
+  };
+  const _handleRemoveActivity = (activity) => {
+    setConfirmed({
+      yes: async () => {
+        setErrors(null);
+        setSaving(true);
+        setConfirmed(null);
+        let id = parseInt(activity.id);
+        let res = await Api.post("/api/teacher/remove/class-activity/" + id, {
+          body: {
+            id,
+          },
+        });
+        console.log(res);
+        if (!res.errors) {
+          setSuccess(true);
+          await UserData.updateClassDetails(class_id);
+        } else {
+          let err = [];
+          for (let e in res.errors) {
+            err.push(res.errors[e][0]);
+          }
+          setErrors(err);
+        }
+        setSaving(false);
+      },
+    });
   };
   const _handleRemoveMaterial = (material) => {
     setConfirmed({
@@ -588,6 +617,11 @@ function Activity(props) {
                           : {}),
                       }}
                     >
+                      {saving && (
+                        <div className={styles.itemLoading}>
+                          <CircularProgress />
+                        </div>
+                      )}
                       <ExpansionPanel
                         style={{
                           width: "100%",
@@ -1046,6 +1080,32 @@ const StyledMenuItem = withStyles((theme) => ({
 }))(MenuItem);
 
 const useStyles = makeStyles((theme) => ({
+  itemLoading: {
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    position: "absolute",
+    zIndex: 5,
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    "& > div": {
+      position: "relative",
+      zIndex: 2,
+    },
+    "&::before": {
+      content: "''",
+      position: "absolute",
+      backgroundColor: theme.palette.type === "dark" ? "#111" : "#fff",
+      opacity: 0.7,
+      top: 0,
+      zIndex: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+    },
+  },
   expansionSummary: {
     "& > div": {
       alignItems: "center",
