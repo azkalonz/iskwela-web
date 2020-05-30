@@ -86,10 +86,10 @@ function Home(props) {
     status = status.ongoing.length
       ? cd[status.ongoing[0]]
       : status.pending.length
-      ? cd[status.pending[0]]
-      : status.cancelled.length
-      ? cd[status.cancelled[0]]
-      : null;
+        ? cd[status.pending[0]]
+        : status.cancelled.length
+          ? cd[status.cancelled[0]]
+          : null;
     console.log(status);
     if (status) {
       let diff = moment(new Date()).diff(moment(status.from));
@@ -118,27 +118,22 @@ function Home(props) {
     return (
       <Grow in={true} key={c.id}>
         <div className={styles.root}>
-          <Card style={{ position: "relative", zIndex: 2, borderRadius: 17 }}>
-            <CardActionArea style={{ position: "relative" }}>
-              <div
-                style={{ position: "relative", cursor: "pointer" }}
-                onClick={() =>
-                  history.push(
-                    status.status === "ONGOING"
-                      ? videoConferenceLink
-                      : makeLinkTo(["class", c.id, "sched", "activity"], {
-                          sched: status ? status.id : "",
-                        })
-                  )
-                }
-              >
-                <CardMedia
-                  className={styles.media}
-                  image="https://source.unsplash.com/random/600x500"
-                  title={c.name}
-                />
-                <div className={styles.mediaOverlay} />
-              </div>
+          <CardActionArea style={{ position: "relative" }} onClick={() =>
+            history.push(
+              status.status === "ONGOING"
+                ? videoConferenceLink
+                : makeLinkTo(["class", c.id, "sched", "activity"], {
+                  sched: status ? status.id : "",
+                })
+            )
+          }>
+            <Card style={{ position: "relative", zIndex: 2, borderRadius: 17 }}>
+              <CardMedia
+                className={styles.media}
+                image="https://source.unsplash.com/random/600x500"
+                title={c.name}
+              />
+              <div className={styles.mediaOverlay} />
               <CardContent style={{ position: "absolute", top: 0, left: 0 }}>
                 <Typography
                   gutterBottom
@@ -157,75 +152,76 @@ function Home(props) {
                   {c.description}
                 </Typography>
               </CardContent>
-            </CardActionArea>
-            <CardActions style={{ background: "grey.300" }}>
-              <Box
-                p={1}
-                className={styles.start}
-                width="100%"
-                flexDirection="column"
-                position="relative"
-              >
+
+              <CardActions style={{ background: "grey.300" }}>
                 <Box
-                  flex={1}
-                  className={[styles.centered, styles.start].join(" ")}
-                  style={{ marginBottom: 6 }}
+                  p={1}
+                  className={styles.start}
+                  width="100%"
+                  flexDirection="column"
+                  position="relative"
                 >
-                  <CalendarTodayOutlinedIcon />
-                  <Typography
-                    variant="body2"
-                    style={{ fontSize: "0.8rem", marginLeft: 5 }}
+                  <Box
+                    flex={1}
+                    className={[styles.centered, styles.start].join(" ")}
+                    style={{ marginBottom: 6 }}
                   >
-                    {status
-                      ? moment(status.from).format("MMM D, YYYY")
-                      : moment(c.date_from + " " + c.time_from).format(
+                    <CalendarTodayOutlinedIcon />
+                    <Typography
+                      variant="body2"
+                      style={{ fontSize: "0.8rem", marginLeft: 5 }}
+                    >
+                      {status
+                        ? moment(status.from).format("MMM D, YYYY")
+                        : moment(c.date_from + " " + c.time_from).format(
                           "MMM D,YYYY"
                         )}
-                  </Typography>
-                </Box>
-                <Box
-                  flex={1}
-                  className={[styles.centered, styles.start].join(" ")}
-                >
-                  <QueryBuilderOutlinedIcon />
-                  <Typography
-                    variant="body2"
-                    style={{ fontSize: "0.75rem", marginLeft: 5 }}
+                    </Typography>
+                  </Box>
+                  <Box
+                    flex={1}
+                    className={[styles.centered, styles.start].join(" ")}
                   >
-                    {status
-                      ? moment(status.from).format("hh:mm") +
+                    <QueryBuilderOutlinedIcon />
+                    <Typography
+                      variant="body2"
+                      style={{ fontSize: "0.75rem", marginLeft: 5 }}
+                    >
+                      {status
+                        ? moment(status.from).format("hh:mm") +
                         " - " +
                         moment(status.to).format("hh:mm")
-                      : moment(c.date_from + " " + c.time_from).format(
+                        : moment(c.date_from + " " + c.time_from).format(
                           "hh:mm"
                         ) +
                         " - " +
                         moment(c.date_to + " " + c.time_to).format("hh:mm")}
-                  </Typography>
-                </Box>
-                <div style={{ position: "absolute", top: -40, right: 0 }}>
-                  <Box
-                    borderRadius="50%"
-                    width={60}
-                    height={60}
-                    bgcolor="grey.500"
-                    overflow="hidden"
-                  >
-                    <img
-                      src="https://source.unsplash.com/random/500x500"
-                      width="100%"
-                      height="auto"
-                    />
+                    </Typography>
                   </Box>
-                </div>
-                <div style={{ position: "absolute", right: 0, bottom: 6 }}>
-                  <Typography variant="body1" style={{ fontWeight: "bold" }}>
-                    {c.teacher.first_name} {c.teacher.last_name}
-                  </Typography>
-                </div>
-              </Box>
-            </CardActions>
-          </Card>
+                  <div style={{ position: "absolute", top: -40, right: 0 }}>
+                    <Box
+                      borderRadius="50%"
+                      width={60}
+                      height={60}
+                      bgcolor="grey.500"
+                      overflow="hidden"
+                    >
+                      <img
+                        src="https://source.unsplash.com/random/500x500"
+                        width="100%"
+                        height="auto"
+                      />
+                    </Box>
+                  </div>
+                  <div style={{ position: "absolute", right: 0, bottom: 6 }}>
+                    <Typography variant="body1" style={{ fontWeight: "bold" }}>
+                      {c.teacher.first_name} {c.teacher.last_name}
+                    </Typography>
+                  </div>
+                </Box>
+              </CardActions>
+            </Card>
+          </CardActionArea>
           {status && (
             <Paper
               onClick={() =>
