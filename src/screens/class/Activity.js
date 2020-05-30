@@ -111,7 +111,7 @@ function Activity(props) {
           published: file.status == "unpublished" ? 0 : 1,
           schedule_id: classSched,
           subject_id: props.classDetails[class_id].subject.id,
-          id: file.id.substr(file.id.indexOf("-") + 1, file.id.length),
+          id: file.id,
           class_id,
         });
         return;
@@ -239,7 +239,7 @@ function Activity(props) {
         setConfirmed(null);
         setSavingId(activity.id);
         let id = parseInt(activity.id);
-        let res = await Api.post("api/teacher/remove/class-activity/" + id, {
+        let res = await Api.post("/api/teacher/remove/class-activity/" + id, {
           body: {
             id,
           },
