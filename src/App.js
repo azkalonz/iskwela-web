@@ -19,7 +19,7 @@ import Api from "./api";
 import store from "./components/redux/store";
 import moment from "moment";
 import CssBaseline from "@material-ui/core/CssBaseline";
-import getUserData from "./components/getUserData";
+import UserData from "./components/UserData";
 
 const primaryColor = "#6200ef";
 
@@ -31,7 +31,7 @@ function App(props) {
   useEffect(() => {
     Api.auth({
       success: async (user) => {
-        await getUserData(user, setLoadingProgress);
+        await UserData.getUserData(user, setLoadingProgress);
         setLoadingProgress(100);
         setTimeout(() => {
           setLoading(false);

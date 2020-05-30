@@ -42,7 +42,8 @@ import FileViewer from "../../components/FileViewer";
 import { connect } from "react-redux";
 import FileUpload, { stageFiles } from "../../components/FileUpload";
 import MuiAlert from "@material-ui/lab/Alert";
-import getUserData from "../../components/getUserData";
+import UserData from "../../components/UserData";
+import Api from "../../api";
 
 function Alert(props) {
   return <MuiAlert elevation={6} variant="filled" {...props} />;
@@ -67,6 +68,7 @@ function InstructionalMaterials(props) {
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState(false);
   const [errors, setErrors] = useState();
+  const [confirmed, setConfirmed] = useState();
 
   const _handleFileOption = (option, file) => {
     setAnchorEl(() => {
@@ -85,7 +87,9 @@ function InstructionalMaterials(props) {
         });
         setfileViewerOpen(true);
         return;
-      case "download":
+      case "delete":
+        _handleRemoveMaterial(file);
+        return;
     }
   };
 
@@ -190,7 +194,7 @@ function InstructionalMaterials(props) {
     });
     if (!err.length) {
       setSuccess(true);
-      await getUserData(props.userInfo);
+      await UserData.getUserData(props.userInfo);
       FileUpload.removeFiles("materials");
       setHasFiles(false);
       setModals([modals[0], false]);
@@ -198,8 +202,59 @@ function InstructionalMaterials(props) {
     setSaving(true);
     setErrors(null);
   };
+  const _handleRemoveMaterial = (activity) => {
+    setConfirmed({
+      yes: async () => {
+        setErrors(null);
+        setSaving(true);
+        setConfirmed(null);
+        let id = parseInt(activity.id.replace("item-", ""));
+        let res = await Api.post("/api/teacher/remove/class-material/" + id, {
+          body: {
+            id,
+          },
+        });
+        console.log(res);
+        if (!res.errors) {
+          setSuccess(true);
+          await UserData.getUserData(props.userInfo);
+        } else {
+          let err = [];
+          for (let e in res.errors) {
+            err.push(res.errors[e][0]);
+          }
+          setErrors(err);
+        }
+        setSaving(false);
+      },
+    });
+  };
   return (
     <Box width="100%" alignSelf="flex-start">
+      <Dialog open={confirmed} onClose={() => setConfirmed(null)}>
+        <DialogTitle>Remove File</DialogTitle>
+        <DialogContent>
+          Are you sure you want to delete this file?
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={() => {
+              setConfirmed(null);
+            }}
+          >
+            No
+          </Button>
+
+          <Button
+            color="primary"
+            variant="contained"
+            disabled={saving}
+            onClick={() => confirmed.yes()}
+          >
+            Yes
+          </Button>
+        </DialogActions>
+      </Dialog>
       <Snackbar
         open={success}
         autoHideDuration={6000}
@@ -344,6 +399,11 @@ function InstructionalMaterials(props) {
                                 onClick={() => _handleFileOption("view", item)}
                                 className={styles.listItem}
                               >
+                                {saving && (
+                                  <div className={styles.itemLoading}>
+                                    <CircularProgress />
+                                  </div>
+                                )}
                                 <ListItemIcon>
                                   <InsertDriveFileOutlinedIcon />
                                 </ListItemIcon>
@@ -388,13 +448,12 @@ function InstructionalMaterials(props) {
                                         })
                                       }
                                     >
-                                      <StyledMenuItem>
-                                        <ListItemText
-                                          primary="View"
-                                          onClick={() =>
-                                            _handleFileOption("view", item)
-                                          }
-                                        />
+                                      <StyledMenuItem
+                                        onClick={() =>
+                                          _handleFileOption("view", item)
+                                        }
+                                      >
+                                        <ListItemText primary="View" />
                                       </StyledMenuItem>
                                       <StyledMenuItem>
                                         <ListItemText primary="Download" />
@@ -404,7 +463,11 @@ function InstructionalMaterials(props) {
                                           <StyledMenuItem>
                                             <ListItemText primary="Edit" />
                                           </StyledMenuItem>
-                                          <StyledMenuItem>
+                                          <StyledMenuItem
+                                            onClick={() =>
+                                              _handleFileOption("delete", item)
+                                            }
+                                          >
                                             <ListItemText primary="Delete" />
                                           </StyledMenuItem>
                                         </div>
@@ -617,6 +680,32 @@ const StyledMenuItem = withStyles((theme) => ({
 }))(MenuItem);
 
 const useStyles = makeStyles((theme) => ({
+  itemLoading: {
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    position: "absolute",
+    zIndex: 5,
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    "& > div": {
+      position: "relative",
+      zIndex: 2,
+    },
+    "&::before": {
+      content: "''",
+      position: "absolute",
+      backgroundColor: theme.palette.type === "dark" ? "#111" : "#fff",
+      opacity: 0.7,
+      top: 0,
+      zIndex: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+    },
+  },
   buttonProgress: {
     position: "absolute",
     top: "50%",

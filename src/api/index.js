@@ -1,7 +1,10 @@
 function Api() {}
 
+const domain = "https://dev-middleware.iskwela.net/";
+Api.domain = domain;
+
 Api.get = (endpoint, params = {}) =>
-  fetch(endpoint, {
+  fetch(domain + endpoint, {
     method: "GET",
     headers: {
       Authorization: "Bearer " + Api.token,
@@ -20,7 +23,7 @@ Api.post = (endpoint, params = {}) => {
     body: JSON.stringify(params.body),
     ...params.config,
   });
-  return fetch(endpoint, {
+  return fetch(domain + endpoint, {
     method: "post",
     headers: {
       Accept: "application/json",

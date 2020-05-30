@@ -1,53 +1,45 @@
 import { combineReducers } from "redux";
 import Api from "../../api";
 
-const userInfo = (state = {}, action) => {
-  switch (action.type) {
+const userInfo = (state = {}, payload) => {
+  switch (payload.type) {
     case "SET_USERINFO":
-      return action.user;
+      return payload.user;
     default:
       return state;
   }
 };
 
-const route = (state = { index: 0, title: "Class" }, action) => {
-  switch (action.type) {
+const route = (state = { index: 0, title: "Class" }, payload) => {
+  switch (payload.type) {
     case "SET_ROUTE":
-      return action.route;
+      return payload.route;
     default:
       return state;
   }
 };
 
-const classes = (state = [], action) => {
-  switch (action.type) {
+const classes = (state = [], payload) => {
+  switch (payload.type) {
     case "SET_CLASSES":
-      return action.classes;
+      return payload.classes;
     default:
       return state;
   }
 };
-const classDetails = (state = {}, action) => {
-  switch (action.type) {
+const classDetails = (state = {}, payload) => {
+  switch (payload.type) {
     case "SET_CLASS_DETAILS":
-      return action.class_details;
+      return payload.class_details;
     default:
       return state;
   }
 };
 
-const classSchedules = (state = {}, action) => {
-  switch (action.type) {
-    case "SET_CLASS_SCHEDULES":
-      return action.class_schedules;
-    default:
-      return state;
-  }
-};
-const theme = (state = "light", action) => {
-  switch (action.type) {
+const theme = (state = "light", payload) => {
+  switch (payload.type) {
     case "SET_THEME":
-      return action.theme;
+      return payload.theme;
     default:
       return state;
   }
@@ -58,6 +50,5 @@ export default combineReducers({
   classes,
   route,
   classDetails,
-  classSchedules,
   theme,
 });

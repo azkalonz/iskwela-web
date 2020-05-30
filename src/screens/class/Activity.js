@@ -45,7 +45,7 @@ import Form from "../../components/Form";
 import MomentUtils from "@date-io/moment";
 import CancelIcon from "@material-ui/icons/Cancel";
 import { connect } from "react-redux";
-import getUserData from "../../components/getUserData";
+import UserData from "../../components/UserData";
 import {
   MuiPickersUtilsProvider,
   KeyboardDatePicker,
@@ -78,6 +78,8 @@ function Activity(props) {
   const [errors, setErrors] = useState();
   const [newMaterial, setNewMaterial] = useState({});
   const [success, setSuccess] = useState(false);
+  const [confirmed, setConfirmed] = useState(false);
+
   const formTemplate = {
     activity_type: 1,
     title: "",
@@ -113,6 +115,7 @@ function Activity(props) {
           class_id,
         });
         return;
+      case "delete":
     }
   };
   useEffect(() => {
@@ -174,7 +177,11 @@ function Activity(props) {
   };
 
   const handleClose = () => {
-    if (!saving) setModals([false, modals[1]]);
+    if (!saving) {
+      setModals([false, modals[1]]);
+      setHasFiles([hasFiles[0], false]);
+      FileUpload.removeFiles("activity-materials");
+    }
   };
   const _handleItemClick = (item) => {
     setCurrentActivity(
@@ -203,7 +210,7 @@ function Activity(props) {
           });
         }
         setSuccess(true);
-        await getUserData(props.userInfo);
+        await UserData.getUserData(props.userInfo);
         _handleFileOption("view", res);
         setModals([modals[0], false]);
       } else {
@@ -216,9 +223,60 @@ function Activity(props) {
     }
     setSaving(false);
   };
-
+  const _handleRemoveMaterial = (material) => {
+    setConfirmed({
+      yes: async () => {
+        setSaving(true);
+        setErrors(null);
+        setConfirmed(null);
+        let res = await Api.post(
+          "/api/teacher/remove/class-activity-material/" + material.id,
+          {
+            body: {
+              id: material.id,
+            },
+          }
+        );
+        if (!res.errors) {
+          setSuccess(true);
+          await UserData.getUserData(props.userInfo);
+        } else {
+          let err = [];
+          for (let e in res.errors) {
+            err.push(res.errors[e][0]);
+          }
+          setErrors(err);
+        }
+        setSaving(false);
+      },
+    });
+  };
   return (
     <Box width="100%" alignSelf="flex-start" height="100%">
+      <Dialog open={confirmed} onClose={() => setConfirmed(null)}>
+        <DialogTitle>Remove File</DialogTitle>
+        <DialogContent>
+          Are you sure you want to delete this file?
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={() => {
+              setConfirmed(null);
+            }}
+          >
+            No
+          </Button>
+
+          <Button
+            color="primary"
+            variant="contained"
+            disabled={saving}
+            onClick={() => confirmed.yes()}
+          >
+            Yes
+          </Button>
+        </DialogActions>
+      </Dialog>
       <Snackbar
         open={success}
         autoHideDuration={6000}
@@ -285,7 +343,7 @@ function Activity(props) {
           </Box>
         </Box>
       </Box>
-      {currentActivity && currentActivity && (
+      {currentActivity && !search && (
         <Grow in={true}>
           <Box p={2}>
             <Paper id="activity-preview">
@@ -335,122 +393,118 @@ function Activity(props) {
                 </Box>
               </Box>
             </Paper>
-            {!isTeacher && (
-              <Box marginTop={2}>
-                <Typography
-                  style={{ fontWeight: "bold", marginBottom: 7 }}
-                  color="textSecondary"
-                >
-                  Upload your Answer
-                </Typography>
+            <Box marginTop={2}>
+              <Typography
+                style={{ fontWeight: "bold", marginBottom: 7 }}
+                color="textSecondary"
+              >
+                Upload your Answer
+              </Typography>
 
-                <Paper>
-                  <Box
-                    width="100%"
-                    p={2}
-                    style={{ boxSizing: "border-box" }}
-                    onDragOver={(e) => {
-                      e.preventDefault();
-                      setDragover(true);
-                      return false;
+              <Paper>
+                <Box
+                  width="100%"
+                  p={2}
+                  style={{ boxSizing: "border-box" }}
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    setDragover(true);
+                    return false;
+                  }}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    stageFiles("answers", e.dataTransfer.files, (files) => {
+                      setHasFiles([true, hasFiles[1]]);
+                    });
+                    return false;
+                  }}
+                  onDragLeave={(e) => {
+                    e.preventDefault();
+                    setDragover(false);
+                    return false;
+                  }}
+                >
+                  <Input
+                    type="file"
+                    id="file-upload"
+                    style={{ display: "none" }}
+                    onChange={() => {
+                      stageFiles(
+                        "answers",
+                        document.querySelector("#file-upload").files
+                      );
+                      setHasFiles([true, hasFiles[1]]);
                     }}
-                    onDrop={(e) => {
-                      e.preventDefault();
-                      stageFiles("answers", e.dataTransfer.files, (files) => {
-                        setHasFiles([true, hasFiles[1]]);
-                      });
-                      return false;
-                    }}
-                    onDragLeave={(e) => {
-                      e.preventDefault();
-                      setDragover(false);
-                      return false;
-                    }}
-                  >
-                    <Input
-                      type="file"
-                      id="file-upload"
-                      style={{ display: "none" }}
-                      onChange={() => {
-                        stageFiles(
-                          "answers",
-                          document.querySelector("#file-upload").files
-                        );
-                        setHasFiles([true, hasFiles[1]]);
-                      }}
-                    />
-                    <Box className={styles.upload}>
-                      {!hasFiles[0] ? (
-                        <div>
-                          {!dragover ? (
-                            <div
+                  />
+                  <Box className={styles.upload}>
+                    {!hasFiles[0] ? (
+                      <div>
+                        {!dragover ? (
+                          <div
+                            style={{
+                              display: "flex",
+                              alignItems: "center",
+                            }}
+                          >
+                            <Link
+                              component="div"
                               style={{
                                 display: "flex",
                                 alignItems: "center",
+                                cursor: "pointer",
+                                fontWeight: "bold",
+                              }}
+                              onClick={() =>
+                                document.querySelector("#file-upload").click()
+                              }
+                            >
+                              <AttachFileOutlinedIcon fontSize="small" />
+                              Add file&nbsp;
+                            </Link>
+                            or drag file in here
+                          </div>
+                        ) : (
+                          <div>Drop here</div>
+                        )}
+                      </div>
+                    ) : (
+                      <div>
+                        <Box
+                          display="flex"
+                          flexDirection="column"
+                          alignItems="center"
+                          justifyContent="center"
+                        >
+                          <div>
+                            {FileUpload.getFiles("answers").map((f) => (
+                              <Typography variant="body1" color="primary">
+                                {f.uploaded_file}
+                              </Typography>
+                            ))}
+                          </div>
+                          <div>
+                            <Button
+                              onClick={() => new FileUpload("answers").upload()}
+                            >
+                              Upload
+                            </Button>
+                            <Button
+                              onClick={() => {
+                                FileUpload.removeFiles("answers");
+                                setDragover(false);
+                                setHasFiles([false, hasFiles[1]]);
                               }}
                             >
-                              <Link
-                                component="div"
-                                style={{
-                                  display: "flex",
-                                  alignItems: "center",
-                                  cursor: "pointer",
-                                  fontWeight: "bold",
-                                }}
-                                onClick={() =>
-                                  document.querySelector("#file-upload").click()
-                                }
-                              >
-                                <AttachFileOutlinedIcon fontSize="small" />
-                                Add file&nbsp;
-                              </Link>
-                              or drag file in here
-                            </div>
-                          ) : (
-                            <div>Drop here</div>
-                          )}
-                        </div>
-                      ) : (
-                        <div>
-                          <Box
-                            display="flex"
-                            flexDirection="column"
-                            alignItems="center"
-                            justifyContent="center"
-                          >
-                            <div>
-                              {FileUpload.getFiles("answers").map((f) => (
-                                <Typography variant="body1" color="primary">
-                                  {f.title}
-                                </Typography>
-                              ))}
-                            </div>
-                            <div>
-                              <Button
-                                onClick={() =>
-                                  new FileUpload("answers").upload()
-                                }
-                              >
-                                Upload
-                              </Button>
-                              <Button
-                                onClick={() => {
-                                  FileUpload.removeFiles();
-                                  setDragover(false);
-                                  setHasFiles([false, hasFiles[1]]);
-                                }}
-                              >
-                                Remove
-                              </Button>
-                            </div>
-                          </Box>
-                        </div>
-                      )}
-                    </Box>
+                              Remove
+                            </Button>
+                          </div>
+                        </Box>
+                      </div>
+                    )}
                   </Box>
-                </Paper>
-              </Box>
-            )}
+                </Box>
+              </Paper>
+            </Box>
           </Box>
         </Grow>
       )}
@@ -623,23 +677,25 @@ function Activity(props) {
                               })
                             }
                           >
-                            <StyledMenuItem>
-                              <ListItemText
-                                primary="View"
-                                onClick={() => _handleFileOption("view", item)}
-                              />
+                            <StyledMenuItem
+                              onClick={() => _handleFileOption("view", item)}
+                            >
+                              <ListItemText primary="Upload Answer" />
                             </StyledMenuItem>
                             {isTeacher && (
                               <div>
-                                <StyledMenuItem>
-                                  <ListItemText
-                                    primary="Edit"
-                                    onClick={() =>
-                                      _handleFileOption("edit", item)
-                                    }
-                                  />
+                                <StyledMenuItem
+                                  onClick={() =>
+                                    _handleFileOption("edit", item)
+                                  }
+                                >
+                                  <ListItemText primary="Edit" />
                                 </StyledMenuItem>
-                                <StyledMenuItem>
+                                <StyledMenuItem
+                                  onClick={() => {
+                                    _handleFileOption("delete", item);
+                                  }}
+                                >
                                   <ListItemText primary="Delete" />
                                 </StyledMenuItem>
                               </div>
@@ -693,7 +749,6 @@ function Activity(props) {
               <TextField
                 label="Description"
                 style={{ marginTop: 13 }}
-                rows={4}
                 value={form.description}
                 multiline={true}
                 InputLabelProps={{
@@ -750,38 +805,64 @@ function Activity(props) {
                 </Box>
               </MuiPickersUtilsProvider>
             </Box>
+            {hasFiles[1] && (
+              <Box style={{ marginTop: 7 }}>
+                <Box
+                  display="flex"
+                  justifyContent="space-between"
+                  width="100%"
+                  alignItems="center"
+                >
+                  <Typography variant="body1" color="textSecondary">
+                    Uploaded Files
+                  </Typography>
+                  <IconButton
+                    edge="end"
+                    aria-label="delete"
+                    onClick={() => {
+                      FileUpload.removeFiles("activity-materials");
+                      setHasFiles([hasFiles[0], false]);
+                    }}
+                  >
+                    <CancelIcon />
+                  </IconButton>
+                </Box>
+                {FileUpload.getFiles("activity-materials").map((f) => (
+                  <List dense={true}>
+                    <ListItem>
+                      <ListItemText primary={f.uploaded_file} />
+                    </ListItem>
+                  </List>
+                ))}
+              </Box>
+            )}
             {form.materials && (
               <Box style={{ marginTop: 7 }}>
                 <Typography variant="body1" color="textSecondary">
                   Activity Materials
                 </Typography>
-                {FileUpload.getFiles("activity-materials")
-                  .concat(form.materials)
-                  .map((f) => (
-                    <List dense={true}>
-                      <ListItem>
-                        <ListItemText
-                          primary={
-                            f.resource_link ? f.resource_link : f.uploaded_file
-                          }
-                        />
-                        <ListItemSecondaryAction>
-                          <IconButton
-                            edge="end"
-                            aria-label="delete"
-                            onClick={() => {
-                              if (f.isFile) {
-                                FileUpload.removeFiles("activity-materials");
-                                setHasFiles([hasFiles[0], false]);
-                              }
-                            }}
-                          >
-                            <CancelIcon />
-                          </IconButton>
-                        </ListItemSecondaryAction>
-                      </ListItem>
-                    </List>
-                  ))}
+                {form.materials.map((f) => (
+                  <List dense={true}>
+                    <ListItem>
+                      <ListItemText
+                        primary={
+                          f.resource_link ? f.resource_link : f.uploaded_file
+                        }
+                      />
+                      <ListItemSecondaryAction>
+                        <IconButton
+                          edge="end"
+                          aria-label="delete"
+                          onClick={() => {
+                            if (!saving) _handleRemoveMaterial(f);
+                          }}
+                        >
+                          <CancelIcon />
+                        </IconButton>
+                      </ListItemSecondaryAction>
+                    </ListItem>
+                  </List>
+                ))}
               </Box>
             )}
           </DialogContentText>

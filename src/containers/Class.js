@@ -45,7 +45,7 @@ import {
 } from "../components/router-dom";
 import { connect } from "react-redux";
 import Api from "../api";
-import getUserData from "../components/getUserData";
+import UserData from "../components/UserData";
 import $ from "jquery";
 
 function ClassScheduleNavigator(props) {
@@ -207,7 +207,7 @@ function Class(props) {
           status: status,
         },
       });
-      await getUserData(user);
+      await UserData.getUserData(user);
       if (room_name)
         history.push(makeLinkTo(["class", class_id, schedule_id, option_name]));
     }

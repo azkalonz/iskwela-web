@@ -47,7 +47,7 @@ import {
   KeyboardDatePicker,
 } from "@material-ui/pickers";
 import Form from "../../components/Form";
-import getUserData from "../../components/getUserData";
+import UserData from "../../components/UserData";
 
 function Alert(props) {
   return <MuiAlert elevation={6} variant="filled" {...props} />;
@@ -149,7 +149,7 @@ function Schedule(props) {
     setErrors(null);
     if (res) {
       if (!res.errors) {
-        await getUserData(props.userInfo);
+        await UserData.getUserData(props.userInfo);
         setOpen(false);
       } else {
         let err = [];

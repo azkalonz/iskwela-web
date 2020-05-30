@@ -275,22 +275,27 @@ const ProfilePicDialog = React.memo(function (props) {
 
   const _handleUpload = async () => {
     let file = document.querySelector("#profile-pic-upload");
-    if (!file.files) return;
+    if (!file.files.length) return;
     setSaving(true);
     setErrors(false);
-    let body = new FormData();
-    body.append("profile_picture", file.files[0]);
-    let res = await FileUpload.upload("/api/upload/user/profile-picture", {
-      body,
-    });
-    if (!res.errors) {
-      console.log(res);
-    } else {
-      let err = [];
-      for (let e in res.errors) {
-        err.push(res.errors[e][0]);
+    try {
+      let body = new FormData();
+      body.append("profile_picture", file.files[0]);
+      let res = await FileUpload.upload("/api/upload/user/profile-picture", {
+        body,
+      });
+
+      if (!res.errors) {
+        console.log(res);
+      } else {
+        let err = [];
+        for (let e in res.errors) {
+          err.push(res.errors[e][0]);
+        }
+        setErrors(err);
       }
-      setErrors(err);
+    } catch (e) {
+      setErrors(["Invalid file type."]);
     }
     setSaving(false);
   };
@@ -352,7 +357,8 @@ const ProfilePicDialog = React.memo(function (props) {
         </div>
       </DialogContent>
       <DialogActions>
-        <Input
+        <input
+          accept="image/x-png,image/gif,image/jpeg"
           id="profile-pic-upload"
           type="file"
           style={{ display: "none" }}
