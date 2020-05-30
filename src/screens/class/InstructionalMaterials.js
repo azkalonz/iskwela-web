@@ -188,7 +188,7 @@ function InstructionalMaterials(props) {
     });
     if (!err.length) {
       setSuccess(true);
-      await UserData.getUserData(props.userInfo);
+      await UserData.updateClassDetails(class_id);
       FileUpload.removeFiles("materials");
       setHasFiles(false);
       setModals([modals[0], false]);
@@ -211,7 +211,7 @@ function InstructionalMaterials(props) {
         console.log(res);
         if (!res.errors) {
           setSuccess(true);
-          await UserData.getUserData(props.userInfo);
+          await UserData.updateClassDetails(class_id);
         } else {
           let err = [];
           for (let e in res.errors) {

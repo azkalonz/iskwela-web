@@ -149,7 +149,7 @@ function Schedule(props) {
     setErrors(null);
     if (res) {
       if (!res.errors) {
-        await UserData.getUserData(props.userInfo);
+        await UserData.updateClassDetails(class_id);
         setOpen(false);
       } else {
         let err = [];

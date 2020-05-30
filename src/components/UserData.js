@@ -9,6 +9,40 @@ export async function asyncForEach(array, callback) {
 }
 
 const UserData = {
+  updateClassDetails: async (class_id) => {
+    let newClassDetails = await Api.get(
+      "/api/teacher/class/" + class_id + "?include=schedules,students"
+    );
+    let schedCopy = [...newClassDetails.schedules];
+    newClassDetails.schedules = [];
+    await asyncForEach(schedCopy, async (sched) => {
+      let scheduleDetails = await Api.get(
+        "/api/schedule/" +
+          sched.id +
+          "?include=materials, activities, lessonPlans"
+      );
+      newClassDetails.schedules[sched.id] = scheduleDetails;
+      newClassDetails.schedules[sched.id].date = moment(sched.from).format(
+        "LL"
+      );
+      newClassDetails.schedules[sched.id].time = moment(sched.from).format(
+        "LT"
+      );
+      newClassDetails.schedules[sched.id].teacher_name =
+        sched.teacher.first_name + " " + sched.teacher.last_name;
+    });
+    console.log(newClassDetails);
+
+    let mergedClassDetails = {
+      ...store.getState().classDetails,
+    };
+    mergedClassDetails[class_id] = newClassDetails;
+    console.log(mergedClassDetails);
+    store.dispatch({
+      type: "SET_CLASS_DETAILS",
+      class_details: mergedClassDetails,
+    });
+  },
   getUserData: async (user, setProgress = (e) => {}) => {
     let totalReq = 0;
     let data = {};

@@ -207,7 +207,7 @@ function Class(props) {
           status: status,
         },
       });
-      await UserData.getUserData(user);
+      await UserData.updateClassDetails(class_id);
       if (room_name)
         history.push(makeLinkTo(["class", class_id, schedule_id, option_name]));
     }

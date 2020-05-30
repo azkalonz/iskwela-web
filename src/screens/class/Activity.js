@@ -218,7 +218,7 @@ function Activity(props) {
           });
         }
         setSuccess(true);
-        await UserData.getUserData(props.userInfo);
+        await UserData.updateClassDetails(class_id);
         _handleFileOption("view", res);
         setModals([modals[0], false]);
       } else {
@@ -246,7 +246,7 @@ function Activity(props) {
         );
         if (!res.errors) {
           setSuccess(true);
-          await UserData.getUserData(props.userInfo);
+          await UserData.updateClassDetails(class_id);
         } else {
           let err = [];
           for (let e in res.errors) {
