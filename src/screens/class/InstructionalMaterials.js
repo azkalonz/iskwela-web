@@ -42,7 +42,7 @@ import FileViewer from "../../components/FileViewer";
 import { connect } from "react-redux";
 import FileUpload, { stageFiles } from "../../components/FileUpload";
 import MuiAlert from "@material-ui/lab/Alert";
-import UserData from "../../components/UserData";
+import UserData, { asyncForEach } from "../../components/UserData";
 import Api from "../../api";
 
 function Alert(props) {
@@ -157,12 +157,6 @@ function InstructionalMaterials(props) {
   const handleClose = () => {
     setAddNewFileAnchor(null);
   };
-
-  async function asyncForEach(array, callback) {
-    for (let index = 0; index < array.length; index++) {
-      await callback(array[index], index, array);
-    }
-  }
 
   const _handleMaterialUpload = async () => {
     if (!form) {

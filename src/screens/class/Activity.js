@@ -45,7 +45,7 @@ import Form from "../../components/Form";
 import MomentUtils from "@date-io/moment";
 import CancelIcon from "@material-ui/icons/Cancel";
 import { connect } from "react-redux";
-import UserData from "../../components/UserData";
+import UserData, { asyncForEach } from "../../components/UserData";
 import {
   MuiPickersUtilsProvider,
   KeyboardDatePicker,
@@ -191,6 +191,7 @@ function Activity(props) {
   const _handleCreateActivity = async (params = {}) => {
     setErrors(null);
     setSaving(true);
+    let err = [];
     let formData = new Form({ ...form, ...params });
     let res = await formData.send("/api/class/activity/save");
     if (formData.data.published && formData.data.id) {
@@ -200,13 +201,20 @@ function Activity(props) {
     }
     if (res) {
       if (!res.errors) {
-        let file = document.querySelector("#activity-material");
-        if (file.files.length) {
-          let body = new FormData();
-          body.append("file", file.files[0]);
-          body.append("assignment_id", res.id);
-          let a = await FileUpload.upload("/api/upload/activity/material", {
-            body,
+        let materialFiles = document.querySelector("#activity-material");
+        if (materialFiles.files.length) {
+          await asyncForEach(materialFiles.files, async (file) => {
+            let body = new FormData();
+            body.append("file", file);
+            body.append("assignment_id", res.id);
+            let a = await FileUpload.upload("/api/upload/activity/material", {
+              body,
+            });
+            if (a.errors) {
+              for (let e in a.errors) {
+                err.push(a.errors[e][0]);
+              }
+            }
           });
         }
         setSuccess(true);
@@ -214,7 +222,6 @@ function Activity(props) {
         _handleFileOption("view", res);
         setModals([modals[0], false]);
       } else {
-        let err = [];
         for (let e in res.errors) {
           err.push(res.errors[e][0]);
         }
@@ -880,6 +887,7 @@ function Activity(props) {
                 );
                 setHasFiles([hasFiles[0], true]);
               }}
+              multiple
             />
             <Button
               onClick={() =>
