@@ -52,7 +52,7 @@ function FV(props) {
   };
 
   return (
-    <Box width="100%" height="80vh" overflow="hidden" position="relative">
+    <Box width="100%" height="100vh" overflow="hidden" position="relative">
       {loading && (
         <Box
           display="flex"

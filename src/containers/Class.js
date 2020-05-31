@@ -10,6 +10,7 @@ import {
   CircularProgress,
   List,
   ListItem,
+  Avatar,
   ListItemIcon,
   Paper,
   ListItemText,
@@ -308,10 +309,9 @@ function Class(props) {
                       bgcolor="grey.500"
                       overflow="hidden"
                     >
-                      <img
+                      <Avatar
                         src={props.userInfo.pic_url}
-                        width="100%"
-                        height="auto"
+                        style={{ width: "100%", height: "100%" }}
                       />
                     </Box>
                     <Box p={1}>
@@ -347,12 +347,7 @@ function Class(props) {
                             saving
                               ? true
                               : isTeacher
-                              ? props.classDetails[class_id].schedules[
-                                  schedule_id
-                                ].status !== "ONGOING" &&
-                                props.classDetails[class_id].schedules[
-                                  schedule_id
-                                ].status !== "PENDING"
+                              ? false
                               : props.classDetails[class_id].schedules[
                                   schedule_id
                                 ].status !== "ONGOING"

@@ -59,6 +59,8 @@ import $ from "jquery";
 import axios from "axios";
 import MuiAlert from "@material-ui/lab/Alert";
 import CloseIcon from "@material-ui/icons/Close";
+import FullscreenIcon from "@material-ui/icons/Fullscreen";
+import FullscreenExitIcon from "@material-ui/icons/FullscreenExit";
 
 function Alert(props) {
   return <MuiAlert elevation={6} variant="filled" {...props} />;
@@ -85,8 +87,12 @@ function Activity(props) {
   const [success, setSuccess] = useState(false);
   const [confirmed, setConfirmed] = useState(false);
   const [savingId, setSavingId] = useState();
+  const [fileFullScreen, setFileFullScreen] = useState(false);
+  const [selectedStatus, setSelectedStatus] = useState(
+    isTeacher ? null : "published"
+  );
   const [selectedSched, setSelectedSched] = useState();
-  const [selectedStatus, setSelectedStatus] = useState();
+
   const formTemplate = {
     activity_type: 1,
     title: "",
@@ -173,16 +179,30 @@ function Activity(props) {
     }
   }, [activities]);
 
-  const _handleSort = () => {
+  const _handleSort = (sortBy) => {
     if (sortType === "ASCENDING") {
-      setActivities(
-        activities.sort((a, b) => "" + a.title.localeCompare(b.title))
-      );
+      setActivities(() => {
+        if (sortBy !== "available_from")
+          return activities.sort(
+            (a, b) => "" + a[sortBy].localeCompare(b[sortBy])
+          );
+        else
+          return activities.sort(
+            (a, b) => new Date(a[sortBy]) - new Date(b[sortBy])
+          );
+      });
       setSortType("DESCENDING");
     } else {
-      setActivities(
-        activities.sort((a, b) => "" + b.title.localeCompare(a.title))
-      );
+      setActivities(() => {
+        if (sortBy !== "available_from")
+          return activities.sort(
+            (b, a) => "" + a[sortBy].localeCompare(b[sortBy])
+          );
+        else
+          return activities.sort(
+            (b, a) => new Date(a[sortBy]) - new Date(b[sortBy])
+          );
+      });
       setSortType("ASCENDING");
     }
   };
@@ -358,7 +378,15 @@ function Activity(props) {
     let res = await Api.postBlob(
       "/api/download/activity/material/" + f.id
     ).then((resp) => (resp.ok ? resp.blob() : null));
-    setFile({ ...file, url: URL.createObjectURL(res), type: res.type });
+    if (res)
+      setFile({
+        ...file,
+        url: URL.createObjectURL(
+          new File([res], "activity-material-" + f.id, { type: res.type })
+        ),
+        type: res.type,
+      });
+    else setErrors(["Cannot open file."]);
   };
   return (
     <Box width="100%" alignSelf="flex-start" height="100%">
@@ -379,7 +407,6 @@ function Activity(props) {
           <Button
             color="primary"
             variant="contained"
-            disabled={saving}
             onClick={() => confirmed.yes()}
           >
             Yes
@@ -427,13 +454,24 @@ function Activity(props) {
         fullWidth
         onClose={() => setfileViewerOpen(false)}
         maxWidth="xl"
+        fullScreen={fileFullScreen}
         aria-labelledby="alert-dialog-slide-title"
         aria-describedby="alert-dialog-slide-description"
       >
         {file && (
           <DialogContent>
             <Toolbar
-              style={{ display: "flex", justifyContent: "space-between" }}
+              style={{
+                position: "sticky",
+                zIndex: 10,
+                background: "#fff",
+                top: 0,
+                right: 0,
+                left: 0,
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+              }}
             >
               <Typography
                 variant="body1"
@@ -442,9 +480,18 @@ function Activity(props) {
               >
                 {/* {file.title} */}
               </Typography>
-              <IconButton onClick={() => setfileViewerOpen(false)}>
-                <CloseIcon size={24} />
-              </IconButton>
+              <div>
+                <IconButton onClick={() => setFileFullScreen(!fileFullScreen)}>
+                  {fileFullScreen ? (
+                    <FullscreenExitIcon size={24} />
+                  ) : (
+                    <FullscreenIcon size={24} />
+                  )}
+                </IconButton>
+                <IconButton onClick={() => setfileViewerOpen(false)}>
+                  <CloseIcon size={24} />
+                </IconButton>
+              </div>
             </Toolbar>
             <FileViewer
               url={file.url}
@@ -505,23 +552,25 @@ function Activity(props) {
             </Select>
           </FormControl>
           &nbsp;
-          <FormControl style={{ width: 160 }} variant="outlined">
-            <InputLabel style={{ top: -8 }}>Status</InputLabel>
-            <Select
-              label="Schedule"
-              value={selectedStatus ? selectedStatus : "all"}
-              onChange={(e) =>
-                setSelectedStatus(
-                  e.target.value !== "all" ? e.target.value : null
-                )
-              }
-              padding={10}
-            >
-              <MenuItem value="all">All</MenuItem>
-              <MenuItem value="unpublished">Unpublished</MenuItem>
-              <MenuItem value="published">Published</MenuItem>
-            </Select>
-          </FormControl>
+          {isTeacher && (
+            <FormControl style={{ width: 160 }} variant="outlined">
+              <InputLabel style={{ top: -8 }}>Status</InputLabel>
+              <Select
+                label="Schedule"
+                value={selectedStatus ? selectedStatus : "all"}
+                onChange={(e) =>
+                  setSelectedStatus(
+                    e.target.value !== "all" ? e.target.value : null
+                  )
+                }
+                padding={10}
+              >
+                <MenuItem value="all">All</MenuItem>
+                <MenuItem value="unpublished">Unpublished</MenuItem>
+                <MenuItem value="published">Published</MenuItem>
+              </Select>
+            </FormControl>
+          )}
           &nbsp;
           <Box border={1} p={0.3} borderRadius={7}>
             <InputBase
@@ -696,19 +745,6 @@ function Activity(props) {
           </Box>
         </Grow>
       )}
-      {!activities && (
-        <Box
-          width="100%"
-          alignItems="center"
-          justifyContent="center"
-          display="flex"
-          height="70%"
-        >
-          <Typography variant="h6" component="h2">
-            No activities
-          </Typography>
-        </Box>
-      )}
       {activities && (
         <Box width="100%" alignSelf="flex-start">
           <Box m={2}>
@@ -722,7 +758,7 @@ function Activity(props) {
                   backgroundColor: "transparent",
                 }}
               >
-                <Button size="small" onClick={_handleSort}>
+                <Button size="small" onClick={() => _handleSort("title")}>
                   <ListItemText primary="Title" />
                   {sortType === "ASCENDING" ? (
                     <ArrowUpwardOutlinedIcon />
@@ -730,13 +766,27 @@ function Activity(props) {
                     <ArrowDownwardOutlinedIcon />
                   )}
                 </Button>
-                <Typography variant="body1" style={{ marginRight: 10 }}>
+                <Typography
+                  variant="body1"
+                  style={{ marginRight: 10 }}
+                  onClick={() => _handleSort("available_from")}
+                >
                   DATE
                 </Typography>
                 <ListItemSecondaryAction></ListItemSecondaryAction>
               </ListItem>
             </List>
-            {!activities.length && (
+            {!activities
+              .filter(
+                (a) => JSON.stringify(a).toLowerCase().indexOf(search) >= 0
+              )
+              .filter((a) => (isTeacher ? true : a.status === "published"))
+              .filter((a) =>
+                selectedSched ? selectedSched == a.schedule_id : true
+              )
+              .filter((a) =>
+                selectedStatus ? selectedStatus === a.status : true
+              ).length && (
               <Box
                 width="100%"
                 alignItems="center"
@@ -804,7 +854,7 @@ function Activity(props) {
                           >
                             {moment(item.available_from).format("LL")}
                             &nbsp;-&nbsp;
-                            {moment(item.available_from).format("LL")}
+                            {moment(item.available_to).format("LL")}
                           </Typography>
                         </ExpansionPanelSummary>
                         <ExpansionPanelDetails

@@ -48,6 +48,7 @@ import {
 } from "@material-ui/pickers";
 import Form from "../../components/Form";
 import UserData from "../../components/UserData";
+import Api from "../../api";
 
 function Alert(props) {
   return <MuiAlert elevation={6} variant="filled" {...props} />;
@@ -66,6 +67,7 @@ function Schedule(props) {
   const [search, setSearch] = useState("");
   const isTeacher = props.userInfo.user_type === "t" ? true : false;
   const styles = useStyles();
+  const [savingId, setSavingId] = useState();
   const [form, setForm] = useState({
     id: schedule_id,
     date_from: moment(new Date()).format("YYYY-MM-DD H:mm:ss"),
@@ -103,11 +105,41 @@ function Schedule(props) {
           })
         );
         return;
+      case "start":
+        _handleUpdateStatus("ONGOING", file);
+        return;
+
+      case "end":
+        _handleUpdateStatus("DONE", file);
+        return;
+
+      case "cancel":
+        _handleUpdateStatus("CANCELED", file);
+        return;
       case "edit":
         setOpen(true);
         setForm({ ...file, date_from: file.from, date_to: file.to });
         return;
     }
+  };
+  const _handleUpdateStatus = async (status, item) => {
+    setSaving(true);
+    setSavingId(item.id);
+    let user = await Api.auth();
+    if (!user.error) {
+      let res = await Api.post("/api/schedule/save", {
+        body: {
+          id: item.id,
+          date_from: props.classDetails[class_id].schedules[item.id].from,
+          date_to: props.classDetails[class_id].schedules[item.id].to,
+          teacher_id: user.id,
+          status: status,
+        },
+      });
+      await UserData.updateClassDetails(class_id);
+    }
+    setSaving(false);
+    setSavingId(null);
   };
 
   const _handleSort = (sortBy, order) => {
@@ -231,11 +263,15 @@ function Schedule(props) {
                           <TableCell align="right">
                             {row.teacher_name}
                           </TableCell>
-                          <TableCell align="right">
-                            <Chip
-                              label={status.label.toUpperCase()}
-                              className={status.className}
-                            />
+                          <TableCell align="center">
+                            {saving && savingId === row.id ? (
+                              <CircularProgress size={17} />
+                            ) : (
+                              <Chip
+                                label={status.label.toUpperCase()}
+                                className={status.className}
+                              />
+                            )}
                           </TableCell>
                           <TableCell align="right">
                             <IconButton
@@ -277,6 +313,32 @@ function Schedule(props) {
                                 </StyledMenuItem>
                                 {isTeacher && (
                                   <div>
+                                    <StyledMenuItem>
+                                      <ListItemText
+                                        primary="Start"
+                                        disabled={row.status === "ONGOING"}
+                                        onClick={() =>
+                                          _handleFileOption("start", row)
+                                        }
+                                      />
+                                    </StyledMenuItem>
+                                    <StyledMenuItem>
+                                      <ListItemText
+                                        primary="End"
+                                        disabled={row.status !== "ONGOING"}
+                                        onClick={() =>
+                                          _handleFileOption("end", row)
+                                        }
+                                      />
+                                    </StyledMenuItem>
+                                    <StyledMenuItem>
+                                      <ListItemText
+                                        primary="Cancel"
+                                        onClick={() =>
+                                          _handleFileOption("cancel", row)
+                                        }
+                                      />
+                                    </StyledMenuItem>
                                     <StyledMenuItem>
                                       <ListItemText
                                         primary="Edit"
@@ -490,13 +552,8 @@ const useStyles = makeStyles((theme) => ({
     borderColor: theme.palette.success.main,
     color: theme.palette.common.white,
   },
-  DONE: {
-    backgroundColor: theme.palette.success.main,
-    borderColor: theme.palette.success.main,
-    color: theme.palette.common.white,
-  },
-  DONE_color: { borderColor: theme.palette.success.main },
-  CANCELLED_color: { borderColor: theme.palette.error.main },
+
+  CANCELED_color: { borderColor: theme.palette.error.main },
   PENDING_color: { borderColor: theme.palette.warning.main },
   ONGOING_color: { borderColor: theme.palette.success.main },
 }));

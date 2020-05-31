@@ -11,6 +11,10 @@ import {
   DialogTitle,
   Menu,
   MenuItem,
+  FormControl,
+  Select,
+  Toolbar,
+  InputLabel,
   withStyles,
   Slide,
   Box,
@@ -26,8 +30,6 @@ import {
   CircularProgress,
   Grow,
 } from "@material-ui/core";
-import RootRef from "@material-ui/core/RootRef";
-import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 import InsertDriveFileOutlinedIcon from "@material-ui/icons/InsertDriveFileOutlined";
 import MoreHorizOutlinedIcon from "@material-ui/icons/MoreHorizOutlined";
 import Moment from "react-moment";
@@ -44,6 +46,11 @@ import FileUpload, { stageFiles } from "../../components/FileUpload";
 import MuiAlert from "@material-ui/lab/Alert";
 import UserData, { asyncForEach } from "../../components/UserData";
 import Api from "../../api";
+import CloseIcon from "@material-ui/icons/Close";
+import FullscreenIcon from "@material-ui/icons/Fullscreen";
+import FullscreenExitIcon from "@material-ui/icons/FullscreenExit";
+import moment from "moment";
+import { saveAs } from "file-saver";
 
 function Alert(props) {
   return <MuiAlert elevation={6} variant="filled" {...props} />;
@@ -70,6 +77,8 @@ function InstructionalMaterials(props) {
   const [errors, setErrors] = useState();
   const [confirmed, setConfirmed] = useState();
   const [savingId, setSavingId] = useState();
+  const [fileFullScreen, setFileFullScreen] = useState(false);
+  const [selectedSched, setSelectedSched] = useState();
 
   const _handleFileOption = (option, file) => {
     setAnchorEl(() => {
@@ -79,14 +88,14 @@ function InstructionalMaterials(props) {
     });
     switch (option) {
       case "view":
-        setFile({
-          url:
-            file.id === "item-1"
-              ? "https://gsi.berkeley.edu/media/Learning.pdf"
-              : "https://sustainabledevelopment.un.org/content/documents/1545Climate_Action_Plan_Publication_Part_1.pdf",
-          title: file.title,
-        });
-        setfileViewerOpen(true);
+        _handleOpenFile(file);
+        return;
+      case "edit":
+        setForm({ title: file.title, url: file.resource_link, id: file.id });
+        setModals([true, modals[1]]);
+        return;
+      case "download":
+        _downloadFile(file);
         return;
       case "delete":
         _handleRemoveMaterial(file);
@@ -97,10 +106,14 @@ function InstructionalMaterials(props) {
   const _getMaterials = () => {
     if (!classSched) return;
     try {
-      let a =
-        props.classDetails[class_id].schedules[props.match.params.schedule_id];
-      a = a.materials.map((i) => ({ ...i, id: "item-" + i.id }));
-      setMaterials(a);
+      let a = props.classDetails[class_id].schedules;
+      let allMaterials = [];
+      a.forEach((s) => {
+        s.materials.forEach((ss) => {
+          allMaterials.push({ ...ss, schedule_id: s.id });
+        });
+      });
+      setMaterials(allMaterials);
     } catch (e) {
       //handle invalid schedule
     }
@@ -121,17 +134,18 @@ function InstructionalMaterials(props) {
         return a;
       });
   }, [materials]);
-  const onDragEnd = (result) => {
-    if (!result.destination) {
-      return;
-    }
-    const items = reorder(
-      materials,
-      result.source.index,
-      result.destination.index
-    );
-    // UPDATE ACTIVITY ORDER FROM DATABASE
-    setMaterials(items);
+
+  const _downloadFile = async (file) => {
+    setErrors(null);
+    setSaving(true);
+    setSavingId(file.id);
+    let res = await Api.postBlob(
+      "/api/download/class/material/" + file.id
+    ).then((resp) => (resp.ok ? resp.blob() : null));
+    if (res) saveAs(new File([res], file.title, { type: res.type }));
+    else setErrors(["Cannot download file."]);
+    setSaving(false);
+    setSavingId(null);
   };
 
   const _handleSort = () => {
@@ -157,6 +171,64 @@ function InstructionalMaterials(props) {
 
   const handleClose = () => {
     setAddNewFileAnchor(null);
+  };
+
+  const _handleOpenFile = async (f) => {
+    setFile({
+      title: f.title,
+    });
+    setfileViewerOpen(true);
+    if (!f.uploaded_file) {
+      setFile({ ...file, url: f.resource_link, type: "external_page" });
+      return;
+    }
+    let res = await Api.postBlob(
+      "/api/download/class/material/" + f.id
+    ).then((resp) => (resp.ok ? resp.blob() : null));
+    if (res)
+      setFile({
+        ...file,
+        url: URL.createObjectURL(new File([res], f.title, { type: res.type })),
+        type: res.type,
+      });
+    else setErrors(["Cannot open file."]);
+  };
+
+  const _handleMaterialAddLink = async () => {
+    if (!form) {
+      setErrors(["Invalid title"]);
+      return;
+    }
+    if (!form.title) {
+      setErrors(["Invalid url"]);
+      return;
+    }
+    if (!form.url) {
+      setErrors(["Invalid link"]);
+      return;
+    }
+    let err = [];
+    setErrors(null);
+    setSaving(true);
+    let res = await Api.post("/api/class/material/save", {
+      body: {
+        class_id,
+        schedule_id: selectedSched ? selectedSched : classSched,
+        ...form,
+      },
+    });
+    if (res.errors) {
+      for (let e in res.errors) {
+        err.push(res.errors[e][0]);
+      }
+    }
+    if (!err.length) {
+      setSuccess(true);
+      await UserData.updateClassDetails(class_id);
+      setModals([false, modals[1]]);
+    } else setErrors(err);
+    setSaving(true);
+    setErrors(null);
   };
 
   const _handleMaterialUpload = async () => {
@@ -204,12 +276,14 @@ function InstructionalMaterials(props) {
         setSaving(true);
         setConfirmed(null);
         setSavingId(activity.id);
-        let id = parseInt(activity.id.replace("item-", ""));
-        let res = await Api.post("/api/teacher/remove/class-material/" + id, {
-          body: {
-            id,
-          },
-        });
+        let res = await Api.post(
+          "/api/teacher/remove/class-material/" + activity.id,
+          {
+            body: {
+              id: activity.id,
+            },
+          }
+        );
         if (!res.errors) {
           setSuccess(true);
           await UserData.updateClassDetails(class_id);
@@ -226,6 +300,61 @@ function InstructionalMaterials(props) {
   };
   return (
     <Box width="100%" alignSelf="flex-start">
+      <Dialog
+        open={fileViewerOpen}
+        keepMounted
+        id="file-viewer-container"
+        fullWidth
+        onClose={() => setfileViewerOpen(false)}
+        maxWidth="xl"
+        aria-labelledby="alert-dialog-slide-title"
+        aria-describedby="alert-dialog-slide-description"
+        fullScreen={fileFullScreen}
+      >
+        {file && (
+          <DialogContent>
+            <Toolbar
+              style={{
+                position: "sticky",
+                zIndex: 10,
+                background: "#fff",
+                top: 0,
+                right: 0,
+                left: 0,
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+              }}
+            >
+              <Typography
+                variant="body1"
+                color="textPrimary"
+                style={{ fontWeight: "bold" }}
+              >
+                {file.title}
+              </Typography>
+              <div>
+                <IconButton onClick={() => setFileFullScreen(!fileFullScreen)}>
+                  {fileFullScreen ? (
+                    <FullscreenExitIcon size={24} />
+                  ) : (
+                    <FullscreenIcon size={24} />
+                  )}
+                </IconButton>
+                <IconButton onClick={() => setfileViewerOpen(false)}>
+                  <CloseIcon size={24} />
+                </IconButton>
+              </div>
+            </Toolbar>
+            <FileViewer
+              url={file.url}
+              title={file.title}
+              type={file.type}
+              onClose={() => setfileViewerOpen(false)}
+            />
+          </DialogContent>
+        )}
+      </Dialog>
       <Dialog open={confirmed} onClose={() => setConfirmed(null)}>
         <DialogTitle>Remove File</DialogTitle>
         <DialogContent>
@@ -243,13 +372,37 @@ function InstructionalMaterials(props) {
           <Button
             color="primary"
             variant="contained"
-            disabled={saving}
             onClick={() => confirmed.yes()}
           >
             Yes
           </Button>
         </DialogActions>
       </Dialog>
+      {errors &&
+        errors.map((e, i) => (
+          <Snackbar
+            open={errors ? true : false}
+            autoHideDuration={6000}
+            onClose={() => setErrors(null)}
+          >
+            <Grow in={true}>
+              <Alert
+                key={i}
+                style={{ marginBottom: 9 }}
+                severity="error"
+                onClose={() => {
+                  setErrors(() => {
+                    let e = [...errors];
+                    e.splice(i, 1);
+                    return e;
+                  });
+                }}
+              >
+                {e}
+              </Alert>
+            </Grow>
+          </Snackbar>
+        ))}
       <Snackbar
         open={success}
         autoHideDuration={6000}
@@ -259,20 +412,6 @@ function InstructionalMaterials(props) {
           Success
         </Alert>
       </Snackbar>
-      <Dialog
-        open={fileViewerOpen}
-        keepMounted
-        id="file-viewer-container"
-        fullWidth
-        onClose={() => setfileViewerOpen(false)}
-        maxWidth="xl"
-        aria-labelledby="alert-dialog-slide-title"
-        aria-describedby="alert-dialog-slide-description"
-      >
-        <DialogContent>
-          {file && <FileViewer url={file.url} title={file.title} />}
-        </DialogContent>
-      </Dialog>
       <Box
         m={2}
         display="flex"
@@ -319,7 +458,30 @@ function InstructionalMaterials(props) {
           justifyContent="space-between"
           alignItems="center"
         >
-          {props.utilities}
+          <FormControl style={{ width: 160 }} variant="outlined">
+            <InputLabel style={{ top: -8 }}>Date</InputLabel>
+
+            <Select
+              label="Schedule"
+              value={selectedSched ? selectedSched : -1}
+              onChange={(e) =>
+                setSelectedSched(
+                  parseInt(e.target.value) !== -1 ? e.target.value : null
+                )
+              }
+              padding={10}
+            >
+              <MenuItem value={-1}>All</MenuItem>
+              {props.classDetails[class_id].schedules.map((k, i) => {
+                return (
+                  <MenuItem value={k.id} key={i}>
+                    {moment(k.from).format("LLLL")}
+                  </MenuItem>
+                );
+              })}
+            </Select>
+          </FormControl>
+          &nbsp;
           <Box border={1} p={0.3} borderRadius={7}>
             <InputBase
               onChange={(e) => _handleSearch(e.target.value)}
@@ -364,122 +526,124 @@ function InstructionalMaterials(props) {
                 <ListItemSecondaryAction></ListItemSecondaryAction>
               </ListItem>
             </List>
-            <DragDropContext onDragEnd={onDragEnd}>
-              <Droppable droppableId="droppable">
-                {(provided, snapshot) => (
-                  <RootRef rootRef={provided.innerRef}>
-                    <List style={getListStyle(snapshot.isDraggingOver)}>
-                      {materials
-                        .filter(
-                          (i) =>
-                            JSON.stringify(i).toLowerCase().indexOf(search) >= 0
-                        )
-                        .reverse()
-                        .map((item, index) => (
-                          <Draggable
-                            key={item.id}
-                            draggableId={item.id}
-                            index={index}
+            {!materials
+              .filter(
+                (i) => JSON.stringify(i).toLowerCase().indexOf(search) >= 0
+              )
+              .filter((a) =>
+                selectedSched ? selectedSched == a.schedule_id : true
+              ).length && (
+              <Box
+                width="100%"
+                alignItems="center"
+                justifyContent="center"
+                display="flex"
+                height="70%"
+              >
+                <Typography variant="h6" component="h2">
+                  No Materials
+                </Typography>
+              </Box>
+            )}
+            <Grow in={true}>
+              <List>
+                {materials
+                  .filter(
+                    (i) => JSON.stringify(i).toLowerCase().indexOf(search) >= 0
+                  )
+                  .filter((a) =>
+                    selectedSched ? selectedSched == a.schedule_id : true
+                  )
+                  .reverse()
+                  .map((item, index) => (
+                    <ListItem
+                      onClick={() => _handleFileOption("view", item)}
+                      className={styles.listItem}
+                    >
+                      {saving && savingId === item.id && (
+                        <div className={styles.itemLoading}>
+                          <CircularProgress />
+                        </div>
+                      )}
+                      <ListItemIcon>
+                        <InsertDriveFileOutlinedIcon />
+                      </ListItemIcon>
+                      <ListItemText
+                        primary={item.title}
+                        secondary={
+                          item.resource_link
+                            ? item.resource_link
+                            : item.uploaded_file
+                        }
+                      />
+                      <Typography variant="body1" style={{ marginRight: 10 }}>
+                        {item.added_by.first_name} {item.added_by.last_name}
+                      </Typography>
+                      <ListItemSecondaryAction>
+                        <IconButton
+                          onClick={(event) =>
+                            setAnchorEl(() => {
+                              let a = {};
+                              a[item.id] = event.currentTarget;
+                              return { ...anchorEl, ...a };
+                            })
+                          }
+                        >
+                          <MoreHorizOutlinedIcon />
+                        </IconButton>
+                        {anchorEl && (
+                          <StyledMenu
+                            id="customized-menu"
+                            anchorEl={anchorEl[item.id]}
+                            keepMounted
+                            open={Boolean(anchorEl[item.id])}
+                            onClose={() =>
+                              setAnchorEl(() => {
+                                let a = {};
+                                a[item.id] = null;
+                                return { ...anchorEl, ...a };
+                              })
+                            }
                           >
-                            {(provided, snapshot) => (
-                              <ListItem
-                                ContainerComponent="li"
-                                ContainerProps={{ ref: provided.innerRef }}
-                                {...provided.draggableProps}
-                                {...provided.dragHandleProps}
-                                style={getItemStyle(
-                                  snapshot.isDragging,
-                                  provided.draggableProps.style
-                                )}
-                                onClick={() => _handleFileOption("view", item)}
-                                className={styles.listItem}
-                              >
-                                {saving && savingId === item.id && (
-                                  <div className={styles.itemLoading}>
-                                    <CircularProgress />
-                                  </div>
-                                )}
-                                <ListItemIcon>
-                                  <InsertDriveFileOutlinedIcon />
-                                </ListItemIcon>
-                                <ListItemText
-                                  primary={item.title}
-                                  secondary={
-                                    item.resource_link
-                                      ? item.resource_link
-                                      : item.uploaded_file
+                            <StyledMenuItem
+                              onClick={() => _handleFileOption("view", item)}
+                            >
+                              <ListItemText primary="View" />
+                            </StyledMenuItem>
+                            <StyledMenuItem disabled={!item.uploaded_file}>
+                              <ListItemText
+                                primary="Download"
+                                onClick={() =>
+                                  _handleFileOption("download", item)
+                                }
+                              />
+                            </StyledMenuItem>
+                            {isTeacher && (
+                              <div>
+                                <StyledMenuItem
+                                  disabled={!item.resource_link}
+                                  onClick={() =>
+                                    _handleFileOption("edit", item)
                                   }
-                                />
-                                <Typography
-                                  variant="body1"
-                                  style={{ marginRight: 10 }}
                                 >
-                                  {item.added_by.first_name}{" "}
-                                  {item.added_by.last_name}
-                                </Typography>
-                                <ListItemSecondaryAction>
-                                  <IconButton
-                                    onClick={(event) =>
-                                      setAnchorEl(() => {
-                                        let a = {};
-                                        a[item.id] = event.currentTarget;
-                                        return { ...anchorEl, ...a };
-                                      })
-                                    }
-                                  >
-                                    <MoreHorizOutlinedIcon />
-                                  </IconButton>
-                                  {anchorEl && (
-                                    <StyledMenu
-                                      id="customized-menu"
-                                      anchorEl={anchorEl[item.id]}
-                                      keepMounted
-                                      open={Boolean(anchorEl[item.id])}
-                                      onClose={() =>
-                                        setAnchorEl(() => {
-                                          let a = {};
-                                          a[item.id] = null;
-                                          return { ...anchorEl, ...a };
-                                        })
-                                      }
-                                    >
-                                      <StyledMenuItem
-                                        onClick={() =>
-                                          _handleFileOption("view", item)
-                                        }
-                                      >
-                                        <ListItemText primary="View" />
-                                      </StyledMenuItem>
-                                      <StyledMenuItem>
-                                        <ListItemText primary="Download" />
-                                      </StyledMenuItem>
-                                      {isTeacher && (
-                                        <div>
-                                          <StyledMenuItem>
-                                            <ListItemText primary="Edit" />
-                                          </StyledMenuItem>
-                                          <StyledMenuItem
-                                            onClick={() =>
-                                              _handleFileOption("delete", item)
-                                            }
-                                          >
-                                            <ListItemText primary="Delete" />
-                                          </StyledMenuItem>
-                                        </div>
-                                      )}
-                                    </StyledMenu>
-                                  )}
-                                </ListItemSecondaryAction>
-                              </ListItem>
+                                  <ListItemText primary="Edit" />
+                                </StyledMenuItem>
+                                <StyledMenuItem
+                                  onClick={() =>
+                                    _handleFileOption("delete", item)
+                                  }
+                                >
+                                  <ListItemText primary="Delete" />
+                                </StyledMenuItem>
+                              </div>
                             )}
-                          </Draggable>
-                        ))}
-                      {provided.placeholder}
-                    </List>
-                  </RootRef>
-                )}
-              </Droppable>
-            </DragDropContext>
+                          </StyledMenu>
+                        )}
+                      </ListItemSecondaryAction>
+                    </ListItem>
+                  ))}
+              </List>
+            </Grow>
           </Box>
         </Box>
       )}
@@ -504,7 +668,7 @@ function InstructionalMaterials(props) {
                   shrink: true,
                 }}
                 value={form && form.title}
-                onChange={(e) => setForm({ title: e.target.value })}
+                onChange={(e) => setForm({ ...form, title: e.target.value })}
                 fullWidth
               />
               <TextField
@@ -514,7 +678,7 @@ function InstructionalMaterials(props) {
                   shrink: true,
                 }}
                 value={form && form.url}
-                onChange={(e) => setForm({ url: e.target.value })}
+                onChange={(e) => setForm({ ...form, url: e.target.value })}
                 fullWidth
               />
             </Box>
@@ -522,13 +686,22 @@ function InstructionalMaterials(props) {
         </DialogContent>
         <DialogActions>
           <Button
-            onClick={() => setModals([false, modals[1]])}
+            onClick={() => {
+              setForm(null);
+              setModals([false, modals[1]]);
+            }}
             variant="outlined"
+            disabled={saving}
           >
             Cancel
           </Button>
-          <Button variant="contained" onClick={handleClose} color="primary">
-            Add Link
+          <Button
+            variant="contained"
+            onClick={_handleMaterialAddLink}
+            color="primary"
+            disabled={saving}
+          >
+            Save
           </Button>
         </DialogActions>
       </Dialog>
@@ -548,16 +721,6 @@ function InstructionalMaterials(props) {
       >
         <DialogTitle id="alert-dialog-slide-title">Upload</DialogTitle>
         <DialogContent>
-          <Box style={{ marginBottom: 18 }}>
-            {errors &&
-              errors.map((e, i) => (
-                <Grow in={true}>
-                  <Alert key={i} style={{ marginBottom: 9 }} severity="error">
-                    {e}
-                  </Alert>
-                </Grow>
-              ))}
-          </Box>
           <DialogContentText id="alert-dialog-slide-description">
             <Box display="flex" flexWrap="wrap">
               <TextField
@@ -637,19 +800,6 @@ function InstructionalMaterials(props) {
   );
 }
 
-const reorder = (list, startIndex, endIndex) => {
-  const result = Array.from(list);
-  const [removed] = result.splice(startIndex, 1);
-  result.splice(endIndex, 0, removed);
-
-  return result;
-};
-
-const getItemStyle = (isDragging, draggableStyle) => ({
-  ...draggableStyle,
-});
-
-const getListStyle = (isDraggingOver) => ({});
 const StyledMenu = withStyles({
   paper: {
     border: "1px solid #d3d4d5",
