@@ -552,7 +552,11 @@ const useStyles = makeStyles((theme) => ({
     borderColor: theme.palette.success.main,
     color: theme.palette.common.white,
   },
-
+  CANCELED: {
+    backgroundColor: theme.palette.error.main,
+    borderColor: theme.palette.error.main,
+    color: theme.palette.common.white,
+  },
   CANCELED_color: { borderColor: theme.palette.error.main },
   PENDING_color: { borderColor: theme.palette.warning.main },
   ONGOING_color: { borderColor: theme.palette.success.main },
