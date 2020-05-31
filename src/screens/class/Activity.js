@@ -283,7 +283,6 @@ function Activity(props) {
           id: class_id,
           details: newScheduleDetails,
         });
-        console.log("updating...");
         _handleFileOption("view", res);
         setModals([modals[0], false]);
       } else {

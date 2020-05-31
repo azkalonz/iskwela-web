@@ -10,7 +10,6 @@ export async function asyncForEach(array, callback) {
 const UserData = {
   updateUserDetails: async () => {
     let u = await Api.auth();
-    console.log("new user", u);
     store.dispatch({
       type: "SET_USERINFO",
       user: u,
@@ -34,7 +33,6 @@ const UserData = {
     let mergedClassDetails = { ...store.getState().classDetails };
     mergedClassDetails[class_id].schedules[schedule_id] = schedCopy;
 
-    console.log(mergedClassDetails);
     store.dispatch({
       type: "SET_CLASS_DETAILS",
       class_details: mergedClassDetails,
@@ -73,7 +71,6 @@ const UserData = {
         "/api/teacher/class/" + class_id + "?include=schedules,students"
       );
     } else {
-      console.log("haaa");
       newClassDetails = details[class_id];
     }
     let scheds = [];
@@ -102,7 +99,6 @@ const UserData = {
 
     mergedClassDetails[class_id].schedules = allScheds;
 
-    console.log("hahe", mergedClassDetails);
     store.dispatch({
       type: "SET_CLASS_DETAILS",
       class_details: mergedClassDetails,
@@ -124,7 +120,6 @@ const UserData = {
       allclasses[c.id] = c;
     });
     data.classDetails = {};
-    console.log(data);
     store.dispatch({
       type: "SET_CLASS_DETAILS",
       class_details: data.classDetails,

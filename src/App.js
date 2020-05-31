@@ -30,7 +30,6 @@ function App(props) {
   const [loadingProgress, setLoadingProgress] = useState(0);
   useEffect(() => {
     socket.on("get class details", (c) => {
-      console.log(c.details, c.id);
       if (store.getState().classes[c.id]) {
         UserData.updateClassDetails(c.id, c.details);
         UserData.updateClass(c.id, c.details[c.id]);
@@ -40,11 +39,8 @@ function App(props) {
       console.log("aaaaah", c);
       if (store.getState().classes[c.id]) {
         UserData.addClassSchedule(c.id, c.details);
-      } else {
-        console.log("asdsadasdsd", c);
       }
     });
-    setLoadingProgress(Math.random() * (78 - 36) + 36);
     Api.auth({
       success: async (user) => {
         await UserData.getUserData(user, setLoadingProgress);
