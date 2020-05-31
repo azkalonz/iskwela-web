@@ -61,7 +61,7 @@ import MuiAlert from "@material-ui/lab/Alert";
 import CloseIcon from "@material-ui/icons/Close";
 import FullscreenIcon from "@material-ui/icons/Fullscreen";
 import FullscreenExitIcon from "@material-ui/icons/FullscreenExit";
-
+import socket from "../../components/socket.io";
 function Alert(props) {
   return <MuiAlert elevation={6} variant="filled" {...props} />;
 }
@@ -164,7 +164,6 @@ function Activity(props) {
   useEffect(() => {
     if (props.classDetails[class_id]) {
       _getActivities();
-      console.log(props.classDetails[class_id]);
     }
   }, [props.classDetails[class_id]]);
 
@@ -276,10 +275,15 @@ function Activity(props) {
           });
         }
         setSuccess(true);
-        await UserData.updateScheduleDetails(
+        let newScheduleDetails = await UserData.updateScheduleDetails(
           class_id,
           selectedSched ? selectedSched : schedule_id
         );
+        socket.emit("update schedule details", {
+          id: class_id,
+          details: newScheduleDetails,
+        });
+        console.log("updating...");
         _handleFileOption("view", res);
         setModals([modals[0], false]);
       } else {
@@ -327,10 +331,14 @@ function Activity(props) {
         });
         if (!res.errors) {
           setSuccess(true);
-          await UserData.updateScheduleDetails(
+          let newScheduleDetails = await UserData.updateScheduleDetails(
             class_id,
-            selectedSched ? selectedSched : schedule_id
+            activity.schedule_id
           );
+          socket.emit("update schedule details", {
+            id: class_id,
+            details: newScheduleDetails,
+          });
         } else {
           let err = [];
           for (let e in res.errors) {
@@ -365,10 +373,14 @@ function Activity(props) {
         );
         if (!res.errors) {
           setSuccess(true);
-          await UserData.updateScheduleDetails(
+          let newScheduleDetails = await UserData.updateScheduleDetails(
             class_id,
             selectedSched ? selectedSched : schedule_id
           );
+          socket.emit("update schedule details", {
+            id: class_id,
+            details: newScheduleDetails,
+          });
         } else {
           let err = [];
           for (let e in res.errors) {

@@ -63,13 +63,7 @@ function Drawer(props) {
             <DashboardOutlined />
           </Box>
         </Box>
-        {store.getState().classes.map((item, index) => {
-          // let scheds = store.getState().classDetails[item.id].schedules;
-          // let sched_id = "";
-          // for (let i in scheds) {
-          //   sched_id = i;
-          //   break;
-          // }
+        {props.classes.map((item, index) => {
           return (
             <Box
               {...listItem.container}
@@ -179,4 +173,6 @@ Drawer.propTypes = {
   window: PropTypes.func,
 };
 
-export default Drawer;
+export default connect((states) => ({
+  classes: states.classes,
+}))(Drawer);

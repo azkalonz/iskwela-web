@@ -27,15 +27,15 @@ function App(props) {
   const styles = useStyles();
   const [loading, setLoading] = useState(true);
   const [loadingProgress, setLoadingProgress] = useState(0);
-
   useEffect(() => {
+    setLoadingProgress(Math.random() * (78 - 36) + 36);
     Api.auth({
       success: async (user) => {
         await UserData.getUserData(user, setLoadingProgress);
         setLoadingProgress(100);
         setTimeout(() => {
           setLoading(false);
-        }, 1000);
+        }, 500);
       },
       fail: () => {
         if (window.location.pathname === "/login") setLoading(false);

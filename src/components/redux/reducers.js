@@ -22,6 +22,7 @@ const route = (state = { index: 0, title: "Class" }, payload) => {
 const classes = (state = [], payload) => {
   switch (payload.type) {
     case "SET_CLASSES":
+      console.log("calaaa", payload.classes);
       return payload.classes;
     default:
       return state;
@@ -30,6 +31,7 @@ const classes = (state = [], payload) => {
 const classDetails = (state = {}, payload) => {
   switch (payload.type) {
     case "SET_CLASS_DETAILS":
+      console.log("classess", payload.class_details);
       return payload.class_details;
     default:
       return state;

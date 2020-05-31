@@ -7,7 +7,6 @@ export async function asyncForEach(array, callback) {
     await callback(array[index], index, array);
   }
 }
-
 const UserData = {
   updateUserDetails: async () => {
     let u = await Api.auth();
@@ -17,7 +16,6 @@ const UserData = {
       user: u,
     });
   },
-  getSchedule: async (class_id) => {},
   updateScheduleDetails: async (class_id, schedule_id) => {
     let schedCopy = {
       ...store.getState().classDetails[class_id].schedules[schedule_id],
@@ -41,14 +39,46 @@ const UserData = {
       type: "SET_CLASS_DETAILS",
       class_details: mergedClassDetails,
     });
+
+    return schedCopy;
   },
-  updateClassDetails: async (class_id, initial = false) => {
-    let newClassDetails = await Api.get(
-      "/api/teacher/class/" + class_id + "?include=schedules,students"
-    );
+  addClassSchedule: (class_id, details) => {
+    let schedule_id = details.id;
+    let classDetails = { ...store.getState().classDetails };
+    if (!classDetails[class_id]) {
+      return;
+    }
+    classDetails[class_id].schedules[schedule_id] = details;
+    store.dispatch({
+      type: "SET_CLASS_DETAILS",
+      class_details: classDetails,
+    });
+  },
+  updateClass: (class_id, classinfo) => {
+    let classes = [...store.getState().classes];
+    let all = [];
+    classes.forEach((c) => {
+      if (c) all[c.id] = c;
+    });
+    all[class_id] = classinfo;
+    store.dispatch({
+      type: "SET_CLASSES",
+      classes: all,
+    });
+  },
+  updateClassDetails: async (class_id, details = null) => {
+    let newClassDetails;
+    if (!details) {
+      newClassDetails = await Api.get(
+        "/api/teacher/class/" + class_id + "?include=schedules,students"
+      );
+    } else {
+      console.log("haaa");
+      newClassDetails = details[class_id];
+    }
     let scheds = [];
     newClassDetails.schedules.forEach((s) => {
-      scheds[s.id] = s;
+      if (s) scheds[s.id] = s;
     });
     newClassDetails.schedules = scheds;
     let mergedClassDetails = {
@@ -72,38 +102,12 @@ const UserData = {
 
     mergedClassDetails[class_id].schedules = allScheds;
 
-    // if (initial) {
-    //   let schedCopy = [...mergedClassDetails[class_id].schedules];
-
-    //   let schedCopy = [...mergedClassDetails[class_id].schedules];
-    //   await asyncForEach(schedCopy, async (s) => {
-    //     if (!s) return;
-    //     let scheduleDetails = await Api.get(
-    //       "/api/schedule/" +
-    //         s.id +
-    //         "?include=materials, activities, lessonPlans"
-    //     );
-    //     scheduleDetails.date = moment(s.from).format("LL");
-    //     scheduleDetails.time = moment(s.from).format("LT");
-    //     scheduleDetails.teacher_name =
-    //       s.teacher.first_name + " " + s.teacher.last_name;
-
-    //     schedCopy[s.id] = scheduleDetails;
-    //   });
-    //   let all = [];
-    //   schedCopy
-    //     .filter((a) => (!a ? false : true))
-    //     .forEach((s) => {
-    //       all[s.id] = s;
-    //     });
-
-    //   mergedClassDetails[class_id].schedules = all;
-    // }
     console.log("hahe", mergedClassDetails);
     store.dispatch({
       type: "SET_CLASS_DETAILS",
       class_details: mergedClassDetails,
     });
+    return mergedClassDetails;
   },
   getUserData: async (user, setProgress = (e) => {}) => {
     let totalReq = 0;
@@ -115,39 +119,11 @@ const UserData = {
     } else {
       data.classes = await Api.get("/api/teacher/classes");
     }
-
+    let allclasses = [];
+    data.classes.forEach((c) => {
+      allclasses[c.id] = c;
+    });
     data.classDetails = {};
-    // await asyncForEach(data.classes, async (c) => {
-    //   let classDetails = await Api.get(
-    //     "/api/teacher/class/" + c.id + "?include=schedules,students"
-    //   );
-    //   if (!totalReq) {
-    //     totalReq = data.classes.length + classDetails.schedules.length;
-    //   }
-    //   setProgress((counter / totalReq) * 100);
-    //   data.classDetails[c.id] = classDetails;
-    //   let schedCopy = [...data.classDetails[c.id].schedules];
-    //   data.classDetails[c.id].schedules = [];
-    //   await asyncForEach(schedCopy, async (sched) => {
-    //     totalReq += 1;
-    //     let scheduleDetails = await Api.get(
-    //       "/api/schedule/" +
-    //         sched.id +
-    //         "?include=materials, activities, lessonPlans"
-    //     );
-    //     counter++;
-    //     setProgress((counter / totalReq) * 100);
-    //     data.classDetails[c.id].schedules[sched.id] = scheduleDetails;
-    //     data.classDetails[c.id].schedules[sched.id].date = moment(
-    //       sched.from
-    //     ).format("LL");
-    //     data.classDetails[c.id].schedules[sched.id].time = moment(
-    //       sched.from
-    //     ).format("LT");
-    //     data.classDetails[c.id].schedules[sched.id].teacher_name =
-    //       sched.teacher.first_name + " " + sched.teacher.last_name;
-    //   });
-    // });
     console.log(data);
     store.dispatch({
       type: "SET_CLASS_DETAILS",
@@ -155,7 +131,7 @@ const UserData = {
     });
     store.dispatch({
       type: "SET_CLASSES",
-      classes: data.classes,
+      classes: allclasses,
     });
     store.dispatch({
       type: "SET_USERINFO",

@@ -4,8 +4,7 @@ import axios from "axios";
 function FileUpload() {}
 FileUpload.upload = async (endpoint, params = {}) => {
   if (!params.body) return;
-  let isAuth = await Api.auth();
-  if (!isAuth) return;
+
   let req = await axios.post(Api.domain + endpoint, params.body, {
     headers: {
       Accept: "application/json",

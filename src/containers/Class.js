@@ -48,6 +48,8 @@ import { connect } from "react-redux";
 import Api from "../api";
 import UserData from "../components/UserData";
 import $ from "jquery";
+import socket from "../components/socket.io";
+import store from "../components/redux/store";
 
 function ClassRightPanel(props) {
   const { option_name } = props.match.params;
@@ -106,7 +108,7 @@ function Class(props) {
     if (props.classDetails[class_id]) {
       setCLASS(props.classDetails[class_id]);
     } else {
-      await UserData.updateClassDetails(class_id, true);
+      await UserData.updateClassDetails(class_id);
       setCLASS(undefined);
     }
     setLoading(false);
@@ -148,7 +150,12 @@ function Class(props) {
         status: status,
       },
     });
-    await UserData.updateClassDetails(class_id);
+    let newClassDetails = await UserData.updateClassDetails(class_id);
+    UserData.updateClass(class_id, newClassDetails[class_id]);
+    socket.emit(
+      "new class details",
+      JSON.stringify({ details: newClassDetails, id: class_id })
+    );
     if (room_name)
       history.push(makeLinkTo(["class", class_id, schedule_id, option_name]));
     setSaving(false);
@@ -168,7 +175,7 @@ function Class(props) {
           await updateClass("ONGOING");
           history.push(
             makeLinkTo(
-              ["class", CLASS.id, "sc", option_name, "video-conferece"],
+              ["class", CLASS.id, "sc", option_name, "video-conference"],
               {
                 sc: schedule_id ? schedule_id : "",
               }
@@ -561,4 +568,5 @@ const useStyles = makeStyles((theme) => ({
 export default connect((states) => ({
   userInfo: states.userInfo,
   classDetails: states.classDetails,
+  classes: states.classes,
 }))(Class);

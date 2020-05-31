@@ -14,6 +14,7 @@ import {
   Typography,
   Box,
   Paper,
+  Avatar,
 } from "@material-ui/core";
 import QueryBuilderOutlinedIcon from "@material-ui/icons/QueryBuilderOutlined";
 import CalendarTodayOutlinedIcon from "@material-ui/icons/CalendarTodayOutlined";
@@ -24,7 +25,8 @@ import Grow from "@material-ui/core/Grow";
 import { makeLinkTo } from "../components/router-dom";
 import { connect } from "react-redux";
 import MuiAlert from "@material-ui/lab/Alert";
-
+import socket from "../components/socket.io";
+import UserData from "../components/UserData";
 function Alert(props) {
   return <MuiAlert elevation={6} variant="filled" {...props} />;
 }
@@ -34,15 +36,27 @@ function Home(props) {
   const [loading, setLoading] = useState(true);
   const history = useHistory();
   const [greeting, setGreeting] = useState(true);
-  const [classes, setClasses] = useState();
 
   useEffect(() => {
-    _getClasses();
+    socket.on("get class details", (c) => {
+      console.log(c.details, c.id);
+      if (props.classes[c.id]) {
+        UserData.updateClassDetails(c.id, c.details);
+        UserData.updateClass(c.id, c.details[c.id]);
+      }
+    });
+    socket.on("get schedule details", (c) => {
+      console.log("aaaaah", c);
+      if (props.classes[c.id]) {
+        UserData.addClassSchedule(c.id, c.details);
+      } else {
+        console.log("asdsadasdsd", c);
+      }
+    });
   }, []);
-  const _getClasses = () => {
-    if (props.classes) setClasses(props.classes);
-    setLoading(false);
-  };
+  useEffect(() => {
+    if (props.classes) setLoading(false);
+  }, [props.classes]);
   const fakeLoader = (i) => (
     <Card key={i} className={styles.root}>
       <CardActionArea style={{ position: "relative" }}>
@@ -117,7 +131,7 @@ function Home(props) {
               <div style={{ position: "relative", cursor: "pointer" }}>
                 <CardMedia
                   className={styles.media}
-                  image="https://source.unsplash.com/random/600x500"
+                  image="/bg.jpg"
                   title={c.name}
                 />
                 <div className={styles.mediaOverlay} />
@@ -184,11 +198,16 @@ function Home(props) {
                       bgcolor="grey.500"
                       overflow="hidden"
                     >
-                      <img
+                      <Avatar
+                        alt={props.userInfo.first_name}
+                        style={{ width: "100%", height: "100%" }}
+                        src={props.userInfo.pic_url}
+                      />
+                      {/* <img
                         src="https://source.unsplash.com/random/500x500"
                         width="100%"
                         height="auto"
-                      />
+                      /> */}
                     </Box>
                   </div>
                   <div style={{ position: "absolute", right: 0, bottom: 6 }}>
@@ -223,11 +242,11 @@ function Home(props) {
     <div style={{ height: "100vh", overflow: "hidden auto" }}>
       <Drawer {...props}>
         <NavBar title="Classes" />
-        <Box m={2} display="flex" flexWrap="wrap">
+        <Box m={2} display="flex" flexWrap="wrap" justifyContent="space-around">
           {loading && [1, 1, 1].map((c, i) => fakeLoader(i))}
           {!loading &&
-            classes &&
-            classes
+            props.classes &&
+            props.classes
               .sort((a, b) => {
                 if (!a.next_schedule || !b.next_schedule) return;
                 return (

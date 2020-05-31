@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { connect } from "react-redux";
 import {
   Button,
@@ -17,8 +17,8 @@ import MuiAlert from "@material-ui/lab/Alert";
 import actions from "../components/redux/actions";
 import Api from "../api";
 import { useTranslation } from "react-i18next";
-const queryString = require("query-string");
 
+const queryString = require("query-string");
 function Alert(props) {
   return <MuiAlert elevation={6} variant="filled" {...props} />;
 }
@@ -40,7 +40,7 @@ function Login(props) {
       if (!res.error) {
         let redirect_url = queryString.parse(window.location.search).r;
         localStorage["auth"] = JSON.stringify(res);
-        window.location = redirect_url ? redirect_url : "/";
+        window.location = "/";
         return;
       } else {
         window.login_error = "Invalid username/password";

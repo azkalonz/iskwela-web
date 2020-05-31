@@ -51,6 +51,7 @@ import FullscreenIcon from "@material-ui/icons/Fullscreen";
 import FullscreenExitIcon from "@material-ui/icons/FullscreenExit";
 import moment from "moment";
 import { saveAs } from "file-saver";
+import socket from "../../components/socket.io";
 
 function Alert(props) {
   return <MuiAlert elevation={6} variant="filled" {...props} />;
@@ -224,10 +225,14 @@ function InstructionalMaterials(props) {
     }
     if (!err.length) {
       setSuccess(true);
-      await UserData.updateScheduleDetails(
+      let newScheduleDetails = await UserData.updateScheduleDetails(
         class_id,
-        selectedSched ? selectedSched : classSched
+        selectedSched ? selectedSched : schedule_id
       );
+      socket.emit("update schedule details", {
+        id: class_id,
+        details: newScheduleDetails,
+      });
       setModals([false, modals[1]]);
     } else setErrors(err);
     setSaving(true);
@@ -264,10 +269,14 @@ function InstructionalMaterials(props) {
     });
     if (!err.length) {
       setSuccess(true);
-      await UserData.updateScheduleDetails(
+      let newScheduleDetails = await UserData.updateScheduleDetails(
         class_id,
-        selectedSched ? selectedSched : classSched
+        selectedSched ? selectedSched : schedule_id
       );
+      socket.emit("update schedule details", {
+        id: class_id,
+        details: newScheduleDetails,
+      });
       FileUpload.removeFiles("materials");
       setHasFiles(false);
       setModals([modals[0], false]);
@@ -292,10 +301,14 @@ function InstructionalMaterials(props) {
         );
         if (!res.errors) {
           setSuccess(true);
-          await UserData.updateScheduleDetails(
+          let newScheduleDetails = await UserData.updateScheduleDetails(
             class_id,
-            selectedSched ? selectedSched : classSched
+            activity.schedule_id
           );
+          socket.emit("update schedule details", {
+            id: class_id,
+            details: newScheduleDetails,
+          });
         } else {
           let err = [];
           for (let e in res.errors) {

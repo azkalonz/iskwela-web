@@ -75,6 +75,7 @@ function NavBar(props) {
     window.location = "/login";
   };
   const _handleThemeType = () => {
+    if (window.location.pathname !== "/") return;
     let mode = window.localStorage["mode"];
     if (mode) mode = mode === "dark" ? "light" : "dark";
     else mode = "dark";
