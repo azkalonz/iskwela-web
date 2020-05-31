@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import PropTypes from "prop-types";
 import {
   Divider,
@@ -7,9 +7,11 @@ import {
   ListItem,
   Box,
   Typography,
+  Grow,
   Toolbar,
   makeStyles,
   useTheme,
+  IconButton,
 } from "@material-ui/core";
 import MailIcon from "@material-ui/icons/Mail";
 import InboxIcon from "@material-ui/icons/MoveToInbox";
@@ -20,14 +22,17 @@ import actions from "./redux/actions";
 import { Link as RouteLink, useHistory } from "react-router-dom";
 import store from "./redux/store";
 import { makeLinkTo } from "./router-dom";
+import ExpandLessOutlinedIcon from "@material-ui/icons/ExpandLessOutlined";
+import ExpandMoreOutlinedIcon from "@material-ui/icons/ExpandMoreOutlined";
 
 function Drawer(props) {
   const styles = useStyles();
   const history = useHistory();
   const { class_id } = props.match.params;
+  const [more, setMore] = useState(false);
   const drawer = (
     <div>
-      <Toolbar style={{ minHeight: 50, paddingLeft: 0, paddingRight: 0 }}>
+      <Toolbar className={styles.toolbar}>
         <Typography
           variant="h6"
           align="center"
@@ -39,7 +44,7 @@ function Drawer(props) {
           SH
         </Typography>
       </Toolbar>
-      <List>
+      <div style={{ textAlign: "center" }}>
         <Box
           {...listItem.container}
           borderLeft={5}
@@ -57,13 +62,13 @@ function Drawer(props) {
               cursor: "pointer",
               justifyContent: "center",
               display: "flex",
-              transform: "translateX(-5px)",
+              transform: "translateX(-1.5px)",
             }}
           >
             <DashboardOutlined />
           </Box>
         </Box>
-        {props.classes.map((item, index) => {
+        {props.classes.slice(0, 5).map((item, index) => {
           return (
             <Box
               {...listItem.container}
@@ -91,7 +96,7 @@ function Drawer(props) {
                   alignItems: "center",
                   justifyContent: "center",
                   display: "flex",
-                  transform: "translateX(-5px)",
+                  transform: "translateX(-1.5px)",
                 }}
                 bgcolor="grey.700"
               >
@@ -106,7 +111,64 @@ function Drawer(props) {
             </Box>
           );
         })}
-      </List>
+        {more &&
+          props.classes.slice(5, props.classes.length).map((item, index) => {
+            return (
+              <Grow in={more}>
+                <Box
+                  {...listItem.container}
+                  key={index}
+                  borderLeft={5}
+                  onClick={() => {
+                    history.push(
+                      makeLinkTo([
+                        "class",
+                        item.id,
+                        item.next_schedule.id,
+                        "activity",
+                      ])
+                    );
+                  }}
+                  borderColor={
+                    class_id && class_id == item.id
+                      ? "primary.main"
+                      : "transparent"
+                  }
+                  style={{ cursor: "pointer" }}
+                >
+                  <Box
+                    {...listItem.item}
+                    {...item.props}
+                    style={{
+                      alignItems: "center",
+                      justifyContent: "center",
+                      display: "flex",
+                      transform: "translateX(-1.5px)",
+                    }}
+                    bgcolor="grey.700"
+                  >
+                    <Typography
+                      variant="body1"
+                      component="h2"
+                      style={{ color: "#fff" }}
+                    >
+                      {item.name[0].toUpperCase()}
+                    </Typography>
+                  </Box>
+                </Box>
+              </Grow>
+            );
+          })}
+        {!more ? (
+          <IconButton onClick={() => setMore(true)}>
+            <ExpandMoreOutlinedIcon />
+          </IconButton>
+        ) : (
+          <IconButton onClick={() => setMore(false)}>
+            <ExpandLessOutlinedIcon />
+          </IconButton>
+        )}
+      </div>
     </div>
   );
 
@@ -148,6 +210,17 @@ const listItem = {
 };
 const drawerWidth = 60;
 const useStyles = makeStyles((theme) => ({
+  toolbar: {
+    minHeight: 50,
+    paddingLeft: 0,
+    paddingRight: 0,
+    background: theme.palette.grey[100],
+    position: "sticky",
+    zIndex: 2,
+    top: 0,
+    left: 0,
+    right: 0,
+  },
   root: {
     display: "flex",
   },

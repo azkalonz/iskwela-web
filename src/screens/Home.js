@@ -291,7 +291,7 @@ const useStyles = makeStyles((theme) => ({
   },
   PENDING: {
     color: theme.palette.common.white,
-    background: theme.palette.common.black,
+    background: theme.palette.grey[700],
   },
   CANCELED: {
     color: theme.palette.common.white,
