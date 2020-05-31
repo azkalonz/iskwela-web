@@ -80,14 +80,14 @@ function Home(props) {
     let status = {
       ongoing: Object.keys(cd).filter((s) => cd[s].status === "ONGOING"),
       pending: Object.keys(cd).filter((s) => cd[s].status === "PENDING"),
-      cancelled: Object.keys(cd).filter((s) => cd[s].status === "CANCELLED"),
+      canceled: Object.keys(cd).filter((s) => cd[s].status === "CANCELED"),
     };
     status = status.ongoing.length
       ? cd[status.ongoing[0]]
       : status.pending.length
       ? cd[status.pending[0]]
-      : status.cancelled.length
-      ? cd[status.cancelled[0]]
+      : status.canceled.length
+      ? cd[status.canceled[0]]
       : null;
     if (status) {
       let diff = moment(new Date()).diff(moment(status.from));
@@ -95,8 +95,8 @@ function Home(props) {
         case "ONGOING":
           status.message = "Class has started. Join Call?";
           break;
-        case "CANCELLED":
-          status.message = "Cancelled";
+        case "CANCELED":
+          status.message = "Canceled";
           break;
         case "PENDING":
           status.message =
@@ -154,74 +154,75 @@ function Home(props) {
                   {c.description}
                 </Typography>
               </CardContent>
-            </CardActionArea>
-            <CardActions style={{ background: "grey.300" }}>
-              <Box
-                p={1}
-                className={styles.start}
-                width="100%"
-                flexDirection="column"
-                position="relative"
-              >
+
+              <CardActions style={{ background: "grey.300" }}>
                 <Box
-                  flex={1}
-                  className={[styles.centered, styles.start].join(" ")}
-                  style={{ marginBottom: 6 }}
+                  p={1}
+                  className={styles.start}
+                  width="100%"
+                  flexDirection="column"
+                  position="relative"
                 >
-                  <CalendarTodayOutlinedIcon />
-                  <Typography
-                    variant="body2"
-                    style={{ fontSize: "0.8rem", marginLeft: 5 }}
-                  >
-                    {status
-                      ? moment(status.from).format("MMM D, YYYY")
-                      : moment(c.date_from + " " + c.time_from).format(
-                          "MMM D,YYYY"
-                        )}
-                  </Typography>
-                </Box>
-                <Box
-                  flex={1}
-                  className={[styles.centered, styles.start].join(" ")}
-                >
-                  <QueryBuilderOutlinedIcon />
-                  <Typography
-                    variant="body2"
-                    style={{ fontSize: "0.75rem", marginLeft: 5 }}
-                  >
-                    {status
-                      ? moment(status.from).format("hh:mm") +
-                        " - " +
-                        moment(status.to).format("hh:mm")
-                      : moment(c.date_from + " " + c.time_from).format(
-                          "hh:mm"
-                        ) +
-                        " - " +
-                        moment(c.date_to + " " + c.time_to).format("hh:mm")}
-                  </Typography>
-                </Box>
-                <div style={{ position: "absolute", top: -40, right: 0 }}>
                   <Box
-                    borderRadius="50%"
-                    width={60}
-                    height={60}
-                    bgcolor="grey.500"
-                    overflow="hidden"
+                    flex={1}
+                    className={[styles.centered, styles.start].join(" ")}
+                    style={{ marginBottom: 6 }}
                   >
-                    <img
-                      src="https://source.unsplash.com/random/500x500"
-                      width="100%"
-                      height="auto"
-                    />
+                    <CalendarTodayOutlinedIcon />
+                    <Typography
+                      variant="body2"
+                      style={{ fontSize: "0.8rem", marginLeft: 5 }}
+                    >
+                      {status
+                        ? moment(status.from).format("MMM D, YYYY")
+                        : moment(c.date_from + " " + c.time_from).format(
+                            "MMM D,YYYY"
+                          )}
+                    </Typography>
                   </Box>
-                </div>
-                <div style={{ position: "absolute", right: 0, bottom: 6 }}>
-                  <Typography variant="body1" style={{ fontWeight: "bold" }}>
-                    {c.teacher.first_name} {c.teacher.last_name}
-                  </Typography>
-                </div>
-              </Box>
-            </CardActions>
+                  <Box
+                    flex={1}
+                    className={[styles.centered, styles.start].join(" ")}
+                  >
+                    <QueryBuilderOutlinedIcon />
+                    <Typography
+                      variant="body2"
+                      style={{ fontSize: "0.75rem", marginLeft: 5 }}
+                    >
+                      {status
+                        ? moment(status.from).format("hh:mm") +
+                          " - " +
+                          moment(status.to).format("hh:mm")
+                        : moment(c.date_from + " " + c.time_from).format(
+                            "hh:mm"
+                          ) +
+                          " - " +
+                          moment(c.date_to + " " + c.time_to).format("hh:mm")}
+                    </Typography>
+                  </Box>
+                  <div style={{ position: "absolute", top: -40, right: 0 }}>
+                    <Box
+                      borderRadius="50%"
+                      width={60}
+                      height={60}
+                      bgcolor="grey.500"
+                      overflow="hidden"
+                    >
+                      <img
+                        src="https://source.unsplash.com/random/500x500"
+                        width="100%"
+                        height="auto"
+                      />
+                    </Box>
+                  </div>
+                  <div style={{ position: "absolute", right: 0, bottom: 6 }}>
+                    <Typography variant="body1" style={{ fontWeight: "bold" }}>
+                      {c.teacher.first_name} {c.teacher.last_name}
+                    </Typography>
+                  </div>
+                </Box>
+              </CardActions>
+            </CardActionArea>
           </Card>
           {status && (
             <Paper
@@ -286,7 +287,7 @@ const useStyles = makeStyles((theme) => ({
     color: theme.palette.common.white,
     background: theme.palette.common.black,
   },
-  CANCELLED: {
+  CANCELED: {
     color: theme.palette.common.white,
     background: theme.palette.error.main,
   },
