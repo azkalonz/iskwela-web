@@ -82,7 +82,6 @@ function Home(props) {
       pending: Object.keys(cd).filter((s) => cd[s].status === "PENDING"),
       cancelled: Object.keys(cd).filter((s) => cd[s].status === "CANCELLED"),
     };
-    console.log(status);
     status = status.ongoing.length
       ? cd[status.ongoing[0]]
       : status.pending.length
@@ -90,7 +89,6 @@ function Home(props) {
       : status.cancelled.length
       ? cd[status.cancelled[0]]
       : null;
-    console.log(status);
     if (status) {
       let diff = moment(new Date()).diff(moment(status.from));
       switch (status.status) {
@@ -114,7 +112,6 @@ function Home(props) {
         sched: status ? status.id : "",
       }
     );
-    console.log(status);
     return (
       <Grow in={true} key={c.id}>
         <div className={styles.root}>

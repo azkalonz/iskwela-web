@@ -55,9 +55,7 @@ function Alert(props) {
 function Schedule(props) {
   const history = useHistory();
   const { class_id, schedule_id, option_name } = props.match.params;
-  const [schedules, setSchedules] = useState(
-    props.classDetails[class_id].schedules
-  );
+  const [schedules, setSchedules] = useState();
   const [saving, setSaving] = useState(false);
   const [sortType, setSortType] = useState("DESCENDING");
   const [errors, setErrors] = useState([]);
@@ -87,8 +85,9 @@ function Schedule(props) {
   }, [schedules]);
 
   useEffect(() => {
-    setSchedules(props.classDetails[class_id].schedules);
-  }, [props.classDetails]);
+    if (props.classDetails)
+      setSchedules(props.classDetails[class_id].schedules);
+  }, [class_id]);
 
   const _handleFileOption = (option, file) => {
     setAnchorEl(() => {
@@ -99,12 +98,9 @@ function Schedule(props) {
     switch (option) {
       case "join":
         history.push(
-          makeLinkTo(
-            ["class", class_id, schedule_id, "opt", "video-conference"],
-            {
-              opt: option_name ? option_name : "",
-            }
-          )
+          makeLinkTo(["class", class_id, file.id, "opt", "video-conference"], {
+            opt: option_name ? option_name : "",
+          })
         );
         return;
       case "edit":
@@ -118,12 +114,12 @@ function Schedule(props) {
     setOrderBy(sortBy);
     if (order === "asc") {
       setSchedules(
-        schedules.sort((a, b) => ("" + a[orderBy]).localeCompare(b[orderBy]))
+        schedules.sort((a, b) => ("" + a[sortBy]).localeCompare(b[sortBy]))
       );
       setOrder("desc");
     } else {
       setSchedules(
-        schedules.sort((a, b) => ("" + b[orderBy]).localeCompare(a[orderBy]))
+        schedules.sort((a, b) => ("" + b[sortBy]).localeCompare(a[sortBy]))
       );
       setOrder("asc");
     }
@@ -288,9 +284,6 @@ function Schedule(props) {
                                           _handleFileOption("edit", row)
                                         }
                                       />
-                                    </StyledMenuItem>
-                                    <StyledMenuItem>
-                                      <ListItemText primary="Delete" />
                                     </StyledMenuItem>
                                   </div>
                                 )}

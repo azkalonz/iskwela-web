@@ -31,6 +31,7 @@ import {
   FormControl,
   InputLabel,
   Select,
+  Toolbar,
 } from "@material-ui/core";
 import InsertDriveFileOutlinedIcon from "@material-ui/icons/InsertDriveFileOutlined";
 import MoreHorizOutlinedIcon from "@material-ui/icons/MoreHorizOutlined";
@@ -57,6 +58,7 @@ import Api from "../../api";
 import $ from "jquery";
 import axios from "axios";
 import MuiAlert from "@material-ui/lab/Alert";
+import CloseIcon from "@material-ui/icons/Close";
 
 function Alert(props) {
   return <MuiAlert elevation={6} variant="filled" {...props} />;
@@ -84,6 +86,7 @@ function Activity(props) {
   const [confirmed, setConfirmed] = useState(false);
   const [savingId, setSavingId] = useState();
   const [selectedSched, setSelectedSched] = useState();
+  const [selectedStatus, setSelectedStatus] = useState();
   const formTemplate = {
     activity_type: 1,
     title: "",
@@ -118,14 +121,18 @@ function Activity(props) {
           class_id,
         });
         return;
+      case "publish":
+        _handleUpdateActivityStatus(file, 1);
+        return;
+      case "unpublish":
+        _handleUpdateActivityStatus(file, 0);
+        return;
       case "delete":
         _handleRemoveActivity(file);
         return;
     }
   };
-  useEffect(() => {
-    _getActivities();
-  }, [props.classDetails]);
+
   useEffect(() => {
     if (currentActivity) {
       document.querySelector("#right-panel").scrollTop = 0;
@@ -142,7 +149,6 @@ function Activity(props) {
           allActivities.push({ ...ss, schedule_id: s.id });
         });
       });
-      console.log(allActivities);
       setActivities(allActivities);
     } catch (e) {
       // handle invalid schedule
@@ -204,7 +210,6 @@ function Activity(props) {
     setErrors(null);
     setSaving(true);
     let err = [];
-
     let formData = new Form({
       ...form,
       ...params,
@@ -235,11 +240,9 @@ function Activity(props) {
             let body = new FormData();
             body.append("file", file);
             body.append("assignment_id", res.id);
-            console.log("uploading");
             let a = await FileUpload.upload("/api/upload/activity/material", {
               body,
             });
-            console.log(a);
             if (a.errors) {
               for (let e in a.errors) {
                 err.push(a.errors[e][0]);
@@ -260,9 +263,27 @@ function Activity(props) {
     }
     setSaving(false);
   };
-  useEffect(() => {
-    console.log(form);
-  }, [form]);
+
+  const _handleUpdateActivityStatus = (a, s) => {
+    setConfirmed({
+      yes: async () => {
+        setErrors(null);
+        setSaving(true);
+        setConfirmed(null);
+        setSavingId(a.id);
+        await _handleCreateActivity({
+          ...a,
+          activity_type: a.activity_type == "class activity" ? 1 : 2,
+          published: s,
+          schedule_id: selectedSched ? selectedSched : classSched,
+          subject_id: props.classDetails[class_id].subject.id,
+          id: a.id,
+          class_id,
+        });
+        setSaving(false);
+      },
+    });
+  };
   const _handleRemoveActivity = (activity) => {
     setConfirmed({
       yes: async () => {
@@ -276,7 +297,6 @@ function Activity(props) {
             id,
           },
         });
-        console.log(res);
         if (!res.errors) {
           setSuccess(true);
           await UserData.updateClassDetails(class_id);
@@ -328,9 +348,13 @@ function Activity(props) {
   };
   const _handleOpenFile = async (f) => {
     setFile({
-      title: "file",
+      title: f.resource_link ? f.resource_link : f.uploaded_file,
     });
     setfileViewerOpen(true);
+    if (!f.uploaded_file) {
+      setFile({ ...file, url: f.resource_link, type: "external_page" });
+      return;
+    }
     let res = await Api.postBlob(
       "/api/download/activity/material/" + f.id
     ).then((resp) => (resp.ok ? resp.blob() : null));
@@ -339,9 +363,9 @@ function Activity(props) {
   return (
     <Box width="100%" alignSelf="flex-start" height="100%">
       <Dialog open={confirmed} onClose={() => setConfirmed(null)}>
-        <DialogTitle>Remove File</DialogTitle>
+        <DialogTitle>Modify Activity</DialogTitle>
         <DialogContent>
-          Are you sure you want to delete this file?
+          Are you sure you want to modify this file?
         </DialogContent>
         <DialogActions>
           <Button
@@ -362,6 +386,31 @@ function Activity(props) {
           </Button>
         </DialogActions>
       </Dialog>
+      {errors &&
+        errors.map((e, i) => (
+          <Snackbar
+            open={errors ? true : false}
+            autoHideDuration={6000}
+            onClose={() => setErrors(null)}
+          >
+            <Grow in={true}>
+              <Alert
+                key={i}
+                style={{ marginBottom: 9 }}
+                severity="error"
+                onClose={() => {
+                  setErrors(() => {
+                    let e = [...errors];
+                    e.splice(i, 1);
+                    return e;
+                  });
+                }}
+              >
+                {e}
+              </Alert>
+            </Grow>
+          </Snackbar>
+        ))}
       <Snackbar
         open={success}
         autoHideDuration={6000}
@@ -381,11 +430,30 @@ function Activity(props) {
         aria-labelledby="alert-dialog-slide-title"
         aria-describedby="alert-dialog-slide-description"
       >
-        <DialogContent>
-          {file && (
-            <FileViewer url={file.url} title={file.title} type={file.type} />
-          )}
-        </DialogContent>
+        {file && (
+          <DialogContent>
+            <Toolbar
+              style={{ display: "flex", justifyContent: "space-between" }}
+            >
+              <Typography
+                variant="body1"
+                color="textPrimary"
+                style={{ fontWeight: "bold" }}
+              >
+                {/* {file.title} */}
+              </Typography>
+              <IconButton onClick={() => setfileViewerOpen(false)}>
+                <CloseIcon size={24} />
+              </IconButton>
+            </Toolbar>
+            <FileViewer
+              url={file.url}
+              title={file.title}
+              type={file.type}
+              onClose={() => setfileViewerOpen(false)}
+            />
+          </DialogContent>
+        )}
       </Dialog>
       <Box
         m={2}
@@ -437,6 +505,24 @@ function Activity(props) {
             </Select>
           </FormControl>
           &nbsp;
+          <FormControl style={{ width: 160 }} variant="outlined">
+            <InputLabel style={{ top: -8 }}>Status</InputLabel>
+            <Select
+              label="Schedule"
+              value={selectedStatus ? selectedStatus : "all"}
+              onChange={(e) =>
+                setSelectedStatus(
+                  e.target.value !== "all" ? e.target.value : null
+                )
+              }
+              padding={10}
+            >
+              <MenuItem value="all">All</MenuItem>
+              <MenuItem value="unpublished">Unpublished</MenuItem>
+              <MenuItem value="published">Published</MenuItem>
+            </Select>
+          </FormControl>
+          &nbsp;
           <Box border={1} p={0.3} borderRadius={7}>
             <InputBase
               onChange={(e) => _handleSearch(e.target.value)}
@@ -485,15 +571,6 @@ function Activity(props) {
                         }}
                         onClick={() => {
                           _handleOpenFile(m);
-                          // setFile({
-                          //   url: m.resource_link
-                          //     ? m.resource_link
-                          //     : m.uploaded_file,
-                          //   title: m.resource_link
-                          //     ? m.resource_link
-                          //     : m.uploaded_file,
-                          // });
-                          // setfileViewerOpen(true);
                         }}
                       >
                         {m.resource_link ? m.resource_link : m.uploaded_file}
@@ -682,6 +759,9 @@ function Activity(props) {
                   .filter((a) =>
                     selectedSched ? selectedSched == a.schedule_id : true
                   )
+                  .filter((a) =>
+                    selectedStatus ? selectedStatus === a.status : true
+                  )
                   .reverse()
                   .map((item, index) => (
                     <ListItem
@@ -745,15 +825,7 @@ function Activity(props) {
                                     cursor: "pointer",
                                   }}
                                   onClick={() => {
-                                    setFile({
-                                      url: m.resource_link
-                                        ? m.resource_link
-                                        : m.uploaded_file,
-                                      title: m.resource_link
-                                        ? m.resource_link
-                                        : m.uploaded_file,
-                                    });
-                                    setfileViewerOpen(true);
+                                    _handleOpenFile(m);
                                   }}
                                 >
                                   {m.resource_link
@@ -805,6 +877,20 @@ function Activity(props) {
                               <div>
                                 <StyledMenuItem
                                   onClick={() =>
+                                    _handleFileOption("publish", item)
+                                  }
+                                >
+                                  <ListItemText primary="Publish" />
+                                </StyledMenuItem>
+                                <StyledMenuItem
+                                  onClick={() =>
+                                    _handleFileOption("unpublish", item)
+                                  }
+                                >
+                                  <ListItemText primary="Unpublish" />
+                                </StyledMenuItem>
+                                <StyledMenuItem
+                                  onClick={() =>
                                     _handleFileOption("edit", item)
                                   }
                                 >
@@ -840,16 +926,6 @@ function Activity(props) {
           {form.id ? "Edit Activity" : "Create Activity"}
         </DialogTitle>
         <DialogContent>
-          <Box style={{ marginBottom: 18 }}>
-            {errors &&
-              errors.map((e, i) => (
-                <Grow in={true}>
-                  <Alert key={i} style={{ marginBottom: 9 }} severity="error">
-                    {e}
-                  </Alert>
-                </Grow>
-              ))}
-          </Box>
           <DialogContentText
             id="alert-dialog-slide-description"
             component="div"

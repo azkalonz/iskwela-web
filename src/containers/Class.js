@@ -82,9 +82,7 @@ function Class(props) {
   const [CLASS, setCLASS] = useState();
   const userInfo = props.userInfo;
   const isTeacher = userInfo.user_type === "t" ? true : false;
-  const classSched = props.classDetails[class_id]
-    ? props.classDetails[class_id].schedules[schedule_id]
-    : null;
+  const [classSched, setClassSched] = useState();
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -94,13 +92,10 @@ function Class(props) {
     } else if (!option_name && schedule_id) {
       history.push(makeLinkTo(["class", class_id, schedule_id, "activity"]));
     }
-  }, [class_id, schedule_id]);
-
-  useEffect(() => {
     setCLASS(undefined);
-    setLoading(true);
     _getClass();
-  }, [class_id]);
+    setLoading(true);
+  }, [class_id, schedule_id]);
 
   useEffect(() => {
     if (props.width === "sm" || props.width === "xs") setCollapsePanel(false);
@@ -111,8 +106,11 @@ function Class(props) {
     await Api.auth();
     if (props.classDetails) setCLASS(props.classDetails[class_id]);
     else setCLASS(undefined);
-    console.log(props.classDetails[class_id]);
-    if (classSched.status === "ONGOING" && !room_name)
+    if (
+      props.classDetails[class_id].schedules[schedule_id].status ===
+        "ONGOING" &&
+      !room_name
+    )
       history.push(
         makeLinkTo(
           ["class", class_id, schedule_id, "opt", "video-conference"],
@@ -124,9 +122,6 @@ function Class(props) {
     setLoading(false);
     return;
   };
-  useEffect(() => {
-    _getClass();
-  }, [props.classDetails]);
 
   const panelOption = (p) => {
     return (
@@ -144,9 +139,7 @@ function Class(props) {
           style={{ cursor: "pointer" }}
         >
           <ListItem id={option_name === p.link ? "selected-option" : ""} button>
-            <ListItemIcon>
-              <VideocamOutlinedIcon />
-            </ListItemIcon>
+            <ListItemIcon>{p.icon}</ListItemIcon>
             <ListItemText primary={p.title} />
           </ListItem>
         </Typography>
@@ -160,9 +153,9 @@ function Class(props) {
     if (!user.error) {
       let res = await Api.post("/api/schedule/save", {
         body: {
-          id: classSched.id,
-          date_from: classSched.from,
-          date_to: classSched.to,
+          id: props.classDetails[class_id].schedules[schedule_id].id,
+          date_from: props.classDetails[class_id].schedules[schedule_id].from,
+          date_to: props.classDetails[class_id].schedules[schedule_id].to,
           teacher_id: user.id,
           status: status,
         },
@@ -175,7 +168,7 @@ function Class(props) {
   };
   const _handleJoinClass = async () => {
     if (isTeacher) {
-      switch (classSched.status) {
+      switch (props.classDetails[class_id].schedules[schedule_id].status) {
         case "ONGOING":
           await updateClass("PENDING");
           history.push(
@@ -199,7 +192,9 @@ function Class(props) {
           return;
       }
     } else {
-      if (classSched.status === "ONGOING") {
+      if (
+        props.classDetails[class_id].schedules[schedule_id].status === "ONGOING"
+      ) {
         history.push(
           makeLinkTo(
             ["class", CLASS.id, "sc", option_name, "video-conference"],
@@ -211,11 +206,10 @@ function Class(props) {
       }
     }
   };
+
   const getRoom = () => {
-    let s = props.classDetails[CLASS.id].schedules[schedule_id];
-    let n = CLASS.name + "-" + moment(s.from).format("YYYY-MM-DD-H-mm-ss");
     return {
-      name: n.replace(" ", "-"),
+      name: CLASS.room_number,
       displayName: props.userInfo.first_name + " " + props.userInfo.last_name,
     };
   };
@@ -314,7 +308,11 @@ function Class(props) {
                       bgcolor="grey.500"
                       overflow="hidden"
                     >
-                      {/* <img src={userInfo.avatar} width="100%" height="auto" /> */}
+                      <img
+                        src={props.userInfo.pic_url}
+                        width="100%"
+                        height="auto"
+                      />
                     </Box>
                     <Box p={1}>
                       <Typography
@@ -337,7 +335,9 @@ function Class(props) {
                             width: "100%",
                           }}
                           className={
-                            isTeacher && classSched.status === "ONGOING"
+                            isTeacher &&
+                            props.classDetails[class_id].schedules[schedule_id]
+                              .status === "ONGOING"
                               ? styles.endClass
                               : styles.startClass
                           }
@@ -347,9 +347,15 @@ function Class(props) {
                             saving
                               ? true
                               : isTeacher
-                              ? classSched.status !== "ONGOING" &&
-                                classSched.status !== "PENDING"
-                              : classSched.status !== "ONGOING"
+                              ? props.classDetails[class_id].schedules[
+                                  schedule_id
+                                ].status !== "ONGOING" &&
+                                props.classDetails[class_id].schedules[
+                                  schedule_id
+                                ].status !== "PENDING"
+                              : props.classDetails[class_id].schedules[
+                                  schedule_id
+                                ].status !== "ONGOING"
                           }
                           onClick={() => _handleJoinClass()}
                         >
@@ -358,7 +364,9 @@ function Class(props) {
                             style={{ marginRight: 8 }}
                           />
                           {isTeacher
-                            ? classSched.status === "ONGOING"
+                            ? props.classDetails[class_id].schedules[
+                                schedule_id
+                              ].status === "ONGOING"
                               ? "End Class"
                               : "Start Class"
                             : "Join Class"}
@@ -431,7 +439,8 @@ function Class(props) {
             {room_name &&
               CLASS &&
               schedule_id &&
-              classSched.status === "ONGOING" && (
+              props.classDetails[class_id].schedules[schedule_id].status ===
+                "ONGOING" && (
                 <VideoConference
                   match={props.match}
                   getRoom={() => getRoom()}

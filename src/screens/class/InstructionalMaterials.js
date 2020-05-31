@@ -210,7 +210,6 @@ function InstructionalMaterials(props) {
             id,
           },
         });
-        console.log(res);
         if (!res.errors) {
           setSuccess(true);
           await UserData.updateClassDetails(class_id);

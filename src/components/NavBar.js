@@ -14,6 +14,7 @@ import {
   DialogContent,
   DialogTitle,
   Menu,
+  Grow,
   Box,
   DialogActions,
   Input,
@@ -30,6 +31,7 @@ import CloseIcon from "@material-ui/icons/Close";
 import Form from "./Form";
 import Api from "../api";
 import MuiAlert from "@material-ui/lab/Alert";
+import UserData from "./UserData";
 
 function Alert(props) {
   return <MuiAlert elevation={6} variant="filled" {...props} />;
@@ -115,7 +117,7 @@ function NavBar(props) {
                 <Avatar
                   style={{ height: 25, width: 25 }}
                   alt={props.userInfo.first_name}
-                  src={props.userInfo.preferences.profile_picture}
+                  src={props.userInfo.pic_url}
                 />
               </IconButton>
               <IconButton
@@ -211,14 +213,33 @@ const ChangePasswordDialog = React.memo(function (props) {
       fullWidth
       maxWidth="sm"
     >
+      {errors &&
+        errors.map((e, i) => (
+          <Snackbar
+            open={errors ? true : false}
+            autoHideDuration={6000}
+            onClose={() => setErrors(null)}
+          >
+            <Grow in={true}>
+              <Alert
+                key={i}
+                style={{ marginBottom: 9 }}
+                severity="error"
+                onClose={() => {
+                  setErrors(() => {
+                    let e = [...errors];
+                    e.splice(i, 1);
+                    return e;
+                  });
+                }}
+              >
+                {e}
+              </Alert>
+            </Grow>
+          </Snackbar>
+        ))}
       <DialogTitle>Change Password</DialogTitle>
       <DialogContent>
-        {errors &&
-          errors.map((e, i) => (
-            <Alert key={i} style={{ marginBottom: 9 }} severity="error">
-              {e}
-            </Alert>
-          ))}
         <Box width="100%">
           <TextField
             label="Username"
@@ -250,7 +271,19 @@ const ChangePasswordDialog = React.memo(function (props) {
         </Box>
       </DialogContent>
       <DialogActions>
-        <Button disabled={saving ? true : false}>Cancel</Button>
+        <Button
+          disabled={saving ? true : false}
+          onClick={() => {
+            if (saving) return;
+            setErrors(null);
+            setForm({
+              username: props.userInfo.username,
+            });
+            props.onClose();
+          }}
+        >
+          Cancel
+        </Button>
         <Button onClick={_handleChangePass} disabled={saving ? true : false}>
           Save
         </Button>
@@ -286,7 +319,7 @@ const ProfilePicDialog = React.memo(function (props) {
       });
 
       if (!res.errors) {
-        console.log(res);
+        UserData.updateUserDetails();
       } else {
         let err = [];
         for (let e in res.errors) {
@@ -310,14 +343,33 @@ const ProfilePicDialog = React.memo(function (props) {
         }
       }}
     >
+      {errors &&
+        errors.map((e, i) => (
+          <Snackbar
+            open={errors ? true : false}
+            autoHideDuration={6000}
+            onClose={() => setErrors(null)}
+          >
+            <Grow in={true}>
+              <Alert
+                key={i}
+                style={{ marginBottom: 9 }}
+                severity="error"
+                onClose={() => {
+                  setErrors(() => {
+                    let e = [...errors];
+                    e.splice(i, 1);
+                    return e;
+                  });
+                }}
+              >
+                {e}
+              </Alert>
+            </Grow>
+          </Snackbar>
+        ))}
       <DialogTitle>Change Profile</DialogTitle>
       <DialogContent>
-        {errors &&
-          errors.map((e, i) => (
-            <Alert key={i} style={{ marginBottom: 9 }} severity="error">
-              {e}
-            </Alert>
-          ))}
         <div style={{ position: "relative" }}>
           {preview && (
             <div
@@ -350,7 +402,7 @@ const ProfilePicDialog = React.memo(function (props) {
             alt={props.userInfo.first_name}
             con
             id="preview"
-            src={preview ? preview : props.userInfo.preferences.profile_picture}
+            src={preview ? preview : props.userInfo.pic_url}
             style={{ width: 500, height: 500 }}
             variant="square"
           />

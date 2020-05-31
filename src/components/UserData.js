@@ -9,6 +9,14 @@ export async function asyncForEach(array, callback) {
 }
 
 const UserData = {
+  updateUserDetails: async () => {
+    let u = await Api.auth();
+    console.log("new user", u);
+    store.dispatch({
+      type: "SET_USERINFO",
+      user: u,
+    });
+  },
   updateClassDetails: async (class_id) => {
     let newClassDetails = await Api.get(
       "/api/teacher/class/" + class_id + "?include=schedules,students"

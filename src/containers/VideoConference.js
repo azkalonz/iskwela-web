@@ -10,7 +10,6 @@ function VideoConference(props) {
   const { getRoom } = props;
   const room = getRoom();
   const [loading, setLoading] = useState(false);
-  console.log(room);
   const handleAPI = (JitsiApi) => {
     JitsiApi.executeCommand("toggleVideo");
     JitsiApi.on("readyToClose", () => {

@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Box, CircularProgress, Typography, Link } from "@material-ui/core";
 import LaunchIcon from "@material-ui/icons/Launch";
-import FileView from "react-file-viewer";
 
 function FV(props) {
   const [loading, setLoading] = useState(true);
@@ -15,6 +14,7 @@ function FV(props) {
     "application/msword",
     "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
     "text/plain",
+    "external_page",
   ];
   const viewAbleTypes = [
     "application/pdf",
@@ -52,7 +52,7 @@ function FV(props) {
   };
 
   return (
-    <Box width="100%" height="90vh" overflow="hidden">
+    <Box width="100%" height="80vh" overflow="hidden" position="relative">
       {loading && (
         <Box
           display="flex"
@@ -78,14 +78,6 @@ function FV(props) {
         >
           <Typography variant="body2">
             No preview is available.
-            {/* <Link
-              variant="body2"
-              style={{ cursor: "pointer" }}
-              onClick={() => reload()}
-            >
-              &nbsp;Try again?
-            </Link> */}
-            &nbsp;or&nbsp;
             <Link
               variant="body2"
               style={{ cursor: "pointer" }}
