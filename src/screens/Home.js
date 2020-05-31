@@ -25,8 +25,6 @@ import Grow from "@material-ui/core/Grow";
 import { makeLinkTo } from "../components/router-dom";
 import { connect } from "react-redux";
 import MuiAlert from "@material-ui/lab/Alert";
-import socket from "../components/socket.io";
-import UserData from "../components/UserData";
 function Alert(props) {
   return <MuiAlert elevation={6} variant="filled" {...props} />;
 }
@@ -37,23 +35,6 @@ function Home(props) {
   const history = useHistory();
   const [greeting, setGreeting] = useState(true);
 
-  useEffect(() => {
-    socket.on("get class details", (c) => {
-      console.log(c.details, c.id);
-      if (props.classes[c.id]) {
-        UserData.updateClassDetails(c.id, c.details);
-        UserData.updateClass(c.id, c.details[c.id]);
-      }
-    });
-    socket.on("get schedule details", (c) => {
-      console.log("aaaaah", c);
-      if (props.classes[c.id]) {
-        UserData.addClassSchedule(c.id, c.details);
-      } else {
-        console.log("asdsadasdsd", c);
-      }
-    });
-  }, []);
   useEffect(() => {
     if (props.classes) setLoading(false);
   }, [props.classes]);
@@ -117,14 +98,7 @@ function Home(props) {
               style={{ position: "relative" }}
               onClick={() =>
                 history.push(
-                  c.next_schedule.status === "ONGOING"
-                    ? videoConferenceLink
-                    : makeLinkTo([
-                        "class",
-                        c.id,
-                        c.next_schedule.id,
-                        "activity",
-                      ])
+                  makeLinkTo(["class", c.id, c.next_schedule.id, "activity"])
                 )
               }
             >

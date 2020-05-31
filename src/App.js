@@ -20,6 +20,7 @@ import store from "./components/redux/store";
 import moment from "moment";
 import CssBaseline from "@material-ui/core/CssBaseline";
 import UserData from "./components/UserData";
+import socket from "./components/socket.io";
 
 const primaryColor = "#6200ef";
 
@@ -28,6 +29,21 @@ function App(props) {
   const [loading, setLoading] = useState(true);
   const [loadingProgress, setLoadingProgress] = useState(0);
   useEffect(() => {
+    socket.on("get class details", (c) => {
+      console.log(c.details, c.id);
+      if (store.getState().classes[c.id]) {
+        UserData.updateClassDetails(c.id, c.details);
+        UserData.updateClass(c.id, c.details[c.id]);
+      }
+    });
+    socket.on("get schedule details", (c) => {
+      console.log("aaaaah", c);
+      if (store.getState().classes[c.id]) {
+        UserData.addClassSchedule(c.id, c.details);
+      } else {
+        console.log("asdsadasdsd", c);
+      }
+    });
     setLoadingProgress(Math.random() * (78 - 36) + 36);
     Api.auth({
       success: async (user) => {
