@@ -9,6 +9,8 @@ import {
   CardActions,
   CardContent,
   CardMedia,
+  InputBase,
+  IconButton,
   Snackbar,
   Button,
   Typography,
@@ -22,6 +24,7 @@ import Skeleton from "react-loading-skeleton";
 import moment from "moment";
 import VideocamIcon from "@material-ui/icons/Videocam";
 import Grow from "@material-ui/core/Grow";
+import SearchIcon from "@material-ui/icons/Search";
 import { makeLinkTo } from "../components/router-dom";
 import { connect } from "react-redux";
 import MuiAlert from "@material-ui/lab/Alert";
@@ -34,6 +37,7 @@ function Home(props) {
   const [loading, setLoading] = useState(true);
   const history = useHistory();
   const [greeting, setGreeting] = useState(true);
+  const [search, setSearch] = useState("");
 
   useEffect(() => {
     if (props.classes) setLoading(false);
@@ -216,11 +220,39 @@ function Home(props) {
     <div style={{ height: "100vh", overflow: "hidden auto" }}>
       <Drawer {...props}>
         <NavBar title="Classes" />
-        <Box m={2} display="flex" flexWrap="wrap" justifyContent="space-around">
+        <Box m={2} display="flex" flexWrap="wrap" justifyContent="center">
+          <Box width="100%" p={4} style={{ paddingTop: 7, paddingBottom: 7 }}>
+            <Box
+              border={1}
+              p={0.3}
+              borderRadius={7}
+              width={230}
+              style={{ float: "right" }}
+            >
+              <InputBase
+                placeholder="Search"
+                inputProps={{ "aria-label": "search activity" }}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+              <IconButton
+                type="submit"
+                aria-label="search"
+                style={{ padding: 0 }}
+              >
+                <SearchIcon />
+              </IconButton>
+            </Box>
+          </Box>
           {loading && [1, 1, 1].map((c, i) => fakeLoader(i))}
           {!loading &&
             props.classes &&
             props.classes
+              .filter(
+                (c) =>
+                  JSON.stringify(c)
+                    .toLowerCase()
+                    .indexOf(search.toLowerCase()) >= 0
+              )
               .sort((a, b) => {
                 if (!a.next_schedule || !b.next_schedule) return;
                 return (
@@ -251,7 +283,7 @@ const useStyles = makeStyles((theme) => ({
     },
     maxWidth: 345,
     position: "relative",
-    margin: 7,
+    margin: 20,
     marginBottom: 60,
     borderRadius: 20,
   },
