@@ -141,7 +141,9 @@ function Activity(props) {
 
   useEffect(() => {
     if (currentActivity) {
-      document.querySelector("#right-panel").scrollTop = 0;
+      let offset = $("#video-conference-container");
+      offset = offset[0] ? offset[0].offsetHeight : 0;
+      document.querySelector("#right-panel").scrollTop = offset;
       $("#navbar-title").text(currentActivity.title);
     }
   }, [currentActivity]);
