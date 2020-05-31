@@ -83,20 +83,19 @@ function Class(props) {
   const [CLASS, setCLASS] = useState();
   const userInfo = props.userInfo;
   const isTeacher = userInfo.user_type === "t" ? true : false;
-  const [classSched, setClassSched] = useState();
   const [saving, setSaving] = useState(false);
+  const [currentID, setCurrentID] = useState(class_id);
 
   useEffect(() => {
-    let s = props.classDetails[class_id];
-    if (!s) {
-      window.location = "/";
-    } else if (!option_name && schedule_id) {
-      history.push(makeLinkTo(["class", class_id, schedule_id, "activity"]));
+    if (class_id && schedule_id) {
+      if (!props.classDetails[class_id] || currentID !== class_id) {
+        setCLASS(undefined);
+        setLoading(true);
+        setCurrentID(class_id);
+      }
+      _getClass();
     }
-    setCLASS(undefined);
-    _getClass();
-    setLoading(true);
-  }, [class_id, schedule_id]);
+  }, [class_id, schedule_id, props.classDetails]);
 
   useEffect(() => {
     if (props.width === "sm" || props.width === "xs") setCollapsePanel(false);
@@ -104,22 +103,12 @@ function Class(props) {
   }, [props.width]);
 
   const _getClass = async () => {
-    await Api.auth();
-    if (props.classDetails) setCLASS(props.classDetails[class_id]);
-    else setCLASS(undefined);
-    if (
-      props.classDetails[class_id].schedules[schedule_id].status ===
-        "ONGOING" &&
-      !room_name
-    )
-      history.push(
-        makeLinkTo(
-          ["class", class_id, schedule_id, "opt", "video-conference"],
-          {
-            opt: option_name ? option_name : "activity",
-          }
-        )
-      );
+    if (props.classDetails[class_id]) {
+      setCLASS(props.classDetails[class_id]);
+    } else {
+      await UserData.updateClassDetails(class_id, true);
+      setCLASS(undefined);
+    }
     setLoading(false);
     return;
   };
@@ -150,21 +139,18 @@ function Class(props) {
   };
   const updateClass = async (status) => {
     setSaving(true);
-    let user = await Api.auth();
-    if (!user.error) {
-      let res = await Api.post("/api/schedule/save", {
-        body: {
-          id: props.classDetails[class_id].schedules[schedule_id].id,
-          date_from: props.classDetails[class_id].schedules[schedule_id].from,
-          date_to: props.classDetails[class_id].schedules[schedule_id].to,
-          teacher_id: user.id,
-          status: status,
-        },
-      });
-      await UserData.updateClassDetails(class_id);
-      if (room_name)
-        history.push(makeLinkTo(["class", class_id, schedule_id, option_name]));
-    }
+    let res = await Api.post("/api/schedule/save", {
+      body: {
+        id: props.classDetails[class_id].schedules[schedule_id].id,
+        date_from: props.classDetails[class_id].schedules[schedule_id].from,
+        date_to: props.classDetails[class_id].schedules[schedule_id].to,
+        teacher_id: props.userInfo.id,
+        status: status,
+      },
+    });
+    await UserData.updateClassDetails(class_id);
+    if (room_name)
+      history.push(makeLinkTo(["class", class_id, schedule_id, option_name]));
     setSaving(false);
   };
   const _handleJoinClass = async () => {
@@ -232,7 +218,7 @@ function Class(props) {
             style={{ height: "100vh", overflow: "auto" }}
           >
             <Paper className={styles.panel} width="100vw">
-              {CLASS !== undefined ? (
+              {CLASS !== undefined && props.classDetails[class_id] ? (
                 <div>
                   <Toolbar className={styles.toolbar}>
                     <Typography variant="body1" style={{ fontWeight: "bold" }}>
@@ -348,6 +334,8 @@ function Class(props) {
                               ? true
                               : isTeacher
                               ? false
+                              : room_name
+                              ? true
                               : props.classDetails[class_id].schedules[
                                   schedule_id
                                 ].status !== "ONGOING"
@@ -439,7 +427,9 @@ function Class(props) {
                 <VideoConference
                   match={props.match}
                   getRoom={() => getRoom()}
-                  updateClass={(e) => updateClass(e)}
+                  updateClass={(e) => {
+                    if (isTeacher) updateClass(e);
+                  }}
                   left={
                     !collapsePanel ? (
                       <IconButton
@@ -501,17 +491,6 @@ function Class(props) {
                     <Skeleton width="100%" height={300} />
                   </Box>
                 </Box>
-              )}
-              {!loading && !CLASS && (
-                //handle invalid class id
-                <div>
-                  <Typography variant="h2" fontWeight="bold" component="h2">
-                    404
-                  </Typography>
-                  <Typography variant="h5" component="h2">
-                    PAGE NOT FOUND
-                  </Typography>
-                </div>
               )}
               {!loading && CLASS && class_id && (
                 <Route

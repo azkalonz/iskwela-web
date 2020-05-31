@@ -125,19 +125,16 @@ function Schedule(props) {
   const _handleUpdateStatus = async (status, item) => {
     setSaving(true);
     setSavingId(item.id);
-    let user = await Api.auth();
-    if (!user.error) {
-      let res = await Api.post("/api/schedule/save", {
-        body: {
-          id: item.id,
-          date_from: props.classDetails[class_id].schedules[item.id].from,
-          date_to: props.classDetails[class_id].schedules[item.id].to,
-          teacher_id: user.id,
-          status: status,
-        },
-      });
-      await UserData.updateClassDetails(class_id);
-    }
+    let res = await Api.post("/api/schedule/save", {
+      body: {
+        id: item.id,
+        date_from: props.classDetails[class_id].schedules[item.id].from,
+        date_to: props.classDetails[class_id].schedules[item.id].to,
+        teacher_id: props.userInfo.id,
+        status: status,
+      },
+    });
+    await UserData.updateClassDetails(class_id);
     setSaving(false);
     setSavingId(null);
   };

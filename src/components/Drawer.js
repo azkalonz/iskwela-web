@@ -24,21 +24,7 @@ import { makeLinkTo } from "./router-dom";
 function Drawer(props) {
   const styles = useStyles();
   const history = useHistory();
-  const theme = useTheme();
-  const listItems = [
-    {
-      item: <DashboardOutlined />,
-      link: "/",
-      title: "Class",
-    },
-  ];
-  useEffect(() => {
-    listItems.forEach((item, index) => {
-      if (window.location.pathname === item.link) {
-        props.setRoute({ index, title: item.title });
-      }
-    });
-  }, []);
+  const { class_id } = props.match.params;
   const drawer = (
     <div>
       <Toolbar style={{ minHeight: 50, paddingLeft: 0, paddingRight: 0 }}>
@@ -47,7 +33,6 @@ function Drawer(props) {
           align="center"
           style={{ width: "100%", cursor: "pointer" }}
           onClick={() => {
-            props.setRoute({ index: 0, title: "Class" });
             history.push("/");
           }}
         >
@@ -55,68 +40,53 @@ function Drawer(props) {
         </Typography>
       </Toolbar>
       <List>
-        {listItems.map((item, index) => (
-          <Box
-            {...listItem.container}
-            key={index}
-            borderLeft={5}
-            onClick={() => props.setRoute({ index, title: item.title })}
-            borderColor={
-              item.link.indexOf("/" + window.location.pathname.split("/")[1]) >=
-              0
-                ? "primary.main"
-                : "transparent"
-            }
-          >
-            <Box
-              onClick={() => {
-                props.setRoute({ index: 0, title: "Class" });
-                history.push(item.link);
-              }}
-              {...listItem.item}
-              {...item.props}
-              style={{
-                alignItems: "center",
-                cursor: "pointer",
-                justifyContent: "center",
-                display: "flex",
-                transform: "translateX(-5px)",
-              }}
-            >
-              {item.item}
-            </Box>
-          </Box>
-        ))}
-        {store.getState().classes.map((item, index) => {
-          let scheds = store.getState().classDetails[item.id].schedules;
-          let sched_id = "";
-          for (let i in scheds) {
-            sched_id = i;
-            break;
+        <Box
+          {...listItem.container}
+          borderLeft={5}
+          borderColor={
+            window.location.pathname == "/" ? "primary.main" : "transparent"
           }
+        >
+          <Box
+            onClick={() => {
+              history.push("/");
+            }}
+            {...listItem.item}
+            style={{
+              alignItems: "center",
+              cursor: "pointer",
+              justifyContent: "center",
+              display: "flex",
+              transform: "translateX(-5px)",
+            }}
+          >
+            <DashboardOutlined />
+          </Box>
+        </Box>
+        {store.getState().classes.map((item, index) => {
+          // let scheds = store.getState().classDetails[item.id].schedules;
+          // let sched_id = "";
+          // for (let i in scheds) {
+          //   sched_id = i;
+          //   break;
+          // }
           return (
             <Box
               {...listItem.container}
               key={index}
               borderLeft={5}
               onClick={() => {
-                props.setRoute({ index, title: item.title });
-                history.push(makeLinkTo(["class", item.id, sched_id]));
+                history.push(
+                  makeLinkTo([
+                    "class",
+                    item.id,
+                    item.next_schedule.id,
+                    "activity",
+                  ])
+                );
               }}
               borderColor={
-                (
-                  "/class/" +
-                  item.id +
-                  "/" +
-                  item.name.replace(" ", "-")
-                ).indexOf(
-                  "/" +
-                    window.location.pathname.split("/")[1] +
-                    "/" +
-                    window.location.pathname.split("/")[2]
-                ) >= 0
-                  ? "primary.main"
-                  : "transparent"
+                class_id && class_id == item.id ? "primary.main" : "transparent"
               }
               style={{ cursor: "pointer" }}
             >
@@ -137,7 +107,6 @@ function Drawer(props) {
                   style={{ color: "#fff" }}
                 >
                   {item.name[0].toUpperCase()}
-                  {item.name.split(" ")[1]}
                 </Typography>
               </Box>
             </Box>
@@ -146,9 +115,6 @@ function Drawer(props) {
       </List>
     </div>
   );
-
-  const container =
-    window !== undefined ? () => window().document.body : undefined;
 
   return (
     <div className={styles.root}>
@@ -195,7 +161,6 @@ const useStyles = makeStyles((theme) => ({
     width: drawerWidth,
     flexShrink: 0,
   },
-  toolbar: theme.mixins.toolbar,
   drawerPaper: {
     width: drawerWidth,
     overflow: "hidden",
@@ -214,9 +179,4 @@ Drawer.propTypes = {
   window: PropTypes.func,
 };
 
-export default connect(
-  (states) => ({
-    route: states.route,
-  }),
-  actions
-)(Drawer);
+export default Drawer;

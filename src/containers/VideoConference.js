@@ -27,11 +27,13 @@ function VideoConference(props) {
               <ShareOutlinedIcon color="textPrimary" />
             </IconButton>
             <IconButton
-              onClick={() =>
-                document
-                  .getElementById("react-jitsi-container")
-                  .requestFullscreen()
-              }
+              onClick={() => {
+                try {
+                  document
+                    .getElementById("react-jitsi-container")
+                    .requestFullscreen();
+                } catch (e) {}
+              }}
             >
               <FullscreenIcon color="textPrimary" />
             </IconButton>

@@ -11,14 +11,10 @@ class Form {
     this.data[key] = val;
   }
   async send(endpoint) {
-    let isAuth = await Api.auth();
-    if (!isAuth.error) {
-      let res = await Api.post(endpoint, {
-        body: this.data,
-      });
-      return res;
-    }
-    return null;
+    let res = await Api.post(endpoint, {
+      body: this.data,
+    });
+    return res;
   }
 }
 

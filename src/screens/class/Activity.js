@@ -69,7 +69,7 @@ function Alert(props) {
 function Activity(props) {
   const [saving, setSaving] = useState(false);
   const [hasFiles, setHasFiles] = useState([false, false]);
-  const { class_id } = props.match.params;
+  const { class_id, schedule_id } = props.match.params;
   const [activities, setActivities] = useState();
   const [dragover, setDragover] = useState(false);
   const [sortType, setSortType] = useState("DESCENDING");
@@ -99,7 +99,6 @@ function Activity(props) {
     description: "",
     available_from: moment(new Date()).format("YYYY-MM-DD"),
     available_to: moment(new Date()).format("YYYY-MM-DD"),
-    subject_id: props.classDetails[class_id].subject.id,
     published: 0,
     class_id,
   };
@@ -153,18 +152,21 @@ function Activity(props) {
       let a = props.classDetails[class_id].schedules;
       let allActivities = [];
       a.forEach((s) => {
-        s.activities.forEach((ss) => {
-          allActivities.push({ ...ss, schedule_id: s.id });
-        });
+        if (s.activities) {
+          s.activities.forEach((ss) => {
+            allActivities.push({ ...ss, schedule_id: s.id });
+          });
+        }
       });
       setActivities(allActivities);
-    } catch (e) {
-      // handle invalid schedule
-    }
+    } catch (e) {}
   };
   useEffect(() => {
-    _getActivities();
-  }, []);
+    if (props.classDetails[class_id]) {
+      _getActivities();
+      console.log(props.classDetails[class_id]);
+    }
+  }, [props.classDetails[class_id]]);
 
   useEffect(() => {
     if (!fileViewerOpen) setFile();
@@ -234,6 +236,7 @@ function Activity(props) {
     let err = [];
     let formData = new Form({
       ...form,
+      subject_id: props.classDetails[class_id].subject.id,
       ...params,
       schedule_id: selectedSched ? selectedSched : classSched,
     });
@@ -273,7 +276,10 @@ function Activity(props) {
           });
         }
         setSuccess(true);
-        await UserData.updateClassDetails(class_id);
+        await UserData.updateScheduleDetails(
+          class_id,
+          selectedSched ? selectedSched : schedule_id
+        );
         _handleFileOption("view", res);
         setModals([modals[0], false]);
       } else {
@@ -321,7 +327,10 @@ function Activity(props) {
         });
         if (!res.errors) {
           setSuccess(true);
-          await UserData.updateClassDetails(class_id);
+          await UserData.updateScheduleDetails(
+            class_id,
+            selectedSched ? selectedSched : schedule_id
+          );
         } else {
           let err = [];
           for (let e in res.errors) {
@@ -356,7 +365,10 @@ function Activity(props) {
         );
         if (!res.errors) {
           setSuccess(true);
-          await UserData.updateClassDetails(class_id);
+          await UserData.updateScheduleDetails(
+            class_id,
+            selectedSched ? selectedSched : schedule_id
+          );
         } else {
           let err = [];
           for (let e in res.errors) {
@@ -544,13 +556,14 @@ function Activity(props) {
               padding={10}
             >
               <MenuItem value={-1}>All</MenuItem>
-              {props.classDetails[class_id].schedules.map((k, i) => {
-                return (
-                  <MenuItem value={k.id} key={i}>
-                    {moment(k.from).format("LLLL")}
-                  </MenuItem>
-                );
-              })}
+              {props.classDetails[class_id] &&
+                props.classDetails[class_id].schedules.map((k, i) => {
+                  return (
+                    <MenuItem value={k.id} key={i}>
+                      {moment(k.from).format("LLLL")}
+                    </MenuItem>
+                  );
+                })}
             </Select>
           </FormControl>
           &nbsp;

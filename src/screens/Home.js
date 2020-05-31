@@ -76,42 +76,25 @@ function Home(props) {
     </Card>
   );
   const classItem = (c) => {
-    let cd = props.classDetails[c.id].schedules;
-    let status = {
-      ongoing: Object.keys(cd).filter((s) => cd[s].status === "ONGOING"),
-      pending: Object.keys(cd).filter((s) => cd[s].status === "PENDING"),
-      canceled: Object.keys(cd).filter((s) => cd[s].status === "CANCELED"),
-    };
-    status = status.ongoing.length
-      ? cd[status.ongoing[0]]
-      : status.pending.length
-      ? cd[status.pending[0]]
-      : status.canceled.length
-      ? cd[status.canceled[0]]
-      : null;
-    if (status) {
-      let diff = moment(new Date()).diff(moment(status.from));
-      switch (status.status) {
-        case "ONGOING":
-          status.message = "Class has started. Join Call?";
-          break;
-        case "CANCELED":
-          status.message = "Canceled";
-          break;
-        case "PENDING":
-          status.message =
-            diff < 0
-              ? "Starts " + moment(status.from).fromNow()
-              : "Ended " + moment(status.from).fromNow();
-          break;
-      }
+    let message = "";
+    switch (c.next_schedule.status) {
+      case "ONGOING":
+        message = "Class has started. Join Call?";
+        break;
+      case "CANCELED":
+        message = "Canceled";
+        break;
+      case "PENDING":
+        message = "Starts " + moment(c.next_schedule.from).fromNow();
+        break;
     }
-    let videoConferenceLink = makeLinkTo(
-      ["class", c.id, "sched", "activity", "video-conference"],
-      {
-        sched: status ? status.id : "",
-      }
-    );
+    let videoConferenceLink = makeLinkTo([
+      "class",
+      c.id,
+      c.next_schedule.id,
+      "activity",
+      "video-conference",
+    ]);
     return (
       <Grow in={true} key={c.id}>
         <div className={styles.root}>
@@ -120,11 +103,14 @@ function Home(props) {
               style={{ position: "relative" }}
               onClick={() =>
                 history.push(
-                  status.status === "ONGOING"
+                  c.next_schedule.status === "ONGOING"
                     ? videoConferenceLink
-                    : makeLinkTo(["class", c.id, "sched", "activity"], {
-                        sched: status ? status.id : "",
-                      })
+                    : makeLinkTo([
+                        "class",
+                        c.id,
+                        c.next_schedule.id,
+                        "activity",
+                      ])
                 )
               }
             >
@@ -173,11 +159,7 @@ function Home(props) {
                       variant="body2"
                       style={{ fontSize: "0.8rem", marginLeft: 5 }}
                     >
-                      {status
-                        ? moment(status.from).format("MMM D, YYYY")
-                        : moment(c.date_from + " " + c.time_from).format(
-                            "MMM D,YYYY"
-                          )}
+                      {moment(c.next_schedule.from).format("MMM D, YYYY")}
                     </Typography>
                   </Box>
                   <Box
@@ -189,15 +171,9 @@ function Home(props) {
                       variant="body2"
                       style={{ fontSize: "0.75rem", marginLeft: 5 }}
                     >
-                      {status
-                        ? moment(status.from).format("hh:mm") +
-                          " - " +
-                          moment(status.to).format("hh:mm")
-                        : moment(c.date_from + " " + c.time_from).format(
-                            "hh:mm"
-                          ) +
-                          " - " +
-                          moment(c.date_to + " " + c.time_to).format("hh:mm")}
+                      {moment(c.next_schedule.from).format("hh:mm") +
+                        " - " +
+                        moment(c.next_schedule.to).format("hh:mm")}
                     </Typography>
                   </Box>
                   <div style={{ position: "absolute", top: -40, right: 0 }}>
@@ -224,19 +200,20 @@ function Home(props) {
               </CardActions>
             </CardActionArea>
           </Card>
-          {status && (
-            <Paper
-              onClick={() =>
-                history.push(
-                  status.status === "ONGOING" ? videoConferenceLink : "/"
-                )
-              }
-              className={[styles.classStatus, styles[status.status]].join(" ")}
-            >
-              <Typography variant="body1">{status.message}</Typography>
-              {status.status === "ONGOING" && <VideocamIcon />}
-            </Paper>
-          )}
+          <Paper
+            onClick={() =>
+              history.push(
+                c.next_schedule.status === "ONGOING" ? videoConferenceLink : "/"
+              )
+            }
+            className={[
+              styles.classStatus,
+              styles[c.next_schedule.status],
+            ].join(" ")}
+          >
+            <Typography variant="body1">{message}</Typography>
+            {c.next_schedule.status === "ONGOING" && <VideocamIcon />}
+          </Paper>
         </div>
       </Grow>
     );
@@ -248,7 +225,17 @@ function Home(props) {
         <NavBar title="Classes" />
         <Box m={2} display="flex" flexWrap="wrap">
           {loading && [1, 1, 1].map((c, i) => fakeLoader(i))}
-          {!loading && classes && classes.map((c) => classItem(c))}
+          {!loading &&
+            classes &&
+            classes
+              .sort((a, b) => {
+                if (!a.next_schedule || !b.next_schedule) return;
+                return (
+                  new Date(b.next_schedule.from) -
+                  new Date(a.next_schedule.from)
+                );
+              })
+              .map((c) => classItem(c))}
         </Box>
         <Snackbar
           open={greeting}

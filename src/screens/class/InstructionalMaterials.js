@@ -224,7 +224,10 @@ function InstructionalMaterials(props) {
     }
     if (!err.length) {
       setSuccess(true);
-      await UserData.updateClassDetails(class_id);
+      await UserData.updateScheduleDetails(
+        class_id,
+        selectedSched ? selectedSched : classSched
+      );
       setModals([false, modals[1]]);
     } else setErrors(err);
     setSaving(true);
@@ -261,7 +264,10 @@ function InstructionalMaterials(props) {
     });
     if (!err.length) {
       setSuccess(true);
-      await UserData.updateClassDetails(class_id);
+      await UserData.updateScheduleDetails(
+        class_id,
+        selectedSched ? selectedSched : classSched
+      );
       FileUpload.removeFiles("materials");
       setHasFiles(false);
       setModals([modals[0], false]);
@@ -286,7 +292,10 @@ function InstructionalMaterials(props) {
         );
         if (!res.errors) {
           setSuccess(true);
-          await UserData.updateClassDetails(class_id);
+          await UserData.updateScheduleDetails(
+            class_id,
+            selectedSched ? selectedSched : classSched
+          );
         } else {
           let err = [];
           for (let e in res.errors) {
