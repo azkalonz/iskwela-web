@@ -27,6 +27,7 @@ i18next.use(initReactI18next).init({
 
 if (!_DEV) {
   console.log = () => {};
+  console.error = () => {};
   console.warn = () => {};
   console.clear();
 }
