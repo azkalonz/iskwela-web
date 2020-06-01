@@ -2,6 +2,8 @@
 
 # dependencies
 /node_modules
+/socketio/server.key
+/socketio/STAR_iskwela_net-bundle.crt
 /backend/node_modules
 /.pnp
 .pnp.js

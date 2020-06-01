@@ -1,12 +1,16 @@
+var fs = require("fs");
+var https = require("https");
+var privateKey = fs.readFileSync("./server.key", "utf8");
+var certificate = fs.readFileSync("./STAR_iskwela_net-bundle.crt", "utf8");
+var credentials = { key: privateKey, cert: certificate };
 var app = require("express")();
-var http = require("http").Server(app);
-var io = require("socket.io")(http);
 
 app.get("/", function (req, res) {
-  res.sendFile(__dirname + "/index.html");
+  res.end("dev");
 });
 
-http.listen(3001, function () {});
+var httpsServer = https.createServer(credentials, app);
+var io = require("socket.io")(httpsServer);
 
 io.on("connection", (socket) => {
   console.log("connected");
@@ -19,3 +23,5 @@ io.on("connection", (socket) => {
     socket.broadcast.emit("get schedule details", newScheduleDetails);
   });
 });
+
+httpsServer.listen(3001);
