@@ -32,6 +32,7 @@ import Form from "./Form";
 import Api from "../api";
 import MuiAlert from "@material-ui/lab/Alert";
 import UserData from "./UserData";
+import HelpOutlineOutlinedIcon from "@material-ui/icons/HelpOutlineOutlined";
 
 function Alert(props) {
   return <MuiAlert elevation={6} variant="filled" {...props} />;
@@ -122,6 +123,16 @@ function NavBar(props) {
                 />
               </IconButton>
               <IconButton
+                onClick={() =>
+                  window.open(
+                    "https://files.iskwela.net/public/iSkwela_UserManual_Beta1.0.pdf",
+                    "_blank"
+                  )
+                }
+              >
+                <HelpOutlineOutlinedIcon />
+              </IconButton>
+              <IconButton
                 aria-label="account of current user"
                 aria-controls="menu-appbar"
                 aria-haspopup="true"
@@ -145,10 +156,10 @@ function NavBar(props) {
                 onClose={handleClose}
               >
                 <MenuItem onClick={() => setchangePassDialog(true)}>
-                  Settings
+                  Preferences
                 </MenuItem>
                 <MenuItem onClick={_handleThemeType}>
-                  Dark mode {props.theme !== "dark" ? "ON" : "OFF"}
+                  Turn {props.theme !== "dark" ? "on" : "off"} Dark mode
                 </MenuItem>
                 <MenuItem onClick={handleLogout}>Logout</MenuItem>
               </Menu>

@@ -12,6 +12,7 @@ import {
   makeStyles,
   useTheme,
   IconButton,
+  Avatar,
 } from "@material-ui/core";
 import MailIcon from "@material-ui/icons/Mail";
 import InboxIcon from "@material-ui/icons/MoveToInbox";
@@ -169,6 +170,8 @@ function Drawer(props) {
           </IconButton>
         )}
       </div>
+      <Divider />
+      <Avatar src="http://localhost:3000/deped-logo.png" />
     </div>
   );
 

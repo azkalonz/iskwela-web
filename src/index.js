@@ -10,6 +10,8 @@ import { initReactI18next } from "react-i18next";
 import { Provider } from "react-redux";
 import store from "./components/redux/store";
 
+const _DEV = false;
+
 i18next.use(initReactI18next).init({
   resources: {
     en: {
@@ -22,6 +24,12 @@ i18next.use(initReactI18next).init({
     escapeValue: false,
   },
 });
+
+if (!_DEV) {
+  console.log = () => {};
+  console.warn = () => {};
+  console.clear();
+}
 
 ReactDOM.render(
   <Provider store={store}>
