@@ -23,6 +23,7 @@ FileUpload.getFiles = (id) => {
     ? Object.keys(FileUpload.files[id]).map((k) => ({
         id: k,
         uploaded_file: FileUpload.files[id][k].name,
+        title: FileUpload.files[id][k].name,
         isFile: true,
       }))
     : [];

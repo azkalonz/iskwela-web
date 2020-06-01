@@ -210,7 +210,7 @@ function LessonPlan(props) {
     let err = [];
     setErrors(null);
     setSaving(true);
-    let res = await Api.post("/class/lesson-plan/save", {
+    let res = await Api.post("/api/class/lesson-plan/save", {
       body: {
         class_id,
         schedule_id: selectedSched ? selectedSched : classSched,

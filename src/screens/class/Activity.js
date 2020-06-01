@@ -171,6 +171,12 @@ function Activity(props) {
     if (!fileViewerOpen) setFile();
   }, [fileViewerOpen]);
   useEffect(() => {
+    if (currentActivity) {
+      // getAnswers();
+    }
+  }, [currentActivity]);
+
+  useEffect(() => {
     if (activities) {
       setAnchorEl(() => {
         let a = {};
@@ -412,6 +418,30 @@ function Activity(props) {
         type: res.type,
       });
     else setErrors(["Cannot open file."]);
+  };
+
+  const _handleAnswerUpload = async () => {
+    setErrors(null);
+    setSaving(true);
+    let err = [];
+    let body = new FormData();
+    body.append("file", FileUpload.files["answers"][0]);
+    body.append("assignment_id", currentActivity.id);
+    let a = await FileUpload.upload("/api/upload/activity/answer", {
+      body,
+    });
+    if (a.errors) {
+      for (let e in a.errors) {
+        err.push(a.errors[e][0]);
+      }
+      setErrors(err);
+    } else {
+      setSuccess(true);
+      FileUpload.removeFiles("answer");
+      setHasFiles([false, false]);
+    }
+    setSaving(false);
+    console.log(a);
   };
   return (
     <Box width="100%" alignSelf="flex-start" height="100%">
@@ -689,12 +719,12 @@ function Activity(props) {
                 >
                   <Input
                     type="file"
-                    id="file-upload"
+                    id="activity-answer"
                     style={{ display: "none" }}
                     onChange={() => {
                       stageFiles(
                         "answers",
-                        document.querySelector("#file-upload").files
+                        document.querySelector("#activity-answer").files
                       );
                       setHasFiles([true, hasFiles[1]]);
                     }}
@@ -718,7 +748,9 @@ function Activity(props) {
                                 fontWeight: "bold",
                               }}
                               onClick={() =>
-                                document.querySelector("#file-upload").click()
+                                document
+                                  .querySelector("#activity-answer")
+                                  .click()
                               }
                             >
                               <AttachFileOutlinedIcon fontSize="small" />
@@ -738,6 +770,24 @@ function Activity(props) {
                           alignItems="center"
                           justifyContent="center"
                         >
+                          {saving && (
+                            <div
+                              style={{
+                                position: "absolute",
+                                left: 0,
+                                right: 0,
+                                zIndex: 5,
+                                top: 0,
+                                bottom: 0,
+                                display: "flex",
+                                justifyContent: "center",
+                                alignItems: "center",
+                                background: "rgba(255,255,255,0.5)",
+                              }}
+                            >
+                              <CircularProgress size={24} />
+                            </div>
+                          )}
                           <div>
                             {FileUpload.getFiles("answers").map((f) => (
                               <Typography variant="body1" color="primary">
@@ -746,9 +796,7 @@ function Activity(props) {
                             ))}
                           </div>
                           <div>
-                            <Button
-                              onClick={() => new FileUpload("answers").upload()}
-                            >
+                            <Button onClick={_handleAnswerUpload}>
                               Upload
                             </Button>
                             <Button
