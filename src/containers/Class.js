@@ -246,9 +246,9 @@ function Class(props) {
                     overflow="hidden"
                   >
                     <img
-                      src="https://source.unsplash.com/random/1000x1000"
+                      src="https://www.iskwela.net/img/on-iskwela.svg"
                       width="100%"
-                      height="auto"
+                      height="100%"
                     />
                     {isTeacher && (
                       <CreateOutlined
@@ -303,7 +303,12 @@ function Class(props) {
                       overflow="hidden"
                     >
                       <Avatar
-                        src={props.userInfo.pic_url}
+                        src="http://example.com"
+                        alt={
+                          CLASS.teacher.first_name +
+                          " " +
+                          CLASS.teacher.last_name
+                        }
                         style={{ width: "100%", height: "100%" }}
                       />
                     </Box>

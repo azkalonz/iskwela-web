@@ -63,7 +63,9 @@ function Login(props) {
 
             <form className={classes.form} noValidate onSubmit={_handleLogin}>
               {window.login_error && (
-                <Alert severity="error">{window.login_error}</Alert>
+                <Alert severity="error" style={{ margin: "30px 0" }}>
+                  {window.login_error}
+                </Alert>
               )}
               <TextField
                 variant="outlined"

@@ -91,18 +91,18 @@ function Drawer(props) {
               }
               style={{ cursor: "pointer" }}
             >
-              <Box
-                {...listItem.item}
-                {...item.props}
-                style={{
-                  alignItems: "center",
-                  justifyContent: "center",
-                  display: "flex",
-                  transform: "translateX(-1.5px)",
-                }}
-                bgcolor="grey.700"
-              >
-                <Tooltip title={item.name} placement="right">
+              <Tooltip title={item.name} placement="right">
+                <Box
+                  {...listItem.item}
+                  {...item.props}
+                  style={{
+                    alignItems: "center",
+                    justifyContent: "center",
+                    display: "flex",
+                    transform: "translateX(-1.5px)",
+                  }}
+                  bgcolor="grey.700"
+                >
                   <Typography
                     variant="body1"
                     component="h2"
@@ -110,8 +110,8 @@ function Drawer(props) {
                   >
                     {item.name[0].toUpperCase()}
                   </Typography>
-                </Tooltip>
-              </Box>
+                </Box>
+              </Tooltip>
             </Box>
           );
         })}
@@ -140,25 +140,27 @@ function Drawer(props) {
                   }
                   style={{ cursor: "pointer" }}
                 >
-                  <Box
-                    {...listItem.item}
-                    {...item.props}
-                    style={{
-                      alignItems: "center",
-                      justifyContent: "center",
-                      display: "flex",
-                      transform: "translateX(-1.5px)",
-                    }}
-                    bgcolor="grey.700"
-                  >
-                    <Typography
-                      variant="body1"
-                      component="h2"
-                      style={{ color: "#fff" }}
+                  <Tooltip title={item.name} placement="right">
+                    <Box
+                      {...listItem.item}
+                      {...item.props}
+                      style={{
+                        alignItems: "center",
+                        justifyContent: "center",
+                        display: "flex",
+                        transform: "translateX(-1.5px)",
+                      }}
+                      bgcolor="grey.700"
                     >
-                      {item.name[0].toUpperCase()}
-                    </Typography>
-                  </Box>
+                      <Typography
+                        variant="body1"
+                        component="h2"
+                        style={{ color: "#fff" }}
+                      >
+                        {item.name[0].toUpperCase()}
+                      </Typography>
+                    </Box>
+                  </Tooltip>
                 </Box>
               </Grow>
             );
@@ -174,34 +176,36 @@ function Drawer(props) {
         )}
         <Divider />
         <Box {...listItem.container}>
-          <Box
-            onClick={() =>
-              window.open("https://commons.deped.gov.ph/", "_blank")
-            }
-            {...listItem.item}
-            style={{
-              alignItems: "center",
-              cursor: "pointer",
-              justifyContent: "center",
-              display: "flex",
-              transform: "translateX(-1.5px)",
-            }}
-          >
-            <Avatar
-              src="http://localhost:3000/deped-logo.png"
-              imgProps={{
-                style: {
-                  width: "100%",
-                  height: "auto",
-                },
-              }}
+          <Tooltip title="DepEd Commons" placement="right">
+            <Box
+              onClick={() =>
+                window.open("https://commons.deped.gov.ph/", "_blank")
+              }
+              {...listItem.item}
               style={{
-                margin: "0 auto",
-                border: "1px solid rgb(172, 172, 172)",
-                padding: 2,
+                alignItems: "center",
+                cursor: "pointer",
+                justifyContent: "center",
+                display: "flex",
+                transform: "translateX(-1.5px)",
               }}
-            />
-          </Box>
+            >
+              <Avatar
+                src="http://localhost:3000/deped-logo.png"
+                imgProps={{
+                  style: {
+                    width: "100%",
+                    height: "auto",
+                  },
+                }}
+                style={{
+                  margin: "0 auto",
+                  border: "1px solid rgb(172, 172, 172)",
+                  padding: 2,
+                }}
+              />
+            </Box>
+          </Tooltip>
         </Box>
       </div>
     </div>

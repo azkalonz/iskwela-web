@@ -227,7 +227,7 @@ function Home(props) {
               p={0.3}
               borderRadius={7}
               width={230}
-              style={{ float: "right" }}
+              style={{ float: "right", display: "flex" }}
             >
               <InputBase
                 placeholder="Search"
