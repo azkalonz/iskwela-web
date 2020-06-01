@@ -40,7 +40,7 @@ function Login(props) {
       if (!res.error) {
         let redirect_url = queryString.parse(window.location.search).r;
         localStorage["auth"] = JSON.stringify(res);
-        window.location = "/";
+        window.location = redirect_url ? redirect_url : "/";
         return;
       } else {
         window.login_error = "Invalid username/password";

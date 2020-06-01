@@ -8,6 +8,7 @@ import {
   Box,
   Typography,
   Grow,
+  Tooltip,
   Toolbar,
   makeStyles,
   useTheme,
@@ -101,13 +102,15 @@ function Drawer(props) {
                 }}
                 bgcolor="grey.700"
               >
-                <Typography
-                  variant="body1"
-                  component="h2"
-                  style={{ color: "#fff" }}
-                >
-                  {item.name[0].toUpperCase()}
-                </Typography>
+                <Tooltip title={item.name} placement="right">
+                  <Typography
+                    variant="body1"
+                    component="h2"
+                    style={{ color: "#fff" }}
+                  >
+                    {item.name[0].toUpperCase()}
+                  </Typography>
+                </Tooltip>
               </Box>
             </Box>
           );
@@ -169,9 +172,38 @@ function Drawer(props) {
             <ExpandLessOutlinedIcon />
           </IconButton>
         )}
+        <Divider />
+        <Box {...listItem.container}>
+          <Box
+            onClick={() =>
+              window.open("https://commons.deped.gov.ph/", "_blank")
+            }
+            {...listItem.item}
+            style={{
+              alignItems: "center",
+              cursor: "pointer",
+              justifyContent: "center",
+              display: "flex",
+              transform: "translateX(-1.5px)",
+            }}
+          >
+            <Avatar
+              src="http://localhost:3000/deped-logo.png"
+              imgProps={{
+                style: {
+                  width: "100%",
+                  height: "auto",
+                },
+              }}
+              style={{
+                margin: "0 auto",
+                border: "1px solid rgb(172, 172, 172)",
+                padding: 2,
+              }}
+            />
+          </Box>
+        </Box>
       </div>
-      <Divider />
-      <Avatar src="http://localhost:3000/deped-logo.png" />
     </div>
   );
 

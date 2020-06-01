@@ -10,7 +10,7 @@ import { initReactI18next } from "react-i18next";
 import { Provider } from "react-redux";
 import store from "./components/redux/store";
 
-const _DEV = false;
+const _DEV = true;
 
 i18next.use(initReactI18next).init({
   resources: {

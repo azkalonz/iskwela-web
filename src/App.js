@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import Login from "./screens/Login";
+import Blank from "./containers/Blank";
 import Class from "./containers/Class";
 import Home from "./screens/Home";
 
