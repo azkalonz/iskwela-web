@@ -334,7 +334,7 @@ const useStyles = makeStyles((theme) => ({
     bottom: -40,
     zIndex: 0,
     height: 70,
-    width: "80%",
+    width: "90%",
     textDecoration: "none",
     padding: 7,
     paddingLeft: 13,
