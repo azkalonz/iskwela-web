@@ -22,6 +22,10 @@ function FV(props) {
       type: "google_drive",
     },
     {
+      link: "docs.google.com",
+      type: "google_docs",
+    },
+    {
       link: "youtube.com",
       type: "youtube",
       format: (url) => {
