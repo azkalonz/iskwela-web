@@ -8,6 +8,7 @@ import {
   Toolbar,
   Button,
   CircularProgress,
+  Tooltip,
   useMediaQuery,
   useTheme,
   List,
@@ -232,13 +233,15 @@ function Class(props) {
                     <Typography variant="body1" style={{ fontWeight: "bold" }}>
                       {CLASS.name}
                     </Typography>
-                    <IconButton
-                      style={{ position: "absolute", right: 0 }}
-                      aria-label="Collapse Panel"
-                      onClick={() => setCollapsePanel(!collapsePanel)}
-                    >
-                      <ArrowBackIosRoundedIcon />
-                    </IconButton>
+                    <Tooltip title="Hide class panel" placement="bottom-start">
+                      <IconButton
+                        style={{ position: "absolute", right: 0 }}
+                        aria-label="Collapse Panel"
+                        onClick={() => setCollapsePanel(!collapsePanel)}
+                      >
+                        <ArrowBackIosRoundedIcon />
+                      </IconButton>
+                    </Tooltip>
                   </Toolbar>
                   <Box
                     width="100%"
@@ -252,15 +255,20 @@ function Class(props) {
                       height="100%"
                     />
                     {isTeacher && (
-                      <IconButton
-                        style={{
-                          position: "absolute",
-                          bottom: 10,
-                          right: 10,
-                        }}
+                      <Tooltip
+                        title="Edit class picture"
+                        placement="left-start"
                       >
-                        <CreateOutlined />
-                      </IconButton>
+                        <IconButton
+                          style={{
+                            position: "absolute",
+                            bottom: 10,
+                            right: 10,
+                          }}
+                        >
+                          <CreateOutlined />
+                        </IconButton>
+                      </Tooltip>
                     )}
                   </Box>
                   <Divider />
@@ -451,12 +459,17 @@ function Class(props) {
                   }}
                   left={
                     !collapsePanel ? (
-                      <IconButton
-                        aria-label="Collapse Panel"
-                        onClick={() => setCollapsePanel(!collapsePanel)}
+                      <Tooltip
+                        title="Show class panel"
+                        placement="bottom-start"
                       >
-                        <ArrowForwardIosRoundedIcon />
-                      </IconButton>
+                        <IconButton
+                          aria-label="Collapse Panel"
+                          onClick={() => setCollapsePanel(!collapsePanel)}
+                        >
+                          <ArrowForwardIosRoundedIcon />
+                        </IconButton>
+                      </Tooltip>
                     ) : null
                   }
                 />
@@ -470,12 +483,14 @@ function Class(props) {
               }
               left={
                 !collapsePanel ? (
-                  <IconButton
-                    aria-label="Collapse Panel"
-                    onClick={() => setCollapsePanel(!collapsePanel)}
-                  >
-                    <ArrowForwardIosRoundedIcon />
-                  </IconButton>
+                  <Tooltip title="Show class panel" placement="bottom-start">
+                    <IconButton
+                      aria-label="Collapse Panel"
+                      onClick={() => setCollapsePanel(!collapsePanel)}
+                    >
+                      <ArrowForwardIosRoundedIcon />
+                    </IconButton>
+                  </Tooltip>
                 ) : null
               }
             />
