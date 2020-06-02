@@ -177,9 +177,9 @@ function Home(props) {
                       overflow="hidden"
                     >
                       <Avatar
-                        alt={props.userInfo.first_name}
+                        alt={c.teacher.first_name}
                         style={{ width: "100%", height: "100%" }}
-                        src={props.userInfo.pic_url}
+                        src="/teacher.jpg"
                       />
                       {/* <img
                         src="https://source.unsplash.com/random/500x500"

@@ -7,6 +7,7 @@ import {
   CircularProgress,
   Button,
   Typography,
+  Badge,
   IconButton,
   MenuItem,
   Dialog,
@@ -28,6 +29,7 @@ import actions from "./redux/actions";
 import { useHistory } from "react-router-dom";
 import Brightness6Icon from "@material-ui/icons/Brightness6";
 import ArrowDropDownIcon from "@material-ui/icons/ArrowDropDown";
+import MailOutlineIcon from "@material-ui/icons/MailOutline";
 import FileUpload, { stageFiles } from "./FileUpload";
 import CloseIcon from "@material-ui/icons/Close";
 import Form from "./Form";

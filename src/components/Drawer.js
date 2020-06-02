@@ -101,7 +101,11 @@ function Drawer(props) {
                     display: "flex",
                     transform: "translateX(-1.5px)",
                   }}
-                  bgcolor="grey.700"
+                  bgcolor={
+                    item.next_schedule.status === "ONGOING"
+                      ? "primary.main"
+                      : "grey.700"
+                  }
                 >
                   <Typography
                     variant="body1"
@@ -150,7 +154,11 @@ function Drawer(props) {
                         display: "flex",
                         transform: "translateX(-1.5px)",
                       }}
-                      bgcolor="grey.700"
+                      bgcolor={
+                        item.next_schedule.status === "ONGOING"
+                          ? "primary.main"
+                          : "grey.700"
+                      }
                     >
                       <Typography
                         variant="body1"
