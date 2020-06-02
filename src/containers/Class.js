@@ -8,6 +8,8 @@ import {
   Toolbar,
   Button,
   CircularProgress,
+  useMediaQuery,
+  useTheme,
   List,
   ListItem,
   Avatar,
@@ -77,6 +79,8 @@ function ClassRightPanel(props) {
 }
 
 function Class(props) {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const { room_name, class_id, schedule_id, option_name } = props.match.params;
   const history = useHistory();
   const styles = useStyles();
@@ -99,11 +103,6 @@ function Class(props) {
     }
   }, [class_id, schedule_id, props.classDetails]);
 
-  useEffect(() => {
-    if (props.width === "sm" || props.width === "xs") setCollapsePanel(false);
-    else setCollapsePanel(true);
-  }, [props.width]);
-
   const _getClass = async () => {
     if (props.classDetails[class_id]) {
       setCLASS(props.classDetails[class_id]);
@@ -121,6 +120,7 @@ function Class(props) {
         <Typography
           component="div"
           onClick={() => {
+            if (isMobile) setCollapsePanel(false);
             history.push(
               makeLinkTo(["class", CLASS.id, "sc", p.link, "room_name"], {
                 room_name: room_name ? "/video-conference" : "",
@@ -158,6 +158,7 @@ function Class(props) {
     );
     if (room_name)
       history.push(makeLinkTo(["class", class_id, schedule_id, option_name]));
+    if (isMobile) setCollapsePanel(false);
     setSaving(false);
   };
   const _handleJoinClass = async () => {
@@ -251,9 +252,15 @@ function Class(props) {
                       height="100%"
                     />
                     {isTeacher && (
-                      <CreateOutlined
-                        style={{ position: "absolute", bottom: 10, right: 10 }}
-                      />
+                      <IconButton
+                        style={{
+                          position: "absolute",
+                          bottom: 10,
+                          right: 10,
+                        }}
+                      >
+                        <CreateOutlined />
+                      </IconButton>
                     )}
                   </Box>
                   <Divider />
@@ -457,7 +464,7 @@ function Class(props) {
 
             <NavBar
               title={
-                isValidOption(option_name)
+                isValidOption(option_name) && !isMobile
                   ? isValidOption(option_name).title
                   : ""
               }
@@ -536,7 +543,7 @@ const useStyles = makeStyles((theme) => ({
     boxShadow: "0 0 5px rgba(0,0,0,0.3)",
     zIndex: 12,
     position: "relative",
-    width: "calc(100vw-0px)",
+    width: "100vw",
   },
   toolbar: {
     position: "sticky",

@@ -273,7 +273,7 @@ const useStyles = makeStyles((theme) => ({
   },
   content: {
     [theme.breakpoints.down("xs")]: {
-      width: "85%",
+      width: "84%",
     },
     flexGrow: 1,
     padding: theme.spacing(3),

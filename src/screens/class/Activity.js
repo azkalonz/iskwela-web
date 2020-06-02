@@ -24,6 +24,8 @@ import {
   TextField,
   IconButton,
   InputBase,
+  useTheme,
+  useMediaQuery,
   ListItemSecondaryAction,
   makeStyles,
   Typography,
@@ -67,6 +69,8 @@ function Alert(props) {
 }
 
 function Activity(props) {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const [saving, setSaving] = useState(false);
   const [hasFiles, setHasFiles] = useState([false, false]);
   const { class_id, schedule_id } = props.match.params;
@@ -305,7 +309,7 @@ function Activity(props) {
     let stat = s ? "Publish" : "Unpublish";
     setConfirmed({
       title: stat + " Activity",
-      message: "Are you sure to " + s + " this activity?",
+      message: "Are you sure to " + stat + " this activity?",
       yes: async () => {
         setErrors(null);
         setSaving(true);
@@ -594,6 +598,7 @@ function Activity(props) {
         {isTeacher && (
           <Button
             variant="contained"
+            style={{ order: isMobile ? 2 : 0 }}
             color="primary"
             onClick={() => {
               handleClickOpen();
@@ -610,8 +615,11 @@ function Activity(props) {
           justifyContent="space-between"
           alignItems="center"
         >
-          <FormControl style={{ width: 160 }} variant="outlined">
-            <InputLabel style={{ top: -8 }}>Date</InputLabel>
+          <FormControl
+            style={{ width: isMobile ? "100%" : 160 }}
+            variant="outlined"
+          >
+            <InputLabel>Date</InputLabel>
 
             <Select
               label="Schedule"
@@ -636,8 +644,11 @@ function Activity(props) {
           </FormControl>
           &nbsp;
           {isTeacher && (
-            <FormControl style={{ width: 160 }} variant="outlined">
-              <InputLabel style={{ top: -8 }}>Status</InputLabel>
+            <FormControl
+              style={{ width: isMobile ? "100%" : 160 }}
+              variant="outlined"
+            >
+              <InputLabel>Status</InputLabel>
               <Select
                 label="Schedule"
                 value={selectedStatus ? selectedStatus : "all"}
@@ -655,9 +666,16 @@ function Activity(props) {
             </FormControl>
           )}
           &nbsp;
-          <Box border={1} p={0.3} borderRadius={7}>
+          <Box
+            border={1}
+            p={0.3}
+            borderRadius={7}
+            display="flex"
+            {...(isMobile ? { width: "100%" } : {})}
+          >
             <InputBase
               onChange={(e) => _handleSearch(e.target.value)}
+              style={{ width: isMobile ? "100%" : "" }}
               placeholder="Search"
               inputProps={{ "aria-label": "search activity" }}
             />
@@ -941,14 +959,27 @@ function Activity(props) {
                         <ExpansionPanelSummary
                           className={styles.expansionSummary}
                         >
-                          <ListItemIcon>
-                            <InsertDriveFileOutlinedIcon />
-                          </ListItemIcon>
+                          {!isMobile && (
+                            <ListItemIcon>
+                              <InsertDriveFileOutlinedIcon />
+                            </ListItemIcon>
+                          )}
                           <ListItemText
                             primary={item.title}
+                            primaryTypographyProps={{
+                              style: {
+                                width: isMobile ? "80%" : "100%",
+                              },
+                            }}
+                            secondaryTypographyProps={{
+                              style: {
+                                width: isMobile ? "80%" : "100%",
+                              },
+                            }}
                             secondary={item.description.substr(0, 100) + "..."}
                           />
                           <Typography
+                            className={styles.hideonmobile}
                             variant="body1"
                             component="div"
                             style={{ marginRight: 55 }}
@@ -1411,6 +1442,7 @@ const useStyles = makeStyles((theme) => ({
   expansionSummary: {
     "& > div": {
       alignItems: "center",
+      width: "100%",
     },
   },
   expansionDetails: {

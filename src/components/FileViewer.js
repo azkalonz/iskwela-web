@@ -54,7 +54,7 @@ function FV(props) {
         return;
       }
     }
-    setLoading(true);
+    setType("external_page");
   };
   useEffect(() => {
     if (props.url && props.type) {
@@ -62,6 +62,8 @@ function FV(props) {
         setType(types[types.indexOf(props.type)]);
     } else if (props.url) {
       getCustomType(props.url);
+    } else {
+      setLoading(true);
     }
   }, [props.url, props.type]);
   useEffect(() => {

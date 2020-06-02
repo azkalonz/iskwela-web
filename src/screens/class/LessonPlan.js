@@ -12,6 +12,8 @@ import {
   Menu,
   MenuItem,
   FormControl,
+  useTheme,
+  useMediaQuery,
   Select,
   Toolbar,
   InputLabel,
@@ -58,6 +60,8 @@ function Alert(props) {
 const queryString = require("query-string");
 
 function LessonPlan(props) {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const { class_id, schedule_id } = props.match.params;
   const [materials, setMaterials] = useState();
   const [search, setSearch] = useState("");
@@ -179,7 +183,7 @@ function LessonPlan(props) {
     });
     setfileViewerOpen(true);
     if (!f.uploaded_file) {
-      setFile({ ...file, url: f.resource_link, type: "external_page" });
+      setFile({ ...file, url: f.resource_link });
       return;
     }
     let res = await Api.postBlob(
@@ -420,7 +424,7 @@ function LessonPlan(props) {
         alignItems="center"
       >
         {isTeacher && (
-          <div>
+          <div style={isMobile ? { order: 2, width: "100%" } : {}}>
             <Button
               variant="contained"
               color="primary"
@@ -458,7 +462,10 @@ function LessonPlan(props) {
           justifyContent="space-between"
           alignItems="center"
         >
-          <FormControl style={{ width: 160 }} variant="outlined">
+          <FormControl
+            style={{ width: isMobile ? "100%" : 160 }}
+            variant="outlined"
+          >
             <InputLabel style={{ top: -8 }}>Date</InputLabel>
 
             <Select
@@ -482,8 +489,15 @@ function LessonPlan(props) {
             </Select>
           </FormControl>
           &nbsp;
-          <Box border={1} p={0.3} borderRadius={7}>
+          <Box
+            border={1}
+            p={0.3}
+            borderRadius={7}
+            display="flex"
+            style={isMobile ? { width: "100%" } : {}}
+          >
             <InputBase
+              style={{ width: isMobile ? "100%" : "" }}
               onChange={(e) => _handleSearch(e.target.value)}
               placeholder="Search"
               inputProps={{ "aria-label": "search activity" }}
@@ -565,7 +579,7 @@ function LessonPlan(props) {
                           <CircularProgress />
                         </div>
                       )}
-                      <ListItemIcon>
+                      <ListItemIcon className={styles.hideonmobile}>
                         <InsertDriveFileOutlinedIcon />
                       </ListItemIcon>
                       <ListItemText
@@ -576,7 +590,11 @@ function LessonPlan(props) {
                             : item.uploaded_file
                         }
                       />
-                      <Typography variant="body1" style={{ marginRight: 10 }}>
+                      <Typography
+                        variant="body1"
+                        style={{ marginRight: 10 }}
+                        className={styles.hideonmobile}
+                      >
                         {item.added_by.first_name} {item.added_by.last_name}
                       </Typography>
                       <ListItemSecondaryAction>

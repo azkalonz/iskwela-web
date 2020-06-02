@@ -32,6 +32,8 @@ import {
   makeStyles,
   Typography,
   Paper,
+  useTheme,
+  useMediaQuery,
 } from "@material-ui/core";
 import MoreHorizOutlinedIcon from "@material-ui/icons/MoreHorizOutlined";
 import SearchIcon from "@material-ui/icons/Search";
@@ -54,6 +56,8 @@ function Alert(props) {
   return <MuiAlert elevation={6} variant="filled" {...props} />;
 }
 function Schedule(props) {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const history = useHistory();
   const { class_id, schedule_id, option_name } = props.match.params;
   const [schedules, setSchedules] = useState();
@@ -189,8 +193,15 @@ function Schedule(props) {
   return (
     <Box width="100%" alignSelf="flex-start">
       <Box m={2} display="flex" justifyContent="flex-end" flexWrap="wrap">
-        <Box border={1} p={0.3} borderRadius={7}>
+        <Box
+          border={1}
+          p={0.3}
+          borderRadius={7}
+          display="flex"
+          width={isMobile ? "100%" : ""}
+        >
           <InputBase
+            style={{ width: isMobile ? "100%" : "" }}
             onChange={(e) => _handleSearch(e.target.value)}
             placeholder="Search"
             inputProps={{ "aria-label": "search activity" }}
@@ -202,50 +213,51 @@ function Schedule(props) {
       </Box>
 
       <Box m={2}>
-        <TableContainer>
-          <Table aria-label="simple table">
-            <TableHead>
-              <TableRow>
-                {headCells.map((headCell) => (
-                  <TableCell
-                    key={headCell.id}
-                    align={headCell.numeric ? "right" : "left"}
-                    padding={headCell.disablePadding ? "none" : "default"}
-                    sortDirection={orderBy === headCell.id ? order : false}
-                    onClick={() => _handleSort(headCell.id, order)}
-                  >
-                    <TableSortLabel
-                      active={orderBy === headCell.id}
-                      direction={orderBy === headCell.id ? order : "asc"}
+        <Grow in={true}>
+          <TableContainer>
+            <Table aria-label="simple table">
+              <TableHead>
+                <TableRow>
+                  {headCells.map((headCell) => (
+                    <TableCell
+                      key={headCell.id}
+                      align={headCell.numeric ? "right" : "left"}
+                      padding={headCell.disablePadding ? "none" : "default"}
+                      sortDirection={orderBy === headCell.id ? order : false}
+                      onClick={() => _handleSort(headCell.id, order)}
                     >
-                      {headCell.label}
-                      {orderBy === headCell.id ? (
-                        <span className={styles.visuallyHidden}>
-                          {order === "desc"
-                            ? "sorted descending"
-                            : "sorted ascending"}
-                        </span>
-                      ) : null}
-                    </TableSortLabel>
-                  </TableCell>
-                ))}
-                <TableCell></TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {schedules &&
-                schedules
-                  .filter(
-                    (i) => JSON.stringify(i).toLowerCase().indexOf(search) >= 0
-                  )
-                  .map((row) => {
-                    let status = {
-                      className: styles[row.status],
-                      label: row.status,
-                      color: styles[row.status + "_color"],
-                    };
-                    return (
-                      <Grow in={true}>
+                      <TableSortLabel
+                        active={orderBy === headCell.id}
+                        direction={orderBy === headCell.id ? order : "asc"}
+                      >
+                        {headCell.label}
+                        {orderBy === headCell.id ? (
+                          <span className={styles.visuallyHidden}>
+                            {order === "desc"
+                              ? "sorted descending"
+                              : "sorted ascending"}
+                          </span>
+                        ) : null}
+                      </TableSortLabel>
+                    </TableCell>
+                  ))}
+                  <TableCell></TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {schedules &&
+                  schedules
+                    .filter(
+                      (i) =>
+                        JSON.stringify(i).toLowerCase().indexOf(search) >= 0
+                    )
+                    .map((row) => {
+                      let status = {
+                        className: styles[row.status],
+                        label: row.status,
+                        color: styles[row.status + "_color"],
+                      };
+                      return (
                         <TableRow
                           key={row.name}
                           className={[styles.row, status.color].join(" ")}
@@ -350,12 +362,12 @@ function Schedule(props) {
                             )}
                           </TableCell>
                         </TableRow>
-                      </Grow>
-                    );
-                  })}
-            </TableBody>
-          </Table>
-        </TableContainer>
+                      );
+                    })}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </Grow>
       </Box>
       <Dialog
         open={open}
@@ -522,6 +534,9 @@ const useStyles = makeStyles((theme) => ({
   row: {
     backgroundColor: theme.palette.grey[200],
     borderLeft: "4px solid",
+    "& > td,& > th": {
+      whiteSpace: "pre",
+    },
   },
   visuallyHidden: {
     border: 0,
