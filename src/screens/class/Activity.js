@@ -302,7 +302,10 @@ function Activity(props) {
   };
 
   const _handleUpdateActivityStatus = (a, s) => {
+    let stat = s ? "Publish" : "Unpublish";
     setConfirmed({
+      title: stat + " Activity",
+      message: "Are you sure to " + s + " this activity?",
       yes: async () => {
         setErrors(null);
         setSaving(true);
@@ -323,6 +326,8 @@ function Activity(props) {
   };
   const _handleRemoveActivity = (activity) => {
     setConfirmed({
+      title: "Remove Activity",
+      message: "Are you sure to remove this activity?",
       yes: async () => {
         setErrors(null);
         setSaving(true);
@@ -357,6 +362,8 @@ function Activity(props) {
   };
   const _handleRemoveMaterial = (material, index) => {
     setConfirmed({
+      title: "Remove Material",
+      message: "Are you sure to remove this material?",
       yes: async () => {
         if (!material.id) {
           let m = [...form.materials];
@@ -403,7 +410,10 @@ function Activity(props) {
     });
     setfileViewerOpen(true);
     if (!f.uploaded_file) {
-      setFile({ ...file, url: f.resource_link, type: "external_page" });
+      setFile({
+        ...file,
+        url: f.resource_link,
+      });
       return;
     }
     let res = await Api.postBlob(
@@ -443,13 +453,30 @@ function Activity(props) {
     setSaving(false);
     console.log(a);
   };
+  const handleGooglePicker = () => {
+    let picker = window.open("/picker", "_blank", "location=yes");
+    picker.onload = () => {
+      picker.onunload = () => {
+        if (picker.file_url && picker.title) {
+          let l = picker.file_url;
+          l = l.replace(l.substr(l.indexOf("/view"), l.length), "/preview");
+          let newmaterial = {
+            title: picker.title,
+            resource_link: l,
+          };
+          let m = form.materials
+            ? [newmaterial, ...form.materials]
+            : [newmaterial];
+          setForm({ ...form, materials: m });
+        }
+      };
+    };
+  };
   return (
     <Box width="100%" alignSelf="flex-start" height="100%">
       <Dialog open={confirmed} onClose={() => setConfirmed(null)}>
-        <DialogTitle>Modify Activity</DialogTitle>
-        <DialogContent>
-          Are you sure you want to modify this file?
-        </DialogContent>
+        <DialogTitle>{confirmed && confirmed.title}</DialogTitle>
+        <DialogContent>{confirmed && confirmed.message}</DialogContent>
         <DialogActions>
           <Button
             onClick={() => {
@@ -919,7 +946,7 @@ function Activity(props) {
                           </ListItemIcon>
                           <ListItemText
                             primary={item.title}
-                            secondary={item.description.substr(0, 50) + "..."}
+                            secondary={item.description.substr(0, 100) + "..."}
                           />
                           <Typography
                             variant="body1"
@@ -1042,6 +1069,8 @@ function Activity(props) {
       <Dialog
         open={modals[0]}
         keepMounted
+        fullWidth
+        maxWidth="md"
         onClose={handleClose}
         aria-labelledby="alert-dialog-slide-title"
         aria-describedby="alert-dialog-slide-description"
@@ -1089,8 +1118,8 @@ function Activity(props) {
                     disableToolbar
                     variant="inline"
                     format="MMM DD, YYYY"
+                    style={{ width: "49%" }}
                     margin="normal"
-                    id="date-picker-inline"
                     label="From"
                     value={moment(form.available_from).format("YYYY-MM-DD")}
                     onChange={(date) =>
@@ -1106,9 +1135,9 @@ function Activity(props) {
                   <KeyboardDatePicker
                     disableToolbar
                     variant="inline"
+                    style={{ width: "49%" }}
                     format="MMM DD, YYYY"
                     margin="normal"
-                    id="date-picker-inline"
                     label="To"
                     value={moment(form.available_to).format("YYYY-MM-DD")}
                     onChange={(date) =>
@@ -1164,9 +1193,7 @@ function Activity(props) {
                   <List dense={true}>
                     <ListItem>
                       <ListItemText
-                        primary={
-                          f.resource_link ? f.resource_link : f.uploaded_file
-                        }
+                        primary={f.resource_link ? f.title : f.uploaded_file}
                       />
                       <ListItemSecondaryAction>
                         <IconButton
@@ -1217,6 +1244,9 @@ function Activity(props) {
               style={{ float: "left" }}
             >
               Add Link
+            </Button>
+            <Button onClick={handleGooglePicker} variant="outlined">
+              Google Drive
             </Button>
           </div>
           <DialogActions>
@@ -1279,7 +1309,6 @@ function Activity(props) {
               />
               <TextField
                 label="link"
-                variant="filled"
                 onChange={(e) => {
                   setNewMaterial({
                     ...newMaterial,

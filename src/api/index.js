@@ -64,7 +64,7 @@ Api.auth = async (callback = {}) => {
         return callback.success ? callback.success(u) : u;
       }
     } catch (e) {
-      return callback.fail ? callback.fail(e) : e;
+      callback.fail && callback.fail(e);
     }
   }
   localStorage.removeItem("auth");

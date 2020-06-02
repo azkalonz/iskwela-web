@@ -191,7 +191,7 @@ function Drawer(props) {
               }}
             >
               <Avatar
-                src="http://localhost:3000/deped-logo.png"
+                src="/deped-logo.png"
                 imgProps={{
                   style: {
                     width: "100%",
