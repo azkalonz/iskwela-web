@@ -12,6 +12,7 @@ import {
   Dialog,
   Snackbar,
   DialogContent,
+  Switch,
   DialogTitle,
   Menu,
   Grow,
@@ -34,6 +35,7 @@ import Api from "../api";
 import MuiAlert from "@material-ui/lab/Alert";
 import UserData from "./UserData";
 import HelpOutlineOutlinedIcon from "@material-ui/icons/HelpOutlineOutlined";
+import store from "./redux/store";
 
 function Alert(props) {
   return <MuiAlert elevation={6} variant="filled" {...props} />;
@@ -77,12 +79,11 @@ function NavBar(props) {
     window.location = "/login";
   };
   const _handleThemeType = () => {
-    if (window.location.pathname !== "/") return;
     let mode = window.localStorage["mode"];
     if (mode) mode = mode === "dark" ? "light" : "dark";
     else mode = "dark";
     window.localStorage["mode"] = mode;
-    window.location.reload();
+    store.dispatch({ type: "SET_THEME", theme: mode });
   };
   return (
     <div className={classes.root}>
@@ -161,8 +162,14 @@ function NavBar(props) {
                 <MenuItem onClick={() => setchangePassDialog(true)}>
                   Preferences
                 </MenuItem>
-                <MenuItem onClick={_handleThemeType}>
-                  Turn {props.theme !== "dark" ? "on" : "off"} Dark mode
+                <MenuItem>
+                  Dark mode
+                  <Switch
+                    checked={props.theme === "dark"}
+                    onChange={_handleThemeType}
+                    name="checkedA"
+                    inputProps={{ "aria-label": "secondary checkbox" }}
+                  />
                 </MenuItem>
                 <MenuItem onClick={handleLogout}>Logout</MenuItem>
               </Menu>

@@ -84,7 +84,7 @@ function Class(props) {
   const { room_name, class_id, schedule_id, option_name } = props.match.params;
   const history = useHistory();
   const styles = useStyles();
-  const [collapsePanel, setCollapsePanel] = useState(false);
+  const [collapsePanel, setCollapsePanel] = useState(true);
   const [loading, setLoading] = useState(true);
   const [CLASS, setCLASS] = useState();
   const userInfo = props.userInfo;

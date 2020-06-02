@@ -23,13 +23,122 @@ import CssBaseline from "@material-ui/core/CssBaseline";
 import UserData from "./components/UserData";
 import socket from "./components/socket.io";
 import GooglePicker from "./components/GooglePicker";
+import { connect } from "react-redux";
 
 const primaryColor = "#6200ef";
 
 function App(props) {
+  const useStyles = makeStyles((theme) => ({
+    root: {
+      background: props.theme === "dark" ? "#222222" : theme.palette.grey[300],
+    },
+  }));
   const styles = useStyles();
   const [loading, setLoading] = useState(true);
   const [loadingProgress, setLoadingProgress] = useState(0);
+  const skeletonCustomTheme =
+    props.theme === "dark"
+      ? {
+          color: "#474747",
+          highlightColor: "#575757",
+        }
+      : {
+          color: "#d9d9d9",
+          highlightColor: "#e9e9e9",
+        };
+  const theme = createMuiTheme({
+    overrides: {
+      MuiCssBaseline: {
+        "@global": {
+          "::selection": {
+            backgroundColor: primaryColor,
+            color: "#fff",
+          },
+          "#selected-option": {
+            position: "relative",
+            "&:before": {
+              content: "''",
+              position: "absolute",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: primaryColor,
+              opacity: 0.2,
+              zIndex: -1,
+            },
+          },
+        },
+      },
+      MuiDivider: {
+        root: {
+          marginTop: 1,
+        },
+      },
+      MuiPaper: {
+        root: {
+          ...(props.theme === "dark" ? { backgroundColor: "#111" } : {}),
+        },
+      },
+      MuiToolbar: {
+        regular: {
+          minHeight: "51px!important",
+          borderBottom: "1px solid rgba(0, 0, 0, 0.12)",
+        },
+      },
+      MuiListItem: {
+        root: {
+          "&:hover": {
+            cursor: "pointer!important",
+            ...(props.theme === "dark"
+              ? { backgroundColor: "#111" }
+              : { backgroundColor: "#fff" }),
+          },
+        },
+      },
+      MuiSelect: {
+        root: {
+          padding: 10,
+        },
+      },
+      MuiButton: {
+        root: {
+          [defaultTheme.breakpoints.down("xs")]: {
+            width: "100%",
+            marginTop: 5,
+            marginBottom: 5,
+            whiteSpace: "nowrap",
+          },
+        },
+      },
+      MuiInputBase: {
+        input: {
+          paddingLeft: 10,
+        },
+      },
+      MuiTypography: {
+        root: {
+          whiteSpace: "nowrap",
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+        },
+      },
+    },
+    palette: {
+      type: props.theme,
+      primary: {
+        main: primaryColor,
+      },
+      grey:
+        props.theme === "dark"
+          ? {
+              100: "#171717",
+              200: "#191919",
+              300: "#1e1e1e",
+            }
+          : {},
+    },
+  });
   useEffect(() => {
     socket.on("get class details", (c) => {
       if (store.getState().classes[c.id]) {
@@ -108,7 +217,7 @@ function App(props) {
                   <CircularProgressWithLabel
                     value={loadingProgress}
                     variant="static"
-                    color={mode === "dark" ? "white" : "primary"}
+                    color={props.theme === "dark" ? "white" : "primary"}
                   />
                 </Box>
                 <Typography variant="h5">iSkwela</Typography>
@@ -146,119 +255,10 @@ function CircularProgressWithLabel(props) {
 }
 const defaultTheme = createMuiTheme();
 let mode = window.localStorage["mode"] ? window.localStorage["mode"] : "light";
-mode = mode === "dark" || mode === "lgiht" ? mode : "light";
+mode = mode === "dark" || mode === "light" ? mode : "light";
 store.dispatch({
   type: "SET_THEME",
   theme: mode,
 });
-const useStyles = makeStyles((theme) => ({
-  root: {
-    background: mode === "dark" ? "#222222" : theme.palette.grey[300],
-  },
-}));
-const theme = createMuiTheme({
-  overrides: {
-    MuiCssBaseline: {
-      "@global": {
-        "::selection": {
-          backgroundColor: primaryColor,
-          color: "#fff",
-        },
-        "#selected-option": {
-          position: "relative",
-          "&:before": {
-            content: "''",
-            position: "absolute",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: primaryColor,
-            opacity: 0.2,
-            zIndex: -1,
-          },
-        },
-      },
-    },
-    MuiDivider: {
-      root: {
-        marginTop: 1,
-      },
-    },
-    MuiPaper: {
-      root: {
-        ...(mode === "dark" ? { backgroundColor: "#111" } : {}),
-      },
-    },
-    MuiToolbar: {
-      regular: {
-        minHeight: "51px!important",
-        borderBottom: "1px solid rgba(0, 0, 0, 0.12)",
-      },
-    },
-    MuiListItem: {
-      root: {
-        "&:hover": {
-          cursor: "pointer!important",
-          ...(mode === "dark"
-            ? { backgroundColor: "#111" }
-            : { backgroundColor: "#fff" }),
-        },
-      },
-    },
-    MuiSelect: {
-      root: {
-        padding: 10,
-      },
-    },
-    MuiButton: {
-      root: {
-        [defaultTheme.breakpoints.down("xs")]: {
-          width: "100%",
-          marginTop: 5,
-          marginBottom: 5,
-          whiteSpace: "nowrap",
-        },
-      },
-    },
-    MuiInputBase: {
-      input: {
-        paddingLeft: 10,
-      },
-    },
-    MuiTypography: {
-      root: {
-        whiteSpace: "nowrap",
-        overflow: "hidden",
-        textOverflow: "ellipsis",
-      },
-    },
-  },
-  palette: {
-    type: mode,
-    primary: {
-      main: primaryColor,
-    },
-    grey:
-      mode === "dark"
-        ? {
-            100: "#171717",
-            200: "#191919",
-            300: "#1e1e1e",
-          }
-        : {},
-  },
-});
 
-const skeletonCustomTheme =
-  mode === "dark"
-    ? {
-        color: "#474747",
-        highlightColor: "#575757",
-      }
-    : {
-        color: "#d9d9d9",
-        highlightColor: "#e9e9e9",
-      };
-
-export default App;
+export default connect((states) => ({ theme: states.theme }))(App);
