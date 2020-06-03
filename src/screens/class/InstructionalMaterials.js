@@ -381,12 +381,13 @@ function InstructionalMaterials(props) {
         fullScreen={fileFullScreen}
       >
         {file && (
-          <DialogContent>
+          <DialogContent style={{ height: "100vh" }}>
             <Toolbar
               style={{
                 position: "sticky",
                 zIndex: 10,
                 background: "#fff",
+                height: "6%",
                 top: 0,
                 right: 0,
                 left: 0,

@@ -17,6 +17,7 @@ export function makeLinkTo(path, options = {}) {
       .join("/")
       .replace("/?", "?")
       .replace("//", "/")
+      .replace(/\/&/g, "&")
   );
 }
 export const rightPanelOptions = [

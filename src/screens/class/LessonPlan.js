@@ -316,7 +316,7 @@ function LessonPlan(props) {
         fullScreen={fileFullScreen}
       >
         {file && (
-          <DialogContent>
+          <DialogContent style={{ height: "100vh" }}>
             <Toolbar
               style={{
                 position: "sticky",
@@ -324,6 +324,7 @@ function LessonPlan(props) {
                 background: "#fff",
                 top: 0,
                 right: 0,
+                height: "6%",
                 left: 0,
                 display: "flex",
                 justifyContent: "space-between",

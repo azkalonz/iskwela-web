@@ -25,6 +25,7 @@ import {
   IconButton,
   InputBase,
   useTheme,
+  Checkbox,
   useMediaQuery,
   ListItemSecondaryAction,
   makeStyles,
@@ -34,6 +35,8 @@ import {
   InputLabel,
   Select,
   Toolbar,
+  AppBar,
+  Tooltip,
 } from "@material-ui/core";
 import InsertDriveFileOutlinedIcon from "@material-ui/icons/InsertDriveFileOutlined";
 import MoreHorizOutlinedIcon from "@material-ui/icons/MoreHorizOutlined";
@@ -64,12 +67,20 @@ import CloseIcon from "@material-ui/icons/Close";
 import FullscreenIcon from "@material-ui/icons/Fullscreen";
 import FullscreenExitIcon from "@material-ui/icons/FullscreenExit";
 import socket from "../../components/socket.io";
+import { useHistory } from "react-router-dom";
+import DeleteOutlineOutlinedIcon from "@material-ui/icons/DeleteOutlineOutlined";
+import VisibilityOffOutlinedIcon from "@material-ui/icons/VisibilityOffOutlined";
+import VisibilityOutlinedIcon from "@material-ui/icons/VisibilityOutlined";
+import { makeLinkTo } from "../../components/router-dom";
+const queryString = require("query-string");
 function Alert(props) {
   return <MuiAlert elevation={6} variant="filled" {...props} />;
 }
 
 function Activity(props) {
+  const history = useHistory();
   const theme = useTheme();
+  const query = queryString.parse(window.location.search);
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const [saving, setSaving] = useState(false);
   const [hasFiles, setHasFiles] = useState([false, false]);
@@ -90,12 +101,21 @@ function Activity(props) {
   const [newMaterial, setNewMaterial] = useState({});
   const [success, setSuccess] = useState(false);
   const [confirmed, setConfirmed] = useState(false);
-  const [savingId, setSavingId] = useState();
+  const [savingId, setSavingId] = useState([]);
   const [fileFullScreen, setFileFullScreen] = useState(false);
+  const [selectedItems, setSelectedItems] = useState([]);
   const [selectedStatus, setSelectedStatus] = useState(
-    isTeacher ? null : "published"
+    isTeacher
+      ? query.status && query.status !== "all"
+        ? query.status
+        : null
+      : "published"
   );
-  const [selectedSched, setSelectedSched] = useState();
+  const [page, setPage] = useState(query.page ? query.page : 1);
+  const [selectedSched, setSelectedSched] = useState(
+    query.date && query.date != -1 ? query.date : null
+  );
+  const ITEMS_PER_PAGE = 10;
 
   const formTemplate = {
     activity_type: 1,
@@ -221,6 +241,7 @@ function Activity(props) {
   };
   const _handleSearch = (e) => {
     setSearch(e.toLowerCase());
+    setPage(1);
   };
 
   const handleClickOpen = () => {
@@ -239,7 +260,7 @@ function Activity(props) {
       currentActivity && item.id === currentActivity.id ? undefined : item
     );
   };
-  const _handleCreateActivity = async (params = {}) => {
+  const _handleCreateActivity = async (params = {}, noupdate = false) => {
     setErrors(null);
     setSaving(true);
     let err = [];
@@ -303,16 +324,18 @@ function Activity(props) {
           });
         }
         setSuccess(true);
-        let newScheduleDetails = await UserData.updateScheduleDetails(
-          class_id,
-          selectedSched ? selectedSched : schedule_id
-        );
-        socket.emit("update schedule details", {
-          id: class_id,
-          details: newScheduleDetails,
-        });
-        _handleFileOption("view", res);
-        setModals([modals[0], false]);
+        if (!noupdate) {
+          let newScheduleDetails = await UserData.updateScheduleDetails(
+            class_id,
+            selectedSched ? selectedSched : schedule_id
+          );
+          socket.emit("update schedule details", {
+            id: class_id,
+            details: newScheduleDetails,
+          });
+          _handleFileOption("view", res);
+          setModals([modals[0], false]);
+        }
       } else {
         for (let e in res.errors) {
           err.push(res.errors[e][0]);
@@ -332,7 +355,7 @@ function Activity(props) {
         setErrors(null);
         setSaving(true);
         setConfirmed(null);
-        setSavingId(a.id);
+        setSavingId([...savingId, a.id]);
         await _handleCreateActivity({
           ...a,
           activity_type: a.activity_type == "class activity" ? 1 : 2,
@@ -354,7 +377,7 @@ function Activity(props) {
         setErrors(null);
         setSaving(true);
         setConfirmed(null);
-        setSavingId(activity.id);
+        setSavingId([...savingId, activity.id]);
         let id = parseInt(activity.id);
         let res = await Api.post("/api/teacher/remove/class-activity/" + id, {
           body: {
@@ -378,6 +401,81 @@ function Activity(props) {
           }
           setErrors(err);
         }
+        setSaving(false);
+      },
+    });
+  };
+  const _handleUpdateActivitiesStatus = (a, s) => {
+    let stat = s ? "Publish" : "Unpublish";
+    setConfirmed({
+      title: stat + " " + Object.keys(a).length + " Activities",
+      message: "Are you sure to " + stat + " this activities?",
+      yes: async () => {
+        setErrors(null);
+        setSaving(true);
+        setConfirmed(null);
+        setSavingId([...savingId, ...Object.keys(a).map((i) => a[i].id)]);
+        let err = [];
+        await asyncForEach(Object.keys(a), async (i) => {
+          await Api.post("/api/class/activity/save", {
+            body: {
+              ...a[i],
+              activity_type: a[i].activity_type == "class activity" ? 1 : 2,
+              published: s,
+              schedule_id: selectedSched ? selectedSched : classSched,
+              subject_id: props.classDetails[class_id].subject.id,
+              id: a[i].id,
+              class_id,
+            },
+          });
+        });
+        let newScheduleDetails = await UserData.updateScheduleDetails(
+          class_id,
+          schedule_id
+        );
+        socket.emit("update schedule details", {
+          id: class_id,
+          details: newScheduleDetails,
+        });
+        setSaving(false);
+      },
+    });
+  };
+  const _handleRemoveActivities = (activities) => {
+    setConfirmed({
+      title: "Remove " + Object.keys(activities).length + " Activities",
+      message: "Are you sure to remove this activities?",
+      yes: async () => {
+        setErrors(null);
+        setSaving(true);
+        setConfirmed(null);
+        setSavingId([
+          ...savingId,
+          ...Object.keys(activities).map((i) => activities[i].id),
+        ]);
+        let err = [];
+        await asyncForEach(Object.keys(activities), async (i) => {
+          let id = parseInt(i);
+          let res = await Api.post("/api/teacher/remove/class-activity/" + id, {
+            body: {
+              id,
+            },
+          });
+          if (res.errors) {
+            for (let e in res.errors) {
+              err.push(res.errors[e][0]);
+            }
+            setErrors(err);
+          }
+        });
+        let newScheduleDetails = await UserData.updateScheduleDetails(
+          class_id,
+          schedule_id
+        );
+        socket.emit("update schedule details", {
+          id: class_id,
+          details: newScheduleDetails,
+        });
         setSaving(false);
       },
     });
@@ -508,6 +606,82 @@ function Activity(props) {
       }
     };
   };
+  const Pagination = (props) => {
+    const itemsPerPage = ITEMS_PER_PAGE;
+    const totalItems = props.length;
+    const page = props.page;
+    const totalPages = Math.ceil(totalItems / itemsPerPage);
+    let buttons = [];
+    for (let i = 0; i < totalPages; i++) {
+      buttons.push(
+        <Button
+          color={i == page - 1 ? "primary" : ""}
+          variant={i == page - 1 ? "contained" : ""}
+          onClick={() => {
+            props.onChange(i);
+            history.push(
+              makeLinkTo(
+                [
+                  "class",
+                  class_id,
+                  schedule_id,
+                  "activity",
+                  "page",
+                  "date",
+                  "status",
+                ],
+                {
+                  page: "?page=" + (i + 1),
+                  date: query.date ? "&date=" + query.date : "",
+                  status: query.status ? "&status=" + query.status : "",
+                }
+              )
+            );
+            console.log(
+              i * ITEMS_PER_PAGE,
+              i * ITEMS_PER_PAGE + ITEMS_PER_PAGE
+            );
+          }}
+        >
+          {i + 1}
+        </Button>
+      );
+    }
+    return <div>{buttons}</div>;
+  };
+
+  const _handleSelectOption = (item) => {
+    if (selectedItems[item.id]) {
+      let b = { ...selectedItems };
+      delete b[item.id];
+      setSelectedItems(b);
+      return;
+    }
+    let newitem = {};
+    newitem[item.id] = item;
+    setSelectedItems({ ...selectedItems, ...newitem });
+    console.log(selectedItems);
+  };
+
+  const getFilteredActivities = () =>
+    activities
+      .filter((a) => JSON.stringify(a).toLowerCase().indexOf(search) >= 0)
+      .filter((a) => (isTeacher ? true : a.status === "published"))
+      .filter((a) => (selectedSched ? selectedSched == a.schedule_id : true))
+      .filter((a) => (selectedStatus ? selectedStatus === a.status : true))
+      .reverse()
+      .slice(
+        (page - 1) * ITEMS_PER_PAGE,
+        (page - 1) * ITEMS_PER_PAGE + ITEMS_PER_PAGE
+      );
+  const _selectAll = () => {
+    let filtered = getFilteredActivities();
+    let b = {};
+    filtered.forEach((a) => {
+      b[a.id] = a;
+    });
+    setSelectedItems(b);
+  };
   return (
     <Box width="100%" alignSelf="flex-start" height="100%">
       <Dialog open={confirmed} onClose={() => setConfirmed(null)}>
@@ -577,13 +751,14 @@ function Activity(props) {
         aria-describedby="alert-dialog-slide-description"
       >
         {file && (
-          <DialogContent>
+          <DialogContent style={{ height: "100vh" }}>
             <Toolbar
               style={{
                 position: "sticky",
                 zIndex: 10,
                 background: "#fff",
                 top: 0,
+                height: "6%",
                 right: 0,
                 left: 0,
                 display: "flex",
@@ -656,11 +831,29 @@ function Activity(props) {
             <Select
               label="Schedule"
               value={selectedSched ? selectedSched : -1}
-              onChange={(e) =>
+              onChange={(e) => {
                 setSelectedSched(
                   parseInt(e.target.value) !== -1 ? e.target.value : null
-                )
-              }
+                );
+                history.push(
+                  makeLinkTo(
+                    [
+                      "class",
+                      class_id,
+                      schedule_id,
+                      "activity",
+                      "page",
+                      "date",
+                      "status",
+                    ],
+                    {
+                      page: "?page=1",
+                      date: "&date=" + e.target.value,
+                      status: query.status ? "&status=" + query.status : "",
+                    }
+                  )
+                );
+              }}
               padding={10}
             >
               <MenuItem value={-1}>All</MenuItem>
@@ -684,11 +877,31 @@ function Activity(props) {
               <Select
                 label="Schedule"
                 value={selectedStatus ? selectedStatus : "all"}
-                onChange={(e) =>
+                onChange={(e) => {
                   setSelectedStatus(
                     e.target.value !== "all" ? e.target.value : null
-                  )
-                }
+                  );
+                  history.push(
+                    makeLinkTo(
+                      [
+                        "class",
+                        class_id,
+                        schedule_id,
+                        "activity",
+                        "page",
+                        "date",
+                        "status",
+                      ],
+                      {
+                        page: "?page=1",
+                        date: query.date
+                          ? "&date=" + query.date
+                          : "&date=" + -1,
+                        status: "&status=" + e.target.value,
+                      }
+                    )
+                  );
+                }}
                 padding={10}
               >
                 <MenuItem value="all">All</MenuItem>
@@ -899,45 +1112,116 @@ function Activity(props) {
       {activities && (
         <Box width="100%" alignSelf="flex-start">
           <Box m={2}>
-            <List className={styles.hideonmobile}>
-              <ListItem
-                ContainerComponent="li"
-                style={{
-                  display: "flex",
-                  flexDirection: "row",
-                  justifyContent: "space-between",
-                  backgroundColor: "transparent",
-                }}
-              >
-                <Button size="small" onClick={() => _handleSort("title")}>
-                  <ListItemText primary="Title" />
-                  {sortType === "ASCENDING" ? (
-                    <ArrowUpwardOutlinedIcon />
-                  ) : (
-                    <ArrowDownwardOutlinedIcon />
-                  )}
-                </Button>
-                <Typography
-                  variant="body1"
-                  style={{ marginRight: 10 }}
-                  onClick={() => _handleSort("available_from")}
+            {!Object.keys(selectedItems).length ? (
+              <List>
+                <ListItem
+                  ContainerComponent="li"
+                  style={{
+                    display: "flex",
+                    flexDirection: "row",
+                    justifyContent: "space-between",
+                    backgroundColor: "transparent",
+                  }}
                 >
-                  DATE
-                </Typography>
-                <ListItemSecondaryAction></ListItemSecondaryAction>
-              </ListItem>
-            </List>
-            {!activities
-              .filter(
-                (a) => JSON.stringify(a).toLowerCase().indexOf(search) >= 0
-              )
-              .filter((a) => (isTeacher ? true : a.status === "published"))
-              .filter((a) =>
-                selectedSched ? selectedSched == a.schedule_id : true
-              )
-              .filter((a) =>
-                selectedStatus ? selectedStatus === a.status : true
-              ).length && (
+                  <div style={{ display: "flex", alignItems: "center" }}>
+                    <ListItemIcon>
+                      <Checkbox
+                        checked={
+                          Object.keys(selectedItems).length ==
+                          getFilteredActivities().length
+                        }
+                        onChange={() => {
+                          _selectAll();
+                        }}
+                      />
+                    </ListItemIcon>
+                    <Button size="small" onClick={() => _handleSort("title")}>
+                      <ListItemText primary="Title" />
+                      {sortType === "ASCENDING" ? (
+                        <ArrowUpwardOutlinedIcon />
+                      ) : (
+                        <ArrowDownwardOutlinedIcon />
+                      )}
+                    </Button>
+                  </div>
+                  <Typography
+                    variant="body1"
+                    style={{ marginRight: 10 }}
+                    onClick={() => _handleSort("available_from")}
+                  >
+                    DATE
+                  </Typography>
+                  <ListItemSecondaryAction></ListItemSecondaryAction>
+                </ListItem>
+              </List>
+            ) : (
+              <AppBar
+                position="relative"
+                style={{ background: theme.palette.grey[200] }}
+              >
+                <Toolbar
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                  }}
+                >
+                  <div>
+                    <Checkbox
+                      checked={
+                        Object.keys(selectedItems).length ==
+                        getFilteredActivities().length
+                      }
+                      onChange={() => {
+                        _selectAll();
+                      }}
+                    />
+                    <Grow in={true}>
+                      <Tooltip title="Delete" placement="bottom">
+                        <IconButton
+                          onClick={() => _handleRemoveActivities(selectedItems)}
+                        >
+                          <DeleteOutlineOutlinedIcon />
+                        </IconButton>
+                      </Tooltip>
+                    </Grow>
+                    <Grow in={true}>
+                      <Tooltip title="Unpublish" placement="bottom">
+                        <IconButton
+                          onClick={() =>
+                            _handleUpdateActivitiesStatus(selectedItems, 0)
+                          }
+                        >
+                          <VisibilityOffOutlinedIcon />
+                        </IconButton>
+                      </Tooltip>
+                    </Grow>
+                    <Grow in={true}>
+                      <Tooltip title="Publish" placement="bottom">
+                        <IconButton
+                          onClick={() =>
+                            _handleUpdateActivitiesStatus(selectedItems, 1)
+                          }
+                        >
+                          <VisibilityOutlinedIcon />
+                        </IconButton>
+                      </Tooltip>
+                    </Grow>
+                  </div>
+                  <div>
+                    <Grow in={true}>
+                      <Button
+                        variant="outlined"
+                        onClick={() => setSelectedItems({})}
+                      >
+                        Cancel
+                      </Button>
+                    </Grow>
+                  </div>
+                </Toolbar>
+              </AppBar>
+            )}
+            {!getFilteredActivities().length && (
               <Box
                 width="100%"
                 alignItems="center"
@@ -952,182 +1236,179 @@ function Activity(props) {
             )}
             <Grow in={activities ? true : false}>
               <List>
-                {activities
-                  .filter(
-                    (a) => JSON.stringify(a).toLowerCase().indexOf(search) >= 0
-                  )
-                  .filter((a) => (isTeacher ? true : a.status === "published"))
-                  .filter((a) =>
-                    selectedSched ? selectedSched == a.schedule_id : true
-                  )
-                  .filter((a) =>
-                    selectedStatus ? selectedStatus === a.status : true
-                  )
-                  .reverse()
-                  .map((item, index) => (
-                    <ListItem
-                      className={styles.listItem}
+                {getFilteredActivities().map((item, index) => (
+                  <ListItem
+                    className={styles.listItem}
+                    style={{
+                      borderColor:
+                        item.status == "published"
+                          ? theme.palette.success.main
+                          : "#fff",
+                      ...(currentActivity && item.id === currentActivity.id
+                        ? {
+                            background:
+                              props.theme === "dark" ? "#111" : "#fff",
+                          }
+                        : {}),
+                    }}
+                  >
+                    <ListItemIcon>
+                      <Checkbox
+                        checked={selectedItems[item.id] ? true : false}
+                        onChange={() => {
+                          _handleSelectOption(item);
+                        }}
+                      />
+                    </ListItemIcon>
+                    {saving && savingId.indexOf(item.id) >= 0 && (
+                      <div className={styles.itemLoading}>
+                        <CircularProgress />
+                      </div>
+                    )}
+
+                    <ExpansionPanel
                       style={{
-                        borderColor:
-                          item.status == "published"
-                            ? theme.palette.success.main
-                            : "#fff",
-                        ...(currentActivity && item.id === currentActivity.id
-                          ? {
-                              background:
-                                props.theme === "dark" ? "#111" : "#fff",
-                            }
-                          : {}),
+                        width: "100%",
+                        boxShadow: "none",
+                        background: "transparent",
                       }}
                     >
-                      {saving && savingId === item.id && (
-                        <div className={styles.itemLoading}>
-                          <CircularProgress />
-                        </div>
-                      )}
-                      <ExpansionPanel
-                        style={{
-                          width: "100%",
-                          boxShadow: "none",
-                          background: "transparent",
-                        }}
+                      <ExpansionPanelSummary
+                        className={styles.expansionSummary}
                       >
-                        <ExpansionPanelSummary
-                          className={styles.expansionSummary}
+                        <ListItemText
+                          primary={item.title}
+                          primaryTypographyProps={{
+                            style: {
+                              width: isMobile ? "80%" : "100%",
+                            },
+                          }}
+                          secondaryTypographyProps={{
+                            style: {
+                              width: isMobile ? "80%" : "100%",
+                            },
+                          }}
+                          secondary={item.description.substr(0, 100) + "..."}
+                        />
+                        <Typography
+                          className={styles.hideonmobile}
+                          variant="body1"
+                          component="div"
+                          style={{ marginRight: 55 }}
                         >
-                          {!isMobile && (
-                            <ListItemIcon>
-                              <InsertDriveFileOutlinedIcon />
-                            </ListItemIcon>
-                          )}
-                          <ListItemText
-                            primary={item.title}
-                            primaryTypographyProps={{
-                              style: {
-                                width: isMobile ? "80%" : "100%",
-                              },
-                            }}
-                            secondaryTypographyProps={{
-                              style: {
-                                width: isMobile ? "80%" : "100%",
-                              },
-                            }}
-                            secondary={item.description.substr(0, 100) + "..."}
-                          />
-                          <Typography
-                            className={styles.hideonmobile}
-                            variant="body1"
-                            component="div"
-                            style={{ marginRight: 55 }}
-                          >
-                            {moment(item.available_from).format("LL")}
-                            &nbsp;-&nbsp;
-                            {moment(item.available_to).format("LL")}
+                          {moment(item.available_from).format("LL")}
+                          &nbsp;-&nbsp;
+                          {moment(item.available_to).format("LL")}
+                        </Typography>
+                      </ExpansionPanelSummary>
+                      <ExpansionPanelDetails
+                        className={styles.expansionDetails}
+                      >
+                        <Box width="100%">{item.description}</Box>
+                        <Box width="100%">
+                          <Typography color="textSecondary">
+                            Resources
                           </Typography>
-                        </ExpansionPanelSummary>
-                        <ExpansionPanelDetails
-                          className={styles.expansionDetails}
-                        >
-                          <Box width="100%">{item.description}</Box>
-                          <Box width="100%">
-                            <Typography color="textSecondary">
-                              Resources
+                          {item.materials.map((m) => (
+                            <Typography component="div">
+                              <Link
+                                component="div"
+                                style={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                  cursor: "pointer",
+                                }}
+                                onClick={() => {
+                                  _handleOpenFile(m);
+                                }}
+                              >
+                                {m.title}
+                                <LaunchIcon fontSize="small" />
+                              </Link>
                             </Typography>
-                            {item.materials.map((m) => (
-                              <Typography component="div">
-                                <Link
-                                  component="div"
-                                  style={{
-                                    display: "flex",
-                                    alignItems: "center",
-                                    cursor: "pointer",
-                                  }}
-                                  onClick={() => {
-                                    _handleOpenFile(m);
-                                  }}
-                                >
-                                  {m.title}
-                                  <LaunchIcon fontSize="small" />
-                                </Link>
-                              </Typography>
-                            ))}
-                          </Box>
-                        </ExpansionPanelDetails>
-                      </ExpansionPanel>
-                      <ListItemSecondaryAction
-                        style={{
-                          top: 40,
-                        }}
+                          ))}
+                        </Box>
+                      </ExpansionPanelDetails>
+                    </ExpansionPanel>
+                    <ListItemSecondaryAction
+                      style={{
+                        top: 40,
+                      }}
+                    >
+                      <IconButton
+                        onClick={(event) =>
+                          setAnchorEl(() => {
+                            let a = {};
+                            a[item.id] = event.currentTarget;
+                            return { ...anchorEl, ...a };
+                          })
+                        }
                       >
-                        <IconButton
-                          onClick={(event) =>
+                        <MoreHorizOutlinedIcon />
+                      </IconButton>
+                      {anchorEl && (
+                        <StyledMenu
+                          id="customized-menu"
+                          anchorEl={anchorEl[item.id]}
+                          keepMounted
+                          open={Boolean(anchorEl[item.id])}
+                          onClose={() =>
                             setAnchorEl(() => {
                               let a = {};
-                              a[item.id] = event.currentTarget;
+                              a[item.id] = null;
                               return { ...anchorEl, ...a };
                             })
                           }
                         >
-                          <MoreHorizOutlinedIcon />
-                        </IconButton>
-                        {anchorEl && (
-                          <StyledMenu
-                            id="customized-menu"
-                            anchorEl={anchorEl[item.id]}
-                            keepMounted
-                            open={Boolean(anchorEl[item.id])}
-                            onClose={() =>
-                              setAnchorEl(() => {
-                                let a = {};
-                                a[item.id] = null;
-                                return { ...anchorEl, ...a };
-                              })
-                            }
+                          <StyledMenuItem
+                            onClick={() => _handleFileOption("view", item)}
                           >
-                            <StyledMenuItem
-                              onClick={() => _handleFileOption("view", item)}
-                            >
-                              <ListItemText primary="Upload Answer" />
-                            </StyledMenuItem>
-                            {isTeacher && (
-                              <div>
-                                <StyledMenuItem
-                                  onClick={() =>
-                                    _handleFileOption("publish", item)
-                                  }
-                                >
-                                  <ListItemText primary="Publish" />
-                                </StyledMenuItem>
-                                <StyledMenuItem
-                                  onClick={() =>
-                                    _handleFileOption("unpublish", item)
-                                  }
-                                >
-                                  <ListItemText primary="Unpublish" />
-                                </StyledMenuItem>
-                                <StyledMenuItem
-                                  onClick={() =>
-                                    _handleFileOption("edit", item)
-                                  }
-                                >
-                                  <ListItemText primary="Edit" />
-                                </StyledMenuItem>
-                                <StyledMenuItem
-                                  onClick={() => {
-                                    _handleFileOption("delete", item);
-                                  }}
-                                >
-                                  <ListItemText primary="Delete" />
-                                </StyledMenuItem>
-                              </div>
-                            )}
-                          </StyledMenu>
-                        )}
-                      </ListItemSecondaryAction>
-                    </ListItem>
-                  ))}
+                            <ListItemText primary="Upload Answer" />
+                          </StyledMenuItem>
+                          {isTeacher && (
+                            <div>
+                              <StyledMenuItem
+                                onClick={() =>
+                                  _handleFileOption("publish", item)
+                                }
+                              >
+                                <ListItemText primary="Publish" />
+                              </StyledMenuItem>
+                              <StyledMenuItem
+                                onClick={() =>
+                                  _handleFileOption("unpublish", item)
+                                }
+                              >
+                                <ListItemText primary="Unpublish" />
+                              </StyledMenuItem>
+                              <StyledMenuItem
+                                onClick={() => _handleFileOption("edit", item)}
+                              >
+                                <ListItemText primary="Edit" />
+                              </StyledMenuItem>
+                              <StyledMenuItem
+                                onClick={() => {
+                                  _handleFileOption("delete", item);
+                                }}
+                              >
+                                <ListItemText primary="Delete" />
+                              </StyledMenuItem>
+                            </div>
+                          )}
+                        </StyledMenu>
+                      )}
+                    </ListItemSecondaryAction>
+                  </ListItem>
+                ))}
               </List>
             </Grow>
+          </Box>
+          <Box p={2}>
+            <Pagination
+              page={page}
+              onChange={(p) => setPage(p)}
+              length={getFilteredActivities().length}
+            />
           </Box>
         </Box>
       )}
