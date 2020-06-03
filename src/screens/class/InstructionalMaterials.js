@@ -702,7 +702,6 @@ function InstructionalMaterials(props) {
                             {isTeacher && (
                               <div>
                                 <StyledMenuItem
-                                  disabled={!item.resource_link}
                                   onClick={() =>
                                     _handleFileOption("publish", item)
                                   }
@@ -710,7 +709,6 @@ function InstructionalMaterials(props) {
                                   <ListItemText primary="Publish" />
                                 </StyledMenuItem>
                                 <StyledMenuItem
-                                  disabled={!item.resource_link}
                                   onClick={() =>
                                     _handleFileOption("unpublish", item)
                                   }
