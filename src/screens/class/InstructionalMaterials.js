@@ -84,6 +84,7 @@ function InstructionalMaterials(props) {
   const [savingId, setSavingId] = useState();
   const [fileFullScreen, setFileFullScreen] = useState(false);
   const [selectedSched, setSelectedSched] = useState();
+  const [selectedStatus, setSelectedStatus] = useState();
 
   const _handleFileOption = (option, file) => {
     setAnchorEl(() => {
@@ -551,6 +552,29 @@ function InstructionalMaterials(props) {
             </Select>
           </FormControl>
           &nbsp;
+          {isTeacher && (
+            <FormControl
+              style={{ width: isMobile ? "100%" : 160 }}
+              variant="outlined"
+            >
+              <InputLabel>Status</InputLabel>
+              <Select
+                label="Schedule"
+                value={selectedStatus ? selectedStatus : "all"}
+                onChange={(e) =>
+                  setSelectedStatus(
+                    e.target.value !== "all" ? e.target.value : null
+                  )
+                }
+                padding={10}
+              >
+                <MenuItem value="all">All</MenuItem>
+                <MenuItem value="unpublished">Unpublished</MenuItem>
+                <MenuItem value="published">Published</MenuItem>
+              </Select>
+            </FormControl>
+          )}
+          &nbsp;
           <Box
             border={1}
             p={0.3}
@@ -607,6 +631,9 @@ function InstructionalMaterials(props) {
                 (i) => JSON.stringify(i).toLowerCase().indexOf(search) >= 0
               )
               .filter((a) =>
+                selectedStatus ? selectedStatus == a.status : true
+              )
+              .filter((a) =>
                 selectedSched ? selectedSched == a.schedule_id : true
               ).length && (
               <Box
@@ -625,6 +652,9 @@ function InstructionalMaterials(props) {
               <List>
                 {materials
                   .filter((i) => (isTeacher ? true : i.status === "published"))
+                  .filter((a) =>
+                    selectedStatus ? selectedStatus == a.status : true
+                  )
                   .filter(
                     (i) => JSON.stringify(i).toLowerCase().indexOf(search) >= 0
                   )
@@ -636,6 +666,12 @@ function InstructionalMaterials(props) {
                     <ListItem
                       onClick={() => _handleFileOption("view", item)}
                       className={styles.listItem}
+                      style={{
+                        borderColor:
+                          item.status == "published"
+                            ? theme.palette.success.main
+                            : "#fff",
+                      }}
                     >
                       {saving && savingId === item.id && (
                         <div className={styles.itemLoading}>
@@ -971,7 +1007,7 @@ const useStyles = makeStyles((theme) => ({
   },
   listItem: {
     backgroundColor: theme.palette.grey[100],
-    borderLeft: "4px solid #fff",
+    borderLeft: "4px solid",
     marginBottom: 7,
   },
 }));

@@ -941,6 +941,10 @@ function Activity(props) {
                     <ListItem
                       className={styles.listItem}
                       style={{
+                        borderColor:
+                          item.status == "published"
+                            ? theme.palette.success.main
+                            : "#fff",
                         ...(currentActivity && item.id === currentActivity.id
                           ? {
                               background:
@@ -1497,7 +1501,7 @@ const useStyles = makeStyles((theme) => ({
   listItem: {
     padding: 0,
     backgroundColor: theme.palette.grey[100],
-    borderLeft: "4px solid #fff",
+    borderLeft: "4px solid",
     marginBottom: 7,
   },
 }));
