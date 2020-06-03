@@ -45,6 +45,15 @@ const theme = (state = "light", payload) => {
       return state;
   }
 };
+const pics = (state = {}, payload) => {
+  switch (payload.type) {
+    case "SET_PIC":
+      console.log({ ...state, ...payload.userpic });
+      return { ...state, ...payload.userpic };
+    default:
+      return state;
+  }
+};
 
 export default combineReducers({
   userInfo,
@@ -52,4 +61,5 @@ export default combineReducers({
   route,
   classDetails,
   theme,
+  pics,
 });

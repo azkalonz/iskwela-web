@@ -99,6 +99,12 @@ function InstructionalMaterials(props) {
         setForm({ title: file.title, url: file.resource_link, id: file.id });
         setModals([true, modals[1]]);
         return;
+      case "publish":
+        updateMaterialStatus(file, "publish");
+        return;
+      case "unpublish":
+        updateMaterialStatus(file, "unpublish");
+        return;
       case "download":
         _downloadFile(file);
         return;
@@ -288,8 +294,44 @@ function InstructionalMaterials(props) {
     setSaving(true);
     setErrors(null);
   };
+  const updateMaterialStatus = async (item, stat) => {
+    let { id } = item;
+    setConfirmed(null);
+    setErrors(null);
+    setSuccess(false);
+    setConfirmed({
+      title: stat.charAt(0).toUpperCase() + " Material",
+      message: "Are you sure you want to " + stat + " this material?",
+      yes: async () => {
+        setSavingId(id);
+        setSaving(true);
+        setConfirmed(null);
+        let res = await Api.post("/api/class/material/" + stat + "/" + id);
+        if (!res.errors) {
+          setSuccess(true);
+          let newScheduleDetails = await UserData.updateScheduleDetails(
+            class_id,
+            item.schedule_id
+          );
+          socket.emit("update schedule details", {
+            id: class_id,
+            details: newScheduleDetails,
+          });
+        } else {
+          let err = [];
+          for (let e in res.errors) {
+            err.push(res.errors[e][0]);
+          }
+          setErrors(err);
+        }
+        setSaving(false);
+      },
+    });
+  };
   const _handleRemoveMaterial = (activity) => {
     setConfirmed({
+      title: "Remove Material",
+      message: "Are you sure you want to remove this material?",
       yes: async () => {
         setErrors(null);
         setSaving(true);
@@ -382,10 +424,8 @@ function InstructionalMaterials(props) {
         )}
       </Dialog>
       <Dialog open={confirmed} onClose={() => setConfirmed(null)}>
-        <DialogTitle>Remove File</DialogTitle>
-        <DialogContent>
-          Are you sure you want to delete this file?
-        </DialogContent>
+        <DialogTitle>{confirmed && confirmed.title}</DialogTitle>
+        <DialogContent>{confirmed && confirmed.message}</DialogContent>
         <DialogActions>
           <Button
             onClick={() => {
@@ -584,6 +624,7 @@ function InstructionalMaterials(props) {
             <Grow in={true}>
               <List>
                 {materials
+                  .filter((i) => (isTeacher ? true : i.status === "published"))
                   .filter(
                     (i) => JSON.stringify(i).toLowerCase().indexOf(search) >= 0
                   )
@@ -663,6 +704,22 @@ function InstructionalMaterials(props) {
                                 <StyledMenuItem
                                   disabled={!item.resource_link}
                                   onClick={() =>
+                                    _handleFileOption("publish", item)
+                                  }
+                                >
+                                  <ListItemText primary="Publish" />
+                                </StyledMenuItem>
+                                <StyledMenuItem
+                                  disabled={!item.resource_link}
+                                  onClick={() =>
+                                    _handleFileOption("unpublish", item)
+                                  }
+                                >
+                                  <ListItemText primary="Unpublish" />
+                                </StyledMenuItem>
+                                <StyledMenuItem
+                                  disabled={!item.resource_link}
+                                  onClick={() =>
                                     _handleFileOption("edit", item)
                                   }
                                 >
@@ -713,7 +770,6 @@ function InstructionalMaterials(props) {
               />
               <TextField
                 label="link"
-                variant="filled"
                 InputLabelProps={{
                   shrink: true,
                 }}

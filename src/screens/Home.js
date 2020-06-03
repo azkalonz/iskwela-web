@@ -28,6 +28,7 @@ import SearchIcon from "@material-ui/icons/Search";
 import { makeLinkTo } from "../components/router-dom";
 import { connect } from "react-redux";
 import MuiAlert from "@material-ui/lab/Alert";
+import UserData from "../components/UserData";
 function Alert(props) {
   return <MuiAlert elevation={6} variant="filled" {...props} />;
 }
@@ -178,8 +179,12 @@ function Home(props) {
                     >
                       <Avatar
                         alt={c.teacher.first_name}
-                        style={{ width: "100%", height: "100%" }}
-                        src="/teacher.jpg"
+                        style={{
+                          width: "100%",
+                          height: "100%",
+                          background: "#fff",
+                        }}
+                        src={props.pics[c.teacher.id]}
                       />
                       {/* <img
                         src="https://source.unsplash.com/random/500x500"
@@ -348,6 +353,7 @@ const useStyles = makeStyles((theme) => ({
 
 export default connect((states) => ({
   classes: states.classes,
+  pics: states.pics,
   userInfo: states.userInfo,
   classDetails: states.classDetails,
 }))(Home);

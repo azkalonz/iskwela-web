@@ -57,7 +57,7 @@ Api.auth = async (callback = {}) => {
       u = await Api.get("/api/user?include=preferences");
       if (!u.error) {
         let pic = await Api.postBlob(
-          "/api/download/user/profile-picture"
+          "/api/download/user/profile-picture/"
         ).then((resp) => (resp.ok ? resp.blob() : null));
         if (pic) var picUrl = URL.createObjectURL(pic);
         u.pic_url = picUrl;

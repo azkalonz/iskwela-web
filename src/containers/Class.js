@@ -318,13 +318,17 @@ function Class(props) {
                       overflow="hidden"
                     >
                       <Avatar
-                        src="http://example.com"
+                        src={props.pics[CLASS.teacher.id]}
                         alt={
                           CLASS.teacher.first_name +
                           " " +
                           CLASS.teacher.last_name
                         }
-                        style={{ width: "100%", height: "100%" }}
+                        style={{
+                          width: "100%",
+                          height: "100%",
+                          background: "#fff",
+                        }}
                       />
                     </Box>
                     <Box p={1}>
@@ -595,5 +599,6 @@ const useStyles = makeStyles((theme) => ({
 export default connect((states) => ({
   userInfo: states.userInfo,
   classDetails: states.classDetails,
+  pics: states.pics,
   classes: states.classes,
 }))(Class);

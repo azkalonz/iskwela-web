@@ -8,11 +8,12 @@ import {
   Box,
   Typography,
   Grow,
+  useTheme,
   Tooltip,
   Toolbar,
   makeStyles,
-  useTheme,
   IconButton,
+  Paper,
   Avatar,
 } from "@material-ui/core";
 import MailIcon from "@material-ui/icons/Mail";
@@ -32,6 +33,7 @@ function Drawer(props) {
   const history = useHistory();
   const { class_id } = props.match.params;
   const [more, setMore] = useState(false);
+  const theme = useTheme();
   const drawer = (
     <div>
       <Toolbar className={styles.toolbar}>
@@ -114,6 +116,21 @@ function Drawer(props) {
                   >
                     {item.name[0].toUpperCase()}
                   </Typography>
+                  {/* <div
+                    style={{
+                      position: "absolute",
+                      top: 0,
+                      right: -5,
+                      width: 15,
+                      height: 15,
+                      borderRadius: "50%",
+                      borderWidth: 2,
+                      borderStyle: "solid",
+                      borderColor:
+                        theme.palette.type === "dark" ? "#111" : "#fff",
+                      background: theme.palette.primary.main,
+                    }}
+                  ></div> */}
                 </Box>
               </Tooltip>
             </Box>
@@ -210,6 +227,7 @@ function Drawer(props) {
                   margin: "0 auto",
                   border: "1px solid rgb(172, 172, 172)",
                   padding: 2,
+                  background: "#fff",
                 }}
               />
             </Box>
@@ -242,11 +260,13 @@ function Drawer(props) {
 const listItem = {
   container: {
     display: "flex",
+    position: "relative",
     justifyContent: "center",
     borderColor: "primary.main",
   },
   item: {
     borderRadius: "50%",
+    position: "relative",
     borderRadius: "50%",
     border: 1,
     borderColor: "grey.500",

@@ -264,6 +264,7 @@ function Activity(props) {
               body: {
                 ...(m.id ? { id: m.id } : {}),
                 url: m.resource_link,
+                title: m.title,
                 activity_id: res.id,
               },
             });
@@ -274,6 +275,10 @@ function Activity(props) {
             let body = new FormData();
             body.append("file", file);
             body.append("assignment_id", res.id);
+            body.append(
+              "title",
+              FileUpload.files["activity-materials"][0].name
+            );
             let a = await FileUpload.upload("/api/upload/activity/material", {
               body,
             });
@@ -723,7 +728,7 @@ function Activity(props) {
                           _handleOpenFile(m);
                         }}
                       >
-                        {m.resource_link ? m.resource_link : m.uploaded_file}
+                        {m.title}
                         <LaunchIcon fontSize="small" />
                       </Link>
                     </Typography>
@@ -1010,9 +1015,7 @@ function Activity(props) {
                                     _handleOpenFile(m);
                                   }}
                                 >
-                                  {m.resource_link
-                                    ? m.resource_link
-                                    : m.uploaded_file}
+                                  {m.title}
                                   <LaunchIcon fontSize="small" />
                                 </Link>
                               </Typography>
@@ -1223,9 +1226,7 @@ function Activity(props) {
                 {form.materials.map((f, i) => (
                   <List dense={true}>
                     <ListItem>
-                      <ListItemText
-                        primary={f.resource_link ? f.title : f.uploaded_file}
-                      />
+                      <ListItemText primary={f.title} />
                       <ListItemSecondaryAction>
                         <IconButton
                           edge="end"

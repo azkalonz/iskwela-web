@@ -691,7 +691,6 @@ function LessonPlan(props) {
               />
               <TextField
                 label="link"
-                variant="filled"
                 InputLabelProps={{
                   shrink: true,
                 }}
