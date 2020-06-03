@@ -1156,7 +1156,7 @@ function Activity(props) {
               </List>
             ) : (
               <AppBar
-                position="relative"
+                position="sticky"
                 style={{ background: theme.palette.grey[200] }}
               >
                 <Toolbar
