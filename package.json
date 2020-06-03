@@ -19,6 +19,7 @@
     "googleapis": "^39.2.0",
     "i18next": "^19.4.4",
     "jquery": "^3.5.1",
+    "material-ui-color-picker": "^3.5.0",
     "moment": "^2.26.0",
     "node-sass": "^4.13.1",
     "query-string": "^6.12.1",

@@ -270,15 +270,28 @@ function Activity(props) {
             });
           });
         }
+        if (window.contentMakerFile) {
+          console.log(window.contentMakerFile);
+          let body = new FormData();
+          body.append("file", window.contentMakerFile);
+          body.append("assignment_id", res.id);
+          body.append("title", window.contentMakerFile.name);
+          let a = await FileUpload.upload("/api/upload/activity/material", {
+            body,
+          });
+          if (a.errors) {
+            for (let e in a.errors) {
+              err.push(a.errors[e][0]);
+            }
+          }
+        }
         if (materialFiles.files.length) {
           await asyncForEach(materialFiles.files, async (file) => {
             let body = new FormData();
+            console.log(file);
             body.append("file", file);
             body.append("assignment_id", res.id);
-            body.append(
-              "title",
-              FileUpload.files["activity-materials"][0].name
-            );
+            body.append("title", file.name);
             let a = await FileUpload.upload("/api/upload/activity/material", {
               body,
             });
@@ -479,6 +492,20 @@ function Activity(props) {
           setForm({ ...form, materials: m });
         }
       };
+    };
+  };
+  const handleCreateContent = () => {
+    var contentMaker = window.open(
+      "/content-maker",
+      "Content Maker",
+      "width=1000"
+    );
+    contentMaker.onunload = () => {
+      if (contentMaker.file) {
+        stageFiles("activity-materials", contentMaker.file);
+        window.contentMakerFile = contentMaker.file;
+        setHasFiles([hasFiles[0], true]);
+      }
     };
   };
   return (
@@ -1283,6 +1310,9 @@ function Activity(props) {
             </Button>
             <Button onClick={handleGooglePicker} variant="outlined">
               Google Drive
+            </Button>
+            <Button onClick={handleCreateContent} variant="outlined">
+              Create Content
             </Button>
           </div>
           <DialogActions>

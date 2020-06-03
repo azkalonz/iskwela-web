@@ -23,6 +23,7 @@ import CssBaseline from "@material-ui/core/CssBaseline";
 import UserData from "./components/UserData";
 import socket from "./components/socket.io";
 import GooglePicker from "./components/GooglePicker";
+import ContentMaker from "./components/content-creator";
 import { connect } from "react-redux";
 
 const primaryColor = "#6200ef";
@@ -177,6 +178,9 @@ function App(props) {
             {!loading && (
               <BrowserRouter>
                 <Switch>
+                  <Route exact path="/content-maker" component={ContentMaker} />
+
+                  <Route exact path="/content-maker" component={ContentMaker} />
                   <Route exact path="/picker" component={GooglePicker} />
                   <Route exact path="/login">
                     <Login setLoading={(l) => setLoading(l)} />

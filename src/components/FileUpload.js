@@ -30,8 +30,13 @@ FileUpload.getFiles = (id) => {
 };
 FileUpload.files = {};
 export const stageFiles = (id, files, callback = null) => {
-  FileUpload.files[id] = files;
-  callback && files && callback(files);
+  if (FileUpload.files[id])
+    if (files.length)
+      FileUpload.files[id] = [...FileUpload.files[id], ...files];
+    else FileUpload.files[id] = [...FileUpload.files[id], files];
+  else if (files.length) FileUpload.files[id] = files;
+  else FileUpload.files[id] = [files];
+  callback && files && callback(FileUpload.files[id]);
 };
 
 export default FileUpload;
