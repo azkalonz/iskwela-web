@@ -105,7 +105,7 @@ function Activity(props) {
   );
   const [page, setPage] = useState(query.page ? query.page : 1);
   const [selectedSched, setSelectedSched] = useState(
-    query.date && query.date !== -1 ? query.date : null
+    query.date && query.date !== -1 ? parseInt(query.date) : null
   );
 
   const formTemplate = {
@@ -135,7 +135,7 @@ function Activity(props) {
           ...file,
           activity_type: file.activity_type === "class activity" ? 1 : 2,
           published: file.status === "unpublished" ? 0 : 1,
-          schedule_id: selectedSched ? selectedSched : classSched,
+          schedule_id: selectedSched >= 0 ? selectedSched : classSched,
           subject_id: props.classDetails[class_id].subject.id,
           id: file.id,
           class_id,
@@ -258,7 +258,7 @@ function Activity(props) {
       ...form,
       subject_id: props.classDetails[class_id].subject.id,
       ...params,
-      schedule_id: selectedSched ? selectedSched : classSched,
+      schedule_id: selectedSched >= 0 ? selectedSched : classSched,
     });
     let res = await formData.send("/api/class/activity/save");
     if (formData.data.published && formData.data.id) {
@@ -315,7 +315,7 @@ function Activity(props) {
         if (!noupdate) {
           let newScheduleDetails = await UserData.updateScheduleDetails(
             class_id,
-            selectedSched ? selectedSched : schedule_id
+            selectedSched >= 0 ? selectedSched : schedule_id
           );
           socket.emit("update schedule details", {
             id: class_id,
@@ -348,7 +348,7 @@ function Activity(props) {
           ...a,
           activity_type: a.activity_type === "class activity" ? 1 : 2,
           published: s,
-          schedule_id: selectedSched ? selectedSched : classSched,
+          schedule_id: selectedSched >= 0 ? selectedSched : classSched,
           subject_id: props.classDetails[class_id].subject.id,
           id: a.id,
           class_id,
@@ -409,7 +409,7 @@ function Activity(props) {
               ...a[i],
               activity_type: a[i].activity_type === "class activity" ? 1 : 2,
               published: s,
-              schedule_id: selectedSched ? selectedSched : classSched,
+              schedule_id: selectedSched >= 0 ? selectedSched : classSched,
               subject_id: props.classDetails[class_id].subject.id,
               id: a[i].id,
               class_id,
@@ -494,7 +494,7 @@ function Activity(props) {
           setSuccess(true);
           let newScheduleDetails = await UserData.updateScheduleDetails(
             class_id,
-            selectedSched ? selectedSched : schedule_id
+            selectedSched >= 0 ? selectedSched : schedule_id
           );
           socket.emit("update schedule details", {
             id: class_id,
@@ -781,7 +781,7 @@ function Activity(props) {
             classId={class_id}
             scheduleId={schedule_id}
             onChange={(schedId) => setSelectedSched(schedId)}
-            schedule={selectedSched ? selectedSched : -1}
+            schedule={selectedSched >= 0 ? selectedSched : -1}
             optionName={option_name}
           />
           &nbsp;

@@ -82,7 +82,7 @@ function LessonPlan(props) {
   const [page, setPage] = useState(query.page ? query.page : 1);
   const [selectedItems, setSelectedItems] = useState({});
   const [selectedSched, setSelectedSched] = useState(
-    query.date && query.date !== -1 ? query.date : null
+    query.date && query.date !== -1 ? parseInt(query.date) : null
   );
 
   const _handleFileOption = (option, file) => {
@@ -220,7 +220,7 @@ function LessonPlan(props) {
     let res = await Api.post("/api/class/lesson-plan/save", {
       body: {
         class_id,
-        schedule_id: selectedSched ? selectedSched : classSched,
+        schedule_id: selectedSched >= 0 ? selectedSched : classSched,
         ...form,
       },
     });
@@ -233,7 +233,7 @@ function LessonPlan(props) {
       setSuccess(true);
       let newScheduleDetails = await UserData.updateScheduleDetails(
         class_id,
-        selectedSched ? selectedSched : schedule_id
+        selectedSched >= 0 ? selectedSched : schedule_id
       );
       socket.emit("update schedule details", {
         id: class_id,
@@ -277,7 +277,7 @@ function LessonPlan(props) {
       setSuccess(true);
       let newScheduleDetails = await UserData.updateScheduleDetails(
         class_id,
-        selectedSched ? selectedSched : schedule_id
+        selectedSched >= 0 ? selectedSched : schedule_id
       );
       socket.emit("update schedule details", {
         id: class_id,
@@ -311,7 +311,7 @@ function LessonPlan(props) {
           setSuccess(true);
           let newScheduleDetails = await UserData.updateScheduleDetails(
             class_id,
-            selectedSched ? selectedSched : schedule_id
+            selectedSched >= 0 ? selectedSched : schedule_id
           );
           socket.emit("update schedule details", {
             id: class_id,
@@ -374,9 +374,7 @@ function LessonPlan(props) {
     materials
       .filter((i) => JSON.stringify(i).toLowerCase().indexOf(search) >= 0)
       .filter((a) =>
-        parseInt(selectedSched) >= 0
-          ? parseInt(selectedSched) === a.schedule_id
-          : true
+        selectedSched >= 0 ? selectedSched === a.schedule_id : true
       )
       .reverse();
   const _handleSelectOption = (item) => {
@@ -570,7 +568,7 @@ function LessonPlan(props) {
             classId={class_id}
             scheduleId={schedule_id}
             onChange={(schedId) => setSelectedSched(schedId)}
-            schedule={selectedSched ? selectedSched : -1}
+            schedule={selectedSched >= 0 ? selectedSched : -1}
             optionName={option_name}
           />
           &nbsp;

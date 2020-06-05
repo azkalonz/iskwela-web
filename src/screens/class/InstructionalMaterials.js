@@ -83,7 +83,7 @@ function InstructionalMaterials(props) {
   const [savingId, setSavingId] = useState([]);
   const [fileFullScreen, setFileFullScreen] = useState(false);
   const [selectedSched, setSelectedSched] = useState(
-    query.date && query.date !== -1 ? query.date : null
+    query.date && query.date !== -1 ? parseInt(query.date) : null
   );
   const [selectedStatus, setSelectedStatus] = useState(
     isTeacher
@@ -236,7 +236,7 @@ function InstructionalMaterials(props) {
     let res = await Api.post("/api/class/material/save", {
       body: {
         class_id,
-        schedule_id: selectedSched ? selectedSched : classSched,
+        schedule_id: selectedSched >= 0 ? selectedSched : classSched,
         ...form,
       },
     });
@@ -249,7 +249,7 @@ function InstructionalMaterials(props) {
       setSuccess(true);
       let newScheduleDetails = await UserData.updateScheduleDetails(
         class_id,
-        selectedSched ? selectedSched : schedule_id
+        selectedSched >= 0 ? selectedSched : schedule_id
       );
       socket.emit("update schedule details", {
         id: class_id,
@@ -293,7 +293,7 @@ function InstructionalMaterials(props) {
       setSuccess(true);
       let newScheduleDetails = await UserData.updateScheduleDetails(
         class_id,
-        selectedSched ? selectedSched : schedule_id
+        selectedSched >= 0 ? selectedSched : schedule_id
       );
       socket.emit("update schedule details", {
         id: class_id,
@@ -450,9 +450,7 @@ function InstructionalMaterials(props) {
       .filter((a) => (selectedStatus ? selectedStatus === a.status : true))
       .filter((i) => JSON.stringify(i).toLowerCase().indexOf(search) >= 0)
       .filter((a) =>
-        parseInt(selectedSched) >= 0
-          ? parseInt(selectedSched) === a.schedule_id
-          : true
+        selectedSched >= 0 ? selectedSched === a.schedule_id : true
       )
       .reverse();
   const _handleSelectOption = (item) => {
@@ -646,7 +644,7 @@ function InstructionalMaterials(props) {
             classId={class_id}
             scheduleId={schedule_id}
             onChange={(schedId) => setSelectedSched(schedId)}
-            schedule={selectedSched ? selectedSched : -1}
+            schedule={selectedSched >= 0 ? selectedSched : -1}
             optionName={option_name}
           />
           &nbsp;
