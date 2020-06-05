@@ -105,7 +105,7 @@ function Activity(props) {
   );
   const [page, setPage] = useState(query.page ? query.page : 1);
   const [selectedSched, setSelectedSched] = useState(
-    query.date && query.date !== -1 ? parseInt(query.date) : null
+    query.date && query.date !== -1 ? parseInt(query.date) : -1
   );
 
   const formTemplate = {
@@ -409,21 +409,31 @@ function Activity(props) {
               ...a[i],
               activity_type: a[i].activity_type === "class activity" ? 1 : 2,
               published: s,
-              schedule_id: selectedSched >= 0 ? selectedSched : classSched,
+              schedule_id: a[i].schedule_id,
               subject_id: props.classDetails[class_id].subject.id,
               id: a[i].id,
               class_id,
             },
           });
         });
-        let newScheduleDetails = await UserData.updateScheduleDetails(
-          class_id,
-          schedule_id
-        );
-        socket.emit("update schedule details", {
-          id: class_id,
-          details: newScheduleDetails,
-        });
+        if (selectedSched < 0) {
+          let newClassDetails = await UserData.updateClassDetails(class_id);
+          UserData.updateClass(class_id, newClassDetails[class_id]);
+          socket.emit(
+            "new class details",
+            JSON.stringify({ details: newClassDetails, id: class_id })
+          );
+        } else {
+          let newScheduleDetails = await UserData.updateScheduleDetails(
+            class_id,
+            selectedSched
+          );
+          socket.emit("update schedule details", {
+            id: class_id,
+            details: newScheduleDetails,
+          });
+        }
+
         setSaving(false);
       },
     });
@@ -455,14 +465,24 @@ function Activity(props) {
             setErrors(err);
           }
         });
-        let newScheduleDetails = await UserData.updateScheduleDetails(
-          class_id,
-          schedule_id
-        );
-        socket.emit("update schedule details", {
-          id: class_id,
-          details: newScheduleDetails,
-        });
+        if (selectedSched < 0) {
+          let newClassDetails = await UserData.updateClassDetails(class_id);
+          UserData.updateClass(class_id, newClassDetails[class_id]);
+          socket.emit(
+            "new class details",
+            JSON.stringify({ details: newClassDetails, id: class_id })
+          );
+        } else {
+          let newScheduleDetails = await UserData.updateScheduleDetails(
+            class_id,
+            selectedSched
+          );
+          socket.emit("update schedule details", {
+            id: class_id,
+            details: newScheduleDetails,
+          });
+        }
+
         setSaving(false);
       },
     });
