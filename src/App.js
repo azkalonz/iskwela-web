@@ -139,6 +139,7 @@ function App(props) {
     },
   });
   useEffect(() => {
+    window.localStorage.removeItem("greeted");
     socket.on("get class details", (c) => {
       if (store.getState().classes[c.id]) {
         UserData.updateClassDetails(c.id, c.details);

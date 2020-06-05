@@ -23,7 +23,6 @@ function ScheduleSelector(props) {
   const history = useHistory();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
-  console.log("cc", props.classDetails, props);
 
   return (
     <FormControl style={{ width: isMobile ? "100%" : 160 }} variant="outlined">

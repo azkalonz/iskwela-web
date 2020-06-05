@@ -82,8 +82,8 @@ function Schedule(props) {
   }, [schedules]);
 
   useEffect(() => {
-    if (props.classDetails)
-      setSchedules(props.classDetails[class_id].schedules);
+    if (props.classDetailss)
+      setSchedules(props.classDetailss[class_id].schedules);
   }, [class_id]);
 
   const _handleFileOption = (option, file) => {
@@ -125,8 +125,8 @@ function Schedule(props) {
     await Api.post("/api/schedule/save", {
       body: {
         id: item.id,
-        date_from: props.classDetails[class_id].schedules[item.id].from,
-        date_to: props.classDetails[class_id].schedules[item.id].to,
+        date_from: props.classDetailss[class_id].schedules[item.id].from,
+        date_to: props.classDetailss[class_id].schedules[item.id].to,
         teacher_id: props.userInfo.id,
         status: status,
       },
@@ -137,6 +137,7 @@ function Schedule(props) {
   };
 
   const _handleSort = (sortBy, order) => {
+    if (!schedules) return;
     setOrderBy(sortBy);
     if (order === "asc") {
       setSchedules(
@@ -160,7 +161,7 @@ function Schedule(props) {
       id: "teacher_name",
       numeric: true,
       disablePadding: false,
-      label: "teacher_name",
+      label: "Teacher",
     },
     { id: "status", numeric: true, disablePadding: false, label: "Status" },
   ];
@@ -211,9 +212,9 @@ function Schedule(props) {
             <Table aria-label="simple table">
               <TableHead>
                 <TableRow>
-                  {headCells.map((headCell, i) => (
+                  {headCells.map((headCell) => (
                     <TableCell
-                      key={i}
+                      key={headCell.id}
                       align={headCell.numeric ? "right" : "left"}
                       padding={headCell.disablePadding ? "none" : "default"}
                       sortDirection={orderBy === headCell.id ? order : false}
@@ -252,7 +253,7 @@ function Schedule(props) {
                       };
                       return (
                         <TableRow
-                          key={i}
+                          key={row.id}
                           className={[styles.row, status.color].join(" ")}
                         >
                           <TableCell component="th" scope="row">
@@ -594,5 +595,5 @@ const StyledMenuItem = withStyles((theme) => ({
 
 export default connect((states) => ({
   userInfo: states.userInfo,
-  classDetails: states.classDetails,
+  classDetailss: states.classDetails,
 }))(Schedule);

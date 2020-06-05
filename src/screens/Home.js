@@ -220,7 +220,12 @@ function Home(props) {
       </Grow>
     );
   };
-
+  useEffect(() => {
+    if (!window.localStorage["greeted"])
+      setTimeout(() => {
+        window.localStorage["greeted"] = true;
+      }, 6000);
+  }, []);
   return (
     <div style={{ height: "100vh", overflow: "hidden auto" }}>
       <Drawer {...props}>
@@ -268,15 +273,24 @@ function Home(props) {
               .sort((a, b) => (a.next_schedule.status === "ONGOING" ? -1 : 0))
               .map((c) => classItem(c))}
         </Box>
-        <Snackbar
-          open={greeting}
-          autoHideDuration={12000}
-          onClose={() => setGreeting(false)}
-        >
-          <Alert severity="info" onClose={() => setGreeting(false)}>
-            Welcome back! <b>{props.userInfo.first_name}!</b>
-          </Alert>
-        </Snackbar>
+        {!window.localStorage["greeted"] && (
+          <Snackbar
+            open={greeting}
+            autoHideDuration={12000}
+            onClose={() => {
+              setGreeting(false);
+            }}
+          >
+            <Alert
+              severity="info"
+              onClose={() => {
+                setGreeting(false);
+              }}
+            >
+              Welcome back! <b>{props.userInfo.first_name}!</b>
+            </Alert>
+          </Snackbar>
+        )}
       </Drawer>
     </div>
   );
