@@ -122,9 +122,7 @@ const UserData = {
     return mergedClassDetails;
   },
   getUserData: async function (user, setProgress = (e) => {}) {
-    let totalReq = 0;
     let data = {};
-    let counter = 1;
     if (user.user_type === "s") {
       let c = await Api.get("/api/student/classes");
       data.classes = c.classes;

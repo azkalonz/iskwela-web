@@ -7,7 +7,6 @@ import {
   Dialog,
   DialogActions,
   DialogContent,
-  DialogContentText,
   useTheme,
   useMediaQuery,
   DialogTitle,
@@ -18,7 +17,6 @@ import {
   Toolbar,
   InputLabel,
   withStyles,
-  Slide,
   Box,
   Button,
   TextField,
@@ -28,13 +26,11 @@ import {
   makeStyles,
   Typography,
   Snackbar,
-  Paper,
   CircularProgress,
   Grow,
 } from "@material-ui/core";
 import InsertDriveFileOutlinedIcon from "@material-ui/icons/InsertDriveFileOutlined";
 import MoreHorizOutlinedIcon from "@material-ui/icons/MoreHorizOutlined";
-import Moment from "react-moment";
 import ArrowDownwardOutlinedIcon from "@material-ui/icons/ArrowDownwardOutlined";
 import ArrowUpwardOutlinedIcon from "@material-ui/icons/ArrowUpwardOutlined";
 import SearchIcon from "@material-ui/icons/Search";
@@ -51,14 +47,13 @@ import Api from "../../api";
 import CloseIcon from "@material-ui/icons/Close";
 import FullscreenIcon from "@material-ui/icons/Fullscreen";
 import FullscreenExitIcon from "@material-ui/icons/FullscreenExit";
-import moment from "moment";
 import { saveAs } from "file-saver";
 import socket from "../../components/socket.io";
+import moment from "moment";
 
 function Alert(props) {
   return <MuiAlert elevation={6} variant="filled" {...props} />;
 }
-const queryString = require("query-string");
 
 function InstructionalMaterials(props) {
   const theme = useTheme();
@@ -111,6 +106,8 @@ function InstructionalMaterials(props) {
         return;
       case "delete":
         _handleRemoveMaterial(file);
+        return;
+      default:
         return;
     }
   };
@@ -425,7 +422,10 @@ function InstructionalMaterials(props) {
           </DialogContent>
         )}
       </Dialog>
-      <Dialog open={confirmed} onClose={() => setConfirmed(null)}>
+      <Dialog
+        open={confirmed ? true : false}
+        onClose={() => setConfirmed(null)}
+      >
         <DialogTitle>{confirmed && confirmed.title}</DialogTitle>
         <DialogContent>{confirmed && confirmed.message}</DialogContent>
         <DialogActions>
@@ -449,6 +449,7 @@ function InstructionalMaterials(props) {
       {errors &&
         errors.map((e, i) => (
           <Snackbar
+            key={i}
             open={errors ? true : false}
             autoHideDuration={6000}
             onClose={() => setErrors(null)}
@@ -632,10 +633,12 @@ function InstructionalMaterials(props) {
                 (i) => JSON.stringify(i).toLowerCase().indexOf(search) >= 0
               )
               .filter((a) =>
-                selectedStatus ? selectedStatus == a.status : true
+                selectedStatus ? selectedStatus === a.status : true
               )
               .filter((a) =>
-                selectedSched ? selectedSched == a.schedule_id : true
+                parseInt(selectedSched) >= 0
+                  ? parseInt(selectedSched) === a.schedule_id
+                  : true
               ).length && (
               <Box
                 width="100%"
@@ -654,22 +657,25 @@ function InstructionalMaterials(props) {
                 {materials
                   .filter((i) => (isTeacher ? true : i.status === "published"))
                   .filter((a) =>
-                    selectedStatus ? selectedStatus == a.status : true
+                    selectedStatus ? selectedStatus === a.status : true
                   )
                   .filter(
                     (i) => JSON.stringify(i).toLowerCase().indexOf(search) >= 0
                   )
                   .filter((a) =>
-                    selectedSched ? selectedSched == a.schedule_id : true
+                    parseInt(selectedSched) >= 0
+                      ? parseInt(selectedSched) === a.schedule_id
+                      : true
                   )
                   .reverse()
                   .map((item, index) => (
                     <ListItem
+                      key={index}
                       onClick={() => _handleFileOption("view", item)}
                       className={styles.listItem}
                       style={{
                         borderColor:
-                          item.status == "published"
+                          item.status === "published"
                             ? theme.palette.success.main
                             : "#fff",
                       }}
@@ -791,7 +797,7 @@ function InstructionalMaterials(props) {
       >
         <DialogTitle id="alert-dialog-slide-title">Web Link</DialogTitle>
         <DialogContent>
-          <DialogContentText id="alert-dialog-slide-description">
+          <DialogContent id="alert-dialog-slide-description">
             <Box display="flex" flexWrap="wrap">
               <TextField
                 label="Title"
@@ -813,7 +819,7 @@ function InstructionalMaterials(props) {
                 fullWidth
               />
             </Box>
-          </DialogContentText>
+          </DialogContent>
         </DialogContent>
         <DialogActions>
           <Button
@@ -852,7 +858,7 @@ function InstructionalMaterials(props) {
       >
         <DialogTitle id="alert-dialog-slide-title">Upload</DialogTitle>
         <DialogContent>
-          <DialogContentText id="alert-dialog-slide-description">
+          <DialogContent id="alert-dialog-slide-description">
             <Box display="flex" flexWrap="wrap">
               <TextField
                 label="Title"
@@ -865,10 +871,10 @@ function InstructionalMaterials(props) {
                 fullWidth
               />
             </Box>
-          </DialogContentText>
+          </DialogContent>
           {hasFiles &&
-            FileUpload.getFiles("materials").map((f) => (
-              <div>{f.uploaded_file}</div>
+            FileUpload.getFiles("materials").map((f, i) => (
+              <div key={i}>{f.uploaded_file}</div>
             ))}
         </DialogContent>
         <DialogActions style={{ justifyContent: "space-between" }}>

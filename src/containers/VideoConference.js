@@ -1,8 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import NavBar from "../components/NavBar";
-import ProgressComponent from "@material-ui/core/CircularProgress";
 import FullscreenIcon from "@material-ui/icons/Fullscreen";
-import { IconButton, Box, Typography } from "@material-ui/core";
+import { IconButton, Box } from "@material-ui/core";
 import ShareOutlinedIcon from "@material-ui/icons/ShareOutlined";
 import Jitsi from "react-jitsi";
 

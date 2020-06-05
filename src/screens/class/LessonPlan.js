@@ -7,7 +7,6 @@ import {
   Dialog,
   DialogActions,
   DialogContent,
-  DialogContentText,
   DialogTitle,
   Menu,
   MenuItem,
@@ -18,7 +17,6 @@ import {
   Toolbar,
   InputLabel,
   withStyles,
-  Slide,
   Box,
   Button,
   TextField,
@@ -28,13 +26,11 @@ import {
   makeStyles,
   Typography,
   Snackbar,
-  Paper,
   CircularProgress,
   Grow,
 } from "@material-ui/core";
 import InsertDriveFileOutlinedIcon from "@material-ui/icons/InsertDriveFileOutlined";
 import MoreHorizOutlinedIcon from "@material-ui/icons/MoreHorizOutlined";
-import Moment from "react-moment";
 import ArrowDownwardOutlinedIcon from "@material-ui/icons/ArrowDownwardOutlined";
 import ArrowUpwardOutlinedIcon from "@material-ui/icons/ArrowUpwardOutlined";
 import SearchIcon from "@material-ui/icons/Search";
@@ -57,7 +53,6 @@ import { saveAs } from "file-saver";
 function Alert(props) {
   return <MuiAlert elevation={6} variant="filled" {...props} />;
 }
-const queryString = require("query-string");
 
 function LessonPlan(props) {
   const theme = useTheme();
@@ -103,6 +98,8 @@ function LessonPlan(props) {
         return;
       case "delete":
         _handleRemoveMaterial(file);
+        return;
+      default:
         return;
     }
   };
@@ -275,6 +272,8 @@ function LessonPlan(props) {
   };
   const _handleRemoveMaterial = (activity) => {
     setConfirmed({
+      title: "Remove Lesson Plan",
+      message: "Are you sure you want to remove this lesson plan?",
       yes: async () => {
         setErrors(null);
         setSaving(true);
@@ -360,11 +359,12 @@ function LessonPlan(props) {
           </DialogContent>
         )}
       </Dialog>
-      <Dialog open={confirmed} onClose={() => setConfirmed(null)}>
-        <DialogTitle>Remove File</DialogTitle>
-        <DialogContent>
-          Are you sure you want to delete this file?
-        </DialogContent>
+      <Dialog
+        open={confirmed ? true : false}
+        onClose={() => setConfirmed(null)}
+      >
+        <DialogTitle>{confirmed && confirmed.title}</DialogTitle>
+        <DialogContent>{confirmed && confirmed.message}</DialogContent>
         <DialogActions>
           <Button
             onClick={() => {
@@ -386,6 +386,7 @@ function LessonPlan(props) {
       {errors &&
         errors.map((e, i) => (
           <Snackbar
+            key={i}
             open={errors ? true : false}
             autoHideDuration={6000}
             onClose={() => setErrors(null)}
@@ -546,7 +547,9 @@ function LessonPlan(props) {
                 (i) => JSON.stringify(i).toLowerCase().indexOf(search) >= 0
               )
               .filter((a) =>
-                selectedSched ? selectedSched == a.schedule_id : true
+                parseInt(selectedSched) >= 0
+                  ? parseInt(selectedSched) === a.schedule_id
+                  : true
               ).length && (
               <Box
                 width="100%"
@@ -567,11 +570,14 @@ function LessonPlan(props) {
                     (i) => JSON.stringify(i).toLowerCase().indexOf(search) >= 0
                   )
                   .filter((a) =>
-                    selectedSched ? selectedSched == a.schedule_id : true
+                    parseInt(selectedSched) >= 0
+                      ? parseInt(selectedSched) === a.schedule_id
+                      : true
                   )
                   .reverse()
                   .map((item, index) => (
                     <ListItem
+                      key={index}
                       onClick={() => _handleFileOption("view", item)}
                       className={styles.listItem}
                     >
@@ -678,7 +684,7 @@ function LessonPlan(props) {
       >
         <DialogTitle id="alert-dialog-slide-title">Web Link</DialogTitle>
         <DialogContent>
-          <DialogContentText id="alert-dialog-slide-description">
+          <DialogContent id="alert-dialog-slide-description">
             <Box display="flex" flexWrap="wrap">
               <TextField
                 label="Title"
@@ -700,7 +706,7 @@ function LessonPlan(props) {
                 fullWidth
               />
             </Box>
-          </DialogContentText>
+          </DialogContent>
         </DialogContent>
         <DialogActions>
           <Button
@@ -739,7 +745,7 @@ function LessonPlan(props) {
       >
         <DialogTitle id="alert-dialog-slide-title">Upload</DialogTitle>
         <DialogContent>
-          <DialogContentText id="alert-dialog-slide-description">
+          <DialogContent id="alert-dialog-slide-description">
             <Box display="flex" flexWrap="wrap">
               <TextField
                 label="Title"
@@ -752,10 +758,10 @@ function LessonPlan(props) {
                 fullWidth
               />
             </Box>
-          </DialogContentText>
+          </DialogContent>
           {hasFiles &&
-            FileUpload.getFiles("materials").map((f) => (
-              <div>{f.uploaded_file}</div>
+            FileUpload.getFiles("materials").map((f, i) => (
+              <div key={i}>{f.uploaded_file}</div>
             ))}
         </DialogContent>
         <DialogActions style={{ justifyContent: "space-between" }}>

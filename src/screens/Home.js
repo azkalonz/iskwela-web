@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import Drawer from "../components/Drawer";
 import NavBar from "../components/NavBar";
-import { Link, useHistory } from "react-router-dom";
+import { useHistory } from "react-router-dom";
 import {
   makeStyles,
   Card,
@@ -12,7 +12,6 @@ import {
   InputBase,
   IconButton,
   Snackbar,
-  Button,
   Typography,
   Box,
   Paper,
@@ -28,7 +27,6 @@ import SearchIcon from "@material-ui/icons/Search";
 import { makeLinkTo } from "../components/router-dom";
 import { connect } from "react-redux";
 import MuiAlert from "@material-ui/lab/Alert";
-import UserData from "../components/UserData";
 function Alert(props) {
   return <MuiAlert elevation={6} variant="filled" {...props} />;
 }
@@ -47,7 +45,7 @@ function Home(props) {
     <Card key={i} className={styles.root}>
       <CardActionArea style={{ position: "relative" }}>
         <div style={{ position: "relative" }}>
-          <CardMedia className={styles.media} />
+          <div className={styles.media} />
           <div className={styles.mediaOverlay} />
         </div>
         <CardContent style={{ position: "absolute", top: 0, left: 0 }}>
@@ -87,6 +85,8 @@ function Home(props) {
       case "PENDING":
         message = "Starts " + moment(c.next_schedule.from).fromNow();
         break;
+      default:
+        message = "";
     }
     let videoConferenceLink = makeLinkTo([
       "class",

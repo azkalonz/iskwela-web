@@ -1,9 +1,6 @@
 import React, { useState, useEffect } from "react";
 import {
-  List,
-  ListItem,
   ListItemText,
-  ListItemIcon,
   Dialog,
   DialogActions,
   DialogContent,
@@ -21,17 +18,12 @@ import {
   Menu,
   MenuItem,
   withStyles,
-  Slide,
   Box,
   Grow,
   Button,
-  TextField,
   IconButton,
   InputBase,
-  ListItemSecondaryAction,
   makeStyles,
-  Typography,
-  Paper,
   useTheme,
   useMediaQuery,
 } from "@material-ui/core";
@@ -62,7 +54,6 @@ function Schedule(props) {
   const { class_id, schedule_id, option_name } = props.match.params;
   const [schedules, setSchedules] = useState();
   const [saving, setSaving] = useState(false);
-  const [sortType, setSortType] = useState("DESCENDING");
   const [errors, setErrors] = useState([]);
   const [open, setOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState(null);
@@ -124,12 +115,14 @@ function Schedule(props) {
         setOpen(true);
         setForm({ ...file, date_from: file.from, date_to: file.to });
         return;
+      default:
+        return;
     }
   };
   const _handleUpdateStatus = async (status, item) => {
     setSaving(true);
     setSavingId(item.id);
-    let res = await Api.post("/api/schedule/save", {
+    await Api.post("/api/schedule/save", {
       body: {
         id: item.id,
         date_from: props.classDetails[class_id].schedules[item.id].from,
@@ -218,9 +211,9 @@ function Schedule(props) {
             <Table aria-label="simple table">
               <TableHead>
                 <TableRow>
-                  {headCells.map((headCell) => (
+                  {headCells.map((headCell, i) => (
                     <TableCell
-                      key={headCell.id}
+                      key={i}
                       align={headCell.numeric ? "right" : "left"}
                       padding={headCell.disablePadding ? "none" : "default"}
                       sortDirection={orderBy === headCell.id ? order : false}
@@ -251,7 +244,7 @@ function Schedule(props) {
                       (i) =>
                         JSON.stringify(i).toLowerCase().indexOf(search) >= 0
                     )
-                    .map((row) => {
+                    .map((row, i) => {
                       let status = {
                         className: styles[row.status],
                         label: row.status,
@@ -259,7 +252,7 @@ function Schedule(props) {
                       };
                       return (
                         <TableRow
-                          key={row.name}
+                          key={i}
                           className={[styles.row, status.color].join(" ")}
                         >
                           <TableCell component="th" scope="row">
@@ -381,8 +374,8 @@ function Schedule(props) {
           <Box style={{ marginBottom: 18 }}>
             {errors &&
               errors.map((e, i) => (
-                <Grow in={true}>
-                  <Alert key={i} style={{ marginBottom: 9 }} severity="error">
+                <Grow in={true} key={i}>
+                  <Alert style={{ marginBottom: 9 }} severity="error">
                     {e}
                   </Alert>
                 </Grow>
@@ -552,11 +545,6 @@ const useStyles = makeStyles((theme) => ({
   PENDING: {
     backgroundColor: theme.palette.error.main,
     borderColor: theme.palette.error.main,
-    color: theme.palette.common.white,
-  },
-  PENDING: {
-    backgroundColor: theme.palette.warning.main,
-    borderColor: theme.palette.warning.main,
     color: theme.palette.common.white,
   },
   ONGOING: {

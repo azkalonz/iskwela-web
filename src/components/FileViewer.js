@@ -100,7 +100,9 @@ function FV(props) {
         img.style.width = "50%";
         img.setAttribute("initial-width", img.clientWidth);
         img.onclick = function () {
-          if (eval(this.getAttribute("initial-width") < this.clientWidth)) {
+          if (
+            parseFloat(this.getAttribute("initial-width")) < this.clientWidth
+          ) {
             this.style.width = this.getAttribute("initial-width");
             this.style.cursor = "zoom-in";
           } else {
@@ -154,6 +156,7 @@ function FV(props) {
       )}
       {type && (
         <iframe
+          title="File Viewer"
           id="file-viewer"
           src={!newUrl ? props.url : newUrl}
           width="100%"

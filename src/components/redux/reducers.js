@@ -1,5 +1,4 @@
 import { combineReducers } from "redux";
-import Api from "../../api";
 
 const userInfo = (state = {}, payload) => {
   switch (payload.type) {
@@ -30,7 +29,7 @@ const classes = (state = [], payload) => {
 const classDetails = (state = {}, payload) => {
   switch (payload.type) {
     case "SET_CLASS_DETAILS":
-      console.log(payload.class_details);
+      console.log("class", payload.class_details);
       return payload.class_details;
     default:
       return state;

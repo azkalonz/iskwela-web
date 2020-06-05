@@ -7,7 +7,6 @@ import {
   CircularProgress,
   Button,
   Typography,
-  Badge,
   IconButton,
   MenuItem,
   Dialog,
@@ -20,16 +19,11 @@ import {
   Box,
   Tooltip,
   DialogActions,
-  Input,
   TextField,
 } from "@material-ui/core";
-import AccountCircle from "@material-ui/icons/AccountCircle";
 import { connect } from "react-redux";
 import actions from "./redux/actions";
-import { useHistory } from "react-router-dom";
-import Brightness6Icon from "@material-ui/icons/Brightness6";
 import ArrowDropDownIcon from "@material-ui/icons/ArrowDropDown";
-import MailOutlineIcon from "@material-ui/icons/MailOutline";
 import FileUpload, { stageFiles } from "./FileUpload";
 import CloseIcon from "@material-ui/icons/Close";
 import Form from "./Form";
@@ -65,7 +59,6 @@ function NavBar(props) {
   const classes = useStyles();
   const [anchorEl, setAnchorEl] = React.useState(null);
   const open = Boolean(anchorEl);
-  const history = useHistory();
   const [changeProfileDialog, setChangeProfileDialog] = useState(false);
   const [changePassDialog, setchangePassDialog] = useState(false);
 
@@ -240,6 +233,7 @@ const ChangePasswordDialog = React.memo(function (props) {
       {errors &&
         errors.map((e, i) => (
           <Snackbar
+            key={i}
             open={errors ? true : false}
             autoHideDuration={6000}
             onClose={() => setErrors(null)}
@@ -370,6 +364,7 @@ const ProfilePicDialog = React.memo(function (props) {
       {errors &&
         errors.map((e, i) => (
           <Snackbar
+            key={i}
             open={errors ? true : false}
             autoHideDuration={6000}
             onClose={() => setErrors(null)}

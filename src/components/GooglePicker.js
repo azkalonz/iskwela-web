@@ -33,7 +33,7 @@ function GooglePicker(props) {
         var url;
         var name;
         if (
-          data[window.google.picker.Response.ACTION] ==
+          data[window.google.picker.Response.ACTION] ===
           window.google.picker.Action.PICKED
         ) {
           var doc = data[window.google.picker.Response.DOCUMENTS][0];

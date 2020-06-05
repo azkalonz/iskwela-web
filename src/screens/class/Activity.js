@@ -38,9 +38,7 @@ import {
   AppBar,
   Tooltip,
 } from "@material-ui/core";
-import InsertDriveFileOutlinedIcon from "@material-ui/icons/InsertDriveFileOutlined";
 import MoreHorizOutlinedIcon from "@material-ui/icons/MoreHorizOutlined";
-import Moment from "react-moment";
 import ArrowDownwardOutlinedIcon from "@material-ui/icons/ArrowDownwardOutlined";
 import ArrowUpwardOutlinedIcon from "@material-ui/icons/ArrowUpwardOutlined";
 import SearchIcon from "@material-ui/icons/Search";
@@ -59,9 +57,7 @@ import {
   MuiPickersUtilsProvider,
   KeyboardDatePicker,
 } from "@material-ui/pickers";
-import Api from "../../api";
 import $ from "jquery";
-import axios from "axios";
 import MuiAlert from "@material-ui/lab/Alert";
 import CloseIcon from "@material-ui/icons/Close";
 import FullscreenIcon from "@material-ui/icons/Fullscreen";
@@ -72,6 +68,7 @@ import DeleteOutlineOutlinedIcon from "@material-ui/icons/DeleteOutlineOutlined"
 import VisibilityOffOutlinedIcon from "@material-ui/icons/VisibilityOffOutlined";
 import VisibilityOutlinedIcon from "@material-ui/icons/VisibilityOutlined";
 import { makeLinkTo } from "../../components/router-dom";
+import Api from "../../api";
 const queryString = require("query-string");
 function Alert(props) {
   return <MuiAlert elevation={6} variant="filled" {...props} />;
@@ -113,7 +110,7 @@ function Activity(props) {
   );
   const [page, setPage] = useState(query.page ? query.page : 1);
   const [selectedSched, setSelectedSched] = useState(
-    query.date && query.date != -1 ? query.date : null
+    query.date && query.date !== -1 ? query.date : null
   );
   const ITEMS_PER_PAGE = 10;
 
@@ -142,8 +139,8 @@ function Activity(props) {
         handleClickOpen();
         setForm({
           ...file,
-          activity_type: file.activity_type == "class activity" ? 1 : 2,
-          published: file.status == "unpublished" ? 0 : 1,
+          activity_type: file.activity_type === "class activity" ? 1 : 2,
+          published: file.status === "unpublished" ? 0 : 1,
           schedule_id: selectedSched ? selectedSched : classSched,
           subject_id: props.classDetails[class_id].subject.id,
           id: file.id,
@@ -158,6 +155,8 @@ function Activity(props) {
         return;
       case "delete":
         _handleRemoveActivity(file);
+        return;
+      default:
         return;
     }
   };
@@ -183,6 +182,13 @@ function Activity(props) {
         }
       });
       setActivities(allActivities);
+      setAnchorEl(() => {
+        let a = {};
+        allActivities.forEach((i) => {
+          a[i.id] = null;
+        });
+        return a;
+      });
     } catch (e) {}
   };
   useEffect(() => {
@@ -199,18 +205,6 @@ function Activity(props) {
       // getAnswers();
     }
   }, [currentActivity]);
-
-  useEffect(() => {
-    if (activities) {
-      setAnchorEl(() => {
-        let a = {};
-        activities.forEach((i) => {
-          a[i.id] = null;
-        });
-        return a;
-      });
-    }
-  }, [activities]);
 
   const _handleSort = (sortBy) => {
     if (sortType === "ASCENDING") {
@@ -257,7 +251,9 @@ function Activity(props) {
   };
   const _handleItemClick = (item) => {
     setCurrentActivity(
-      currentActivity && item.id === currentActivity.id ? undefined : item
+      currentActivity && parseInt(item.id) === parseInt(currentActivity.id)
+        ? undefined
+        : item
     );
   };
   const _handleCreateActivity = async (params = {}, noupdate = false) => {
@@ -272,9 +268,7 @@ function Activity(props) {
     });
     let res = await formData.send("/api/class/activity/save");
     if (formData.data.published && formData.data.id) {
-      let rr = await Api.post(
-        "/api/class/activity/publish/" + formData.data.id
-      );
+      await Api.post("/api/class/activity/publish/" + formData.data.id);
     }
     if (res) {
       if (!res.errors) {
@@ -346,7 +340,7 @@ function Activity(props) {
     setSaving(false);
   };
 
-  const _handleUpdateActivityStatus = (a, s) => {
+  const _handleUpdateActivityStatus = async (a, s) => {
     let stat = s ? "Publish" : "Unpublish";
     setConfirmed({
       title: stat + " Activity",
@@ -358,7 +352,7 @@ function Activity(props) {
         setSavingId([...savingId, a.id]);
         await _handleCreateActivity({
           ...a,
-          activity_type: a.activity_type == "class activity" ? 1 : 2,
+          activity_type: a.activity_type === "class activity" ? 1 : 2,
           published: s,
           schedule_id: selectedSched ? selectedSched : classSched,
           subject_id: props.classDetails[class_id].subject.id,
@@ -415,12 +409,11 @@ function Activity(props) {
         setSaving(true);
         setConfirmed(null);
         setSavingId([...savingId, ...Object.keys(a).map((i) => a[i].id)]);
-        let err = [];
         await asyncForEach(Object.keys(a), async (i) => {
           await Api.post("/api/class/activity/save", {
             body: {
               ...a[i],
-              activity_type: a[i].activity_type == "class activity" ? 1 : 2,
+              activity_type: a[i].activity_type === "class activity" ? 1 : 2,
               published: s,
               schedule_id: selectedSched ? selectedSched : classSched,
               subject_id: props.classDetails[class_id].subject.id,
@@ -615,8 +608,9 @@ function Activity(props) {
     for (let i = 0; i < totalPages; i++) {
       buttons.push(
         <Button
-          color={i == page - 1 ? "primary" : ""}
-          variant={i == page - 1 ? "contained" : ""}
+          key={i}
+          color={i === parseInt(page) - 1 ? "primary" : ""}
+          variant={i === parseInt(page) - 1 ? "contained" : ""}
           onClick={() => {
             props.onChange(i);
             history.push(
@@ -667,7 +661,11 @@ function Activity(props) {
     activities
       .filter((a) => JSON.stringify(a).toLowerCase().indexOf(search) >= 0)
       .filter((a) => (isTeacher ? true : a.status === "published"))
-      .filter((a) => (selectedSched ? selectedSched == a.schedule_id : true))
+      .filter((a) =>
+        parseInt(selectedSched) >= 0
+          ? parseInt(selectedSched) === parseInt(a.schedule_id)
+          : true
+      )
       .filter((a) => (selectedStatus ? selectedStatus === a.status : true))
       .reverse()
       .slice(
@@ -676,6 +674,10 @@ function Activity(props) {
       );
   const _selectAll = () => {
     let filtered = getFilteredActivities();
+    if (Object.keys(selectedItems).length === filtered.length) {
+      setSelectedItems({});
+      return;
+    }
     let b = {};
     filtered.forEach((a) => {
       b[a.id] = a;
@@ -684,30 +686,36 @@ function Activity(props) {
   };
   return (
     <Box width="100%" alignSelf="flex-start" height="100%">
-      <Dialog open={confirmed} onClose={() => setConfirmed(null)}>
-        <DialogTitle>{confirmed && confirmed.title}</DialogTitle>
-        <DialogContent>{confirmed && confirmed.message}</DialogContent>
-        <DialogActions>
-          <Button
-            onClick={() => {
-              setConfirmed(null);
-            }}
-          >
-            No
-          </Button>
+      {confirmed && (
+        <Dialog
+          open={confirmed ? true : false}
+          onClose={() => setConfirmed(null)}
+        >
+          <DialogTitle>{confirmed.title}</DialogTitle>
+          <DialogContent>{confirmed.message}</DialogContent>
+          <DialogActions>
+            <Button
+              onClick={() => {
+                setConfirmed(null);
+              }}
+            >
+              No
+            </Button>
 
-          <Button
-            color="primary"
-            variant="contained"
-            onClick={() => confirmed.yes()}
-          >
-            Yes
-          </Button>
-        </DialogActions>
-      </Dialog>
+            <Button
+              color="primary"
+              variant="contained"
+              onClick={() => confirmed.yes()}
+            >
+              Yes
+            </Button>
+          </DialogActions>
+        </Dialog>
+      )}
       {errors &&
         errors.map((e, i) => (
           <Snackbar
+            key={i}
             open={errors ? true : false}
             autoHideDuration={6000}
             onClose={() => setErrors(null)}
@@ -943,7 +951,7 @@ function Activity(props) {
                   <Typography style={{ fontWeight: "bold" }} variant="body1">
                     {currentActivity.title}
                   </Typography>
-                  <Typography>
+                  <Typography component="div">
                     {moment(currentActivity.available_from).format("LL")} -{" "}
                     {moment(currentActivity.available_to).format("LL")}
                   </Typography>
@@ -955,8 +963,8 @@ function Activity(props) {
                 </Box>
                 <Box display="inline-block">
                   <Typography color="textSecondary">Resources</Typography>
-                  {currentActivity.materials.map((m) => (
-                    <Typography component="div">
+                  {currentActivity.materials.map((m, i) => (
+                    <Typography component="div" key={i}>
                       <Link
                         component="div"
                         style={{
@@ -1079,8 +1087,12 @@ function Activity(props) {
                             </div>
                           )}
                           <div>
-                            {FileUpload.getFiles("answers").map((f) => (
-                              <Typography variant="body1" color="primary">
+                            {FileUpload.getFiles("answers").map((f, i) => (
+                              <Typography
+                                variant="body1"
+                                color="primary"
+                                key={i}
+                              >
                                 {f.uploaded_file}
                               </Typography>
                             ))}
@@ -1127,8 +1139,12 @@ function Activity(props) {
                     <ListItemIcon>
                       <Checkbox
                         checked={
-                          Object.keys(selectedItems).length ==
+                          Object.keys(selectedItems).length ===
                           getFilteredActivities().length
+                            ? getFilteredActivities().length > 0
+                              ? true
+                              : false
+                            : false
                         }
                         onChange={() => {
                           _selectAll();
@@ -1169,7 +1185,7 @@ function Activity(props) {
                   <div>
                     <Checkbox
                       checked={
-                        Object.keys(selectedItems).length ==
+                        Object.keys(selectedItems).length ===
                         getFilteredActivities().length
                       }
                       onChange={() => {
@@ -1238,13 +1254,15 @@ function Activity(props) {
               <List>
                 {getFilteredActivities().map((item, index) => (
                   <ListItem
+                    key={index}
                     className={styles.listItem}
                     style={{
                       borderColor:
-                        item.status == "published"
+                        item.status === "published"
                           ? theme.palette.success.main
                           : "#fff",
-                      ...(currentActivity && item.id === currentActivity.id
+                      ...(currentActivity &&
+                      parseInt(item.id) === parseInt(currentActivity.id)
                         ? {
                             background:
                               props.theme === "dark" ? "#111" : "#fff",
@@ -1309,8 +1327,8 @@ function Activity(props) {
                           <Typography color="textSecondary">
                             Resources
                           </Typography>
-                          {item.materials.map((m) => (
-                            <Typography component="div">
+                          {item.materials.map((m, i) => (
+                            <Typography key={i} component="div">
                               <Link
                                 component="div"
                                 style={{
@@ -1367,6 +1385,13 @@ function Activity(props) {
                           </StyledMenuItem>
                           {isTeacher && (
                             <div>
+                              <StyledMenuItem
+                                onClick={() =>
+                                  _handleFileOption("publish", item)
+                                }
+                              >
+                                <ListItemText primary="View Submissions" />
+                              </StyledMenuItem>
                               <StyledMenuItem
                                 onClick={() =>
                                   _handleFileOption("publish", item)
@@ -1521,8 +1546,8 @@ function Activity(props) {
                     <CancelIcon />
                   </IconButton>
                 </Box>
-                {FileUpload.getFiles("activity-materials").map((f) => (
-                  <List dense={true}>
+                {FileUpload.getFiles("activity-materials").map((f, i) => (
+                  <List dense={true} key={i}>
                     <ListItem>
                       <ListItemText primary={f.uploaded_file} />
                     </ListItem>
@@ -1536,7 +1561,7 @@ function Activity(props) {
                   Activity Materials
                 </Typography>
                 {form.materials.map((f, i) => (
-                  <List dense={true}>
+                  <List dense={true} key={i}>
                     <ListItem>
                       <ListItemText primary={f.title} />
                       <ListItemSecondaryAction>
@@ -1641,7 +1666,7 @@ function Activity(props) {
       >
         <DialogTitle id="alert-dialog-slide-title">Web Link</DialogTitle>
         <DialogContent>
-          <DialogContentText id="alert-dialog-slide-description">
+          <DialogContent id="alert-dialog-slide-description">
             <Box display="flex" flexWrap="wrap">
               <TextField
                 label="Title"
@@ -1668,7 +1693,7 @@ function Activity(props) {
                 fullWidth
               />
             </Box>
-          </DialogContentText>
+          </DialogContent>
         </DialogContent>
         <DialogActions>
           <Button
@@ -1763,7 +1788,6 @@ const useStyles = makeStyles((theme) => ({
   },
   expansionDetails: {
     flexWrap: "wrap",
-    background: theme.palette.type === "dark" ? "#111" : "#fff",
     paddingRight: 30,
   },
   hideonmobile: {

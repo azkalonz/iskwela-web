@@ -10,7 +10,7 @@ import { initReactI18next } from "react-i18next";
 import { Provider } from "react-redux";
 import store from "./components/redux/store";
 
-const _DEV = false;
+const _DEV = true;
 
 i18next.use(initReactI18next).init({
   resources: {
@@ -35,9 +35,9 @@ if (!_DEV) {
 ReactDOM.render(
   <Provider store={store}>
     <I18nextProvider i18n={i18next}>
-      <React.StrictMode>
-        <App />
-      </React.StrictMode>
+      {/* <React> */}
+      <App />
+      {/* </React> */}
     </I18nextProvider>
   </Provider>,
   document.getElementById("root")

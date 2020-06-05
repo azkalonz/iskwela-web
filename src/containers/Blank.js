@@ -2,7 +2,6 @@ import React, { useEffect } from "react";
 import Drawer from "../components/Drawer";
 import NavBar from "../components/NavBar";
 import { Box, CircularProgress } from "@material-ui/core";
-import Axios from "axios";
 
 function Blank(props) {
   const [loading, setLoading] = React.useState(true);
@@ -32,7 +31,6 @@ function Blank(props) {
           <NavBar title={props.title} />
           {loading && (
             <Box
-              width="100%"
               width="100%"
               height="100%"
               display="flex"

@@ -1,29 +1,20 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import PropTypes from "prop-types";
 import {
   Divider,
   Drawer as MuiDrawer,
-  List,
-  ListItem,
   Box,
   Typography,
   Grow,
-  useTheme,
   Tooltip,
   Toolbar,
   makeStyles,
   IconButton,
-  Paper,
   Avatar,
 } from "@material-ui/core";
-import MailIcon from "@material-ui/icons/Mail";
-import InboxIcon from "@material-ui/icons/MoveToInbox";
-import MenuIcon from "@material-ui/icons/Menu";
 import DashboardOutlined from "@material-ui/icons/DashboardOutlined";
 import { connect } from "react-redux";
-import actions from "./redux/actions";
-import { Link as RouteLink, useHistory } from "react-router-dom";
-import store from "./redux/store";
+import { useHistory } from "react-router-dom";
 import { makeLinkTo } from "./router-dom";
 import ExpandLessOutlinedIcon from "@material-ui/icons/ExpandLessOutlined";
 import ExpandMoreOutlinedIcon from "@material-ui/icons/ExpandMoreOutlined";
@@ -33,7 +24,6 @@ function Drawer(props) {
   const history = useHistory();
   const { class_id } = props.match.params;
   const [more, setMore] = useState(false);
-  const theme = useTheme();
   const drawer = (
     <div>
       <Toolbar className={styles.toolbar}>
@@ -53,7 +43,7 @@ function Drawer(props) {
           {...listItem.container}
           borderLeft={5}
           borderColor={
-            window.location.pathname == "/" ? "primary.main" : "transparent"
+            window.location.pathname === "/" ? "primary.main" : "transparent"
           }
         >
           <Box
@@ -89,7 +79,9 @@ function Drawer(props) {
                 );
               }}
               borderColor={
-                class_id && class_id == item.id ? "primary.main" : "transparent"
+                class_id && parseInt(class_id) === parseInt(item.id)
+                  ? "primary.main"
+                  : "transparent"
               }
               style={{ cursor: "pointer" }}
             >
@@ -155,7 +147,7 @@ function Drawer(props) {
                     );
                   }}
                   borderColor={
-                    class_id && class_id == item.id
+                    class_id && parseInt(class_id) === parseInt(item.id)
                       ? "primary.main"
                       : "transparent"
                   }

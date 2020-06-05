@@ -15,10 +15,10 @@ import {
   Box,
   Slider,
   Snackbar,
-  Avatar,
   useTheme,
   Typography,
   Button,
+  Grow,
 } from "@material-ui/core";
 import MuiAlert from "@material-ui/lab/Alert";
 import CheckBoxOutlineBlankOutlinedIcon from "@material-ui/icons/CheckBoxOutlineBlankOutlined";
@@ -27,7 +27,9 @@ import ImageOutlinedIcon from "@material-ui/icons/ImageOutlined";
 import TextFormatOutlinedIcon from "@material-ui/icons/TextFormatOutlined";
 import ColorPicker from "material-ui-color-picker";
 import SaveOutlinedIcon from "@material-ui/icons/SaveOutlined";
-import BorderColorOutlinedIcon from "@material-ui/icons/BorderColorOutlined";
+import ChangeHistoryIcon from "@material-ui/icons/ChangeHistory";
+import BrushIcon from "@material-ui/icons/Brush";
+import EditIcon from "@material-ui/icons/Edit";
 
 function Alert(props) {
   return <MuiAlert elevation={6} variant="filled" {...props} />;
@@ -44,10 +46,50 @@ function ContentMaker(props) {
   const [borderColor, setBorderColor] = useState("#222");
   const [canvasColor, setCanvasColor] = useState("#777");
   const [layers, setLayers] = useState();
-  const [borderWidth, setBorderWidth] = useState(1);
   const [errors, setErrors] = useState();
   const [confirmed, setConfirmed] = useState();
-  const [title, setTitle] = useState("Activity Material");
+  const [modals, setModals] = useState([]);
+  const [selectBrush, setSelectBrush] = useState(false);
+  const brushes = [
+    {
+      id: "diamondPatternBrush",
+      name: "Diamond",
+    },
+    {
+      id: "texturePatternBrush",
+      name: "Texture",
+    },
+    {
+      id: "squarePatternBrush",
+      name: "Diamond",
+    },
+    {
+      id: "hLinePatternBrush",
+      name: "Diamond",
+    },
+    {
+      id: "vLinePatternBrush",
+      name: "Diamond",
+    },
+    {
+      id: "Spray",
+      name: "Spray",
+    },
+  ];
+  const images = [
+    {
+      link: "/content-maker/1.png",
+    },
+    {
+      link: "/content-maker/2.png",
+    },
+    {
+      link: "/content-maker/3.jpg",
+    },
+    {
+      link: "/content-maker/5723.jpg",
+    },
+  ];
   useEffect(() => {
     setUp();
   }, []);
@@ -63,6 +105,26 @@ function ContentMaker(props) {
     };
     loc.append(s);
   };
+  const changeBrush = (id) => {
+    let { canvas, creator } = getCanvas();
+    let { fabric } = creator;
+    if (creator[id]) {
+      canvas.freeDrawingBrush = creator[id];
+    } else if (fabric[id + "Brush"]) {
+      canvas.freeDrawingBrush = new fabric[id + "Brush"](canvas);
+    }
+    if (canvas.freeDrawingBrush) {
+      canvas.freeDrawingBrush.color = "red";
+      canvas.freeDrawingBrush.width = 30;
+      canvas.freeDrawingBrush.shadow = new fabric.Shadow({
+        blur: 5,
+        offsetX: 0,
+        offsetY: 0,
+        affectStroke: true,
+        color: "blue",
+      });
+    }
+  };
   const setUp = async () => {
     await addScript("/fabric.min.js", $("head"));
     $("body").css("overflow", "auto");
@@ -72,7 +134,7 @@ function ContentMaker(props) {
       onSelectionCleared: () => setCurrentSelection(null),
       onModified: () => getLayers(),
     });
-    const { canvas, fabric } = creator;
+    const { canvas } = creator;
     window.creator = creator;
     if (window.localStorage["content-creator"]) {
       let savedState = JSON.parse(window.localStorage["content-creator"]);
@@ -81,6 +143,7 @@ function ContentMaker(props) {
         function () {
           canvas.setWidth(savedState.width || 1000);
           canvas.setHeight(savedState.height || 1000);
+          canvas.preserveObjectStacking = true;
           canvas.renderAll();
         },
         function (o, object) {
@@ -106,7 +169,7 @@ function ContentMaker(props) {
     );
     console.log(canvas.getObjects()[0]);
   };
-  const addRect = (w = 500, h = 500) => {
+  const addRect = (w = 200, h = 200) => {
     let { canvas, creator, width, top } = getCanvas();
     let rec = creator.rect(width / 2 - w / 2, top - h / 2, w, h, color);
     canvas.add(rec);
@@ -114,7 +177,7 @@ function ContentMaker(props) {
 
   const getCanvas = () => {
     let creator = window.creator;
-    let { canvas, fabric } = creator;
+    let { canvas } = creator;
     let { width, height } = canvas;
     let top = window.scrollY + screen.height / 2;
     return {
@@ -130,9 +193,8 @@ function ContentMaker(props) {
     let circle = creator.circ(r, width / 2 - r, top - r, color);
     canvas.add(circle);
   };
-  const addImage = () => {
-    let url = prompt("Enter URL");
-    let { canvas, creator, width, top } = getCanvas();
+  const addImage = (url) => {
+    let { creator } = getCanvas();
     creator.addImage(url, (e) => setErrors(e));
   };
 
@@ -160,15 +222,35 @@ function ContentMaker(props) {
         let { canvas } = getCanvas();
         let url = canvas.toDataURL();
         let blob = dataURItoBlob(url);
-        let file = new File(
-          [blob],
-          title.length ? title : "Activity Material",
-          { type: blob.type }
-        );
+        let file = new File([blob], "Activity Material", { type: blob.type });
         window.file = file;
         window.close();
       },
     });
+  };
+  const triangle = () => {
+    let { canvas, creator, width, top } = getCanvas();
+    let poly = creator.poly(
+      width / 2 - 100,
+      top - 100,
+      theme.palette.primary.main,
+      [
+        {
+          x: width / 2,
+          y: 0,
+        },
+        {
+          x: width / 2 - 100,
+          y: 200,
+        },
+        {
+          x: width / 2 + 100,
+          y: 200,
+        },
+      ]
+    );
+    canvas.add(poly);
+    canvas.renderAll();
   };
   return (
     <div
@@ -177,8 +259,30 @@ function ContentMaker(props) {
         alignItems: "center",
         justifyContent: "center",
         flexWrap: "wrap",
+        marginTop: 100,
       }}
     >
+      <Dialog
+        fullWidth
+        maxWidth="lg"
+        open={modals.indexOf("image") >= 0}
+        onClose={() => setModals([])}
+      >
+        <DialogTitle>Import Image</DialogTitle>
+        <DialogContent>
+          {images.map((i, ii) => (
+            <Button
+              key={ii}
+              onClick={() => {
+                addImage(i.link);
+                setModals([]);
+              }}
+            >
+              <img alt={"Image " + i} src={i.link} width="100" height="100" />
+            </Button>
+          ))}
+        </DialogContent>
+      </Dialog>
       <Dialog open={confirmed} onClose={() => setConfirmed(null)}>
         <DialogTitle>{confirmed && confirmed.title}</DialogTitle>
         <DialogContent>{confirmed && confirmed.message}</DialogContent>
@@ -210,8 +314,9 @@ function ContentMaker(props) {
         </Alert>
       </Snackbar>
       {errors &&
-        errors.map((e) => (
+        errors.map((e, i) => (
           <Snackbar
+            key={i}
             open={true}
             autoHideDuration={6000}
             onClose={() => setErrors(null)}
@@ -242,111 +347,169 @@ function ContentMaker(props) {
                   <SaveOutlinedIcon />
                 </IconButton>
               </Tooltip>
-              <Tooltip title="Add Rectang" placement="bottom">
+              <Tooltip title="Rectangle" placement="bottom">
                 <IconButton onClick={() => addRect()}>
                   <CheckBoxOutlineBlankOutlinedIcon />
                 </IconButton>
               </Tooltip>
-              <Tooltip title="Add Circle" placement="bottom">
+              <Tooltip title="Circle" placement="bottom">
                 <IconButton onClick={() => addCircle()}>
                   <FiberManualRecordOutlinedIcon />
                 </IconButton>
               </Tooltip>
-              <Tooltip title="Add Image" placement="bottom">
-                <IconButton>
-                  <ImageOutlinedIcon onClick={addImage} />
+              <Tooltip title="Triangle" placement="bottom">
+                <IconButton onClick={() => triangle()}>
+                  <ChangeHistoryIcon />
                 </IconButton>
               </Tooltip>
-              <Tooltip title="Add Text" placement="bottom">
-                <IconButton onClick={() => addText("Some text")}>
-                  <TextFormatOutlinedIcon />
+              <Tooltip title="Drawing Mode" placement="bottom">
+                <IconButton
+                  color={
+                    window.creator && window.creator.canvas.isDrawingMode
+                      ? "primary"
+                      : "default"
+                  }
+                  onClick={() => {
+                    let { canvas } = getCanvas();
+                    canvas.isDrawingMode = !canvas.isDrawingMode;
+                  }}
+                >
+                  <EditIcon />
                 </IconButton>
               </Tooltip>
-              <Tooltip title="Shape Color" placement="bottom">
-                <IconButton onClick={() => $("#color-picker").click()}>
-                  <Box
-                    width={30}
-                    height={30}
-                    borderRadius="50%"
-                    style={{
-                      background: color ? color : theme.palette.primary.main,
-                    }}
-                  />
+              <Tooltip title="Brush" placement="bottom">
+                <IconButton onClick={() => setSelectBrush(!selectBrush)}>
+                  <BrushIcon />
                 </IconButton>
               </Tooltip>
-              <ColorPicker
-                name="color"
-                id="color-picker"
-                style={{ display: "none" }}
-                defaultValue={theme.palette.primary.main}
-                value={color ? color : theme.palette.primary.main}
-                onChange={(color) => {
-                  window.creator.changeColor(color);
-                  setColor(color);
-                }}
-              />
-              <Tooltip title="Canvas Color" placement="bottom">
-                <IconButton onClick={() => $("#canvas-color").click()}>
-                  <Box
-                    width={30}
-                    height={30}
-                    borderRadius="50%"
-                    style={{
-                      background: canvasColor,
-                    }}
-                  />
-                </IconButton>
-              </Tooltip>
-              <ColorPicker
-                name="color"
-                id="canvas-color"
-                style={{ display: "none" }}
-                defaultValue={canvasColor}
-                value={canvasColor}
-                onChange={(color) => {
-                  window.creator.canvas
-                    .setBackgroundColor(color)
-                    .requestRenderAll();
-                  setCanvasColor(color);
-                }}
-              />
-              <Tooltip title="Border Color" placement="bottom">
-                <IconButton onClick={() => $("#border-color-picker").click()}>
-                  <BorderColorOutlinedIcon />
-                </IconButton>
-              </Tooltip>
-              <ColorPicker
-                name="color"
-                id="border-color-picker"
-                style={{ display: "none" }}
-                defaultValue={theme.palette.primary.main}
-                value={borderColor ? borderColor : theme.palette.primary.main}
-                onChange={(color) => {
-                  window.creator.changeBorderColor(color);
-                  setBorderColor(color);
-                }}
-              />
-              <div style={{ width: 100 }}>
-                <Tooltip title="Stroke Width" placement="bottom">
-                  <Slider
-                    onChange={(e, val) => {
-                      window.creator.changeBorderWidth(val);
-                      setBorderWidth(val);
-                    }}
-                    defaultValue={1}
-                  />
-                </Tooltip>
-              </div>
-            </div>
-            <div>
-              <Input
-                type="text"
-                onChange={(e) => {
-                  setTitle(e.target.value);
-                }}
-                value={title}
-                label="Material Title"
-              />
+              {selectBrush &&
+                brushes.map((i, ii) => (
+                  <Grow in={true} key={ii}>
+                    <Button onClick={() => changeBrush(i.id)}>{i.name}</Button>
+                  </Grow>
+                ))}
+              {selectBrush && (
+                <div style={{ width: 100 }}>
+                  <Tooltip title="Brush Width" placement="bottom">
+                    <Slider
+                      onChange={(e, val) => {
+                        let { canvas } = getCanvas();
+                        canvas.freeDrawingBrush.width = val;
+                      }}
+                      defaultValue={1}
+                      id="brush-size"
+                    />
+                  </Tooltip>
+                </div>
+              )}
+              {!selectBrush && (
+                <Grow in={true}>
+                  <div style={{ display: "flex", alignItems: "center" }}>
+                    <Tooltip title="Image" placement="bottom">
+                      <IconButton>
+                        <ImageOutlinedIcon
+                          onClick={() => setModals([...modals, "image"])}
+                        />
+                      </IconButton>
+                    </Tooltip>
+                    <Tooltip title="Text" placement="bottom">
+                      <IconButton onClick={() => addText("Some text")}>
+                        <TextFormatOutlinedIcon />
+                      </IconButton>
+                    </Tooltip>
+
+                    <Tooltip title="Shape Color" placement="bottom">
+                      <IconButton onClick={() => $("#color-picker").click()}>
+                        <Box
+                          width={30}
+                          height={30}
+                          borderRadius="50%"
+                          style={{
+                            background: color
+                              ? color
+                              : theme.palette.primary.main,
+                          }}
+                        />
+                      </IconButton>
+                    </Tooltip>
+                    <ColorPicker
+                      name="color"
+                      id="color-picker"
+                      style={{ display: "none" }}
+                      defaultValue={theme.palette.primary.main}
+                      value={color ? color : theme.palette.primary.main}
+                      onChange={(color) => {
+                        window.creator.changeColor(color);
+                        setColor(color);
+                      }}
+                    />
+                    <Tooltip title="Canvas Color" placement="bottom">
+                      <IconButton onClick={() => $("#canvas-color").click()}>
+                        <Box
+                          width={30}
+                          height={30}
+                          borderRadius="50%"
+                          style={{
+                            background: canvasColor,
+                          }}
+                        />
+                      </IconButton>
+                    </Tooltip>
+                    <ColorPicker
+                      name="color"
+                      id="canvas-color"
+                      style={{ display: "none" }}
+                      defaultValue={canvasColor}
+                      value={canvasColor}
+                      onChange={(color) => {
+                        window.creator.canvas
+                          .setBackgroundColor(color)
+                          .requestRenderAll();
+                        setCanvasColor(color);
+                      }}
+                    />
+                    <Tooltip title="Border Color" placement="bottom">
+                      <IconButton
+                        onClick={() => $("#border-color-picker").click()}
+                      >
+                        <Box
+                          width={30}
+                          height={30}
+                          borderRadius="50%"
+                          style={{
+                            background: borderColor
+                              ? borderColor
+                              : theme.palette.primary.main,
+                          }}
+                        />
+                      </IconButton>
+                    </Tooltip>
+                    <ColorPicker
+                      name="color"
+                      id="border-color-picker"
+                      style={{ display: "none" }}
+                      defaultValue={theme.palette.primary.main}
+                      value={
+                        borderColor ? borderColor : theme.palette.primary.main
+                      }
+                      onChange={(color) => {
+                        window.creator.changeBorderColor(color);
+                        setBorderColor(color);
+                      }}
+                    />
+                    <div style={{ width: 100 }}>
+                      <Tooltip title="Stroke Width" placement="bottom">
+                        <Slider
+                          onChange={(e, val) => {
+                            window.creator.changeBorderWidth(val);
+                          }}
+                          defaultValue={1}
+                        />
+                      </Tooltip>
+                    </div>
+                  </div>
+                </Grow>
+              )}
             </div>
 
             <div style={{ display: "flex", alignItems: "center" }}>
@@ -393,6 +556,7 @@ function ContentMaker(props) {
         {layers &&
           layers.map((item, index) => (
             <div
+              key={index}
               style={{
                 background: theme.palette.type === "dark" ? "#222" : "#fff",
                 marginBottom: 13,
@@ -421,6 +585,7 @@ function ContentMaker(props) {
                 >
                   {window.creator.canvas.item(index) && (
                     <img
+                      alt="preview"
                       src={window.creator.canvas.item(index).toDataURL()}
                       width={100}
                       height={100}

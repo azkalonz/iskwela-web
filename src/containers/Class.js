@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import Drawer from "../components/Drawer";
 import NavBar from "../components/NavBar";
-import { Route, Link, useHistory } from "react-router-dom";
+import { Route, useHistory } from "react-router-dom";
 import {
   Box,
   makeStyles,
@@ -20,10 +20,6 @@ import {
   IconButton,
   Typography,
   Slide,
-  InputLabel,
-  FormControl,
-  Select,
-  MenuItem,
   Divider,
 } from "@material-ui/core";
 import Skeleton from "react-loading-skeleton";
@@ -31,7 +27,6 @@ import CreateOutlined from "@material-ui/icons/CreateOutlined";
 import QueryBuilderOutlinedIcon from "@material-ui/icons/QueryBuilderOutlined";
 import CalendarTodayOutlinedIcon from "@material-ui/icons/CalendarTodayOutlined";
 import VideocamOutlinedIcon from "@material-ui/icons/VideocamOutlined";
-import ScreenShareOutlinedIcon from "@material-ui/icons/ScreenShareOutlined";
 import VideoConference from "../containers/VideoConference";
 import ArrowBackIosRoundedIcon from "@material-ui/icons/ArrowBackIosRounded";
 import ArrowForwardIosRoundedIcon from "@material-ui/icons/ArrowForwardIosRounded";
@@ -40,7 +35,6 @@ import LessonPlan from "../screens/class/LessonPlan";
 import Schedule from "../screens/class/Schedule";
 import Students from "../screens/class/Students";
 import InstructionalMaterials from "../screens/class/InstructionalMaterials";
-import moment from "moment";
 import {
   makeLinkTo,
   rightPanelOptionsStudents,
@@ -52,7 +46,6 @@ import Api from "../api";
 import UserData from "../components/UserData";
 import $ from "jquery";
 import socket from "../components/socket.io";
-import store from "../components/redux/store";
 
 function ClassRightPanel(props) {
   const { option_name } = props.match.params;
@@ -75,6 +68,9 @@ function ClassRightPanel(props) {
       break;
     case "instructional-materials":
       View = InstructionalMaterials;
+      break;
+    default:
+      View = <div />;
   }
   return <View {...props} />;
 }
@@ -142,7 +138,7 @@ function Class(props) {
   };
   const updateClass = async (status) => {
     setSaving(true);
-    let res = await Api.post("/api/schedule/save", {
+    await Api.post("/api/schedule/save", {
       body: {
         id: props.classDetails[class_id].schedules[schedule_id].id,
         date_from: props.classDetails[class_id].schedules[schedule_id].from,
@@ -250,6 +246,7 @@ function Class(props) {
                     overflow="hidden"
                   >
                     <img
+                      alt="Class Wallpaper"
                       src="https://www.iskwela.net/img/on-iskwela.svg"
                       width="100%"
                       height="100%"
@@ -438,7 +435,6 @@ function Class(props) {
                 let offset = $("#video-conference-container");
                 offset = offset[0] ? offset[0].offsetHeight : 0;
                 let top = e.target.scrollTop - offset;
-                let height = e.target.scrollHeight;
                 x.css(
                   "opacity",
                   clamp(
