@@ -598,21 +598,23 @@ function LessonPlan(props) {
                   }}
                 >
                   <div style={{ display: "flex", alignItems: "center" }}>
-                    <ListItemIcon>
-                      <Checkbox
-                        checked={
-                          Object.keys(selectedItems).length ===
-                          getFilteredMaterials().length
-                            ? getFilteredMaterials().length > 0
-                              ? true
+                    {isTeacher && (
+                      <ListItemIcon>
+                        <Checkbox
+                          checked={
+                            Object.keys(selectedItems).length ===
+                            getFilteredMaterials().length
+                              ? getFilteredMaterials().length > 0
+                                ? true
+                                : false
                               : false
-                            : false
-                        }
-                        onChange={() => {
-                          _selectAll();
-                        }}
-                      />
-                    </ListItemIcon>
+                          }
+                          onChange={() => {
+                            _selectAll();
+                          }}
+                        />
+                      </ListItemIcon>
+                    )}
 
                     <Button size="small" onClick={_handleSort}>
                       <ListItemText primary="Title" />
@@ -659,14 +661,16 @@ function LessonPlan(props) {
                 {getPageItems(getFilteredMaterials(), page).map(
                   (item, index) => (
                     <ListItem key={index} className={styles.listItem}>
-                      <ListItemIcon>
-                        <Checkbox
-                          checked={selectedItems[item.id] ? true : false}
-                          onChange={() => {
-                            _handleSelectOption(item);
-                          }}
-                        />
-                      </ListItemIcon>
+                      {isTeacher && (
+                        <ListItemIcon>
+                          <Checkbox
+                            checked={selectedItems[item.id] ? true : false}
+                            onChange={() => {
+                              _handleSelectOption(item);
+                            }}
+                          />
+                        </ListItemIcon>
+                      )}
                       {saving && savingId.indexOf(item.id) >= 0 && (
                         <div className={styles.itemLoading}>
                           <CircularProgress />

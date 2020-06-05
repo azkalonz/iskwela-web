@@ -12,10 +12,12 @@ import {
 import DeleteOutlineOutlinedIcon from "@material-ui/icons/DeleteOutlineOutlined";
 import VisibilityOffOutlinedIcon from "@material-ui/icons/VisibilityOffOutlined";
 import VisibilityOutlinedIcon from "@material-ui/icons/VisibilityOutlined";
+import { connect } from "react-redux";
 
-export function CheckBoxAction(props) {
+function CheckBoxAction(props) {
+  const isTeacher = props.userInfo.user_type === "t" ? true : false;
   const theme = useTheme();
-  return (
+  return isTeacher ? (
     <AppBar position="sticky" style={{ background: theme.palette.grey[200] }}>
       <Toolbar
         style={{
@@ -68,5 +70,11 @@ export function CheckBoxAction(props) {
         </div>
       </Toolbar>
     </AppBar>
-  );
+  ) : null;
 }
+
+const ConnectedCheckBoxAction = connect((states) => ({
+  userInfo: states.userInfo,
+}))(CheckBoxAction);
+
+export { ConnectedCheckBoxAction as CheckBoxAction };

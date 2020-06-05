@@ -240,6 +240,7 @@ function Activity(props) {
     if (!saving) {
       setModals([false, modals[1]]);
       setHasFiles([hasFiles[0], false]);
+      window.contentMakerFile = null;
       FileUpload.removeFiles("activity-materials");
     }
   };
@@ -331,6 +332,10 @@ function Activity(props) {
         setErrors(err);
       }
     }
+    setForm(formTemplate);
+    FileUpload.removeFiles("activity-materials");
+    setNewMaterial(null);
+    window.contentMakerFile = null;
     setSaving(false);
   };
 
@@ -1008,21 +1013,23 @@ function Activity(props) {
                   }}
                 >
                   <div style={{ display: "flex", alignItems: "center" }}>
-                    <ListItemIcon>
-                      <Checkbox
-                        checked={
-                          Object.keys(selectedItems).length ===
-                          getFilteredActivities().length
-                            ? getFilteredActivities().length > 0
-                              ? true
+                    {isTeacher && (
+                      <ListItemIcon>
+                        <Checkbox
+                          checked={
+                            Object.keys(selectedItems).length ===
+                            getFilteredActivities().length
+                              ? getFilteredActivities().length > 0
+                                ? true
+                                : false
                               : false
-                            : false
-                        }
-                        onChange={() => {
-                          _selectAll();
-                        }}
-                      />
-                    </ListItemIcon>
+                          }
+                          onChange={() => {
+                            _selectAll();
+                          }}
+                        />
+                      </ListItemIcon>
+                    )}
                     <Button size="small" onClick={() => _handleSort("title")}>
                       <ListItemText primary="Title" />
                       {sortType === "ASCENDING" ? (
@@ -1093,14 +1100,16 @@ function Activity(props) {
                           : {}),
                       }}
                     >
-                      <ListItemIcon>
-                        <Checkbox
-                          checked={selectedItems[item.id] ? true : false}
-                          onChange={() => {
-                            _handleSelectOption(item);
-                          }}
-                        />
-                      </ListItemIcon>
+                      {isTeacher && (
+                        <ListItemIcon>
+                          <Checkbox
+                            checked={selectedItems[item.id] ? true : false}
+                            onChange={() => {
+                              _handleSelectOption(item);
+                            }}
+                          />
+                        </ListItemIcon>
+                      )}
                       {saving && savingId.indexOf(item.id) >= 0 && (
                         <div className={styles.itemLoading}>
                           <CircularProgress />
