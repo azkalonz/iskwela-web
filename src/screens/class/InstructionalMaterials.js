@@ -12,16 +12,13 @@ import {
   DialogTitle,
   Menu,
   MenuItem,
-  FormControl,
-  Select,
   Toolbar,
-  InputLabel,
+  Checkbox,
   withStyles,
   Box,
   Button,
   TextField,
   IconButton,
-  InputBase,
   ListItemSecondaryAction,
   makeStyles,
   Typography,
@@ -33,7 +30,6 @@ import InsertDriveFileOutlinedIcon from "@material-ui/icons/InsertDriveFileOutli
 import MoreHorizOutlinedIcon from "@material-ui/icons/MoreHorizOutlined";
 import ArrowDownwardOutlinedIcon from "@material-ui/icons/ArrowDownwardOutlined";
 import ArrowUpwardOutlinedIcon from "@material-ui/icons/ArrowUpwardOutlined";
-import SearchIcon from "@material-ui/icons/Search";
 import AttachFileOutlinedIcon from "@material-ui/icons/AttachFileOutlined";
 import ExpandMoreOutlinedIcon from "@material-ui/icons/ExpandMoreOutlined";
 import InsertLinkOutlinedIcon from "@material-ui/icons/InsertLinkOutlined";
@@ -49,13 +45,13 @@ import FullscreenIcon from "@material-ui/icons/Fullscreen";
 import FullscreenExitIcon from "@material-ui/icons/FullscreenExit";
 import { saveAs } from "file-saver";
 import socket from "../../components/socket.io";
-import moment from "moment";
 import Pagination, { getPageItems } from "../../components/Pagination";
 import {
   ScheduleSelector,
   StatusSelector,
   SearchInput,
 } from "../../components/Selectors";
+import { CheckBoxAction } from "../../components/CheckBox";
 
 const queryString = require("query-string");
 function Alert(props) {
@@ -84,7 +80,7 @@ function InstructionalMaterials(props) {
   const [success, setSuccess] = useState(false);
   const [errors, setErrors] = useState();
   const [confirmed, setConfirmed] = useState();
-  const [savingId, setSavingId] = useState();
+  const [savingId, setSavingId] = useState([]);
   const [fileFullScreen, setFileFullScreen] = useState(false);
   const [selectedSched, setSelectedSched] = useState(
     query.date && query.date !== -1 ? query.date : null
@@ -97,6 +93,7 @@ function InstructionalMaterials(props) {
       : "published"
   );
   const [page, setPage] = useState(query.page ? query.page : 1);
+  const [selectedItems, setSelectedItems] = useState({});
 
   const _handleFileOption = (option, file) => {
     setAnchorEl(() => {
@@ -164,7 +161,7 @@ function InstructionalMaterials(props) {
   const _downloadFile = async (file) => {
     setErrors(null);
     setSaving(true);
-    setSavingId(file.id);
+    setSavingId([...savingId, file.id]);
     let res = await Api.postBlob(
       "/api/download/class/material/" + file.id
     ).then((resp) => (resp.ok ? resp.blob() : null));
@@ -318,7 +315,7 @@ function InstructionalMaterials(props) {
       title: stat.charAt(0).toUpperCase() + " Material",
       message: "Are you sure you want to " + stat + " this material?",
       yes: async () => {
-        setSavingId(id);
+        setSavingId([...savingId, id]);
         setSaving(true);
         setConfirmed(null);
         let res = await Api.post("/api/class/material/" + stat + "/" + id);
@@ -343,6 +340,33 @@ function InstructionalMaterials(props) {
       },
     });
   };
+  const _handleUpdateMaterialsStatus = (a, s) => {
+    let stat = s ? "Publish" : "Unpublish";
+    setConfirmed({
+      title: stat + " " + Object.keys(a).length + " Materials",
+      message: "Are you sure to " + stat + " this materials?",
+      yes: async () => {
+        setErrors(null);
+        setSaving(true);
+        setConfirmed(null);
+        setSavingId([...savingId, ...Object.keys(a).map((i) => a[i].id)]);
+        await asyncForEach(Object.keys(a), async (i) => {
+          await Api.post(
+            "/api/class/material/" + stat.toLowerCase() + "/" + a[i].id
+          );
+        });
+        let newScheduleDetails = await UserData.updateScheduleDetails(
+          class_id,
+          schedule_id
+        );
+        socket.emit("update schedule details", {
+          id: class_id,
+          details: newScheduleDetails,
+        });
+        setSaving(false);
+      },
+    });
+  };
   const _handleRemoveMaterial = (activity) => {
     setConfirmed({
       title: "Remove Material",
@@ -351,7 +375,7 @@ function InstructionalMaterials(props) {
         setErrors(null);
         setSaving(true);
         setConfirmed(null);
-        setSavingId(activity.id);
+        setSavingId([...savingId, activity.id]);
         let res = await Api.post(
           "/api/teacher/remove/class-material/" + activity.id,
           {
@@ -381,6 +405,45 @@ function InstructionalMaterials(props) {
       },
     });
   };
+  const _handleRemoveMaterials = (materials) => {
+    setConfirmed({
+      title: "Remove " + Object.keys(materials).length + " materials",
+      message: "Are you sure to remove this materials?",
+      yes: async () => {
+        setErrors(null);
+        setSaving(true);
+        setConfirmed(null);
+        setSavingId([
+          ...savingId,
+          ...Object.keys(materials).map((i) => materials[i].id),
+        ]);
+        let err = [];
+        await asyncForEach(Object.keys(materials), async (i) => {
+          let id = parseInt(i);
+          let res = await Api.post("/api/teacher/remove/class-material/" + id, {
+            body: {
+              id,
+            },
+          });
+          if (res.errors) {
+            for (let e in res.errors) {
+              err.push(res.errors[e][0]);
+            }
+            setErrors(err);
+          }
+        });
+        let newScheduleDetails = await UserData.updateScheduleDetails(
+          class_id,
+          schedule_id
+        );
+        socket.emit("update schedule details", {
+          id: class_id,
+          details: newScheduleDetails,
+        });
+        setSaving(false);
+      },
+    });
+  };
   const getFilteredMaterials = () =>
     materials
       .filter((i) => (isTeacher ? true : i.status === "published"))
@@ -392,6 +455,30 @@ function InstructionalMaterials(props) {
           : true
       )
       .reverse();
+  const _handleSelectOption = (item) => {
+    if (selectedItems[item.id]) {
+      let b = { ...selectedItems };
+      delete b[item.id];
+      setSelectedItems(b);
+      return;
+    }
+    let newitem = {};
+    newitem[item.id] = item;
+    setSelectedItems({ ...selectedItems, ...newitem });
+    console.log(selectedItems);
+  };
+  const _selectAll = () => {
+    let filtered = getFilteredMaterials();
+    if (Object.keys(selectedItems).length === filtered.length) {
+      setSelectedItems({});
+      return;
+    }
+    let b = {};
+    filtered.forEach((a) => {
+      b[a.id] = a;
+    });
+    setSelectedItems(b);
+  };
   return (
     <Box width="100%" alignSelf="flex-start">
       <Dialog
@@ -580,30 +667,65 @@ function InstructionalMaterials(props) {
       {materials && (
         <Box width="100%" alignSelf="flex-start">
           <Box m={2}>
-            <List className={styles.hideonmobile}>
-              <ListItem
-                ContainerComponent="li"
-                style={{
-                  display: "flex",
-                  flexDirection: "row",
-                  justifyContent: "space-between",
-                  backgroundColor: "transparent",
-                }}
-              >
-                <Button size="small" onClick={_handleSort}>
-                  <ListItemText primary="Title" />
-                  {sortType === "ASCENDING" ? (
-                    <ArrowUpwardOutlinedIcon />
-                  ) : (
-                    <ArrowDownwardOutlinedIcon />
-                  )}
-                </Button>
-                <Typography variant="body1" style={{ marginRight: 10 }}>
-                  ADDED BY
-                </Typography>
-                <ListItemSecondaryAction></ListItemSecondaryAction>
-              </ListItem>
-            </List>
+            {!Object.keys(selectedItems).length ? (
+              <List className={styles.hideonmobile}>
+                <ListItem
+                  ContainerComponent="li"
+                  style={{
+                    display: "flex",
+                    flexDirection: "row",
+                    justifyContent: "space-between",
+                    backgroundColor: "transparent",
+                  }}
+                >
+                  <div style={{ display: "flex", alignItems: "center" }}>
+                    <ListItemIcon>
+                      <Checkbox
+                        checked={
+                          Object.keys(selectedItems).length ===
+                          getFilteredMaterials().length
+                            ? getFilteredMaterials().length > 0
+                              ? true
+                              : false
+                            : false
+                        }
+                        onChange={() => {
+                          _selectAll();
+                        }}
+                      />
+                    </ListItemIcon>
+
+                    <Button size="small" onClick={_handleSort}>
+                      <ListItemText primary="Title" />
+                      {sortType === "ASCENDING" ? (
+                        <ArrowUpwardOutlinedIcon />
+                      ) : (
+                        <ArrowDownwardOutlinedIcon />
+                      )}
+                    </Button>
+                  </div>
+
+                  <Typography variant="body1" style={{ marginRight: 10 }}>
+                    ADDED BY
+                  </Typography>
+                  <ListItemSecondaryAction></ListItemSecondaryAction>
+                </ListItem>
+              </List>
+            ) : (
+              <CheckBoxAction
+                checked={
+                  Object.keys(selectedItems).length ===
+                  getFilteredMaterials().length
+                }
+                onSelect={_selectAll}
+                onDelete={() => _handleRemoveMaterials(selectedItems)}
+                onCancel={() => setSelectedItems({})}
+                onUnpublish={() =>
+                  _handleUpdateMaterialsStatus(selectedItems, 0)
+                }
+                onPublish={() => _handleUpdateMaterialsStatus(selectedItems, 1)}
+              />
+            )}
             {!getFilteredMaterials().length && (
               <Box
                 width="100%"
@@ -623,7 +745,6 @@ function InstructionalMaterials(props) {
                   (item, index) => (
                     <ListItem
                       key={index}
-                      onClick={() => _handleFileOption("view", item)}
                       className={styles.listItem}
                       style={{
                         borderColor:
@@ -632,7 +753,15 @@ function InstructionalMaterials(props) {
                             : "#fff",
                       }}
                     >
-                      {saving && savingId === item.id && (
+                      <ListItemIcon>
+                        <Checkbox
+                          checked={selectedItems[item.id] ? true : false}
+                          onChange={() => {
+                            _handleSelectOption(item);
+                          }}
+                        />
+                      </ListItemIcon>
+                      {saving && savingId.indexOf(item.id) >= 0 && (
                         <div className={styles.itemLoading}>
                           <CircularProgress />
                         </div>
@@ -641,6 +770,7 @@ function InstructionalMaterials(props) {
                         <InsertDriveFileOutlinedIcon />
                       </ListItemIcon>
                       <ListItemText
+                        onClick={() => _handleFileOption("view", item)}
                         primary={item.title}
                         secondary={
                           item.resource_link

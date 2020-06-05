@@ -259,7 +259,6 @@ const listItem = {
   item: {
     borderRadius: "50%",
     position: "relative",
-    borderRadius: "50%",
     border: 1,
     borderColor: "grey.500",
     m: 1,

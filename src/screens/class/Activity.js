@@ -23,7 +23,6 @@ import {
   Button,
   TextField,
   IconButton,
-  InputBase,
   useTheme,
   Checkbox,
   useMediaQuery,
@@ -31,17 +30,11 @@ import {
   makeStyles,
   Typography,
   Link,
-  FormControl,
-  InputLabel,
-  Select,
   Toolbar,
-  AppBar,
-  Tooltip,
 } from "@material-ui/core";
 import MoreHorizOutlinedIcon from "@material-ui/icons/MoreHorizOutlined";
 import ArrowDownwardOutlinedIcon from "@material-ui/icons/ArrowDownwardOutlined";
 import ArrowUpwardOutlinedIcon from "@material-ui/icons/ArrowUpwardOutlined";
-import SearchIcon from "@material-ui/icons/Search";
 import AttachFileOutlinedIcon from "@material-ui/icons/AttachFileOutlined";
 import FileViewer from "../../components/FileViewer";
 import moment from "moment";
@@ -63,11 +56,6 @@ import CloseIcon from "@material-ui/icons/Close";
 import FullscreenIcon from "@material-ui/icons/Fullscreen";
 import FullscreenExitIcon from "@material-ui/icons/FullscreenExit";
 import socket from "../../components/socket.io";
-import { useHistory } from "react-router-dom";
-import DeleteOutlineOutlinedIcon from "@material-ui/icons/DeleteOutlineOutlined";
-import VisibilityOffOutlinedIcon from "@material-ui/icons/VisibilityOffOutlined";
-import VisibilityOutlinedIcon from "@material-ui/icons/VisibilityOutlined";
-import { makeLinkTo } from "../../components/router-dom";
 import Api from "../../api";
 import Pagination, { getPageItems } from "../../components/Pagination";
 import {
@@ -75,6 +63,7 @@ import {
   StatusSelector,
   SearchInput,
 } from "../../components/Selectors";
+import { CheckBoxAction } from "../../components/CheckBox";
 
 const queryString = require("query-string");
 function Alert(props) {
@@ -82,7 +71,6 @@ function Alert(props) {
 }
 
 function Activity(props) {
-  const history = useHistory();
   const theme = useTheme();
   const query = queryString.parse(window.location.search);
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
@@ -107,7 +95,7 @@ function Activity(props) {
   const [confirmed, setConfirmed] = useState(false);
   const [savingId, setSavingId] = useState([]);
   const [fileFullScreen, setFileFullScreen] = useState(false);
-  const [selectedItems, setSelectedItems] = useState([]);
+  const [selectedItems, setSelectedItems] = useState({});
   const [selectedStatus, setSelectedStatus] = useState(
     isTeacher
       ? query.status && query.status !== "all"
@@ -1039,71 +1027,21 @@ function Activity(props) {
                 </ListItem>
               </List>
             ) : (
-              <AppBar
-                position="sticky"
-                style={{ background: theme.palette.grey[200] }}
-              >
-                <Toolbar
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                  }}
-                >
-                  <div>
-                    <Checkbox
-                      checked={
-                        Object.keys(selectedItems).length ===
-                        getFilteredActivities().length
-                      }
-                      onChange={() => {
-                        _selectAll();
-                      }}
-                    />
-                    <Grow in={true}>
-                      <Tooltip title="Delete" placement="bottom">
-                        <IconButton
-                          onClick={() => _handleRemoveActivities(selectedItems)}
-                        >
-                          <DeleteOutlineOutlinedIcon />
-                        </IconButton>
-                      </Tooltip>
-                    </Grow>
-                    <Grow in={true}>
-                      <Tooltip title="Unpublish" placement="bottom">
-                        <IconButton
-                          onClick={() =>
-                            _handleUpdateActivitiesStatus(selectedItems, 0)
-                          }
-                        >
-                          <VisibilityOffOutlinedIcon />
-                        </IconButton>
-                      </Tooltip>
-                    </Grow>
-                    <Grow in={true}>
-                      <Tooltip title="Publish" placement="bottom">
-                        <IconButton
-                          onClick={() =>
-                            _handleUpdateActivitiesStatus(selectedItems, 1)
-                          }
-                        >
-                          <VisibilityOutlinedIcon />
-                        </IconButton>
-                      </Tooltip>
-                    </Grow>
-                  </div>
-                  <div>
-                    <Grow in={true}>
-                      <Button
-                        variant="outlined"
-                        onClick={() => setSelectedItems({})}
-                      >
-                        Cancel
-                      </Button>
-                    </Grow>
-                  </div>
-                </Toolbar>
-              </AppBar>
+              <CheckBoxAction
+                checked={
+                  Object.keys(selectedItems).length ===
+                  getFilteredActivities().length
+                }
+                onSelect={_selectAll}
+                onDelete={() => _handleRemoveActivities(selectedItems)}
+                onCancel={() => setSelectedItems({})}
+                onUnpublish={() =>
+                  _handleUpdateActivitiesStatus(selectedItems, 0)
+                }
+                onPublish={() =>
+                  _handleUpdateActivitiesStatus(selectedItems, 1)
+                }
+              />
             )}
             {!getFilteredActivities().length && (
               <Box

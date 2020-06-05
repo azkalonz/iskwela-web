@@ -15,7 +15,6 @@ import moment from "moment";
 import { connect } from "react-redux";
 import { makeLinkTo } from "./router-dom";
 import { useHistory } from "react-router-dom";
-import { useEffect } from "react";
 const queryString = require("query-string");
 
 function ScheduleSelector(props) {
@@ -114,7 +113,6 @@ function StatusSelector(props) {
 }
 
 export function SearchInput(props) {
-  const query = queryString.parse(window.location.search);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   return (

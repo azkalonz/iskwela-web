@@ -10,21 +10,18 @@ import {
   DialogTitle,
   Menu,
   MenuItem,
-  FormControl,
   useTheme,
   useMediaQuery,
-  Select,
   Toolbar,
-  InputLabel,
   withStyles,
   Box,
   Button,
   TextField,
   IconButton,
-  InputBase,
   ListItemSecondaryAction,
   makeStyles,
   Typography,
+  Checkbox,
   Snackbar,
   CircularProgress,
   Grow,
@@ -33,7 +30,6 @@ import InsertDriveFileOutlinedIcon from "@material-ui/icons/InsertDriveFileOutli
 import MoreHorizOutlinedIcon from "@material-ui/icons/MoreHorizOutlined";
 import ArrowDownwardOutlinedIcon from "@material-ui/icons/ArrowDownwardOutlined";
 import ArrowUpwardOutlinedIcon from "@material-ui/icons/ArrowUpwardOutlined";
-import SearchIcon from "@material-ui/icons/Search";
 import AttachFileOutlinedIcon from "@material-ui/icons/AttachFileOutlined";
 import ExpandMoreOutlinedIcon from "@material-ui/icons/ExpandMoreOutlined";
 import InsertLinkOutlinedIcon from "@material-ui/icons/InsertLinkOutlined";
@@ -47,10 +43,11 @@ import Api from "../../api";
 import CloseIcon from "@material-ui/icons/Close";
 import FullscreenIcon from "@material-ui/icons/Fullscreen";
 import FullscreenExitIcon from "@material-ui/icons/FullscreenExit";
-import moment from "moment";
 import { saveAs } from "file-saver";
 import { ScheduleSelector, SearchInput } from "../../components/Selectors";
 import Pagination, { getPageItems } from "../../components/Pagination";
+import { CheckBoxAction } from "../../components/CheckBox";
+import socket from "../../components/socket.io";
 
 const queryString = require("query-string");
 
@@ -80,10 +77,10 @@ function LessonPlan(props) {
   const [success, setSuccess] = useState(false);
   const [errors, setErrors] = useState();
   const [confirmed, setConfirmed] = useState();
-  const [savingId, setSavingId] = useState();
+  const [savingId, setSavingId] = useState([]);
   const [fileFullScreen, setFileFullScreen] = useState(false);
   const [page, setPage] = useState(query.page ? query.page : 1);
-
+  const [selectedItems, setSelectedItems] = useState({});
   const [selectedSched, setSelectedSched] = useState(
     query.date && query.date !== -1 ? query.date : null
   );
@@ -148,7 +145,7 @@ function LessonPlan(props) {
   const _downloadFile = async (file) => {
     setErrors(null);
     setSaving(true);
-    setSavingId(file.id);
+    setSavingId([...savingId, file.id]);
     let res = await Api.postBlob(
       "/api/download/class/lesson-plan/" + file.id
     ).then((resp) => (resp.ok ? resp.blob() : null));
@@ -234,7 +231,14 @@ function LessonPlan(props) {
     }
     if (!err.length) {
       setSuccess(true);
-      await UserData.updateClassDetails(class_id);
+      let newScheduleDetails = await UserData.updateScheduleDetails(
+        class_id,
+        selectedSched ? selectedSched : schedule_id
+      );
+      socket.emit("update schedule details", {
+        id: class_id,
+        details: newScheduleDetails,
+      });
       setModals([false, modals[1]]);
     } else setErrors(err);
     setSaving(true);
@@ -271,7 +275,14 @@ function LessonPlan(props) {
     });
     if (!err.length) {
       setSuccess(true);
-      await UserData.updateClassDetails(class_id);
+      let newScheduleDetails = await UserData.updateScheduleDetails(
+        class_id,
+        selectedSched ? selectedSched : schedule_id
+      );
+      socket.emit("update schedule details", {
+        id: class_id,
+        details: newScheduleDetails,
+      });
       FileUpload.removeFiles("materials");
       setHasFiles(false);
       setModals([modals[0], false]);
@@ -287,7 +298,7 @@ function LessonPlan(props) {
         setErrors(null);
         setSaving(true);
         setConfirmed(null);
-        setSavingId(activity.id);
+        setSavingId([...savingId, activity.id]);
         let res = await Api.post(
           "/api/teacher/remove/class-lesson-plan/" + activity.id,
           {
@@ -298,7 +309,14 @@ function LessonPlan(props) {
         );
         if (!res.errors) {
           setSuccess(true);
-          await UserData.updateClassDetails(class_id);
+          let newScheduleDetails = await UserData.updateScheduleDetails(
+            class_id,
+            selectedSched ? selectedSched : schedule_id
+          );
+          socket.emit("update schedule details", {
+            id: class_id,
+            details: newScheduleDetails,
+          });
         } else {
           let err = [];
           for (let e in res.errors) {
@@ -306,6 +324,48 @@ function LessonPlan(props) {
           }
           setErrors(err);
         }
+        setSaving(false);
+      },
+    });
+  };
+  const _handleRemoveMaterials = (materials) => {
+    setConfirmed({
+      title: "Remove " + Object.keys(materials).length + " materials",
+      message: "Are you sure to remove this materials?",
+      yes: async () => {
+        setErrors(null);
+        setSaving(true);
+        setConfirmed(null);
+        setSavingId([
+          ...savingId,
+          ...Object.keys(materials).map((i) => materials[i].id),
+        ]);
+        let err = [];
+        await asyncForEach(Object.keys(materials), async (i) => {
+          let id = parseInt(i);
+          let res = await Api.post(
+            "/api/teacher/remove/class-lesson-plan/" + id,
+            {
+              body: {
+                id,
+              },
+            }
+          );
+          if (res.errors) {
+            for (let e in res.errors) {
+              err.push(res.errors[e][0]);
+            }
+            setErrors(err);
+          }
+        });
+        let newScheduleDetails = await UserData.updateScheduleDetails(
+          class_id,
+          schedule_id
+        );
+        socket.emit("update schedule details", {
+          id: class_id,
+          details: newScheduleDetails,
+        });
         setSaving(false);
       },
     });
@@ -319,6 +379,30 @@ function LessonPlan(props) {
           : true
       )
       .reverse();
+  const _handleSelectOption = (item) => {
+    if (selectedItems[item.id]) {
+      let b = { ...selectedItems };
+      delete b[item.id];
+      setSelectedItems(b);
+      return;
+    }
+    let newitem = {};
+    newitem[item.id] = item;
+    setSelectedItems({ ...selectedItems, ...newitem });
+    console.log(selectedItems);
+  };
+  const _selectAll = () => {
+    let filtered = getFilteredMaterials();
+    if (Object.keys(selectedItems).length === filtered.length) {
+      setSelectedItems({});
+      return;
+    }
+    let b = {};
+    filtered.forEach((a) => {
+      b[a.id] = a;
+    });
+    setSelectedItems(b);
+  };
   return (
     <Box width="100%" alignSelf="flex-start">
       <Dialog
@@ -497,30 +581,61 @@ function LessonPlan(props) {
       {materials && (
         <Box width="100%" alignSelf="flex-start">
           <Box m={2}>
-            <List className={styles.hideonmobile}>
-              <ListItem
-                ContainerComponent="li"
-                style={{
-                  display: "flex",
-                  flexDirection: "row",
-                  justifyContent: "space-between",
-                  backgroundColor: "transparent",
-                }}
-              >
-                <Button size="small" onClick={_handleSort}>
-                  <ListItemText primary="Title" />
-                  {sortType === "ASCENDING" ? (
-                    <ArrowUpwardOutlinedIcon />
-                  ) : (
-                    <ArrowDownwardOutlinedIcon />
-                  )}
-                </Button>
-                <Typography variant="body1" style={{ marginRight: 10 }}>
-                  ADDED BY
-                </Typography>
-                <ListItemSecondaryAction></ListItemSecondaryAction>
-              </ListItem>
-            </List>
+            {!Object.keys(selectedItems).length ? (
+              <List className={styles.hideonmobile}>
+                <ListItem
+                  ContainerComponent="li"
+                  style={{
+                    display: "flex",
+                    flexDirection: "row",
+                    justifyContent: "space-between",
+                    backgroundColor: "transparent",
+                  }}
+                >
+                  <div style={{ display: "flex", alignItems: "center" }}>
+                    <ListItemIcon>
+                      <Checkbox
+                        checked={
+                          Object.keys(selectedItems).length ===
+                          getFilteredMaterials().length
+                            ? getFilteredMaterials().length > 0
+                              ? true
+                              : false
+                            : false
+                        }
+                        onChange={() => {
+                          _selectAll();
+                        }}
+                      />
+                    </ListItemIcon>
+
+                    <Button size="small" onClick={_handleSort}>
+                      <ListItemText primary="Title" />
+                      {sortType === "ASCENDING" ? (
+                        <ArrowUpwardOutlinedIcon />
+                      ) : (
+                        <ArrowDownwardOutlinedIcon />
+                      )}
+                    </Button>
+                  </div>
+
+                  <Typography variant="body1" style={{ marginRight: 10 }}>
+                    ADDED BY
+                  </Typography>
+                  <ListItemSecondaryAction></ListItemSecondaryAction>
+                </ListItem>
+              </List>
+            ) : (
+              <CheckBoxAction
+                checked={
+                  Object.keys(selectedItems).length ===
+                  getFilteredMaterials().length
+                }
+                onSelect={_selectAll}
+                onDelete={() => _handleRemoveMaterials(selectedItems)}
+                onCancel={() => setSelectedItems({})}
+              />
+            )}
             {!getFilteredMaterials().length && (
               <Box
                 width="100%"
@@ -538,12 +653,16 @@ function LessonPlan(props) {
               <List>
                 {getPageItems(getFilteredMaterials(), page).map(
                   (item, index) => (
-                    <ListItem
-                      key={index}
-                      onClick={() => _handleFileOption("view", item)}
-                      className={styles.listItem}
-                    >
-                      {saving && savingId === item.id && (
+                    <ListItem key={index} className={styles.listItem}>
+                      <ListItemIcon>
+                        <Checkbox
+                          checked={selectedItems[item.id] ? true : false}
+                          onChange={() => {
+                            _handleSelectOption(item);
+                          }}
+                        />
+                      </ListItemIcon>
+                      {saving && savingId.indexOf(item.id) >= 0 && (
                         <div className={styles.itemLoading}>
                           <CircularProgress />
                         </div>
@@ -552,6 +671,7 @@ function LessonPlan(props) {
                         <InsertDriveFileOutlinedIcon />
                       </ListItemIcon>
                       <ListItemText
+                        onClick={() => _handleFileOption("view", item)}
                         primary={item.title}
                         secondary={
                           item.resource_link
