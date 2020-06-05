@@ -186,19 +186,9 @@ function App(props) {
 
                   <Route exact path="/" component={Home} />
                   <Route
-                    path="/class/:class_id/:schedule_id/:option_name/:room_name"
+                    path="/class/:class_id/:schedule_id?/:option_name?/:room_name?"
                     component={Class}
                   />
-
-                  <Route
-                    path="/class/:class_id/:schedule_id/:option_name"
-                    component={Class}
-                  />
-                  <Route
-                    path="/class/:class_id/:schedule_id"
-                    component={Class}
-                  />
-                  <Route path="/class/:class_id" component={Class} />
                   <Route path="*">
                     <Redirect to="/" />
                   </Route>

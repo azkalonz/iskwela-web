@@ -160,7 +160,19 @@ function Class(props) {
   };
   const _handleJoinClass = async () => {
     if (isTeacher) {
-      switch (props.classDetails[class_id].schedules[schedule_id].status) {
+      let stat = props.classDetails[class_id].schedules[schedule_id].status;
+      if (stat === "ONGOING" && !room_name) {
+        history.push(
+          makeLinkTo(
+            ["class", CLASS.id, "sc", option_name, "video-conference"],
+            {
+              sc: schedule_id ? schedule_id : "",
+            }
+          )
+        );
+        return;
+      }
+      switch (stat) {
         case "ONGOING":
           await updateClass("PENDING");
           history.push(
@@ -352,7 +364,9 @@ function Class(props) {
                             isTeacher &&
                             props.classDetails[class_id].schedules[schedule_id]
                               .status === "ONGOING"
-                              ? styles.endClass
+                              ? room_name
+                                ? styles.endClass
+                                : styles.startClass
                               : styles.startClass
                           }
                           size="small"
@@ -378,7 +392,9 @@ function Class(props) {
                             ? props.classDetails[class_id].schedules[
                                 schedule_id
                               ].status === "ONGOING"
-                              ? "End Class"
+                              ? room_name
+                                ? "End Class"
+                                : "Return to Class"
                               : "Start Class"
                             : "Join Class"}
                         </Button>
@@ -528,7 +544,7 @@ function Class(props) {
               )}
               {!loading && CLASS && class_id && (
                 <Route
-                  path="/class/:class_id/:schedule_id/:option_name"
+                  path="/class/:class_id/:schedule_id/:option_name/:room_name?"
                   component={(p) => (
                     <ClassRightPanel classSched={schedule_id} {...p} />
                   )}

@@ -798,20 +798,16 @@ function Activity(props) {
           alignItems="center"
         >
           <ScheduleSelector
-            classId={class_id}
-            scheduleId={schedule_id}
             onChange={(schedId) => setSelectedSched(schedId)}
             schedule={selectedSched >= 0 ? selectedSched : -1}
-            optionName={option_name}
+            match={props.match}
           />
           &nbsp;
           {isTeacher && (
             <StatusSelector
-              classId={class_id}
-              scheduleId={schedule_id}
               onChange={(statusId) => setSelectedStatus(statusId)}
               status={selectedStatus ? selectedStatus : "all"}
-              optionName={option_name}
+              match={props.match}
             />
           )}
           &nbsp;
@@ -1260,10 +1256,8 @@ function Activity(props) {
           </Box>
           <Box p={2}>
             <Pagination
-              optionName={option_name}
               page={page}
-              classId={class_id}
-              scheduleId={schedule_id}
+              match={props.match}
               onChange={(p) => setPage(p)}
               length={getFilteredActivities().length}
             />

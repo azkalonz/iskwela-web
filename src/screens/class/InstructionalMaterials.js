@@ -659,20 +659,16 @@ function InstructionalMaterials(props) {
           alignItems="center"
         >
           <ScheduleSelector
-            classId={class_id}
-            scheduleId={schedule_id}
+            match={props.match}
             onChange={(schedId) => setSelectedSched(schedId)}
             schedule={selectedSched >= 0 ? selectedSched : -1}
-            optionName={option_name}
           />
           &nbsp;
           {isTeacher && (
             <StatusSelector
-              classId={class_id}
-              scheduleId={schedule_id}
+              match={props.match}
               onChange={(statusId) => setSelectedStatus(statusId)}
               status={selectedStatus ? selectedStatus : "all"}
-              optionName={option_name}
             />
           )}
           &nbsp;
@@ -885,10 +881,8 @@ function InstructionalMaterials(props) {
 
           <Box p={2}>
             <Pagination
-              optionName={option_name}
+              match={props.match}
               page={page}
-              classId={class_id}
-              scheduleId={schedule_id}
               onChange={(p) => setPage(p)}
               length={getFilteredMaterials().length}
             />

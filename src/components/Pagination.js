@@ -7,6 +7,7 @@ const queryString = require("query-string");
 export const ITEMS_PER_PAGE = 10;
 
 export default function Pagination(props) {
+  const { class_id, schedule_id, option_name, room_name } = props.match.params;
   const query = queryString.parse(window.location.search);
   const history = useHistory();
   const itemsPerPage = ITEMS_PER_PAGE;
@@ -26,14 +27,16 @@ export default function Pagination(props) {
             makeLinkTo(
               [
                 "class",
-                props.classId,
-                props.scheduleId,
-                props.optionName,
+                class_id,
+                schedule_id,
+                option_name,
+                "room",
                 "page",
                 "date",
                 "status",
               ],
               {
+                room: room_name ? room_name : "",
                 page: "?page=" + (i + 1),
                 date: query.date ? "&date=" + query.date : "",
                 status: query.status ? "&status=" + query.status : "",

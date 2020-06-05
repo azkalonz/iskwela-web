@@ -18,10 +18,12 @@ import { useHistory } from "react-router-dom";
 const queryString = require("query-string");
 
 function ScheduleSelector(props) {
+  const { class_id, schedule_id, option_name, room_name } = props.match.params;
   const query = queryString.parse(window.location.search);
   const history = useHistory();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  console.log("cc", props.classDetails, props);
 
   return (
     <FormControl style={{ width: isMobile ? "100%" : 160 }} variant="outlined">
@@ -38,14 +40,16 @@ function ScheduleSelector(props) {
             makeLinkTo(
               [
                 "class",
-                props.classId,
-                props.scheduleId,
-                props.optionName,
+                class_id,
+                schedule_id,
+                option_name,
+                "room",
                 "page",
                 "date",
                 "status",
               ],
               {
+                room: room_name ? room_name : "",
                 page: "?page=1",
                 date: "&date=" + e.target.value,
                 status: query.status ? "&status=" + query.status : "",
@@ -56,8 +60,8 @@ function ScheduleSelector(props) {
         padding={10}
       >
         <MenuItem value={-1}>All</MenuItem>
-        {props.classDetails[props.classId] &&
-          props.classDetails[props.classId].schedules.map((k, i) => {
+        {props.classDetails[class_id] &&
+          props.classDetails[class_id].schedules.map((k, i) => {
             return (
               <MenuItem value={k.id} key={i}>
                 {moment(k.from).format("LLLL")}
@@ -70,11 +74,11 @@ function ScheduleSelector(props) {
 }
 
 function StatusSelector(props) {
+  const { class_id, schedule_id, option_name, room_name } = props.match.params;
   const query = queryString.parse(window.location.search);
   const history = useHistory();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
-
   return (
     <FormControl style={{ width: isMobile ? "100%" : 160 }} variant="outlined">
       <InputLabel>Status</InputLabel>
@@ -87,14 +91,16 @@ function StatusSelector(props) {
             makeLinkTo(
               [
                 "class",
-                props.classId,
-                props.scheduleId,
-                props.optionName,
+                class_id,
+                schedule_id,
+                option_name,
+                "room",
                 "page",
                 "date",
                 "status",
               ],
               {
+                room: room_name ? room_name : "",
                 page: "?page=1",
                 date: query.date ? "&date=" + query.date : "&date=" + -1,
                 status: "&status=" + e.target.value,
@@ -115,6 +121,7 @@ function StatusSelector(props) {
 export function SearchInput(props) {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+
   return (
     <Box
       border={1}
