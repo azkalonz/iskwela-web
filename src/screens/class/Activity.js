@@ -69,6 +69,13 @@ import VisibilityOffOutlinedIcon from "@material-ui/icons/VisibilityOffOutlined"
 import VisibilityOutlinedIcon from "@material-ui/icons/VisibilityOutlined";
 import { makeLinkTo } from "../../components/router-dom";
 import Api from "../../api";
+import Pagination, { getPageItems } from "../../components/Pagination";
+import {
+  ScheduleSelector,
+  StatusSelector,
+  SearchInput,
+} from "../../components/Selectors";
+
 const queryString = require("query-string");
 function Alert(props) {
   return <MuiAlert elevation={6} variant="filled" {...props} />;
@@ -81,7 +88,7 @@ function Activity(props) {
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const [saving, setSaving] = useState(false);
   const [hasFiles, setHasFiles] = useState([false, false]);
-  const { class_id, schedule_id } = props.match.params;
+  const { class_id, option_name, schedule_id } = props.match.params;
   const [activities, setActivities] = useState();
   const [dragover, setDragover] = useState(false);
   const [sortType, setSortType] = useState("DESCENDING");
@@ -112,7 +119,6 @@ function Activity(props) {
   const [selectedSched, setSelectedSched] = useState(
     query.date && query.date !== -1 ? query.date : null
   );
-  const ITEMS_PER_PAGE = 10;
 
   const formTemplate = {
     activity_type: 1,
@@ -599,50 +605,6 @@ function Activity(props) {
       }
     };
   };
-  const Pagination = (props) => {
-    const itemsPerPage = ITEMS_PER_PAGE;
-    const totalItems = props.length;
-    const page = props.page;
-    const totalPages = Math.ceil(totalItems / itemsPerPage);
-    let buttons = [];
-    for (let i = 0; i < totalPages; i++) {
-      buttons.push(
-        <Button
-          key={i}
-          color={i === parseInt(page) - 1 ? "primary" : ""}
-          variant={i === parseInt(page) - 1 ? "contained" : ""}
-          onClick={() => {
-            props.onChange(i);
-            history.push(
-              makeLinkTo(
-                [
-                  "class",
-                  class_id,
-                  schedule_id,
-                  "activity",
-                  "page",
-                  "date",
-                  "status",
-                ],
-                {
-                  page: "?page=" + (i + 1),
-                  date: query.date ? "&date=" + query.date : "",
-                  status: query.status ? "&status=" + query.status : "",
-                }
-              )
-            );
-            console.log(
-              i * ITEMS_PER_PAGE,
-              i * ITEMS_PER_PAGE + ITEMS_PER_PAGE
-            );
-          }}
-        >
-          {i + 1}
-        </Button>
-      );
-    }
-    return <div>{buttons}</div>;
-  };
 
   const _handleSelectOption = (item) => {
     if (selectedItems[item.id]) {
@@ -667,11 +629,8 @@ function Activity(props) {
           : true
       )
       .filter((a) => (selectedStatus ? selectedStatus === a.status : true))
-      .reverse()
-      .slice(
-        (page - 1) * ITEMS_PER_PAGE,
-        (page - 1) * ITEMS_PER_PAGE + ITEMS_PER_PAGE
-      );
+      .reverse();
+
   const _selectAll = () => {
     let filtered = getFilteredActivities();
     if (Object.keys(selectedItems).length === filtered.length) {
@@ -830,116 +789,25 @@ function Activity(props) {
           justifyContent="space-between"
           alignItems="center"
         >
-          <FormControl
-            style={{ width: isMobile ? "100%" : 160 }}
-            variant="outlined"
-          >
-            <InputLabel>Date</InputLabel>
-
-            <Select
-              label="Schedule"
-              value={selectedSched ? selectedSched : -1}
-              onChange={(e) => {
-                setSelectedSched(
-                  parseInt(e.target.value) !== -1 ? e.target.value : null
-                );
-                history.push(
-                  makeLinkTo(
-                    [
-                      "class",
-                      class_id,
-                      schedule_id,
-                      "activity",
-                      "page",
-                      "date",
-                      "status",
-                    ],
-                    {
-                      page: "?page=1",
-                      date: "&date=" + e.target.value,
-                      status: query.status ? "&status=" + query.status : "",
-                    }
-                  )
-                );
-              }}
-              padding={10}
-            >
-              <MenuItem value={-1}>All</MenuItem>
-              {props.classDetails[class_id] &&
-                props.classDetails[class_id].schedules.map((k, i) => {
-                  return (
-                    <MenuItem value={k.id} key={i}>
-                      {moment(k.from).format("LLLL")}
-                    </MenuItem>
-                  );
-                })}
-            </Select>
-          </FormControl>
+          <ScheduleSelector
+            classId={class_id}
+            scheduleId={schedule_id}
+            onChange={(schedId) => setSelectedSched(schedId)}
+            schedule={selectedSched ? selectedSched : -1}
+            optionName={option_name}
+          />
           &nbsp;
           {isTeacher && (
-            <FormControl
-              style={{ width: isMobile ? "100%" : 160 }}
-              variant="outlined"
-            >
-              <InputLabel>Status</InputLabel>
-              <Select
-                label="Schedule"
-                value={selectedStatus ? selectedStatus : "all"}
-                onChange={(e) => {
-                  setSelectedStatus(
-                    e.target.value !== "all" ? e.target.value : null
-                  );
-                  history.push(
-                    makeLinkTo(
-                      [
-                        "class",
-                        class_id,
-                        schedule_id,
-                        "activity",
-                        "page",
-                        "date",
-                        "status",
-                      ],
-                      {
-                        page: "?page=1",
-                        date: query.date
-                          ? "&date=" + query.date
-                          : "&date=" + -1,
-                        status: "&status=" + e.target.value,
-                      }
-                    )
-                  );
-                }}
-                padding={10}
-              >
-                <MenuItem value="all">All</MenuItem>
-                <MenuItem value="unpublished">Unpublished</MenuItem>
-                <MenuItem value="published">Published</MenuItem>
-              </Select>
-            </FormControl>
+            <StatusSelector
+              classId={class_id}
+              scheduleId={schedule_id}
+              onChange={(statusId) => setSelectedStatus(statusId)}
+              status={selectedStatus ? selectedStatus : "all"}
+              optionName={option_name}
+            />
           )}
           &nbsp;
-          <Box
-            border={1}
-            p={0.3}
-            borderRadius={7}
-            display="flex"
-            {...(isMobile ? { width: "100%" } : {})}
-          >
-            <InputBase
-              onChange={(e) => _handleSearch(e.target.value)}
-              style={{ width: isMobile ? "100%" : "" }}
-              placeholder="Search"
-              inputProps={{ "aria-label": "search activity" }}
-            />
-            <IconButton
-              type="submit"
-              aria-label="search"
-              style={{ padding: 0 }}
-            >
-              <SearchIcon />
-            </IconButton>
-          </Box>
+          <SearchInput onChange={(e) => _handleSearch(e)} />
         </Box>
       </Box>
       {currentActivity && !search && (
@@ -1252,185 +1120,192 @@ function Activity(props) {
             )}
             <Grow in={activities ? true : false}>
               <List>
-                {getFilteredActivities().map((item, index) => (
-                  <ListItem
-                    key={index}
-                    className={styles.listItem}
-                    style={{
-                      borderColor:
-                        item.status === "published"
-                          ? theme.palette.success.main
-                          : "#fff",
-                      ...(currentActivity &&
-                      parseInt(item.id) === parseInt(currentActivity.id)
-                        ? {
-                            background:
-                              props.theme === "dark" ? "#111" : "#fff",
-                          }
-                        : {}),
-                    }}
-                  >
-                    <ListItemIcon>
-                      <Checkbox
-                        checked={selectedItems[item.id] ? true : false}
-                        onChange={() => {
-                          _handleSelectOption(item);
-                        }}
-                      />
-                    </ListItemIcon>
-                    {saving && savingId.indexOf(item.id) >= 0 && (
-                      <div className={styles.itemLoading}>
-                        <CircularProgress />
-                      </div>
-                    )}
-
-                    <ExpansionPanel
+                {getPageItems(getFilteredActivities(), page).map(
+                  (item, index) => (
+                    <ListItem
+                      key={index}
+                      className={styles.listItem}
                       style={{
-                        width: "100%",
-                        boxShadow: "none",
-                        background: "transparent",
+                        borderColor:
+                          item.status === "published"
+                            ? theme.palette.success.main
+                            : "#fff",
+                        ...(currentActivity &&
+                        parseInt(item.id) === parseInt(currentActivity.id)
+                          ? {
+                              background:
+                                props.theme === "dark" ? "#111" : "#fff",
+                            }
+                          : {}),
                       }}
                     >
-                      <ExpansionPanelSummary
-                        className={styles.expansionSummary}
-                      >
-                        <ListItemText
-                          primary={item.title}
-                          primaryTypographyProps={{
-                            style: {
-                              width: isMobile ? "80%" : "100%",
-                            },
+                      <ListItemIcon>
+                        <Checkbox
+                          checked={selectedItems[item.id] ? true : false}
+                          onChange={() => {
+                            _handleSelectOption(item);
                           }}
-                          secondaryTypographyProps={{
-                            style: {
-                              width: isMobile ? "80%" : "100%",
-                            },
-                          }}
-                          secondary={item.description.substr(0, 100) + "..."}
                         />
-                        <Typography
-                          className={styles.hideonmobile}
-                          variant="body1"
-                          component="div"
-                          style={{ marginRight: 55 }}
+                      </ListItemIcon>
+                      {saving && savingId.indexOf(item.id) >= 0 && (
+                        <div className={styles.itemLoading}>
+                          <CircularProgress />
+                        </div>
+                      )}
+
+                      <ExpansionPanel
+                        style={{
+                          width: "100%",
+                          boxShadow: "none",
+                          background: "transparent",
+                        }}
+                      >
+                        <ExpansionPanelSummary
+                          className={styles.expansionSummary}
                         >
-                          {moment(item.available_from).format("LL")}
-                          &nbsp;-&nbsp;
-                          {moment(item.available_to).format("LL")}
-                        </Typography>
-                      </ExpansionPanelSummary>
-                      <ExpansionPanelDetails
-                        className={styles.expansionDetails}
-                      >
-                        <Box width="100%">{item.description}</Box>
-                        <Box width="100%">
-                          <Typography color="textSecondary">
-                            Resources
+                          <ListItemText
+                            primary={item.title}
+                            primaryTypographyProps={{
+                              style: {
+                                width: isMobile ? "80%" : "100%",
+                              },
+                            }}
+                            secondaryTypographyProps={{
+                              style: {
+                                width: isMobile ? "80%" : "100%",
+                              },
+                            }}
+                            secondary={item.description.substr(0, 100) + "..."}
+                          />
+                          <Typography
+                            className={styles.hideonmobile}
+                            variant="body1"
+                            component="div"
+                            style={{ marginRight: 55 }}
+                          >
+                            {moment(item.available_from).format("LL")}
+                            &nbsp;-&nbsp;
+                            {moment(item.available_to).format("LL")}
                           </Typography>
-                          {item.materials.map((m, i) => (
-                            <Typography key={i} component="div">
-                              <Link
-                                component="div"
-                                style={{
-                                  display: "flex",
-                                  alignItems: "center",
-                                  cursor: "pointer",
-                                }}
-                                onClick={() => {
-                                  _handleOpenFile(m);
-                                }}
-                              >
-                                {m.title}
-                                <LaunchIcon fontSize="small" />
-                              </Link>
+                        </ExpansionPanelSummary>
+                        <ExpansionPanelDetails
+                          className={styles.expansionDetails}
+                        >
+                          <Box width="100%">{item.description}</Box>
+                          <Box width="100%">
+                            <Typography color="textSecondary">
+                              Resources
                             </Typography>
-                          ))}
-                        </Box>
-                      </ExpansionPanelDetails>
-                    </ExpansionPanel>
-                    <ListItemSecondaryAction
-                      style={{
-                        top: 40,
-                      }}
-                    >
-                      <IconButton
-                        onClick={(event) =>
-                          setAnchorEl(() => {
-                            let a = {};
-                            a[item.id] = event.currentTarget;
-                            return { ...anchorEl, ...a };
-                          })
-                        }
+                            {item.materials.map((m, i) => (
+                              <Typography key={i} component="div">
+                                <Link
+                                  component="div"
+                                  style={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                    cursor: "pointer",
+                                  }}
+                                  onClick={() => {
+                                    _handleOpenFile(m);
+                                  }}
+                                >
+                                  {m.title}
+                                  <LaunchIcon fontSize="small" />
+                                </Link>
+                              </Typography>
+                            ))}
+                          </Box>
+                        </ExpansionPanelDetails>
+                      </ExpansionPanel>
+                      <ListItemSecondaryAction
+                        style={{
+                          top: 40,
+                        }}
                       >
-                        <MoreHorizOutlinedIcon />
-                      </IconButton>
-                      {anchorEl && (
-                        <StyledMenu
-                          id="customized-menu"
-                          anchorEl={anchorEl[item.id]}
-                          keepMounted
-                          open={Boolean(anchorEl[item.id])}
-                          onClose={() =>
+                        <IconButton
+                          onClick={(event) =>
                             setAnchorEl(() => {
                               let a = {};
-                              a[item.id] = null;
+                              a[item.id] = event.currentTarget;
                               return { ...anchorEl, ...a };
                             })
                           }
                         >
-                          <StyledMenuItem
-                            onClick={() => _handleFileOption("view", item)}
+                          <MoreHorizOutlinedIcon />
+                        </IconButton>
+                        {anchorEl && (
+                          <StyledMenu
+                            id="customized-menu"
+                            anchorEl={anchorEl[item.id]}
+                            keepMounted
+                            open={Boolean(anchorEl[item.id])}
+                            onClose={() =>
+                              setAnchorEl(() => {
+                                let a = {};
+                                a[item.id] = null;
+                                return { ...anchorEl, ...a };
+                              })
+                            }
                           >
-                            <ListItemText primary="Upload Answer" />
-                          </StyledMenuItem>
-                          {isTeacher && (
-                            <div>
-                              <StyledMenuItem
-                                onClick={() =>
-                                  _handleFileOption("publish", item)
-                                }
-                              >
-                                <ListItemText primary="View Submissions" />
-                              </StyledMenuItem>
-                              <StyledMenuItem
-                                onClick={() =>
-                                  _handleFileOption("publish", item)
-                                }
-                              >
-                                <ListItemText primary="Publish" />
-                              </StyledMenuItem>
-                              <StyledMenuItem
-                                onClick={() =>
-                                  _handleFileOption("unpublish", item)
-                                }
-                              >
-                                <ListItemText primary="Unpublish" />
-                              </StyledMenuItem>
-                              <StyledMenuItem
-                                onClick={() => _handleFileOption("edit", item)}
-                              >
-                                <ListItemText primary="Edit" />
-                              </StyledMenuItem>
-                              <StyledMenuItem
-                                onClick={() => {
-                                  _handleFileOption("delete", item);
-                                }}
-                              >
-                                <ListItemText primary="Delete" />
-                              </StyledMenuItem>
-                            </div>
-                          )}
-                        </StyledMenu>
-                      )}
-                    </ListItemSecondaryAction>
-                  </ListItem>
-                ))}
+                            <StyledMenuItem
+                              onClick={() => _handleFileOption("view", item)}
+                            >
+                              <ListItemText primary="Upload Answer" />
+                            </StyledMenuItem>
+                            {isTeacher && (
+                              <div>
+                                <StyledMenuItem
+                                  onClick={() =>
+                                    _handleFileOption("publish", item)
+                                  }
+                                >
+                                  <ListItemText primary="View Submissions" />
+                                </StyledMenuItem>
+                                <StyledMenuItem
+                                  onClick={() =>
+                                    _handleFileOption("publish", item)
+                                  }
+                                >
+                                  <ListItemText primary="Publish" />
+                                </StyledMenuItem>
+                                <StyledMenuItem
+                                  onClick={() =>
+                                    _handleFileOption("unpublish", item)
+                                  }
+                                >
+                                  <ListItemText primary="Unpublish" />
+                                </StyledMenuItem>
+                                <StyledMenuItem
+                                  onClick={() =>
+                                    _handleFileOption("edit", item)
+                                  }
+                                >
+                                  <ListItemText primary="Edit" />
+                                </StyledMenuItem>
+                                <StyledMenuItem
+                                  onClick={() => {
+                                    _handleFileOption("delete", item);
+                                  }}
+                                >
+                                  <ListItemText primary="Delete" />
+                                </StyledMenuItem>
+                              </div>
+                            )}
+                          </StyledMenu>
+                        )}
+                      </ListItemSecondaryAction>
+                    </ListItem>
+                  )
+                )}
               </List>
             </Grow>
           </Box>
           <Box p={2}>
             <Pagination
+              optionName={option_name}
               page={page}
+              classId={class_id}
+              scheduleId={schedule_id}
               onChange={(p) => setPage(p)}
               length={getFilteredActivities().length}
             />

@@ -50,15 +50,23 @@ import FullscreenExitIcon from "@material-ui/icons/FullscreenExit";
 import { saveAs } from "file-saver";
 import socket from "../../components/socket.io";
 import moment from "moment";
+import Pagination, { getPageItems } from "../../components/Pagination";
+import {
+  ScheduleSelector,
+  StatusSelector,
+  SearchInput,
+} from "../../components/Selectors";
 
+const queryString = require("query-string");
 function Alert(props) {
   return <MuiAlert elevation={6} variant="filled" {...props} />;
 }
 
 function InstructionalMaterials(props) {
+  const query = queryString.parse(window.location.search);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
-  const { class_id, schedule_id } = props.match.params;
+  const { class_id, option_name, schedule_id } = props.match.params;
   const [materials, setMaterials] = useState();
   const [search, setSearch] = useState("");
   const [sortType, setSortType] = useState("DESCENDING");
@@ -78,8 +86,17 @@ function InstructionalMaterials(props) {
   const [confirmed, setConfirmed] = useState();
   const [savingId, setSavingId] = useState();
   const [fileFullScreen, setFileFullScreen] = useState(false);
-  const [selectedSched, setSelectedSched] = useState();
-  const [selectedStatus, setSelectedStatus] = useState();
+  const [selectedSched, setSelectedSched] = useState(
+    query.date && query.date !== -1 ? query.date : null
+  );
+  const [selectedStatus, setSelectedStatus] = useState(
+    isTeacher
+      ? query.status && query.status !== "all"
+        ? query.status
+        : null
+      : "published"
+  );
+  const [page, setPage] = useState(query.page ? query.page : 1);
 
   const _handleFileOption = (option, file) => {
     setAnchorEl(() => {
@@ -364,6 +381,17 @@ function InstructionalMaterials(props) {
       },
     });
   };
+  const getFilteredMaterials = () =>
+    materials
+      .filter((i) => (isTeacher ? true : i.status === "published"))
+      .filter((a) => (selectedStatus ? selectedStatus === a.status : true))
+      .filter((i) => JSON.stringify(i).toLowerCase().indexOf(search) >= 0)
+      .filter((a) =>
+        parseInt(selectedSched) >= 0
+          ? parseInt(selectedSched) === a.schedule_id
+          : true
+      )
+      .reverse();
   return (
     <Box width="100%" alignSelf="flex-start">
       <Dialog
@@ -527,77 +555,25 @@ function InstructionalMaterials(props) {
           justifyContent="space-between"
           alignItems="center"
         >
-          <FormControl
-            style={{ width: isMobile ? "100%" : 160 }}
-            variant="outlined"
-          >
-            <InputLabel style={{ top: -8 }}>Date</InputLabel>
-
-            <Select
-              label="Schedule"
-              value={selectedSched ? selectedSched : -1}
-              onChange={(e) =>
-                setSelectedSched(
-                  parseInt(e.target.value) !== -1 ? e.target.value : null
-                )
-              }
-              padding={10}
-            >
-              <MenuItem value={-1}>All</MenuItem>
-              {props.classDetails[class_id].schedules.map((k, i) => {
-                return (
-                  <MenuItem value={k.id} key={i}>
-                    {moment(k.from).format("LLLL")}
-                  </MenuItem>
-                );
-              })}
-            </Select>
-          </FormControl>
+          <ScheduleSelector
+            classId={class_id}
+            scheduleId={schedule_id}
+            onChange={(schedId) => setSelectedSched(schedId)}
+            schedule={selectedSched ? selectedSched : -1}
+            optionName={option_name}
+          />
           &nbsp;
           {isTeacher && (
-            <FormControl
-              style={{ width: isMobile ? "100%" : 160 }}
-              variant="outlined"
-            >
-              <InputLabel>Status</InputLabel>
-              <Select
-                label="Schedule"
-                value={selectedStatus ? selectedStatus : "all"}
-                onChange={(e) =>
-                  setSelectedStatus(
-                    e.target.value !== "all" ? e.target.value : null
-                  )
-                }
-                padding={10}
-              >
-                <MenuItem value="all">All</MenuItem>
-                <MenuItem value="unpublished">Unpublished</MenuItem>
-                <MenuItem value="published">Published</MenuItem>
-              </Select>
-            </FormControl>
+            <StatusSelector
+              classId={class_id}
+              scheduleId={schedule_id}
+              onChange={(statusId) => setSelectedStatus(statusId)}
+              status={selectedStatus ? selectedStatus : "all"}
+              optionName={option_name}
+            />
           )}
           &nbsp;
-          <Box
-            border={1}
-            p={0.3}
-            borderRadius={7}
-            display="flex"
-            style={{ width: isMobile ? "100%" : "" }}
-          >
-            <InputBase
-              style={{ width: isMobile ? "100%" : "" }}
-              onChange={(e) => _handleSearch(e.target.value)}
-              placeholder="Search"
-              inputProps={{ "aria-label": "search activity" }}
-            />
-            <IconButton
-              type="submit"
-              aria-label="search"
-              style={{ padding: 0 }}
-            >
-              <SearchIcon />
-            </IconButton>
-          </Box>
+          <SearchInput onChange={(e) => _handleSearch(e)} />
         </Box>
       </Box>
 
@@ -628,18 +604,7 @@ function InstructionalMaterials(props) {
                 <ListItemSecondaryAction></ListItemSecondaryAction>
               </ListItem>
             </List>
-            {!materials
-              .filter(
-                (i) => JSON.stringify(i).toLowerCase().indexOf(search) >= 0
-              )
-              .filter((a) =>
-                selectedStatus ? selectedStatus === a.status : true
-              )
-              .filter((a) =>
-                parseInt(selectedSched) >= 0
-                  ? parseInt(selectedSched) === a.schedule_id
-                  : true
-              ).length && (
+            {!getFilteredMaterials().length && (
               <Box
                 width="100%"
                 alignItems="center"
@@ -654,21 +619,8 @@ function InstructionalMaterials(props) {
             )}
             <Grow in={true}>
               <List>
-                {materials
-                  .filter((i) => (isTeacher ? true : i.status === "published"))
-                  .filter((a) =>
-                    selectedStatus ? selectedStatus === a.status : true
-                  )
-                  .filter(
-                    (i) => JSON.stringify(i).toLowerCase().indexOf(search) >= 0
-                  )
-                  .filter((a) =>
-                    parseInt(selectedSched) >= 0
-                      ? parseInt(selectedSched) === a.schedule_id
-                      : true
-                  )
-                  .reverse()
-                  .map((item, index) => (
+                {getPageItems(getFilteredMaterials(), page).map(
+                  (item, index) => (
                     <ListItem
                       key={index}
                       onClick={() => _handleFileOption("view", item)}
@@ -779,9 +731,21 @@ function InstructionalMaterials(props) {
                         )}
                       </ListItemSecondaryAction>
                     </ListItem>
-                  ))}
+                  )
+                )}
               </List>
             </Grow>
+          </Box>
+
+          <Box p={2}>
+            <Pagination
+              optionName={option_name}
+              page={page}
+              classId={class_id}
+              scheduleId={schedule_id}
+              onChange={(p) => setPage(p)}
+              length={getFilteredMaterials().length}
+            />
           </Box>
         </Box>
       )}
