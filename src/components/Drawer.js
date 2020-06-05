@@ -24,6 +24,9 @@ function Drawer(props) {
   const history = useHistory();
   const { class_id } = props.match.params;
   const [more, setMore] = useState(false);
+  const classes = props.classes.sort((a, b) =>
+    a.next_schedule.status === "ONGOING" ? -1 : 0
+  );
   const drawer = (
     <div>
       <Toolbar className={styles.toolbar}>
@@ -62,7 +65,7 @@ function Drawer(props) {
             <DashboardOutlined />
           </Box>
         </Box>
-        {props.classes.slice(0, 5).map((item, index) => {
+        {classes.slice(0, 5).map((item, index) => {
           return (
             <Box
               {...listItem.container}
@@ -129,7 +132,7 @@ function Drawer(props) {
           );
         })}
         {more &&
-          props.classes.slice(5, props.classes.length).map((item, index) => {
+          classes.slice(5, props.classes.length).map((item, index) => {
             return (
               <Grow in={more}>
                 <Box

@@ -265,6 +265,7 @@ function Home(props) {
                   new Date(a.next_schedule.from)
                 );
               })
+              .sort((a, b) => (a.next_schedule.status === "ONGOING" ? -1 : 0))
               .map((c) => classItem(c))}
         </Box>
         <Snackbar
