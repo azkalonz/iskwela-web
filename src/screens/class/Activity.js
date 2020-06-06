@@ -31,6 +31,8 @@ import {
   Typography,
   Link,
   Toolbar,
+  ListItemAvatar,
+  Avatar,
 } from "@material-ui/core";
 import MoreHorizOutlinedIcon from "@material-ui/icons/MoreHorizOutlined";
 import ArrowDownwardOutlinedIcon from "@material-ui/icons/ArrowDownwardOutlined";
@@ -104,6 +106,7 @@ function Activity(props) {
       : "published"
   );
   const [page, setPage] = useState(query.page ? query.page : 1);
+  const [answerPage, setAnswerPage] = useState(1);
   const [selectedSched, setSelectedSched] = useState(
     query.date && query.date !== -1 ? parseInt(query.date) : -1
   );
@@ -586,7 +589,16 @@ function Activity(props) {
     console.log(a);
   };
   const handleGooglePicker = () => {
-    let picker = window.open("/picker", "_blank", "location=yes");
+    let { width, height } = window.screen;
+    var top = height;
+    top = top > 0 ? top / 2 : 0;
+    var left = width;
+    left = left > 0 ? left / 2 : 0;
+    let picker = window.open(
+      "/picker",
+      "Google Drive Picker",
+      "width=" + width + ",height=" + width + +",top=" + top + ",left=" + left
+    );
     picker.onload = () => {
       picker.onunload = () => {
         if (picker.file_url && picker.title) {
@@ -605,10 +617,15 @@ function Activity(props) {
     };
   };
   const handleCreateContent = () => {
+    let { width, height } = window.screen;
+    var top = height;
+    top = top > 0 ? top / 2 : 0;
+    var left = width;
+    left = left > 0 ? left / 2 : 0;
     var contentMaker = window.open(
       "/content-maker",
       "Content Maker",
-      "width=1000"
+      "width=" + width + ",height=" + width + +",top=" + top + ",left=" + left
     );
     contentMaker.onunload = () => {
       if (contentMaker.file) {
@@ -861,140 +878,187 @@ function Activity(props) {
                 </Box>
               </Box>
             </Paper>
-            <Box marginTop={2}>
-              <Typography
-                style={{ fontWeight: "bold", marginBottom: 7 }}
-                color="textSecondary"
-              >
-                Upload your Answer
-              </Typography>
-
-              <Paper>
-                <Box
-                  width="100%"
-                  p={2}
-                  style={{ boxSizing: "border-box" }}
-                  onDragOver={(e) => {
-                    e.preventDefault();
-                    setDragover(true);
-                    return false;
-                  }}
-                  onDrop={(e) => {
-                    e.preventDefault();
-                    stageFiles("answers", e.dataTransfer.files, (files) => {
-                      setHasFiles([true, hasFiles[1]]);
-                    });
-                    return false;
-                  }}
-                  onDragLeave={(e) => {
-                    e.preventDefault();
-                    setDragover(false);
-                    return false;
-                  }}
+            {isTeacher ? (
+              <Box marginTop={2}>
+                <Paper>
+                  <Box p={2}>
+                    <Typography
+                      style={{ fontWeight: "bold", marginBottom: 7 }}
+                      color="textSecondary"
+                    >
+                      Answers
+                    </Typography>
+                    <List>
+                      {getPageItems(
+                        [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16],
+                        answerPage
+                      ).map((i) => {
+                        let pic = props.pics["1"]
+                          ? props.pics["1"]
+                          : "/logo192.png";
+                        return (
+                          <ListItem>
+                            <ListItemAvatar>
+                              <Avatar src={pic} />
+                            </ListItemAvatar>
+                            <ListItemText primary="File Name" />
+                            <ListItemSecondaryAction>
+                              <IconButton>
+                                <MoreHorizOutlinedIcon />
+                              </IconButton>
+                            </ListItemSecondaryAction>
+                          </ListItem>
+                        );
+                      })}
+                    </List>
+                    <Box p={2}>
+                      <Pagination
+                        nolink
+                        page={answerPage}
+                        match={props.match}
+                        onChange={(p) => setAnswerPage(p)}
+                        length={16}
+                      />
+                    </Box>
+                  </Box>
+                </Paper>
+              </Box>
+            ) : (
+              <Box marginTop={2}>
+                <Typography
+                  style={{ fontWeight: "bold", marginBottom: 7 }}
+                  color="textSecondary"
                 >
-                  <Input
-                    type="file"
-                    id="activity-answer"
-                    style={{ display: "none" }}
-                    onChange={() => {
-                      stageFiles(
-                        "answers",
-                        document.querySelector("#activity-answer").files
-                      );
-                      setHasFiles([true, hasFiles[1]]);
+                  Upload your Answer
+                </Typography>
+
+                <Paper>
+                  <Box
+                    width="100%"
+                    p={2}
+                    style={{ boxSizing: "border-box" }}
+                    onDragOver={(e) => {
+                      e.preventDefault();
+                      setDragover(true);
+                      return false;
                     }}
-                  />
-                  <Box className={styles.upload}>
-                    {!hasFiles[0] ? (
-                      <div>
-                        {!dragover ? (
-                          <div
-                            style={{
-                              display: "flex",
-                              alignItems: "center",
-                            }}
-                          >
-                            <Link
-                              component="div"
-                              style={{
-                                display: "flex",
-                                alignItems: "center",
-                                cursor: "pointer",
-                                fontWeight: "bold",
-                              }}
-                              onClick={() =>
-                                document
-                                  .querySelector("#activity-answer")
-                                  .click()
-                              }
-                            >
-                              <AttachFileOutlinedIcon fontSize="small" />
-                              Add file&nbsp;
-                            </Link>
-                            or drag file in here
-                          </div>
-                        ) : (
-                          <div>Drop here</div>
-                        )}
-                      </div>
-                    ) : (
-                      <div>
-                        <Box
-                          display="flex"
-                          flexDirection="column"
-                          alignItems="center"
-                          justifyContent="center"
-                        >
-                          {saving && (
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      stageFiles("answers", e.dataTransfer.files, (files) => {
+                        setHasFiles([true, hasFiles[1]]);
+                      });
+                      return false;
+                    }}
+                    onDragLeave={(e) => {
+                      e.preventDefault();
+                      setDragover(false);
+                      return false;
+                    }}
+                  >
+                    <Input
+                      type="file"
+                      id="activity-answer"
+                      style={{ display: "none" }}
+                      onChange={() => {
+                        stageFiles(
+                          "answers",
+                          document.querySelector("#activity-answer").files
+                        );
+                        setHasFiles([true, hasFiles[1]]);
+                      }}
+                    />
+                    <Box className={styles.upload}>
+                      {!hasFiles[0] ? (
+                        <div>
+                          {!dragover ? (
                             <div
                               style={{
-                                position: "absolute",
-                                left: 0,
-                                right: 0,
-                                zIndex: 5,
-                                top: 0,
-                                bottom: 0,
                                 display: "flex",
-                                justifyContent: "center",
                                 alignItems: "center",
-                                background: "rgba(255,255,255,0.5)",
                               }}
                             >
-                              <CircularProgress size={24} />
-                            </div>
-                          )}
-                          <div>
-                            {FileUpload.getFiles("answers").map((f, i) => (
-                              <Typography
-                                variant="body1"
-                                color="primary"
-                                key={i}
+                              <Link
+                                component="div"
+                                style={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                  cursor: "pointer",
+                                  fontWeight: "bold",
+                                }}
+                                onClick={() =>
+                                  document
+                                    .querySelector("#activity-answer")
+                                    .click()
+                                }
                               >
-                                {f.uploaded_file}
-                              </Typography>
-                            ))}
-                          </div>
-                          <div>
-                            <Button onClick={_handleAnswerUpload}>
-                              Upload
-                            </Button>
-                            <Button
-                              onClick={() => {
-                                FileUpload.removeFiles("answers");
-                                setDragover(false);
-                                setHasFiles([false, hasFiles[1]]);
-                              }}
-                            >
-                              Remove
-                            </Button>
-                          </div>
-                        </Box>
-                      </div>
-                    )}
+                                <AttachFileOutlinedIcon fontSize="small" />
+                                Add file&nbsp;
+                              </Link>
+                              or drag file in here
+                            </div>
+                          ) : (
+                            <div>Drop here</div>
+                          )}
+                        </div>
+                      ) : (
+                        <div>
+                          <Box
+                            display="flex"
+                            flexDirection="column"
+                            alignItems="center"
+                            justifyContent="center"
+                          >
+                            {saving && (
+                              <div
+                                style={{
+                                  position: "absolute",
+                                  left: 0,
+                                  right: 0,
+                                  zIndex: 5,
+                                  top: 0,
+                                  bottom: 0,
+                                  display: "flex",
+                                  justifyContent: "center",
+                                  alignItems: "center",
+                                  background: "rgba(255,255,255,0.5)",
+                                }}
+                              >
+                                <CircularProgress size={24} />
+                              </div>
+                            )}
+                            <div>
+                              {FileUpload.getFiles("answers").map((f, i) => (
+                                <Typography
+                                  variant="body1"
+                                  color="primary"
+                                  key={i}
+                                >
+                                  {f.uploaded_file}
+                                </Typography>
+                              ))}
+                            </div>
+                            <div>
+                              <Button onClick={_handleAnswerUpload}>
+                                Upload
+                              </Button>
+                              <Button
+                                onClick={() => {
+                                  FileUpload.removeFiles("answers");
+                                  setDragover(false);
+                                  setHasFiles([false, hasFiles[1]]);
+                                }}
+                              >
+                                Remove
+                              </Button>
+                            </div>
+                          </Box>
+                        </div>
+                      )}
+                    </Box>
                   </Box>
-                </Box>
-              </Paper>
-            </Box>
+                </Paper>
+              </Box>
+            )}
           </Box>
         </Grow>
       )}
@@ -1213,17 +1277,12 @@ function Activity(props) {
                             <StyledMenuItem
                               onClick={() => _handleFileOption("view", item)}
                             >
-                              <ListItemText primary="Upload Answer" />
+                              <ListItemText
+                                primary={isTeacher ? "View" : "Upload Answer"}
+                              />
                             </StyledMenuItem>
                             {isTeacher && (
                               <div>
-                                <StyledMenuItem
-                                  onClick={() =>
-                                    _handleFileOption("publish", item)
-                                  }
-                                >
-                                  <ListItemText primary="View Submissions" />
-                                </StyledMenuItem>
                                 <StyledMenuItem
                                   onClick={() =>
                                     _handleFileOption("publish", item)
@@ -1680,5 +1739,6 @@ const useStyles = makeStyles((theme) => ({
 export default connect((state) => ({
   userInfo: state.userInfo,
   theme: state.theme,
+  pics: state.pics,
   classDetails: state.classDetails,
 }))(Activity);

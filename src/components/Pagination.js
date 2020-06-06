@@ -22,27 +22,31 @@ export default function Pagination(props) {
         color={i === parseInt(page) - 1 ? "primary" : "default"}
         variant={i === parseInt(page) - 1 ? "contained" : "text"}
         onClick={() => {
-          props.onChange(i);
-          history.push(
-            makeLinkTo(
-              [
-                "class",
-                class_id,
-                schedule_id,
-                option_name,
-                "room",
-                "page",
-                "date",
-                "status",
-              ],
-              {
-                room: room_name ? room_name : "",
-                page: "?page=" + (i + 1),
-                date: query.date ? "&date=" + query.date : "",
-                status: query.status ? "&status=" + query.status : "",
-              }
-            )
-          );
+          if (!props.nolink) {
+            props.onChange(i);
+            history.push(
+              makeLinkTo(
+                [
+                  "class",
+                  class_id,
+                  schedule_id,
+                  option_name,
+                  "room",
+                  "page",
+                  "date",
+                  "status",
+                ],
+                {
+                  room: room_name ? room_name : "",
+                  page: "?page=" + (i + 1),
+                  date: query.date ? "&date=" + query.date : "",
+                  status: query.status ? "&status=" + query.status : "",
+                }
+              )
+            );
+          } else {
+            props.onChange(i + 1);
+          }
         }}
       >
         {i + 1}
