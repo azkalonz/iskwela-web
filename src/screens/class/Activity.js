@@ -1859,6 +1859,7 @@ function Activity(props) {
                         </Button>
                         <Menu {...bindMenu(popupState)}>
                           <MenuItem
+                            disabled={form.status !== "unpublished"}
                             onClick={() => {
                               _handleCreateActivity({ published: 1 });
                               popupState.close();
@@ -1866,6 +1867,17 @@ function Activity(props) {
                           >
                             Publish
                           </MenuItem>
+                          {form.id && (
+                            <MenuItem
+                              disabled={form.status === "unpublished"}
+                              onClick={() => {
+                                _handleCreateActivity({ published: 1 });
+                                popupState.close();
+                              }}
+                            >
+                              Unpublish
+                            </MenuItem>
+                          )}
                         </Menu>
                       </React.Fragment>
                     )}
