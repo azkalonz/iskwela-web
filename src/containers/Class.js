@@ -47,6 +47,7 @@ import Api from "../api";
 import UserData from "../components/UserData";
 import $ from "jquery";
 import socket from "../components/socket.io";
+import moment from "moment";
 
 function ClassRightPanel(props) {
   const { option_name } = props.match.params;
@@ -309,7 +310,10 @@ function Class(props) {
                         variant="body2"
                         style={{ fontSize: "0.8rem", marginLeft: 5 }}
                       >
-                        {CLASS.date_from}
+                        {moment(
+                          props.classDetails[class_id].schedules[schedule_id]
+                            .from
+                        ).format("LL")}
                       </Typography>
                     </Box>
                     <Divider
@@ -327,7 +331,14 @@ function Class(props) {
                         variant="body2"
                         style={{ fontSize: "0.75rem", marginLeft: 5 }}
                       >
-                        {CLASS.time_from} - {CLASS.time_to}
+                        {moment(
+                          props.classDetails[class_id].schedules[schedule_id]
+                            .from
+                        ).format("H:mm A")}
+                        {" - "}
+                        {moment(
+                          props.classDetails[class_id].schedules[schedule_id].to
+                        ).format("H:mm A")}
                       </Typography>
                     </Box>
                   </Box>

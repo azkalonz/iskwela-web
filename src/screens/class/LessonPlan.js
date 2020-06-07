@@ -48,6 +48,8 @@ import { ScheduleSelector, SearchInput } from "../../components/Selectors";
 import Pagination, { getPageItems } from "../../components/Pagination";
 import { CheckBoxAction } from "../../components/CheckBox";
 import socket from "../../components/socket.io";
+import store from "../../components/redux/store";
+import Progress from "../../components/Progress";
 
 const queryString = require("query-string");
 
@@ -274,6 +276,17 @@ function LessonPlan(props) {
       body.append("title", form.title);
       let res = await FileUpload.upload("/api/upload/class/lesson-plan", {
         body,
+        onUploadProgress: (event, source) =>
+          store.dispatch({
+            type: "SET_PROGRESS",
+            id: option_name,
+            data: {
+              title: file.name,
+              loaded: event.loaded,
+              total: event.total,
+              onCancel: source,
+            },
+          }),
       });
       if (res.errors) {
         for (let e in res.errors) {
@@ -421,6 +434,9 @@ function LessonPlan(props) {
   };
   return (
     <Box width="100%" alignSelf="flex-start">
+      {props.dataProgress[option_name] && (
+        <Progress id={option_name} data={props.dataProgress[option_name]} />
+      )}
       <Dialog
         open={fileViewerOpen}
         keepMounted
@@ -794,29 +810,27 @@ function LessonPlan(props) {
       >
         <DialogTitle id="alert-dialog-slide-title">Web Link</DialogTitle>
         <DialogContent>
-          <DialogContent id="alert-dialog-slide-description">
-            <Box display="flex" flexWrap="wrap">
-              <TextField
-                label="Title"
-                className={styles.textField}
-                InputLabelProps={{
-                  shrink: true,
-                }}
-                value={form && form.title ? form.title : ""}
-                onChange={(e) => setForm({ ...form, title: e.target.value })}
-                fullWidth
-              />
-              <TextField
-                label="link"
-                InputLabelProps={{
-                  shrink: true,
-                }}
-                value={form && form.url ? form.url : ""}
-                onChange={(e) => setForm({ ...form, url: e.target.value })}
-                fullWidth
-              />
-            </Box>
-          </DialogContent>
+          <Box display="flex" flexWrap="wrap">
+            <TextField
+              label="Title"
+              className={styles.textField}
+              InputLabelProps={{
+                shrink: true,
+              }}
+              value={form && form.title ? form.title : ""}
+              onChange={(e) => setForm({ ...form, title: e.target.value })}
+              fullWidth
+            />
+            <TextField
+              label="link"
+              InputLabelProps={{
+                shrink: true,
+              }}
+              value={form && form.url ? form.url : ""}
+              onChange={(e) => setForm({ ...form, url: e.target.value })}
+              fullWidth
+            />
+          </Box>
         </DialogContent>
         <DialogActions>
           <Button
@@ -853,24 +867,26 @@ function LessonPlan(props) {
       >
         <DialogTitle id="alert-dialog-slide-title">Upload</DialogTitle>
         <DialogContent>
-          <DialogContent id="alert-dialog-slide-description">
-            <Box display="flex" flexWrap="wrap">
-              <TextField
-                label="Title"
-                className={styles.textField}
-                value={form && form.title ? form.title : ""}
-                onChange={(e) => setForm({ title: e.target.value })}
-                InputLabelProps={{
-                  shrink: true,
-                }}
-                fullWidth
-              />
-            </Box>
-          </DialogContent>
-          {hasFiles &&
-            FileUpload.getFiles("materials").map((f, i) => (
-              <div key={i}>{f.uploaded_file}</div>
-            ))}
+          <Box display="flex" flexWrap="wrap">
+            <TextField
+              label="Title"
+              className={styles.textField}
+              value={form && form.title ? form.title : ""}
+              onChange={(e) => setForm({ title: e.target.value })}
+              InputLabelProps={{
+                shrink: true,
+              }}
+              fullWidth
+            />
+          </Box>
+          <List>
+            {hasFiles &&
+              FileUpload.getFiles("materials").map((f, i) => (
+                <ListItem key={i}>
+                  <ListItemText primary={f.uploaded_file} />
+                </ListItem>
+              ))}
+          </List>
         </DialogContent>
         <DialogActions style={{ justifyContent: "space-between" }}>
           <div>
@@ -1017,4 +1033,5 @@ const useStyles = makeStyles((theme) => ({
 export default connect((states) => ({
   userInfo: states.userInfo,
   classDetails: states.classDetails,
+  dataProgress: states.dataProgress,
 }))(LessonPlan);
