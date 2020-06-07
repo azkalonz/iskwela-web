@@ -1871,7 +1871,7 @@ function Activity(props) {
                             <MenuItem
                               disabled={form.status === "unpublished"}
                               onClick={() => {
-                                _handleCreateActivity({ published: 1 });
+                                _handleCreateActivity({ published: 0 });
                                 popupState.close();
                               }}
                             >
