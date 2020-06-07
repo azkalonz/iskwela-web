@@ -183,7 +183,6 @@ function App(props) {
               <BrowserRouter>
                 <Switch>
                   <Route exact path="/content-maker" component={ContentMaker} />
-
                   <Route exact path="/content-maker" component={ContentMaker} />
                   <Route exact path="/picker" component={GooglePicker} />
                   <Route exact path="/login">

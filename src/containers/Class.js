@@ -21,6 +21,7 @@ import {
   Typography,
   Slide,
   Divider,
+  LinearProgress,
 } from "@material-ui/core";
 import Skeleton from "react-loading-skeleton";
 import CreateOutlined from "@material-ui/icons/CreateOutlined";
@@ -132,6 +133,22 @@ function Class(props) {
             <ListItemText primary={p.title} />
           </ListItem>
         </Typography>
+        {props.dataProgress[p.link] &&
+          p.link !== option_name &&
+          Math.ceil(
+            (props.dataProgress[p.link].loaded /
+              props.dataProgress[p.link].total) *
+              100
+          ) < 100 && (
+            <LinearProgress
+              variant="determinate"
+              value={Math.ceil(
+                (props.dataProgress[p.link].loaded /
+                  props.dataProgress[p.link].total) *
+                  100
+              )}
+            />
+          )}
         <Divider />
       </div>
     );
@@ -543,12 +560,7 @@ function Class(props) {
                 </Box>
               )}
               {!loading && CLASS && class_id && (
-                <Route
-                  path="/class/:class_id/:schedule_id/:option_name/:room_name?"
-                  component={(p) => (
-                    <ClassRightPanel classSched={schedule_id} {...p} />
-                  )}
-                />
+                <ClassRightPanel classSched={schedule_id} {...props} />
               )}
             </Box>
           </Box>
@@ -613,4 +625,5 @@ export default connect((states) => ({
   classDetails: states.classDetails,
   pics: states.pics,
   classes: states.classes,
+  dataProgress: states.dataProgress,
 }))(Class);

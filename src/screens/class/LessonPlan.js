@@ -127,7 +127,14 @@ function LessonPlan(props) {
   };
   useEffect(() => {
     _getMaterials();
-  }, []);
+  }, [props.classDetails]);
+  useEffect(
+    () =>
+      setSelectedSched(
+        query.date && query.date !== -1 ? parseInt(query.date) : -1
+      ),
+    [query.date]
+  );
   useEffect(() => {
     if (!fileViewerOpen) setFile();
   }, [fileViewerOpen]);
@@ -241,7 +248,8 @@ function LessonPlan(props) {
       });
       setModals([false, modals[1]]);
     } else setErrors(err);
-    setSaving(true);
+    setForm({});
+    setSaving(false);
     setErrors(null);
   };
 
@@ -287,7 +295,8 @@ function LessonPlan(props) {
       setHasFiles(false);
       setModals([modals[0], false]);
     } else setErrors(err);
-    setSaving(true);
+    setForm({});
+    setSaving(false);
     setErrors(null);
   };
   const _handleRemoveMaterial = (activity) => {
@@ -399,7 +408,7 @@ function LessonPlan(props) {
     console.log(selectedItems);
   };
   const _selectAll = () => {
-    let filtered = getFilteredMaterials();
+    let filtered = getPageItems(getFilteredMaterials(), page);
     if (Object.keys(selectedItems).length === filtered.length) {
       setSelectedItems({});
       return;
@@ -603,8 +612,9 @@ function LessonPlan(props) {
                         <Checkbox
                           checked={
                             Object.keys(selectedItems).length ===
-                            getFilteredMaterials().length
-                              ? getFilteredMaterials().length > 0
+                            getPageItems(getFilteredMaterials(), page).length
+                              ? getPageItems(getFilteredMaterials(), page)
+                                  .length > 0
                                 ? true
                                 : false
                               : false
@@ -636,7 +646,7 @@ function LessonPlan(props) {
               <CheckBoxAction
                 checked={
                   Object.keys(selectedItems).length ===
-                  getFilteredMaterials().length
+                  getPageItems(getFilteredMaterials(), page).length
                 }
                 onSelect={_selectAll}
                 onDelete={() => _handleRemoveMaterials(selectedItems)}
@@ -767,7 +777,7 @@ function LessonPlan(props) {
               match={props.match}
               page={page}
               onChange={(p) => setPage(p)}
-              length={getFilteredMaterials().length}
+              count={getFilteredMaterials().length}
             />
           </Box>
         </Box>
@@ -776,7 +786,7 @@ function LessonPlan(props) {
         open={modals[0]}
         keepMounted
         onClose={() => {
-          setForm(null);
+          setForm({});
           setModals([!modals[0], modals[1]]);
         }}
         aria-labelledby="alert-dialog-slide-title"
@@ -792,7 +802,7 @@ function LessonPlan(props) {
                 InputLabelProps={{
                   shrink: true,
                 }}
-                value={form && form.title}
+                value={form && form.title ? form.title : ""}
                 onChange={(e) => setForm({ ...form, title: e.target.value })}
                 fullWidth
               />
@@ -801,7 +811,7 @@ function LessonPlan(props) {
                 InputLabelProps={{
                   shrink: true,
                 }}
-                value={form && form.url}
+                value={form && form.url ? form.url : ""}
                 onChange={(e) => setForm({ ...form, url: e.target.value })}
                 fullWidth
               />
@@ -833,12 +843,10 @@ function LessonPlan(props) {
         open={modals[1]}
         keepMounted
         onClose={() => {
-          if (!saving) {
-            FileUpload.removeFiles("materials");
-            setHasFiles(false);
-            setForm(null);
-            setModals([modals[0], !modals[1]]);
-          }
+          FileUpload.removeFiles("materials");
+          setHasFiles(false);
+          setForm({});
+          setModals([modals[0], !modals[1]]);
         }}
         aria-labelledby="alert-dialog-slide-title"
         aria-describedby="alert-dialog-slide-description"
@@ -850,7 +858,7 @@ function LessonPlan(props) {
               <TextField
                 label="Title"
                 className={styles.textField}
-                value={form && form.title}
+                value={form && form.title ? form.title : ""}
                 onChange={(e) => setForm({ title: e.target.value })}
                 InputLabelProps={{
                   shrink: true,

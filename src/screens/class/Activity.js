@@ -33,6 +33,7 @@ import {
   Toolbar,
   ListItemAvatar,
   Avatar,
+  ExpansionPanelActions,
 } from "@material-ui/core";
 import MuiDialogTitle from "@material-ui/core/DialogTitle";
 import MoreHorizOutlinedIcon from "@material-ui/icons/MoreHorizOutlined";
@@ -70,6 +71,7 @@ import {
 } from "../../components/Selectors";
 import { CheckBoxAction } from "../../components/CheckBox";
 import Progress from "../../components/Progress";
+import store from "../../components/redux/store";
 
 const queryString = require("query-string");
 function Alert(props) {
@@ -135,6 +137,7 @@ function Activity(props) {
   const [fileFullScreen, setFileFullScreen] = useState(false);
   const [selectedItems, setSelectedItems] = useState({});
   const [progressData, setProgressData] = useState([]);
+  const [answersSearch, setAnswersSearch] = useState("");
   const [selectedStatus, setSelectedStatus] = useState(
     isTeacher
       ? query.status && query.status !== "all"
@@ -147,7 +150,6 @@ function Activity(props) {
   const [selectedSched, setSelectedSched] = useState(
     query.date && query.date !== -1 ? parseInt(query.date) : -1
   );
-
   const formTemplate = {
     activity_type: 1,
     title: "",
@@ -171,11 +173,18 @@ function Activity(props) {
         return;
       case "edit":
         handleClickOpen();
+        console.log({
+          ...file,
+          activity_type: file.activity_type === "class activity" ? 1 : 2,
+          published: file.status === "unpublished" ? 0 : 1,
+          subject_id: props.classDetails[class_id].subject.id,
+          id: file.id,
+          class_id,
+        });
         setForm({
           ...file,
           activity_type: file.activity_type === "class activity" ? 1 : 2,
           published: file.status === "unpublished" ? 0 : 1,
-          schedule_id: selectedSched >= 0 ? selectedSched : classSched,
           subject_id: props.classDetails[class_id].subject.id,
           id: file.id,
           class_id,
@@ -194,13 +203,21 @@ function Activity(props) {
         return;
     }
   };
-
+  useEffect(
+    () =>
+      setSelectedSched(
+        query.date && query.date !== -1 ? parseInt(query.date) : -1
+      ),
+    [query.date]
+  );
   useEffect(() => {
     if (currentActivity) {
       let offset = $("#video-conference-container");
       offset = offset[0] ? offset[0].offsetHeight : 0;
       document.querySelector("#right-panel").scrollTop = offset;
       $("#navbar-title").text(currentActivity.title);
+    } else {
+      setAnswersSearch("");
     }
   }, [currentActivity]);
   const _getActivities = () => {
@@ -236,10 +253,40 @@ function Activity(props) {
   }, [fileViewerOpen]);
   useEffect(() => {
     if (currentActivity) {
-      // getAnswers();
+      if (!currentActivity.answers) getAnswers();
     }
   }, [currentActivity]);
-
+  const getAnswers = async () => {
+    currentActivity.answers = null;
+    let a = await Api.get(
+      "/api/teacher/activity-answers/" + currentActivity.id
+    );
+    await asyncForEach(a, async (s, index, arr) => {
+      if (store.getState().pics[s.student.id]) {
+        a[index].student.pic = store.getState().pics[s.student.id];
+        return;
+      }
+      try {
+        let pic = await Api.postBlob("/api/download/user/profile-picture", {
+          body: { id: s.student.id },
+        }).then((resp) => (resp.ok ? resp.blob() : null));
+        if (pic) {
+          var picUrl = URL.createObjectURL(pic);
+          let userpic = {};
+          userpic[s.student.id] = picUrl;
+          store.dispatch({
+            type: "SET_PIC",
+            userpic,
+          });
+          a[index].student.pic = picUrl;
+        }
+      } catch (e) {
+        a[index].student.pic = "/logo192.png";
+      }
+    });
+    console.log({ ...currentActivity, answers: a });
+    setCurrentActivity({ ...currentActivity, answers: a });
+  };
   const _handleSort = (sortBy) => {
     if (sortType === "ASCENDING") {
       setActivities(() => {
@@ -294,11 +341,12 @@ function Activity(props) {
     setSaving(true);
     let err = [];
     let res;
+    let newScheduleDetails;
     let formData = new Form({
       ...form,
       subject_id: props.classDetails[class_id].subject.id,
-      ...params,
       schedule_id: selectedSched >= 0 ? selectedSched : classSched,
+      ...params,
     });
     if (formData.data.published && formData.data.id) {
       try {
@@ -317,6 +365,7 @@ function Activity(props) {
         let materialFiles = document.querySelector("#activity-material");
         if (form.materials && Object.keys(newMaterial).length) {
           await asyncForEach(form.materials, async (m) => {
+            if (m.uploaded_file) return;
             await Api.post("/api/class/activity-material/save", {
               body: {
                 ...(m.id ? { id: m.id } : {}),
@@ -335,15 +384,16 @@ function Activity(props) {
           let a = await FileUpload.upload("/api/upload/activity/material", {
             body,
             onUploadProgress: (event, source) =>
-              setProgressData([
-                ...progressData,
-                {
+              store.dispatch({
+                type: "SET_PROGRESS",
+                id: option_name,
+                data: {
                   title: window.contentMakerFile.name,
                   loaded: event.loaded,
                   total: event.total,
                   onCancel: source,
                 },
-              ]),
+              }),
           });
           if (a.errors) {
             for (let e in a.errors) {
@@ -360,15 +410,16 @@ function Activity(props) {
             let a = await FileUpload.upload("/api/upload/activity/material", {
               body,
               onUploadProgress: (event, source) =>
-                setProgressData([
-                  ...progressData,
-                  {
+                store.dispatch({
+                  type: "SET_PROGRESS",
+                  id: option_name,
+                  data: {
                     title: file.name,
                     loaded: event.loaded,
                     total: event.total,
                     onCancel: source,
                   },
-                ]),
+                }),
             });
             if (a.errors) {
               for (let e in a.errors) {
@@ -378,7 +429,7 @@ function Activity(props) {
           });
         }
         if (!noupdate) {
-          let newScheduleDetails = await UserData.updateScheduleDetails(
+          newScheduleDetails = await UserData.updateScheduleDetails(
             class_id,
             selectedSched >= 0 ? selectedSched : schedule_id
           );
@@ -386,8 +437,6 @@ function Activity(props) {
             id: class_id,
             details: newScheduleDetails,
           });
-          _handleFileOption("view", res);
-          setModals([modals[0], false]);
         }
       } else {
         for (let e in res.errors) {
@@ -398,14 +447,28 @@ function Activity(props) {
     }
     if (!errors && res) {
       setSuccess(true);
-      setForm(formTemplate);
-      FileUpload.removeFiles("activity-materials");
-      setNewMaterial(null);
-      window.contentMakerFile = null;
-      setSaving(false);
+      for (let i = 0; i < newScheduleDetails.activities.length; i++) {
+        if (newScheduleDetails.activities[i].id === res.id) {
+          setForm({
+            ...newScheduleDetails.activities[i],
+            schedule_id: newScheduleDetails.id,
+            activity_type: res.activity_type === "class activity" ? 1 : 2,
+            published: res.status === "unpublished" ? 0 : 1,
+            subject_id: props.classDetails[class_id].subject.id,
+            class_id,
+          });
+          FileUpload.removeFiles("activity-materials");
+          if (document.querySelector("#activity-material"))
+            document.querySelector("#activity-material").value = "";
+          setNewMaterial({});
+          window.contentMakerFile = null;
+          setSaving(false);
+        }
+      }
     } else {
       setSaving(false);
     }
+    setSavingId([]);
     setProgressData([]);
   };
 
@@ -423,11 +486,21 @@ function Activity(props) {
           ...a,
           activity_type: a.activity_type === "class activity" ? 1 : 2,
           published: s,
-          schedule_id: selectedSched >= 0 ? selectedSched : classSched,
+          schedule_id: a.schedule_id,
           subject_id: props.classDetails[class_id].subject.id,
           id: a.id,
           class_id,
         });
+        let newScheduleDetails = await UserData.updateScheduleDetails(
+          class_id,
+          a.schedule_id
+        );
+        socket.emit("update schedule details", {
+          id: class_id,
+          details: newScheduleDetails,
+        });
+        setSavingId([]);
+
         setSaving(false);
       },
     });
@@ -472,6 +545,8 @@ function Activity(props) {
           }
           setErrors(err);
         }
+        setSavingId([]);
+
         setSaving(false);
       },
     });
@@ -523,6 +598,8 @@ function Activity(props) {
             details: newScheduleDetails,
           });
         }
+
+        setSavingId([]);
 
         setSaving(false);
       },
@@ -583,6 +660,8 @@ function Activity(props) {
         if (!errors) {
           setSuccess(true);
         }
+        setSavingId([]);
+
         setSaving(false);
       },
     });
@@ -620,6 +699,19 @@ function Activity(props) {
             id: class_id,
             details: newScheduleDetails,
           });
+          for (let i = 0; i < newScheduleDetails.activities.length; i++) {
+            if (newScheduleDetails.activities[i].id === form.id) {
+              setForm({
+                ...newScheduleDetails.activities[i],
+                schedule_id: newScheduleDetails.id,
+                activity_type: form.activity_type,
+                published: form.status === "unpublished" ? 0 : 1,
+                subject_id: props.classDetails[class_id].subject.id,
+                class_id,
+              });
+              setSaving(false);
+            }
+          }
         } else {
           let err = [];
           for (let e in res.errors) {
@@ -627,9 +719,28 @@ function Activity(props) {
           }
           setErrors(err);
         }
+        setSavingId([]);
         setSaving(false);
       },
     });
+  };
+  const _handleOpenAnswer = async (f) => {
+    setFile({
+      title: f.name,
+    });
+    setfileViewerOpen(true);
+    let res = await Api.postBlob(
+      "/api/download/activity/answer/" + f.id
+    ).then((resp) => (resp.ok ? resp.blob() : null));
+    if (res)
+      setFile({
+        ...file,
+        url: URL.createObjectURL(
+          new File([res], f.name + "'s Activity Answer", { type: res.type })
+        ),
+        type: res.type,
+      });
+    else setErrors(["Cannot open file."]);
   };
   const _handleOpenFile = async (f) => {
     setFile({
@@ -667,15 +778,16 @@ function Activity(props) {
     let a = await FileUpload.upload("/api/upload/activity/answer", {
       body,
       onUploadProgress: (event, source) =>
-        setProgressData([
-          ...progressData,
-          {
+        store.dispatch({
+          type: "SET_PROGRESS",
+          id: option_name,
+          data: {
             title: FileUpload.files["answers"][0].name,
             loaded: event.loaded,
             total: event.total,
             onCancel: source,
           },
-        ]),
+        }),
     });
     if (a.errors) {
       for (let e in a.errors) {
@@ -687,7 +799,11 @@ function Activity(props) {
       FileUpload.removeFiles("answer");
       setHasFiles([false, false]);
     }
+
+    getAnswers();
     setProgressData([]);
+    setSavingId([]);
+
     setSaving(false);
   };
   const handleGooglePicker = () => {
@@ -773,9 +889,18 @@ function Activity(props) {
     });
     setSelectedItems(b);
   };
+  useEffect(() => {
+    if (document.querySelector("#activity-material") && !saving)
+      document.querySelector("#activity-material").value = "";
+  }, []);
+  useEffect(() => {
+    _getActivities();
+  }, [props.classDetails]);
   return (
     <Box width="100%" alignSelf="flex-start" height="100%">
-      <Progress data={progressData} />
+      {props.dataProgress[option_name] && (
+        <Progress id={option_name} data={props.dataProgress[option_name]} />
+      )}
       {confirmed && (
         <Dialog
           open={confirmed ? true : false}
@@ -946,12 +1071,15 @@ function Activity(props) {
                   <Typography style={{ fontWeight: "bold" }} variant="body1">
                     {currentActivity.title}
                   </Typography>
+                  <IconButton onClick={() => setCurrentActivity(null)}>
+                    <CloseIcon />
+                  </IconButton>
+                </Box>
+                <Box m={2} style={{ marginLeft: 0, marginRight: 0 }}>
                   <Typography component="div">
                     {moment(currentActivity.available_from).format("LL")} -{" "}
                     {moment(currentActivity.available_to).format("LL")}
                   </Typography>
-                </Box>
-                <Box m={2} style={{ marginLeft: 0, marginRight: 0 }}>
                   <Typography style={{ whiteSpace: "pre-wrap" }}>
                     {currentActivity.description}
                   </Typography>
@@ -979,19 +1107,49 @@ function Activity(props) {
                 </Box>
               </Box>
             </Paper>
-            {isTeacher ? (
-              <Box marginTop={2}>
-                <Paper>
-                  <Box p={2}>
+            <Box marginTop={2}>
+              <ExpansionPanel>
+                <ExpansionPanelSummary>
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      flexDirection: "row",
+                      width: "100%",
+                    }}
+                  >
                     <Typography
                       style={{ fontWeight: "bold", marginBottom: 7 }}
                       color="textSecondary"
                     >
-                      Answers
+                      {!isTeacher && "Your "}Answers
                     </Typography>
-                    <List>
+                    <SearchInput
+                      onChange={(e) => {
+                        setAnswersSearch(e.toLowerCase());
+                        setAnswerPage(1);
+                      }}
+                    />
+                  </div>
+                </ExpansionPanelSummary>
+                <ExpansionPanelDetails style={{ flexWrap: "wrap" }}>
+                  {currentActivity.answers ? (
+                    <List style={{ width: "100%" }}>
                       {getPageItems(
-                        [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16],
+                        currentActivity.answers
+                          .filter((a) =>
+                            isTeacher
+                              ? true
+                              : parseInt(a.student.id) ===
+                                parseInt(props.userInfo.id)
+                          )
+                          .filter(
+                            (a) =>
+                              JSON.stringify(a)
+                                .toLowerCase()
+                                .indexOf(answersSearch) >= 0
+                          ),
                         answerPage
                       ).map((i) => {
                         let pic = props.pics["1"]
@@ -1000,31 +1158,58 @@ function Activity(props) {
                         return (
                           <ListItem>
                             <ListItemAvatar>
-                              <Avatar src={pic} />
+                              <Avatar
+                                src={i.student.pic}
+                                alt={i.student.first_name}
+                              />
                             </ListItemAvatar>
-                            <ListItemText primary={"File Name" + i} />
-                            <ListItemSecondaryAction>
-                              <IconButton>
-                                <MoreHorizOutlinedIcon />
-                              </IconButton>
-                            </ListItemSecondaryAction>
+                            <ListItemText
+                              onClick={() =>
+                                _handleOpenAnswer({
+                                  id: i.id,
+                                  name:
+                                    i.student.first_name +
+                                    " " +
+                                    i.student.last_name,
+                                })
+                              }
+                              primary={
+                                i.student.first_name + " " + i.student.last_name
+                              }
+                            />
+                            {/* <ListItemSecondaryAction>
+                                  <IconButton>
+                                    <MoreHorizOutlinedIcon />
+                                  </IconButton>
+                                </ListItemSecondaryAction> */}
                           </ListItem>
                         );
                       })}
                     </List>
-                    <Box p={2}>
+                  ) : (
+                    <Box
+                      display="flex"
+                      justifyContent="center"
+                      flexDirection="row"
+                    >
+                      <CircularProgress />
+                    </Box>
+                  )}
+                  {currentActivity.answers && (
+                    <Box p={2} width="100%">
                       <Pagination
                         nolink
                         page={answerPage}
                         match={props.match}
                         onChange={(p) => setAnswerPage(p)}
-                        count={16}
+                        count={currentActivity.answers.length}
                       />
                     </Box>
-                  </Box>
-                </Paper>
-              </Box>
-            ) : (
+                  )}
+                </ExpansionPanelDetails>
+              </ExpansionPanel>
+            </Box>
+            {!isTeacher && (
               <Box marginTop={2}>
                 <Typography
                   style={{ fontWeight: "bold", marginBottom: 7 }}
@@ -1056,14 +1241,13 @@ function Activity(props) {
                       return false;
                     }}
                   >
-                    <Input
+                    <input
                       type="file"
                       id="activity-answer"
                       style={{ display: "none" }}
-                      onChange={() => {
-                        let isfiles = document.querySelector(
-                          "#activity-material"
-                        ).files.length
+                      onChange={(e) => {
+                        let isfiles = document.querySelector("#activity-answer")
+                          .files.length
                           ? true
                           : false;
                         stageFiles(
@@ -1922,5 +2106,6 @@ export default connect((state) => ({
   userInfo: state.userInfo,
   theme: state.theme,
   pics: state.pics,
+  dataProgress: state.dataProgress,
   classDetails: state.classDetails,
 }))(Activity);

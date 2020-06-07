@@ -12,6 +12,7 @@ import {
 } from "@material-ui/core";
 import CloseIcon from "@material-ui/icons/Close";
 import CheckCircleOutlineOutlinedIcon from "@material-ui/icons/CheckCircleOutlineOutlined";
+import store from "./redux/store";
 const useStyles = makeStyles((theme) => ({
   root: {
     position: "fixed",
@@ -28,24 +29,32 @@ export default function Progress(props) {
   const styles = useStyles();
   const theme = useTheme();
   const normalize = (loaded, total) => Math.ceil((loaded / total) * 100);
-  return props.data.length ? (
-    <Paper className={styles.root}>
-      <List>
-        {props.data.map((d) => (
+  return props.data ? (
+    normalize(props.data.loaded, props.data.total) < 100 ? (
+      <Paper className={styles.root} id="tests">
+        <List>
           <ListItem>
             <div className={styles.progressItem}>
               <ListItemText
-                primary={d.title}
-                secondary={normalize(d.loaded, d.total) + "%"}
+                primary={props.data.title}
+                secondary={normalize(props.data.loaded, props.data.total) + "%"}
               />
               <LinearProgress
                 variant="determinate"
-                value={normalize(d.loaded, d.total)}
+                value={normalize(props.data.loaded, props.data.total)}
               />
             </div>
             <ListItemSecondaryAction>
-              {normalize(d.loaded, d.total) < 100 ? (
-                <IconButton onClick={() => d.onCancel.cancel("Canceled")}>
+              {normalize(props.data.loaded, props.data.total) < 100 ? (
+                <IconButton
+                  onClick={() => {
+                    store.dispatch({
+                      type: "CLEAR_PROGRESS",
+                      id: props.id,
+                    });
+                    props.data.onCancel.cancel("Canceled");
+                  }}
+                >
                   <CloseIcon />
                 </IconButton>
               ) : (
@@ -55,8 +64,8 @@ export default function Progress(props) {
               )}
             </ListItemSecondaryAction>
           </ListItem>
-        ))}
-      </List>
-    </Paper>
+        </List>
+      </Paper>
+    ) : null
   ) : null;
 }

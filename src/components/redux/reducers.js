@@ -53,11 +53,26 @@ const pics = (state = {}, payload) => {
       return state;
   }
 };
+const dataProgress = (state = {}, payload) => {
+  switch (payload.type) {
+    case "SET_PROGRESS":
+      let data = {};
+      data[payload.id] = payload.data;
+      return { ...state, ...data };
+    case "CLEAR_PROGRESS":
+      let d = { ...state };
+      delete d[payload.id];
+      return d;
+    default:
+      return state;
+  }
+};
 
 export default combineReducers({
   userInfo,
   classes,
   route,
+  dataProgress,
   classDetails,
   theme,
   pics,

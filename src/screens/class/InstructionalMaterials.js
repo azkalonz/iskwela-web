@@ -52,6 +52,8 @@ import {
   SearchInput,
 } from "../../components/Selectors";
 import { CheckBoxAction } from "../../components/CheckBox";
+import Progress from "../../components/Progress";
+import store from "../../components/redux/store";
 
 const queryString = require("query-string");
 function Alert(props) {
@@ -74,7 +76,7 @@ function InstructionalMaterials(props) {
   const styles = useStyles();
   const [file, setFile] = useState();
   const [fileViewerOpen, setfileViewerOpen] = useState(false);
-  const [form, setForm] = useState();
+  const [form, setForm] = useState({});
   const [hasFiles, setHasFiles] = useState(false);
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -82,6 +84,7 @@ function InstructionalMaterials(props) {
   const [confirmed, setConfirmed] = useState();
   const [savingId, setSavingId] = useState([]);
   const [fileFullScreen, setFileFullScreen] = useState(false);
+  const [progressData, setProgressData] = useState([]);
   const [selectedSched, setSelectedSched] = useState(
     query.date && query.date !== -1 ? parseInt(query.date) : -1
   );
@@ -92,7 +95,7 @@ function InstructionalMaterials(props) {
         : null
       : "published"
   );
-  const [page, setPage] = useState(query.page ? query.page : 1);
+  const [page, setPage] = useState(query.page ? parseInt(query.page) : 1);
   const [selectedItems, setSelectedItems] = useState({});
 
   const _handleFileOption = (option, file) => {
@@ -125,7 +128,9 @@ function InstructionalMaterials(props) {
         return;
     }
   };
-
+  useEffect(() => {
+    _getMaterials();
+  }, [props.classDetails]);
   const _getMaterials = () => {
     if (!classSched) return;
     try {
@@ -141,9 +146,14 @@ function InstructionalMaterials(props) {
       //handle invalid schedule
     }
   };
-  useEffect(() => {
-    _getMaterials();
-  }, []);
+
+  useEffect(
+    () =>
+      setSelectedSched(
+        query.date && query.date !== -1 ? parseInt(query.date) : -1
+      ),
+    [query.date]
+  );
   useEffect(() => {
     if (!fileViewerOpen) setFile();
   }, [fileViewerOpen]);
@@ -233,32 +243,43 @@ function InstructionalMaterials(props) {
     let err = [];
     setErrors(null);
     setSaving(true);
-    let res = await Api.post("/api/class/material/save", {
-      body: {
-        class_id,
-        schedule_id: selectedSched >= 0 ? selectedSched : classSched,
-        ...form,
-      },
-    });
-    if (res.errors) {
-      for (let e in res.errors) {
-        err.push(res.errors[e][0]);
-      }
-    }
-    if (!err.length) {
-      setSuccess(true);
-      let newScheduleDetails = await UserData.updateScheduleDetails(
-        class_id,
-        selectedSched >= 0 ? selectedSched : schedule_id
-      );
-      socket.emit("update schedule details", {
-        id: class_id,
-        details: newScheduleDetails,
+    let res;
+    try {
+      res = await Api.post("/api/class/material/save", {
+        body: {
+          class_id,
+          schedule_id: selectedSched >= 0 ? selectedSched : classSched,
+          ...form,
+        },
       });
-      setModals([false, modals[1]]);
-    } else setErrors(err);
-    setSaving(true);
-    setErrors(null);
+    } catch (e) {
+      setErrors(["Oops! Something went wrong. Please try again."]);
+      setSavingId([]);
+      setSaving(false);
+    }
+    if (res) {
+      if (res.errors) {
+        for (let e in res.errors) {
+          err.push(res.errors[e][0]);
+        }
+      }
+      if (!err.length) {
+        setSuccess(true);
+        let newScheduleDetails = await UserData.updateScheduleDetails(
+          class_id,
+          selectedSched >= 0 ? selectedSched : schedule_id
+        );
+        socket.emit("update schedule details", {
+          id: class_id,
+          details: newScheduleDetails,
+        });
+        setForm({});
+        setModals([false, modals[1]]);
+      } else setErrors(err);
+      setSavingId([]);
+      setSaving(false);
+      setErrors(null);
+    }
   };
 
   const _handleMaterialUpload = async () => {
@@ -278,11 +299,26 @@ function InstructionalMaterials(props) {
       let body = new FormData();
       body.append("class_id", class_id);
       body.append("file", file);
-      body.append("schedule_id", schedule_id);
+      body.append(
+        "schedule_id",
+        selectedSched >= 0 ? selectedSched : schedule_id
+      );
       body.append("title", form.title);
       let res = await FileUpload.upload("/api/upload/class/material", {
         body,
+        onUploadProgress: (event, source) =>
+          store.dispatch({
+            type: "SET_PROGRESS",
+            id: option_name,
+            data: {
+              title: file.name,
+              loaded: event.loaded,
+              total: event.total,
+              onCancel: source,
+            },
+          }),
       });
+
       if (res.errors) {
         for (let e in res.errors) {
           err.push(res.errors[e][0]);
@@ -299,12 +335,13 @@ function InstructionalMaterials(props) {
         id: class_id,
         details: newScheduleDetails,
       });
-      FileUpload.removeFiles("materials");
+      setForm({});
       setHasFiles(false);
+      FileUpload.removeFiles("materials");
       setModals([modals[0], false]);
-    } else setErrors(err);
-    setSaving(true);
-    setErrors(null);
+    } else setErrors(["Oops! Something went wrong. Please try again."]);
+    setSavingId([]);
+    setSaving(false);
   };
   const updateMaterialStatus = async (item, stat) => {
     let { id } = item;
@@ -318,24 +355,32 @@ function InstructionalMaterials(props) {
         setSavingId([...savingId, id]);
         setSaving(true);
         setConfirmed(null);
-        let res = await Api.post("/api/class/material/" + stat + "/" + id);
-        if (!res.errors) {
-          setSuccess(true);
-          let newScheduleDetails = await UserData.updateScheduleDetails(
-            class_id,
-            item.schedule_id
-          );
-          socket.emit("update schedule details", {
-            id: class_id,
-            details: newScheduleDetails,
-          });
-        } else {
-          let err = [];
-          for (let e in res.errors) {
-            err.push(res.errors[e][0]);
-          }
-          setErrors(err);
+        let res;
+        try {
+          res = await Api.post("/api/class/material/" + stat + "/" + id);
+        } catch (e) {
+          setErrors(["Oops! Something went wrong. Please try again."]);
         }
+        if (res) {
+          if (!res.errors) {
+            setSuccess(true);
+            let newScheduleDetails = await UserData.updateScheduleDetails(
+              class_id,
+              item.schedule_id
+            );
+            socket.emit("update schedule details", {
+              id: class_id,
+              details: newScheduleDetails,
+            });
+          } else {
+            let err = [];
+            for (let e in res.errors) {
+              err.push(res.errors[e][0]);
+            }
+            setErrors(err);
+          }
+        }
+        setSavingId([]);
         setSaving(false);
       },
     });
@@ -351,27 +396,39 @@ function InstructionalMaterials(props) {
         setConfirmed(null);
         setSavingId([...savingId, ...Object.keys(a).map((i) => a[i].id)]);
         await asyncForEach(Object.keys(a), async (i) => {
-          await Api.post(
-            "/api/class/material/" + stat.toLowerCase() + "/" + a[i].id
-          );
+          try {
+            await Api.post(
+              "/api/class/material/" + stat.toLowerCase() + "/" + a[i].id
+            );
+          } catch (e) {
+            setErrors(["Oops! Something went wrong. Please try again."]);
+            setSaving(false);
+            setSavingId([]);
+
+            return;
+          }
         });
-        if (selectedSched < 0) {
-          let newClassDetails = await UserData.updateClassDetails(class_id);
-          UserData.updateClass(class_id, newClassDetails[class_id]);
-          socket.emit(
-            "new class details",
-            JSON.stringify({ details: newClassDetails, id: class_id })
-          );
-        } else {
-          let newScheduleDetails = await UserData.updateScheduleDetails(
-            class_id,
-            selectedSched
-          );
-          socket.emit("update schedule details", {
-            id: class_id,
-            details: newScheduleDetails,
-          });
+        if (!errors) {
+          if (selectedSched < 0) {
+            let newClassDetails = await UserData.updateClassDetails(class_id);
+            UserData.updateClass(class_id, newClassDetails[class_id]);
+            socket.emit(
+              "new class details",
+              JSON.stringify({ details: newClassDetails, id: class_id })
+            );
+          } else {
+            let newScheduleDetails = await UserData.updateScheduleDetails(
+              class_id,
+              selectedSched
+            );
+            socket.emit("update schedule details", {
+              id: class_id,
+              details: newScheduleDetails,
+            });
+          }
         }
+        setSavingId([]);
+
         setSaving(false);
       },
     });
@@ -385,31 +442,40 @@ function InstructionalMaterials(props) {
         setSaving(true);
         setConfirmed(null);
         setSavingId([...savingId, activity.id]);
-        let res = await Api.post(
-          "/api/teacher/remove/class-material/" + activity.id,
-          {
-            body: {
-              id: activity.id,
-            },
-          }
-        );
-        if (!res.errors) {
-          setSuccess(true);
-          let newScheduleDetails = await UserData.updateScheduleDetails(
-            class_id,
-            activity.schedule_id
+        let res;
+        try {
+          res = await Api.post(
+            "/api/teacher/remove/class-material/" + activity.id,
+            {
+              body: {
+                id: activity.id,
+              },
+            }
           );
-          socket.emit("update schedule details", {
-            id: class_id,
-            details: newScheduleDetails,
-          });
-        } else {
-          let err = [];
-          for (let e in res.errors) {
-            err.push(res.errors[e][0]);
-          }
-          setErrors(err);
+        } catch (e) {
+          setErrors(["Oops! Something went wrong. Please try again."]);
         }
+        if (res) {
+          if (!res.errors) {
+            setSuccess(true);
+            let newScheduleDetails = await UserData.updateScheduleDetails(
+              class_id,
+              activity.schedule_id
+            );
+            socket.emit("update schedule details", {
+              id: class_id,
+              details: newScheduleDetails,
+            });
+          } else {
+            let err = [];
+            for (let e in res.errors) {
+              err.push(res.errors[e][0]);
+            }
+            setErrors(err);
+          }
+        }
+        setSavingId([]);
+
         setSaving(false);
       },
     });
@@ -429,35 +495,46 @@ function InstructionalMaterials(props) {
         let err = [];
         await asyncForEach(Object.keys(materials), async (i) => {
           let id = parseInt(i);
-          let res = await Api.post("/api/teacher/remove/class-material/" + id, {
-            body: {
-              id,
-            },
-          });
-          if (res.errors) {
-            for (let e in res.errors) {
-              err.push(res.errors[e][0]);
+          let res;
+          try {
+            await Api.post("/api/teacher/remove/class-material/" + id, {
+              body: {
+                id,
+              },
+            });
+          } catch (e) {
+            setErrors(["Oops! Something went wrong. Please try again."]);
+          }
+          if (res) {
+            if (res.errors) {
+              for (let e in res.errors) {
+                err.push(res.errors[e][0]);
+              }
+              setErrors(err);
             }
-            setErrors(err);
           }
         });
-        if (selectedSched < 0) {
-          let newClassDetails = await UserData.updateClassDetails(class_id);
-          UserData.updateClass(class_id, newClassDetails[class_id]);
-          socket.emit(
-            "new class details",
-            JSON.stringify({ details: newClassDetails, id: class_id })
-          );
-        } else {
-          let newScheduleDetails = await UserData.updateScheduleDetails(
-            class_id,
-            selectedSched
-          );
-          socket.emit("update schedule details", {
-            id: class_id,
-            details: newScheduleDetails,
-          });
+        if (!errors) {
+          if (selectedSched < 0) {
+            let newClassDetails = await UserData.updateClassDetails(class_id);
+            UserData.updateClass(class_id, newClassDetails[class_id]);
+            socket.emit(
+              "new class details",
+              JSON.stringify({ details: newClassDetails, id: class_id })
+            );
+          } else {
+            let newScheduleDetails = await UserData.updateScheduleDetails(
+              class_id,
+              selectedSched
+            );
+            socket.emit("update schedule details", {
+              id: class_id,
+              details: newScheduleDetails,
+            });
+          }
         }
+        setSavingId([]);
+
         setSaving(false);
       },
     });
@@ -484,7 +561,7 @@ function InstructionalMaterials(props) {
     console.log(selectedItems);
   };
   const _selectAll = () => {
-    let filtered = getFilteredMaterials();
+    let filtered = getPageItems(getFilteredMaterials(), page);
     if (Object.keys(selectedItems).length === filtered.length) {
       setSelectedItems({});
       return;
@@ -497,6 +574,9 @@ function InstructionalMaterials(props) {
   };
   return (
     <Box width="100%" alignSelf="flex-start">
+      {props.dataProgress[option_name] && (
+        <Progress id={option_name} data={props.dataProgress[option_name]} />
+      )}
       <Dialog
         open={fileViewerOpen}
         keepMounted
@@ -696,8 +776,9 @@ function InstructionalMaterials(props) {
                         <Checkbox
                           checked={
                             Object.keys(selectedItems).length ===
-                            getFilteredMaterials().length
-                              ? getFilteredMaterials().length > 0
+                            getPageItems(getFilteredMaterials(), page).length
+                              ? getPageItems(getFilteredMaterials(), page)
+                                  .length > 0
                                 ? true
                                 : false
                               : false
@@ -729,7 +810,7 @@ function InstructionalMaterials(props) {
               <CheckBoxAction
                 checked={
                   Object.keys(selectedItems).length ===
-                  getFilteredMaterials().length
+                  getPageItems(getFilteredMaterials(), page).length
                 }
                 onSelect={_selectAll}
                 onDelete={() => _handleRemoveMaterials(selectedItems)}
@@ -753,7 +834,7 @@ function InstructionalMaterials(props) {
                 </Typography>
               </Box>
             )}
-            <Grow in={true}>
+            <Grow in={materials ? true : false}>
               <List>
                 {getPageItems(getFilteredMaterials(), page).map(
                   (item, index) => (
@@ -888,7 +969,7 @@ function InstructionalMaterials(props) {
               match={props.match}
               page={page}
               onChange={(p) => setPage(p)}
-              length={getFilteredMaterials().length}
+              count={getFilteredMaterials().length}
             />
           </Box>
         </Box>
@@ -897,42 +978,40 @@ function InstructionalMaterials(props) {
         open={modals[0]}
         keepMounted
         onClose={() => {
-          setForm(null);
+          setForm({});
           setModals([!modals[0], modals[1]]);
         }}
         aria-labelledby="alert-dialog-slide-title"
         aria-describedby="alert-dialog-slide-description"
       >
         <DialogTitle id="alert-dialog-slide-title">Web Link</DialogTitle>
-        <DialogContent>
-          <DialogContent id="alert-dialog-slide-description">
-            <Box display="flex" flexWrap="wrap">
-              <TextField
-                label="Title"
-                className={styles.textField}
-                InputLabelProps={{
-                  shrink: true,
-                }}
-                value={form && form.title}
-                onChange={(e) => setForm({ ...form, title: e.target.value })}
-                fullWidth
-              />
-              <TextField
-                label="link"
-                InputLabelProps={{
-                  shrink: true,
-                }}
-                value={form && form.url}
-                onChange={(e) => setForm({ ...form, url: e.target.value })}
-                fullWidth
-              />
-            </Box>
-          </DialogContent>
+        <DialogContent id="alert-dialog-slide-description">
+          <Box display="flex" flexWrap="wrap">
+            <TextField
+              label="Title"
+              className={styles.textField}
+              InputLabelProps={{
+                shrink: true,
+              }}
+              value={form.title ? form.title : ""}
+              onChange={(e) => setForm({ ...form, title: e.target.value })}
+              fullWidth
+            />
+            <TextField
+              label="link"
+              InputLabelProps={{
+                shrink: true,
+              }}
+              value={form.url ? form.url : ""}
+              onChange={(e) => setForm({ ...form, url: e.target.value })}
+              fullWidth
+            />
+          </Box>
         </DialogContent>
         <DialogActions>
           <Button
             onClick={() => {
-              setForm(null);
+              setForm({});
               setModals([false, modals[1]]);
             }}
             variant="outlined"
@@ -954,37 +1033,36 @@ function InstructionalMaterials(props) {
         open={modals[1]}
         keepMounted
         onClose={() => {
-          if (!saving) {
-            FileUpload.removeFiles("materials");
-            setHasFiles(false);
-            setForm(null);
-            setModals([modals[0], !modals[1]]);
-          }
+          setModals([modals[0], !modals[1]]);
+          setForm({});
         }}
         aria-labelledby="alert-dialog-slide-title"
         aria-describedby="alert-dialog-slide-description"
       >
         <DialogTitle id="alert-dialog-slide-title">Upload</DialogTitle>
-        <DialogContent>
-          <DialogContent id="alert-dialog-slide-description">
-            <Box display="flex" flexWrap="wrap">
-              <TextField
-                label="Title"
-                className={styles.textField}
-                value={form && form.title}
-                onChange={(e) => setForm({ title: e.target.value })}
-                InputLabelProps={{
-                  shrink: true,
-                }}
-                fullWidth
-              />
-            </Box>
-          </DialogContent>
-          {hasFiles &&
-            FileUpload.getFiles("materials").map((f, i) => (
-              <div key={i}>{f.uploaded_file}</div>
-            ))}
+        <DialogContent id="alert-dialog-slide-description">
+          <Box display="flex" flexWrap="wrap">
+            <TextField
+              label="Title"
+              className={styles.textField}
+              value={form.title ? form.title : ""}
+              onChange={(e) => setForm({ title: e.target.value })}
+              InputLabelProps={{
+                shrink: true,
+              }}
+              fullWidth
+            />
+          </Box>
+          <List>
+            {hasFiles &&
+              FileUpload.getFiles("materials").map((f, i) => (
+                <ListItem key={i}>
+                  <ListItemText primary={f.uploaded_file} />
+                </ListItem>
+              ))}
+          </List>
         </DialogContent>
+
         <DialogActions style={{ justifyContent: "space-between" }}>
           <div>
             <input
@@ -992,8 +1070,10 @@ function InstructionalMaterials(props) {
               type="file"
               id="materials-upload"
               onChange={(e) => {
+                let isfiles = e.target.files.length ? true : false;
+                if (!isfiles) FileUpload.removeFiles("materials");
                 stageFiles("materials", e.target.files);
-                setHasFiles(true);
+                setHasFiles(isfiles);
               }}
               multiple
             />
@@ -1015,7 +1095,7 @@ function InstructionalMaterials(props) {
                 if (!saving) {
                   FileUpload.removeFiles("materials");
                   setHasFiles(false);
-                  setForm(null);
+                  setForm({});
                   setModals([modals[0], false]);
                 }
               }}
@@ -1130,4 +1210,5 @@ const useStyles = makeStyles((theme) => ({
 export default connect((states) => ({
   userInfo: states.userInfo,
   classDetails: states.classDetails,
+  dataProgress: states.dataProgress,
 }))(InstructionalMaterials);

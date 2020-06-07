@@ -32,9 +32,7 @@ function ScheduleSelector(props) {
         label="Schedule"
         value={props.schedule}
         onChange={(e) => {
-          props.onChange(
-            parseInt(e.target.value) !== -1 ? e.target.value : null
-          );
+          props.onChange(parseInt(e.target.value) !== -1 ? e.target.value : -1);
           history.push(
             makeLinkTo(
               [
