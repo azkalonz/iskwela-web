@@ -1711,8 +1711,7 @@ function Activity(props) {
             <TextField
               label="Description"
               variant="filled"
-              rows={7}
-              style={{ marginTop: 13 }}
+              style={{ marginTop: 13, minHeight: 200 }}
               value={form.description}
               multiline={true}
               InputLabelProps={{
