@@ -72,7 +72,7 @@ import {
 import { CheckBoxAction } from "../../components/CheckBox";
 import Progress from "../../components/Progress";
 import store from "../../components/redux/store";
-
+import RefreshIcon from "@material-ui/icons/Refresh";
 const queryString = require("query-string");
 function Alert(props) {
   return <MuiAlert elevation={6} variant="filled" {...props} />;
@@ -1134,6 +1134,19 @@ function Activity(props) {
                   </div>
                 </ExpansionPanelSummary>
                 <ExpansionPanelDetails style={{ flexWrap: "wrap" }}>
+                  <div style={{ width: "100%", textAlign: "right" }}>
+                    <IconButton
+                      onClick={() => {
+                        setCurrentActivity({
+                          ...currentActivity,
+                          answers: null,
+                        });
+                        getAnswers();
+                      }}
+                    >
+                      <RefreshIcon />
+                    </IconButton>
+                  </div>
                   {currentActivity.answers ? (
                     <List style={{ width: "100%" }}>
                       {getPageItems(
