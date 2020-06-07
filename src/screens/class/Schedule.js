@@ -84,7 +84,7 @@ function Schedule(props) {
   useEffect(() => {
     if (props.classDetailss)
       setSchedules(props.classDetailss[class_id].schedules);
-  }, [class_id]);
+  }, [props.classDetails]);
 
   const _handleFileOption = (option, file) => {
     setAnchorEl(() => {
