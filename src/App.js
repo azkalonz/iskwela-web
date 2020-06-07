@@ -69,6 +69,11 @@ function App(props) {
           },
         },
       },
+      MuiFilledInput: {
+        root: {
+          backgroundColor: "rgba(0, 0, 0, 0.03)",
+        },
+      },
       MuiDivider: {
         root: {
           marginTop: 1,

@@ -1,39 +1,44 @@
+import axios from "axios";
 function Api() {}
 
 const domain = "https://dev-middleware.iskwela.net";
 Api.domain = domain;
 
 Api.get = (endpoint, params = {}) =>
-  fetch(domain + endpoint, {
-    method: "GET",
-    headers: {
-      Authorization: "Bearer " + Api.token,
-    },
-    ...params.config,
-  }).then((resp) => resp.json());
+  axios
+    .get(domain + endpoint, {
+      method: "GET",
+      headers: {
+        Authorization: "Bearer " + Api.token,
+      },
+      ...params.config,
+    })
+    .then((resp) => resp.data);
 Api.post = (endpoint, params = {}) => {
   console.log({
-    method: "post",
     headers: {
       Accept: "application/json",
       "Content-Type": "application/json",
       Authorization: "Bearer " + Api.token,
       ...params.headers,
     },
-    body: JSON.stringify(params.body),
     ...params.config,
   });
-  return fetch(domain + endpoint, {
-    method: "post",
-    headers: {
-      Accept: "application/json",
-      "Content-Type": "application/json",
-      Authorization: "Bearer " + Api.token,
-      ...params.headers,
-    },
-    body: JSON.stringify(params.body),
-    ...params.config,
-  }).then((resp) => resp.json());
+  return axios
+    .post(domain + endpoint, params.body, {
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+        Authorization: "Bearer " + Api.token,
+        ...params.headers,
+      },
+      onUploadProgress: (progressEvent) =>
+        params.onUploadProgress
+          ? params.onUploadProgress(progressEvent)
+          : progressEvent,
+      ...params.config,
+    })
+    .then((resp) => resp.data);
 };
 Api.postBlob = (endpoint, params = {}) => {
   return fetch(domain + endpoint, {

@@ -4,15 +4,26 @@ import axios from "axios";
 function FileUpload() {}
 FileUpload.upload = async (endpoint, params = {}) => {
   if (!params.body) return;
-
-  let req = await axios.post(Api.domain + endpoint, params.body, {
-    headers: {
-      Accept: "application/json",
-      "Content-Type": "multipart/form-data",
-      Authorization: "Bearer " + Api.token,
-    },
-  });
-  return req;
+  const CancelToken = axios.CancelToken;
+  const source = CancelToken.source();
+  try {
+    let req = await axios.post(Api.domain + endpoint, params.body, {
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "multipart/form-data",
+        Authorization: "Bearer " + Api.token,
+      },
+      cancelToken: source.token,
+      onUploadProgress: (progressEvent) =>
+        params.onUploadProgress
+          ? params.onUploadProgress(progressEvent, source)
+          : progressEvent,
+    });
+    return req;
+  } catch (e) {
+    console.log("eee", e);
+    return { errors: "Unprocessable entity" };
+  }
 };
 
 FileUpload.removeFiles = (id) => {
