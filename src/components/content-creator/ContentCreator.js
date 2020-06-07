@@ -1,3 +1,4 @@
+//test
 export default function ContentCreator(fabric, id, params = {}) {
   fabric.Object.prototype.transparentCorners = false;
   this.canvas = new fabric.Canvas(id, {
