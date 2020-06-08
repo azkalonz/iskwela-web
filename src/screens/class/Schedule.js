@@ -43,11 +43,13 @@ import {
 import Form from "../../components/Form";
 import UserData from "../../components/UserData";
 import Api from "../../api";
-
+import { SearchInput } from "../../components/Selectors";
+import Pagination, { getPageItems } from "../../components/Pagination";
 function Alert(props) {
   return <MuiAlert elevation={6} variant="filled" {...props} />;
 }
 function Schedule(props) {
+  const query = require("query-string").parse(window.location.search);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const history = useHistory();
@@ -63,6 +65,7 @@ function Schedule(props) {
   const isTeacher = props.userInfo.user_type === "t" ? true : false;
   const styles = useStyles();
   const [savingId, setSavingId] = useState();
+  const [page, setPage] = useState(query.page ? parseInt(query.page) : 1);
   const [form, setForm] = useState({
     id: schedule_id,
     date_from: moment(new Date()).format("YYYY-MM-DD H:mm:ss"),
@@ -85,7 +88,10 @@ function Schedule(props) {
     if (props.classDetailss)
       setSchedules(props.classDetailss[class_id].schedules);
   }, [props.classDetails]);
-
+  const getFilteredSchedules = () =>
+    schedules.filter(
+      (i) => JSON.stringify(i).toLowerCase().indexOf(search) >= 0
+    );
   const _handleFileOption = (option, file) => {
     setAnchorEl(() => {
       let a = {};
@@ -187,23 +193,7 @@ function Schedule(props) {
   return (
     <Box width="100%" alignSelf="flex-start">
       <Box m={2} display="flex" justifyContent="flex-end" flexWrap="wrap">
-        <Box
-          border={1}
-          p={0.3}
-          borderRadius={7}
-          display="flex"
-          width={isMobile ? "100%" : ""}
-        >
-          <InputBase
-            style={{ width: isMobile ? "100%" : "" }}
-            onChange={(e) => _handleSearch(e.target.value)}
-            placeholder="Search"
-            inputProps={{ "aria-label": "search activity" }}
-          />
-          <IconButton type="submit" aria-label="search" style={{ padding: 0 }}>
-            <SearchIcon />
-          </IconButton>
-        </Box>
+        <SearchInput onChange={(e) => _handleSearch(e)} />
       </Box>
 
       <Box m={2}>
@@ -240,128 +230,136 @@ function Schedule(props) {
               </TableHead>
               <TableBody>
                 {schedules &&
-                  schedules
-                    .filter(
-                      (i) =>
-                        JSON.stringify(i).toLowerCase().indexOf(search) >= 0
-                    )
-                    .map((row, i) => {
-                      let status = {
-                        className: styles[row.status],
-                        label: row.status,
-                        color: styles[row.status + "_color"],
-                      };
-                      return (
-                        <TableRow
-                          key={row.id}
-                          className={[styles.row, status.color].join(" ")}
-                        >
-                          <TableCell component="th" scope="row">
-                            {moment(row.from).format("MMMM D, YYYY")}
-                          </TableCell>
-                          <TableCell align="right">
-                            {moment(row.from).format("h:mm A")} -{" "}
-                            {moment(row.to).format("h:mm A")}
-                          </TableCell>
-                          <TableCell align="right">
-                            {row.teacher_name}
-                          </TableCell>
-                          <TableCell align="center">
-                            {saving && savingId === row.id ? (
-                              <CircularProgress size={17} />
-                            ) : (
-                              <Chip
-                                label={status.label.toUpperCase()}
-                                className={status.className}
-                              />
-                            )}
-                          </TableCell>
-                          <TableCell align="right">
-                            <IconButton
-                              onClick={(event) =>
+                  getPageItems(getFilteredSchedules(), page).map((row, i) => {
+                    let status = {
+                      className: styles[row.status],
+                      label: row.status,
+                      color: styles[row.status + "_color"],
+                    };
+                    return (
+                      <TableRow
+                        key={row.id}
+                        className={[styles.row, status.color].join(" ")}
+                      >
+                        <TableCell component="th" scope="row">
+                          {moment(row.from).format("MMMM D, YYYY")}
+                        </TableCell>
+                        <TableCell align="right">
+                          {moment(row.from).format("h:mm A")} -{" "}
+                          {moment(row.to).format("h:mm A")}
+                        </TableCell>
+                        <TableCell align="right">{row.teacher_name}</TableCell>
+                        <TableCell align="center">
+                          {saving && savingId === row.id ? (
+                            <CircularProgress size={17} />
+                          ) : (
+                            <Chip
+                              label={status.label.toUpperCase()}
+                              className={status.className}
+                            />
+                          )}
+                        </TableCell>
+                        <TableCell align="right">
+                          <IconButton
+                            onClick={(event) =>
+                              setAnchorEl(() => {
+                                let a = {};
+                                a[row.id] = event.currentTarget;
+                                return { ...anchorEl, ...a };
+                              })
+                            }
+                          >
+                            <MoreHorizOutlinedIcon />
+                          </IconButton>
+                          {anchorEl && (
+                            <StyledMenu
+                              id="customized-menu"
+                              anchorEl={anchorEl[row.id]}
+                              keepMounted
+                              open={Boolean(anchorEl[row.id])}
+                              onClose={() =>
                                 setAnchorEl(() => {
                                   let a = {};
-                                  a[row.id] = event.currentTarget;
+                                  a[row.id] = null;
                                   return { ...anchorEl, ...a };
                                 })
                               }
                             >
-                              <MoreHorizOutlinedIcon />
-                            </IconButton>
-                            {anchorEl && (
-                              <StyledMenu
-                                id="customized-menu"
-                                anchorEl={anchorEl[row.id]}
-                                keepMounted
-                                open={Boolean(anchorEl[row.id])}
-                                onClose={() =>
-                                  setAnchorEl(() => {
-                                    let a = {};
-                                    a[row.id] = null;
-                                    return { ...anchorEl, ...a };
-                                  })
+                              <StyledMenuItem
+                                disabled={
+                                  row.status !== "ONGOING" ? true : false
                                 }
                               >
-                                <StyledMenuItem
-                                  disabled={
-                                    row.status !== "ONGOING" ? true : false
-                                  }
-                                >
-                                  <ListItemText
-                                    primary="Join"
-                                    onClick={() =>
-                                      _handleFileOption("join", row)
-                                    }
-                                  />
-                                </StyledMenuItem>
-                                {isTeacher && (
-                                  <div>
-                                    <StyledMenuItem>
-                                      <ListItemText
-                                        primary="Start"
-                                        disabled={row.status === "ONGOING"}
-                                        onClick={() =>
-                                          _handleFileOption("start", row)
-                                        }
-                                      />
-                                    </StyledMenuItem>
-                                    <StyledMenuItem>
-                                      <ListItemText
-                                        primary="End"
-                                        disabled={row.status !== "ONGOING"}
-                                        onClick={() =>
-                                          _handleFileOption("end", row)
-                                        }
-                                      />
-                                    </StyledMenuItem>
-                                    <StyledMenuItem>
-                                      <ListItemText
-                                        primary="Cancel"
-                                        onClick={() =>
-                                          _handleFileOption("cancel", row)
-                                        }
-                                      />
-                                    </StyledMenuItem>
-                                    <StyledMenuItem>
-                                      <ListItemText
-                                        primary="Edit"
-                                        onClick={() =>
-                                          _handleFileOption("edit", row)
-                                        }
-                                      />
-                                    </StyledMenuItem>
-                                  </div>
-                                )}
-                              </StyledMenu>
-                            )}
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })}
+                                <ListItemText
+                                  primary="Join"
+                                  onClick={() => _handleFileOption("join", row)}
+                                />
+                              </StyledMenuItem>
+                              {isTeacher && (
+                                <div>
+                                  <StyledMenuItem>
+                                    <ListItemText
+                                      primary="Start"
+                                      disabled={row.status === "ONGOING"}
+                                      onClick={() =>
+                                        _handleFileOption("start", row)
+                                      }
+                                    />
+                                  </StyledMenuItem>
+                                  <StyledMenuItem>
+                                    <ListItemText
+                                      primary="End"
+                                      disabled={row.status !== "ONGOING"}
+                                      onClick={() =>
+                                        _handleFileOption("end", row)
+                                      }
+                                    />
+                                  </StyledMenuItem>
+                                  <StyledMenuItem>
+                                    <ListItemText
+                                      primary="Cancel"
+                                      onClick={() =>
+                                        _handleFileOption("cancel", row)
+                                      }
+                                    />
+                                  </StyledMenuItem>
+                                  <StyledMenuItem>
+                                    <ListItemText
+                                      primary="Edit"
+                                      onClick={() =>
+                                        _handleFileOption("edit", row)
+                                      }
+                                    />
+                                  </StyledMenuItem>
+                                </div>
+                              )}
+                            </StyledMenu>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
               </TableBody>
             </Table>
           </TableContainer>
         </Grow>
+        {schedules && (
+          <Box p={2}>
+            <Pagination
+              emptyMessage={
+                search
+                  ? "Try a different keyword"
+                  : "There's no schedule in your class yet."
+              }
+              icon={search ? "person_search" : "calendar_today"}
+              emptyTitle={search ? "Nothing Found" : ""}
+              match={props.match}
+              page={page}
+              onChange={(e) => setPage(e)}
+              count={getFilteredSchedules().length}
+            />
+          </Box>
+        )}
       </Box>
       <Dialog
         open={open}

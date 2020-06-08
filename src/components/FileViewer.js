@@ -125,9 +125,8 @@ function FV(props) {
           width="100%"
           height="100%"
         >
-          <CircularProgress />
           <Typography variant="body1">
-            &nbsp;&nbsp;Opening {props.title}...
+            <img src="/login/loader2.svg" width={130} />
           </Typography>
         </Box>
       )}

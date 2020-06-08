@@ -297,6 +297,8 @@ const useStyles = makeStyles((theme) => ({
     [theme.breakpoints.down("xs")]: {
       width: "84%",
     },
+    background:
+      theme.palette.type === "dark" ? "#222222" : theme.palette.grey[300],
     flexGrow: 1,
     padding: theme.spacing(3),
     width: "100%",

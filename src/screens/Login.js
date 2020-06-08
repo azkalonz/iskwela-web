@@ -45,15 +45,15 @@ function Login(props) {
         window.login_error = "Invalid username/password";
       }
     } catch (e) {
-      window.login_error = "Server error";
+      window.login_error = "Invalid username/password";
     }
     props.setLoading(false);
   };
 
   return (
-    <div style={{ minHeight: "100vh" }}>
+    <div className={classes.root} style={{ minHeight: "100vh" }}>
       {!props.userInfo.isLoggedIn && (
-        <Container component="main" maxWidth="xs">
+        <Container component="main" maxWidth="xs" className={classes.container}>
           <CssBaseline />
           <div className={classes.paper}>
             <Typography component="h1" variant="h5">
@@ -67,7 +67,7 @@ function Login(props) {
                 </Alert>
               )}
               <TextField
-                variant="outlined"
+                variant="filled"
                 onChange={(e) => setUsername(e.target.value)}
                 margin="normal"
                 required
@@ -79,7 +79,7 @@ function Login(props) {
                 autoFocus
               />
               <TextField
-                variant="outlined"
+                variant="filled"
                 onChange={(e) => setPassword(e.target.value)}
                 margin="normal"
                 required
@@ -119,15 +119,101 @@ function Login(props) {
               </Button>
             </form>
           </div>
+          <div className={classes.clouds}>
+            <img src="/login/cloud1.png" width={320} />
+            <img src="/login/cloud2.png" width={320} />
+            <div class={classes.balloon}>
+              <img src="/login/balloon.png" width={100} />
+            </div>
+          </div>
+          <div className={classes.character}>
+            <img src="/login/boy2.png" width={320} />
+          </div>
         </Container>
       )}
+      <div className={classes.land}>
+        <img src="/login/land.png" width="100%" />
+      </div>
     </div>
   );
 }
 
 const useStyles = makeStyles((theme) => ({
+  character: {
+    [theme.breakpoints.down("sm")]: {
+      right: -100,
+      bottom: -230,
+      "& img": {
+        width: 270,
+      },
+    },
+    position: "absolute",
+    bottom: -150,
+    right: -300,
+    display: "flex",
+    pointerEvents: "none",
+    alignItems: "flex-end",
+  },
+  balloon: {
+    position: "absolute",
+    left: -70,
+    top: 100,
+    animation: `$myEffect 10s linear infinite`,
+    transformOrigin: "top",
+    animationDirection: "alternate-reverse",
+  },
+  "@keyframes myEffect": {
+    "0%": {
+      transform: "rotate(-15deg) translateX(40px) translateY(-20px)",
+    },
+    "100%": {
+      transform: "rotate(15deg) translateX(20px) translateY(10px)",
+    },
+  },
+  clouds: {
+    left: -150,
+    position: "absolute",
+    top: -100,
+    right: -150,
+    display: "flex",
+    pointerEvents: "none",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+    "& > img:last-of-type": {
+      [theme.breakpoints.down("sm")]: {
+        position: "relative",
+        top: "initial",
+        left: "initial",
+      },
+      position: "absolute",
+      left: -130,
+      top: 30,
+    },
+  },
+  land: {
+    height: 200,
+    zIndex: 1,
+    position: "absolute",
+    display: "flex",
+    alignItems: "flex-end",
+    bottom: 0,
+    left: 0,
+    right: 0,
+  },
+  container: {
+    background: "#fff",
+    padding: 30,
+    position: "relative",
+    zIndex: 10,
+  },
+  root: {
+    display: "flex",
+    alignItems: "center",
+    background: theme.palette.primary.main,
+    backgroundSize: "contain",
+    position: "relative",
+  },
   paper: {
-    marginTop: theme.spacing(8),
     display: "flex",
     flexDirection: "column",
     alignItems: "center",

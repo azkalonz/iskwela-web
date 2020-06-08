@@ -157,11 +157,10 @@ function NavBar(props) {
                 <MenuItem onClick={() => setchangePassDialog(true)}>
                   Preferences
                 </MenuItem>
-                <MenuItem>
+                <MenuItem onClick={_handleThemeType}>
                   Dark mode
                   <Switch
                     checked={props.theme === "dark"}
-                    onChange={_handleThemeType}
                     name="checkedA"
                     inputProps={{ "aria-label": "secondary checkbox" }}
                   />

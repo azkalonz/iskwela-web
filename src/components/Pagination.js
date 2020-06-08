@@ -1,8 +1,9 @@
 import React from "react";
 import { useHistory } from "react-router-dom";
 import { makeLinkTo } from "./router-dom";
-import { Button } from "@material-ui/core";
+import { Button, Icon, Grow, Box, Typography } from "@material-ui/core";
 import { Pagination as MuiPagination } from "@material-ui/lab";
+import ClassIcon from "@material-ui/icons/Class";
 
 const queryString = require("query-string");
 
@@ -15,9 +16,12 @@ export default function Pagination(props) {
   const itemsPerPage = ITEMS_PER_PAGE;
   const totalItems = props.count;
   const totalPages = Math.ceil(totalItems / itemsPerPage);
-  return (
+  return totalPages ? (
     <MuiPagination
       page={props.page}
+      variant="outlined"
+      shape="rounded"
+      color="primary"
       count={totalPages}
       onChange={(e, p) => {
         if (!props.nolink) {
@@ -47,7 +51,29 @@ export default function Pagination(props) {
         }
       }}
     />
-  );
+  ) : !props.noEmptyMessage ? (
+    <Grow in={true}>
+      <Box
+        width="100%"
+        alignItems="center"
+        justifyContent="center"
+        display="flex"
+        flexDirection="column"
+      >
+        <Icon color="disabled" style={{ fontSize: 140 }}>
+          {props.icon ? props.icon : "class"}
+        </Icon>
+        <Typography variant="h6" component="h2" color="textPrimary">
+          {props.emptyTitle ? props.emptyTitle : "All clear!"}
+        </Typography>
+        <Typography variant="body2" component="h3" color="textSecondary">
+          {props.emptyMessage
+            ? props.emptyMessage
+            : "There's no Activity to report yet."}
+        </Typography>
+      </Box>
+    </Grow>
+  ) : null;
 }
 export function getPageItems(items, page) {
   return items.slice(

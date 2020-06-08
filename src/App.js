@@ -24,12 +24,12 @@ import GooglePicker from "./components/GooglePicker";
 import ContentMaker from "./components/content-creator";
 import { connect } from "react-redux";
 
-const primaryColor = "#6200ef";
+const primaryColor = "#7539ff";
 
 function App(props) {
   const useStyles = makeStyles((theme) => ({
     root: {
-      background: props.theme === "dark" ? "#222222" : theme.palette.grey[300],
+      background: props.theme === "dark" ? "#222222" : "#fff",
     },
   }));
   const styles = useStyles();
@@ -46,6 +46,9 @@ function App(props) {
           highlightColor: "#e9e9e9",
         };
   const theme = createMuiTheme({
+    typography: {
+      fontFamily: '"NotoSansJP-Black", Helvetica, Arial, serif',
+    },
     overrides: {
       MuiCssBaseline: {
         "@global": {
@@ -166,7 +169,11 @@ function App(props) {
         }, 500);
       },
       fail: () => {
-        if (window.location.pathname === "/login") setLoading(false);
+        if (
+          window.location.pathname === "/login" ||
+          window.location.pathname === "/login/"
+        )
+          setLoading(false);
       },
     });
   }, []);
@@ -211,13 +218,13 @@ function App(props) {
                 flexDirection="column"
               >
                 <Box p={2}>
-                  <CircularProgressWithLabel
+                  <img src="/login/loader.svg" width={200} />
+                  {/* <CircularProgressWithLabel
                     value={loadingProgress}
                     variant="static"
                     color={props.theme === "dark" ? "white" : "primary"}
-                  />
+                  /> */}
                 </Box>
-                <Typography variant="h5">iSkwela</Typography>
               </Box>
             )}
           </Paper>

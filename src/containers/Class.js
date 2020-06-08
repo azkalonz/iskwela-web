@@ -188,6 +188,7 @@ function Class(props) {
             }
           )
         );
+        if (isMobile) setCollapsePanel(false);
         return;
       }
       switch (stat) {
@@ -209,6 +210,7 @@ function Class(props) {
               }
             )
           );
+          if (isMobile) setCollapsePanel(false);
           return;
         default:
           return;

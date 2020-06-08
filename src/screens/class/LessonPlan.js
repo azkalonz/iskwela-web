@@ -669,19 +669,6 @@ function LessonPlan(props) {
                 onCancel={() => setSelectedItems({})}
               />
             )}
-            {!getFilteredMaterials().length && (
-              <Box
-                width="100%"
-                alignItems="center"
-                justifyContent="center"
-                display="flex"
-                height="70%"
-              >
-                <Typography variant="h6" component="h2">
-                  No Lesson Plan
-                </Typography>
-              </Box>
-            )}
             <Grow in={true}>
               <List>
                 {getPageItems(getFilteredMaterials(), page).map(
@@ -791,6 +778,13 @@ function LessonPlan(props) {
           <Box p={2}>
             <Pagination
               match={props.match}
+              icon={search ? "search" : "event_note"}
+              emptyTitle={search ? "Nothing Found" : false}
+              emptyMessage={
+                search
+                  ? "Try a different keyword."
+                  : "There's no Lesson Plan yet."
+              }
               page={page}
               onChange={(p) => setPage(p)}
               count={getFilteredMaterials().length}

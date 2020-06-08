@@ -821,19 +821,6 @@ function InstructionalMaterials(props) {
                 onPublish={() => _handleUpdateMaterialsStatus(selectedItems, 1)}
               />
             )}
-            {!getFilteredMaterials().length && (
-              <Box
-                width="100%"
-                alignItems="center"
-                justifyContent="center"
-                display="flex"
-                height="70%"
-              >
-                <Typography variant="h6" component="h2">
-                  No Materials
-                </Typography>
-              </Box>
-            )}
             <Grow in={materials ? true : false}>
               <List>
                 {getPageItems(getFilteredMaterials(), page).map(
@@ -966,6 +953,13 @@ function InstructionalMaterials(props) {
 
           <Box p={2}>
             <Pagination
+              icon={search ? "search" : "library_books"}
+              emptyTitle={search ? "Nothing Found" : false}
+              emptyMessage={
+                search
+                  ? "Try a different keyword."
+                  : "There's no Class Materials yet."
+              }
               match={props.match}
               page={page}
               onChange={(p) => setPage(p)}

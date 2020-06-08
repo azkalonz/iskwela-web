@@ -74,7 +74,10 @@ Api.auth = async (callback = {}) => {
   }
   localStorage.removeItem("auth");
   callback.fail && callback.fail();
-  if (window.location.pathname !== "/login")
+  if (
+    window.location.pathname !== "/login" &&
+    window.location.pathname !== "/login/"
+  )
     window.location = "/login?r=" + window.location.pathname;
 };
 

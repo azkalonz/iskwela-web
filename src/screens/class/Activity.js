@@ -34,6 +34,7 @@ import {
   ListItemAvatar,
   Avatar,
   ExpansionPanelActions,
+  Icon,
 } from "@material-ui/core";
 import MuiDialogTitle from "@material-ui/core/DialogTitle";
 import MoreHorizOutlinedIcon from "@material-ui/icons/MoreHorizOutlined";
@@ -73,6 +74,7 @@ import { CheckBoxAction } from "../../components/CheckBox";
 import Progress from "../../components/Progress";
 import store from "../../components/redux/store";
 import RefreshIcon from "@material-ui/icons/Refresh";
+import StudentRating from "../../components/StudentRating";
 const queryString = require("query-string");
 function Alert(props) {
   return <MuiAlert elevation={6} variant="filled" {...props} />;
@@ -901,6 +903,13 @@ function Activity(props) {
       {props.dataProgress[option_name] && (
         <Progress id={option_name} data={props.dataProgress[option_name]} />
       )}
+      <StudentRating
+        activity={currentActivity}
+        open={currentActivity && currentActivity.rateStudent}
+        onClose={() =>
+          setCurrentActivity({ ...currentActivity, rateStudent: null })
+        }
+      />
       {confirmed && (
         <Dialog
           open={confirmed ? true : false}
@@ -1108,7 +1117,16 @@ function Activity(props) {
               </Box>
             </Paper>
             <Box marginTop={2}>
-              <ExpansionPanel>
+              <ExpansionPanel
+                onChange={(e, v) =>
+                  setCurrentActivity({
+                    ...currentActivity,
+                    expanded: currentActivity.expanded
+                      ? !currentActivity.expanded
+                      : true,
+                  })
+                }
+              >
                 <ExpansionPanelSummary>
                   <div
                     style={{
@@ -1125,16 +1143,21 @@ function Activity(props) {
                     >
                       {!isTeacher && "Your "}Answers
                     </Typography>
-                    <SearchInput
-                      onChange={(e) => {
-                        setAnswersSearch(e.toLowerCase());
-                        setAnswerPage(1);
-                      }}
-                    />
+                    <Icon>
+                      {currentActivity.expanded ? "expand_less" : "expand_more"}
+                    </Icon>
                   </div>
                 </ExpansionPanelSummary>
                 <ExpansionPanelDetails style={{ flexWrap: "wrap" }}>
-                  <div style={{ width: "100%", textAlign: "right" }}>
+                  <div
+                    style={{
+                      width: "100%",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "flex-end",
+                      textAlign: "right",
+                    }}
+                  >
                     <IconButton
                       onClick={() => {
                         setCurrentActivity({
@@ -1146,7 +1169,24 @@ function Activity(props) {
                     >
                       <RefreshIcon />
                     </IconButton>
+                    <SearchInput
+                      onChange={(e) => {
+                        setAnswersSearch(e.toLowerCase());
+                        setAnswerPage(1);
+                      }}
+                    />
                   </div>
+                  {currentActivity.answers && !currentActivity.answers.length && (
+                    <div>
+                      <Typography variant="body1" color="textPrimary">
+                        NO SUBMISSIONS YET
+                      </Typography>
+                      <Typography variant="body2" color="textSecondary">
+                        Students' submissions will be shown in a table once they
+                        submit the papers
+                      </Typography>
+                    </div>
+                  )}
                   {currentActivity.answers ? (
                     <List style={{ width: "100%" }}>
                       {getPageItems(
@@ -1165,9 +1205,6 @@ function Activity(props) {
                           ),
                         answerPage
                       ).map((i) => {
-                        let pic = props.pics["1"]
-                          ? props.pics["1"]
-                          : "/logo192.png";
                         return (
                           <ListItem>
                             <ListItemAvatar>
@@ -1190,11 +1227,21 @@ function Activity(props) {
                                 i.student.first_name + " " + i.student.last_name
                               }
                             />
-                            {/* <ListItemSecondaryAction>
-                                  <IconButton>
-                                    <MoreHorizOutlinedIcon />
-                                  </IconButton>
-                                </ListItemSecondaryAction> */}
+                            <ListItemSecondaryAction>
+                              <IconButton
+                                onClick={() =>
+                                  setCurrentActivity({
+                                    ...currentActivity,
+                                    rateStudent: true,
+                                    student: {
+                                      ...i.student,
+                                    },
+                                  })
+                                }
+                              >
+                                <MoreHorizOutlinedIcon />
+                              </IconButton>
+                            </ListItemSecondaryAction>
                           </ListItem>
                         );
                       })}
@@ -1212,10 +1259,28 @@ function Activity(props) {
                     <Box p={2} width="100%">
                       <Pagination
                         nolink
+                        noEmptyMessage={answersSearch ? false : true}
+                        icon={answersSearch ? "person_search" : ""}
+                        emptyTitle={"Nothing Found"}
+                        emptyMessage={"Try a different keyword."}
                         page={answerPage}
                         match={props.match}
                         onChange={(p) => setAnswerPage(p)}
-                        count={currentActivity.answers.length}
+                        count={
+                          currentActivity.answers
+                            .filter((a) =>
+                              isTeacher
+                                ? true
+                                : parseInt(a.student.id) ===
+                                  parseInt(props.userInfo.id)
+                            )
+                            .filter(
+                              (a) =>
+                                JSON.stringify(a)
+                                  .toLowerCase()
+                                  .indexOf(answersSearch) >= 0
+                            ).length
+                        }
                       />
                     </Box>
                   )}
@@ -1434,19 +1499,6 @@ function Activity(props) {
                 }
               />
             )}
-            {!getFilteredActivities().length && (
-              <Box
-                width="100%"
-                alignItems="center"
-                justifyContent="center"
-                display="flex"
-                height="70%"
-              >
-                <Typography variant="h6" component="h2">
-                  No activities
-                </Typography>
-              </Box>
-            )}
             <Grow in={activities ? true : false}>
               <List>
                 {getPageItems(getFilteredActivities(), page).map(
@@ -1630,6 +1682,9 @@ function Activity(props) {
             <Pagination
               page={page}
               match={props.match}
+              icon={search ? "search" : ""}
+              emptyTitle={search ? "Nothing Found" : false}
+              emptyMessage={search ? "Try a different keyword." : false}
               onChange={(p) => setPage(p)}
               count={getFilteredActivities().length}
             />

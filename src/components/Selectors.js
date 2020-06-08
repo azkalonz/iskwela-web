@@ -128,7 +128,7 @@ export function SearchInput(props) {
       style={isMobile ? { width: "100%" } : {}}
     >
       <InputBase
-        style={{ width: isMobile ? "100%" : "" }}
+        style={{ width: "100%" }}
         onChange={(e) => props.onChange(e.target.value)}
         placeholder="Search"
         inputProps={{ "aria-label": "search activity" }}
