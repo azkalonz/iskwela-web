@@ -677,7 +677,12 @@ function LessonPlan(props) {
                       {isTeacher && (
                         <ListItemIcon>
                           <Checkbox
-                            checked={selectedItems[item.id] ? true : false}
+                            checked={
+                              Object.keys(selectedItems) &&
+                              selectedItems[item.id]
+                                ? true
+                                : false
+                            }
                             onChange={() => {
                               _handleSelectOption(item);
                             }}

@@ -149,14 +149,13 @@ function App(props) {
   useEffect(() => {
     window.localStorage.removeItem("greeted");
     socket.on("get class details", (c) => {
-      if (store.getState().classes[c.id]) {
+      if (store.getState().classes.filter((c) => c.id === c.id)) {
         UserData.updateClassDetails(c.id, c.details);
         UserData.updateClass(c.id, c.details[c.id]);
       }
     });
     socket.on("get schedule details", (c) => {
-      console.log("aaaaah", c);
-      if (store.getState().classes[c.id]) {
+      if (store.getState().classes.filter((c) => c.id === c.id)) {
         UserData.addClassSchedule(c.id, c.details);
       }
     });

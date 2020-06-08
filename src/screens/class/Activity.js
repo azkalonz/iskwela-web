@@ -497,6 +497,7 @@ function Activity(props) {
           class_id,
           a.schedule_id
         );
+        console.log("update", newScheduleDetails);
         socket.emit("update schedule details", {
           id: class_id,
           details: newScheduleDetails,
