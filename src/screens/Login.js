@@ -201,7 +201,7 @@ const useStyles = makeStyles((theme) => ({
     right: 0,
   },
   container: {
-    background: "#fff",
+    background: theme.palette.type === "dark" ? "#222" : "#fff",
     padding: 30,
     position: "relative",
     zIndex: 10,
