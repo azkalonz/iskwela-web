@@ -59,30 +59,30 @@ function Students(props) {
 
   const getStudents = async () => {
     let a = store.getState().classDetails[class_id].students;
-    await asyncForEach(a, async (s, index, arr) => {
-      if (store.getState().pics[s.id]) {
-        a[index].pic = store.getState().pics[s.id];
-        return;
-      }
-      try {
-        let pic = await Api.postBlob("/api/download/user/profile-picture", {
-          body: { id: s.id },
-        }).then((resp) => (resp.ok ? resp.blob() : null));
-        if (pic) {
-          var picUrl = URL.createObjectURL(pic);
-          let userpic = {};
-          userpic[s.student.id] = picUrl;
-          store.dispatch({
-            type: "SET_PIC",
-            userpic,
-          });
-          a[index].pic = picUrl;
-        }
-      } catch (e) {
-        a[index].pic = "/logo192.png";
-      }
-      setStudents(a);
-    });
+    // await asyncForEach(a, async (s, index, arr) => {
+    //   if (store.getState().pics[s.id]) {
+    //     a[index].pic = store.getState().pics[s.id];
+    //     return;
+    //   }
+    //   try {
+    //     let pic = await Api.postBlob("/api/download/user/profile-picture", {
+    //       body: { id: s.id },
+    //     }).then((resp) => (resp.ok ? resp.blob() : null));
+    //     if (pic) {
+    //       var picUrl = URL.createObjectURL(pic);
+    //       let userpic = {};
+    //       userpic[s.student.id] = picUrl;
+    //       store.dispatch({
+    //         type: "SET_PIC",
+    //         userpic,
+    //       });
+    //       a[index].pic = picUrl;
+    //     }
+    //   } catch (e) {
+    //     a[index].pic = "/logo192.png";
+    //   }
+    // });
+    setStudents(a);
   };
   useState(() => {
     getStudents();
