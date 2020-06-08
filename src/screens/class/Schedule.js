@@ -45,6 +45,7 @@ import UserData from "../../components/UserData";
 import Api from "../../api";
 import { SearchInput } from "../../components/Selectors";
 import Pagination, { getPageItems } from "../../components/Pagination";
+import socket from "../../components/socket.io";
 function Alert(props) {
   return <MuiAlert elevation={6} variant="filled" {...props} />;
 }
@@ -138,7 +139,12 @@ function Schedule(props) {
         status: status,
       },
     });
-    await UserData.updateClassDetails(class_id);
+    let newClassDetails = await UserData.updateClassDetails(class_id);
+    UserData.updateClass(class_id, newClassDetails[class_id]);
+    socket.emit(
+      "new class details",
+      JSON.stringify({ details: newClassDetails, id: class_id })
+    );
     setSaving(false);
     setSavingId(null);
   };
@@ -180,6 +186,12 @@ function Schedule(props) {
     if (res) {
       if (!res.errors) {
         await UserData.updateClassDetails(class_id);
+        let newClassDetails = await UserData.updateClassDetails(class_id);
+        UserData.updateClass(class_id, newClassDetails[class_id]);
+        socket.emit(
+          "new class details",
+          JSON.stringify({ details: newClassDetails, id: class_id })
+        );
         setOpen(false);
       } else {
         let err = [];
