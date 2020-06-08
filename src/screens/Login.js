@@ -120,8 +120,8 @@ function Login(props) {
             </form>
           </div>
           <div className={classes.clouds}>
-            <img src="/login/cloud1.png" width={320} />
-            <img src="/login/cloud2.png" width={320} />
+            <img src="/login/cloud1.png" width={200} />
+            <img src="/login/cloud2.png" width={200} />
             <div class={classes.balloon}>
               <img src="/login/balloon.png" width={100} />
             </div>
@@ -171,20 +171,20 @@ const useStyles = makeStyles((theme) => ({
     },
   },
   clouds: {
-    left: -150,
+    [theme.breakpoints.down("sm")]: {
+      right: 0,
+      left: 40,
+      top: -160,
+    },
+    left: -100,
     position: "absolute",
-    top: -100,
+    top: -70,
     right: -150,
     display: "flex",
     pointerEvents: "none",
     justifyContent: "space-between",
     alignItems: "flex-start",
     "& > img:last-of-type": {
-      [theme.breakpoints.down("sm")]: {
-        position: "relative",
-        top: "initial",
-        left: "initial",
-      },
       position: "absolute",
       left: -130,
       top: 30,
