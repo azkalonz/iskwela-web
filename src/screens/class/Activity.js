@@ -898,6 +898,7 @@ function Activity(props) {
   }, []);
   useEffect(() => {
     _getActivities();
+    props.onLoad();
   }, [props.classDetails]);
   return (
     <Box width="100%" alignSelf="flex-start" height="100%">

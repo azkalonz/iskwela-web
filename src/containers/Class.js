@@ -5,6 +5,7 @@ import { Route, useHistory } from "react-router-dom";
 import {
   Box,
   makeStyles,
+  Icon,
   Toolbar,
   Button,
   CircularProgress,
@@ -33,8 +34,8 @@ import ArrowBackIosRoundedIcon from "@material-ui/icons/ArrowBackIosRounded";
 import ArrowForwardIosRoundedIcon from "@material-ui/icons/ArrowForwardIosRounded";
 import Activity from "../screens/class/Activity";
 import LessonPlan from "../screens/class/LessonPlan";
-import Schedule from "../screens/class/Schedule";
 import Students from "../screens/class/Students";
+import Schedule from "../screens/class/Schedule";
 import InstructionalMaterials from "../screens/class/InstructionalMaterials";
 import {
   makeLinkTo,
@@ -50,31 +51,56 @@ import socket from "../components/socket.io";
 import moment from "moment";
 
 function ClassRightPanel(props) {
-  const { option_name } = props.match.params;
-  if (!isValidOption(option_name)) {
-    return null;
-  }
-  let View = null;
-  switch (option_name.toLowerCase()) {
-    case "activity":
-      View = Activity;
-      break;
-    case "lesson-plan":
-      View = LessonPlan;
-      break;
-    case "schedule":
-      View = Schedule;
-      break;
-    case "students":
-      View = Students;
-      break;
-    case "instructional-materials":
-      View = InstructionalMaterials;
-      break;
-    default:
-      View = <div />;
-  }
-  return <View {...props} />;
+  const { option_name, class_id } = props.match.params;
+  let [View, setView] = useState();
+
+  const getView = () => {
+    switch (option_name.toLowerCase()) {
+      case "students":
+        setView(Students);
+        break;
+      case "activity":
+        setView(Activity);
+        break;
+      case "lesson-plan":
+        setView(LessonPlan);
+        break;
+      case "schedule":
+        setView(Schedule);
+        break;
+      case "instructional-materials":
+        setView(InstructionalMaterials);
+        break;
+      default:
+        setView(<div />);
+    }
+  };
+  const handleRefresh = async () => {
+    props.loading(true);
+    setView(null);
+    await UserData.updateScheduleDetails(class_id, props.classSched);
+    getView();
+  };
+  useEffect(() => {
+    if (isValidOption(option_name)) getView();
+    else props.loading(false);
+  }, [option_name]);
+  return View ? (
+    <Box width="100%" height="100%">
+      <View
+        {...props}
+        refresh={handleRefresh}
+        onLoad={() => props.loading(false)}
+        test={123}
+      />
+      <IconButton
+        onClick={handleRefresh}
+        style={{ position: "absolute", right: 10, bottom: 10 }}
+      >
+        <Icon>refresh</Icon>
+      </IconButton>
+    </Box>
+  ) : null;
 }
 
 function Class(props) {
@@ -90,12 +116,14 @@ function Class(props) {
   const isTeacher = userInfo.user_type === "t" ? true : false;
   const [saving, setSaving] = useState(false);
   const [currentID, setCurrentID] = useState(class_id);
+  const [rightPanelLoading, setRightPanelLoading] = useState(true);
 
   useEffect(() => {
     if (class_id && schedule_id) {
       if (!props.classDetails[class_id] || currentID !== class_id) {
         setCLASS(undefined);
         setLoading(true);
+        setRightPanelLoading(true);
         setCurrentID(class_id);
       }
       _getClass();
@@ -547,7 +575,7 @@ function Class(props) {
               height="86%"
               justifyContent="center"
             >
-              {loading && (
+              {rightPanelLoading && (
                 <Box
                   width="100%"
                   height="100%"
@@ -572,8 +600,12 @@ function Class(props) {
                   </Box>
                 </Box>
               )}
-              {!loading && CLASS && class_id && (
-                <ClassRightPanel classSched={schedule_id} {...props} />
+              {CLASS && class_id && (
+                <ClassRightPanel
+                  classSched={schedule_id}
+                  loading={(e) => setRightPanelLoading(e)}
+                  {...props}
+                />
               )}
             </Box>
           </Box>

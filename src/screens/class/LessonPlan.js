@@ -129,6 +129,7 @@ function LessonPlan(props) {
   };
   useEffect(() => {
     _getMaterials();
+    props.onLoad();
   }, [props.classDetails]);
   useEffect(
     () =>

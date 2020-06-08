@@ -21,6 +21,7 @@ import { asyncForEach } from "../../components/UserData";
 import Api from "../../api";
 import Pagination, { getPageItems } from "../../components/Pagination";
 import { SearchInput } from "../../components/Selectors";
+import { connect } from "react-redux";
 
 const useStyles = makeStyles((theme) => ({
   hideonmobile: {
@@ -51,7 +52,7 @@ function Students(props) {
   const query = require("query-string").parse(window.location.search);
   const { class_id } = props.match.params;
   const [students, setStudents] = useState();
-  const [orderBy, setOrderBy] = React.useState("calories");
+  const [orderBy, setOrderBy] = React.useState("first_name");
   const [order, setOrder] = React.useState("asc");
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(query.page ? parseInt(query.page) : 1);
@@ -83,6 +84,7 @@ function Students(props) {
     //   }
     // });
     setStudents(a);
+    props.onLoad();
   };
   useState(() => {
     getStudents();
@@ -198,4 +200,4 @@ function Students(props) {
   );
 }
 
-export default Students;
+export default connect((states) => ({}))(Students);
