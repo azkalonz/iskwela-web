@@ -84,7 +84,6 @@ function Students(props) {
     //   }
     // });
     setStudents(a);
-    props.onLoad();
   };
   useState(() => {
     getStudents();

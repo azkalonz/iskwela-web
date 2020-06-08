@@ -137,6 +137,7 @@ function Class(props) {
       await UserData.updateClassDetails(class_id);
       setCLASS(undefined);
     }
+    setRightPanelLoading(false);
     setLoading(false);
     return;
   };

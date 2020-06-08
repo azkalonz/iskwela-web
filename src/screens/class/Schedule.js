@@ -87,7 +87,6 @@ function Schedule(props) {
   useEffect(() => {
     if (props.classDetailss) {
       setSchedules(props.classDetailss[class_id].schedules);
-      props.onLoad();
     }
   }, [props.classDetails]);
   const getFilteredSchedules = () =>

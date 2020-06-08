@@ -130,7 +130,6 @@ function InstructionalMaterials(props) {
   };
   useEffect(() => {
     _getMaterials();
-    props.onLoad();
   }, [props.classDetails]);
   const _getMaterials = () => {
     if (!classSched) return;
