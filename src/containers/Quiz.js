@@ -114,8 +114,6 @@ function Quiz(props) {
                       ...slides[slides.length - 1],
                       index: slides.length - 1,
                     });
-                  if (slides.length <= 1)
-                    setSlides([{ id: slides.length + 1 }]);
                 }, 0);
               }}
             />
