@@ -131,6 +131,17 @@ const UserData = {
     }
     let allclasses = [];
     await asyncForEach(data.classes, async (c) => {
+      // if (!Object.keys(c.next_schedule).length) {
+      //   let details = await UserData.updateClassDetails(c.id);
+      //   details =
+      //     details[c.id].schedules[Object.keys(details[c.id].schedules)[0]];
+      //   c.next_schedule = {
+      //     id: details.id,
+      //     from: details.from,
+      //     to: details.to,
+      //     status: details.status,
+      //   };
+      // }
       allclasses[c.id] = c;
       allclasses[c.id].teacher.pic = await this.getUserPic(c.teacher.id);
     });

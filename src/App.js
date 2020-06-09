@@ -181,52 +181,47 @@ function App(props) {
       <CssBaseline />
       <StylesProvider>
         <SkeletonTheme {...skeletonCustomTheme}>
-          <Paper
-            className={[styles.root, "App"].join(" ")}
-            style={{ overflow: "hidden" }}
-          >
-            {!loading && (
-              <BrowserRouter>
-                <Switch>
-                  <Route exact path="/content-maker" component={ContentMaker} />
-                  <Route exact path="/content-maker" component={ContentMaker} />
-                  <Route exact path="/picker" component={GooglePicker} />
-                  <Route exact path="/login">
-                    <Login setLoading={(l) => setLoading(l)} />
-                  </Route>
+          {!loading && (
+            <BrowserRouter>
+              <Switch>
+                <Route exact path="/content-maker" component={ContentMaker} />
+                <Route exact path="/content-maker" component={ContentMaker} />
+                <Route exact path="/picker" component={GooglePicker} />
+                <Route exact path="/login">
+                  <Login setLoading={(l) => setLoading(l)} />
+                </Route>
 
-                  <Route exact path="/" component={Home} />
-                  <Route
-                    path="/class/:class_id/:schedule_id?/:option_name?/:room_name?"
-                    component={Class}
-                  />
-                  <Route path="*">
-                    <Redirect to="/" />
-                  </Route>
-                </Switch>
-              </BrowserRouter>
-            )}
+                <Route exact path="/" component={Home} />
+                <Route
+                  path="/class/:class_id/:schedule_id?/:option_name?/:room_name?"
+                  component={Class}
+                />
+                <Route path="*">
+                  <Redirect to="/" />
+                </Route>
+              </Switch>
+            </BrowserRouter>
+          )}
 
-            {loading && (
-              <Box
-                width="100vw"
-                height="100vh"
-                display="flex"
-                alignItems="center"
-                justifyContent="center"
-                flexDirection="column"
-              >
-                <Box p={2}>
-                  <img src="/login/loader.svg" width={200} />
-                  {/* <CircularProgressWithLabel
+          {loading && (
+            <Box
+              width="100vw"
+              height="100vh"
+              display="flex"
+              alignItems="center"
+              justifyContent="center"
+              flexDirection="column"
+            >
+              <Box p={2}>
+                <img src="/login/loader.svg" width={200} />
+                {/* <CircularProgressWithLabel
                     value={loadingProgress}
                     variant="static"
                     color={props.theme === "dark" ? "white" : "primary"}
                   /> */}
-                </Box>
               </Box>
-            )}
-          </Paper>
+            </Box>
+          )}
         </SkeletonTheme>
       </StylesProvider>
     </MuiThemeProvider>

@@ -32,15 +32,11 @@ import VideocamOutlinedIcon from "@material-ui/icons/VideocamOutlined";
 import VideoConference from "../containers/VideoConference";
 import ArrowBackIosRoundedIcon from "@material-ui/icons/ArrowBackIosRounded";
 import ArrowForwardIosRoundedIcon from "@material-ui/icons/ArrowForwardIosRounded";
-import Activity from "../screens/class/Activity";
-import LessonPlan from "../screens/class/LessonPlan";
-import Students from "../screens/class/Students";
-import Schedule from "../screens/class/Schedule";
-import InstructionalMaterials from "../screens/class/InstructionalMaterials";
 import {
   makeLinkTo,
   rightPanelOptionsStudents,
   rightPanelOptions,
+  getView,
   isValidOption,
 } from "../components/router-dom";
 import { connect } from "react-redux";
@@ -53,36 +49,14 @@ import moment from "moment";
 function ClassRightPanel(props) {
   const { option_name, class_id } = props.match.params;
   let [View, setView] = useState();
-
-  const getView = () => {
-    switch (option_name.toLowerCase()) {
-      case "students":
-        setView(Students);
-        break;
-      case "activity":
-        setView(Activity);
-        break;
-      case "lesson-plan":
-        setView(LessonPlan);
-        break;
-      case "schedule":
-        setView(Schedule);
-        break;
-      case "instructional-materials":
-        setView(InstructionalMaterials);
-        break;
-      default:
-        setView(<div />);
-    }
-  };
   const handleRefresh = async () => {
     props.loading(true);
     setView(null);
     await UserData.updateScheduleDetails(class_id, props.classSched);
-    getView();
+    setView(getView(option_name.toLowerCase()));
   };
   useEffect(() => {
-    if (isValidOption(option_name)) getView();
+    if (isValidOption(option_name)) setView(getView(option_name.toLowerCase()));
     else props.loading(false);
   }, [option_name]);
   return View ? (
@@ -196,6 +170,7 @@ function Class(props) {
     });
     let newClassDetails = await UserData.updateClassDetails(class_id);
     UserData.updateClass(class_id, newClassDetails[class_id]);
+    console.log("a", newClassDetails);
     socket.emit(
       "new class details",
       JSON.stringify({ details: newClassDetails, id: class_id })
