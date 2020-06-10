@@ -253,9 +253,23 @@ function InstructionalMaterials(props) {
         },
       });
     } catch (e) {
-      setErrors(["Oops! Something went wrong. Please try again."]);
+      setSuccess(true);
+      let newScheduleDetails = await UserData.updateScheduleDetails(
+        class_id,
+        selectedSched >= 0 ? selectedSched : schedule_id
+      );
+      socket.emit("update schedule details", {
+        id: class_id,
+        details: newScheduleDetails,
+      });
+      setForm({});
+      setModals([false, modals[1]]);
       setSavingId([]);
       setSaving(false);
+      setErrors(null);
+      // setErrors(["Oops! Something went wrong. Please try again."]);
+      // setSavingId([]);
+      // setSaving(false);
     }
     if (res) {
       if (res.errors) {
