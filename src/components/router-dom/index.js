@@ -10,7 +10,7 @@ import Students from "../../screens/class/Students";
 import Schedule from "../../screens/class/Schedule";
 import Quiz from "../../containers/Quiz";
 import InstructionalMaterials from "../../screens/class/InstructionalMaterials";
-
+import CreateOutlinedIcon from "@material-ui/icons/CreateOutlined";
 export function makeLinkTo(path, options = {}) {
   path = path.map((p) => (options[p] != null ? options[p] : p));
   return (
@@ -48,7 +48,7 @@ export const rightPanelOptions = [
   {
     title: "Create Quiz",
     link: "quiz",
-    icon: <EventNoteOutlinedIcon />,
+    icon: <CreateOutlinedIcon />,
     screen: Quiz,
   },
   {
