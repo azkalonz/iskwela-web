@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import Login from "./screens/Login";
 import Class from "./containers/Class";
+import Quiz from "./containers/Quiz";
 import Home from "./screens/Home";
 
 import { BrowserRouter, Route, Switch, Redirect } from "react-router-dom";
@@ -55,6 +56,9 @@ function App(props) {
           "::selection": {
             backgroundColor: primaryColor,
             color: "#fff",
+          },
+          ":focus": {
+            outline: 0,
           },
           "#selected-option": {
             position: "relative",
@@ -159,6 +163,7 @@ function App(props) {
         UserData.addClassSchedule(c.id, c.details);
       }
     });
+    // setLoading(false);
     Api.auth({
       success: async (user) => {
         await UserData.getUserData(user, setLoadingProgress);
@@ -184,6 +189,7 @@ function App(props) {
           {!loading && (
             <BrowserRouter>
               <Switch>
+                <Route exact path="/quiz" component={Quiz} />
                 <Route exact path="/content-maker" component={ContentMaker} />
                 <Route exact path="/content-maker" component={ContentMaker} />
                 <Route exact path="/picker" component={GooglePicker} />

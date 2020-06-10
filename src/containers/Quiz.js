@@ -8,19 +8,6 @@ function Quiz(props) {
   const [slides, setSlides] = useState([
     {
       id: 1,
-      question: "test",
-      duration: 20000,
-      score: 500,
-    },
-    {
-      id: 2,
-      duration: 60000,
-      score: 100,
-    },
-    {
-      id: 3,
-      duration: 60000,
-      score: 600,
     },
   ]);
   const [currentSlide, setCurrentSlide] = useState();
@@ -35,7 +22,7 @@ function Quiz(props) {
       case "NEXT":
         if (!currentSlide && slides[1]) {
           setCurrentSlide({ ...slides[1], index: 1 });
-        } else if (slides[currentSlide.index + 1]) {
+        } else if (currentSlide && slides[currentSlide.index + 1]) {
           let s = currentSlide.index + 1;
           setCurrentSlide({
             ...slides[s],
@@ -53,7 +40,7 @@ function Quiz(props) {
             ...slides[slides.length - 1],
             index: slides.length - 1,
           });
-        } else if (slides[currentSlide.index - 1])
+        } else if (currentSlide && slides[currentSlide.index - 1])
           setCurrentSlide({
             ...slides[currentSlide.index - 1],
             index: currentSlide.index - 1,
@@ -140,9 +127,10 @@ function Quiz(props) {
           display="flex"
           flexDirection="column"
         >
-          <Toolbar />
+          <Toolbar navigate={(d) => handleNavigate(d)} />
           <Box height="100%" overflow="auto">
             <SlideRenderer
+              {...props}
               slide={currentSlide ? currentSlide : slides[0]}
               onChange={(s) => {
                 setSlides(() => {
@@ -154,14 +142,6 @@ function Quiz(props) {
                 });
               }}
             />
-            <Box display="flex" justifyContent="space-between" p={2}>
-              <IconButton onClick={() => handleNavigate("BEFORE")}>
-                <Icon>navigate_before</Icon>
-              </IconButton>
-              <IconButton onClick={() => handleNavigate("NEXT")}>
-                <Icon>navigate_next</Icon>
-              </IconButton>
-            </Box>
           </Box>
         </Box>
       </Box>

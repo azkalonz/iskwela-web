@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useRef } from "react";
 import {
   FormControl,
   InputLabel,
@@ -118,22 +118,36 @@ function StatusSelector(props) {
 export function SearchInput(props) {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
-
+  const searchRef = useRef();
   return (
     <Box
       border={1}
       p={0.3}
       borderRadius={7}
       display="flex"
-      style={isMobile ? { width: "100%" } : {}}
+      style={
+        isMobile
+          ? { width: "100%", ...(props.style ? props.style : {}) }
+          : props.style
+          ? props.style
+          : {}
+      }
     >
       <InputBase
         style={{ width: "100%" }}
-        onChange={(e) => props.onChange(e.target.value)}
         placeholder="Search"
+        onKeyDown={(e) => e.which === 13 && props.onChange(e.target.value)}
         inputProps={{ "aria-label": "search activity" }}
+        ref={searchRef}
       />
-      <IconButton type="submit" aria-label="search" style={{ padding: 0 }}>
+      <IconButton
+        type="submit"
+        aria-label="search"
+        style={{ padding: 0 }}
+        onClick={(e) =>
+          props.onChange(searchRef.current.querySelector("input").value)
+        }
+      >
         <SearchIcon />
       </IconButton>
     </Box>

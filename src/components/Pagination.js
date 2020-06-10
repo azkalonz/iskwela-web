@@ -13,7 +13,7 @@ export default function Pagination(props) {
   const { class_id, schedule_id, option_name, room_name } = props.match.params;
   const query = queryString.parse(window.location.search);
   const history = useHistory();
-  const itemsPerPage = ITEMS_PER_PAGE;
+  const itemsPerPage = props.itemsPerPage || ITEMS_PER_PAGE;
   const totalItems = props.count;
   const totalPages = Math.ceil(totalItems / itemsPerPage);
   return totalPages ? (
@@ -75,9 +75,9 @@ export default function Pagination(props) {
     </Grow>
   ) : null;
 }
-export function getPageItems(items, page) {
+export function getPageItems(items, page, itemsPerPage = ITEMS_PER_PAGE) {
   return items.slice(
-    (page - 1) * ITEMS_PER_PAGE,
-    (page - 1) * ITEMS_PER_PAGE + ITEMS_PER_PAGE
+    (page - 1) * itemsPerPage,
+    (page - 1) * itemsPerPage + itemsPerPage
   );
 }

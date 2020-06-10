@@ -4,6 +4,7 @@ import {
   Toolbar as MuiToolbar,
   Icon,
   useTheme,
+  IconButton,
   Button,
   Typography,
 } from "@material-ui/core";
@@ -20,16 +21,29 @@ function Toolbar(props) {
       <MuiToolbar
         style={{
           display: "flex",
-          justifyContent: "flex-end",
+          justifyContent: "space-between",
           alignItems: "center",
         }}
       >
-        <Button
-          variant="contained"
-          style={{ background: theme.palette.success.main, color: "#fff" }}
-        >
-          Save
-        </Button>
+        <div>
+          <IconButton onClick={() => props.navigate("BEFORE")}>
+            <Icon>navigate_before</Icon>
+          </IconButton>
+          <IconButton onClick={() => props.navigate("NEXT")}>
+            <Icon>navigate_next</Icon>
+          </IconButton>
+        </div>
+        <div>
+          <IconButton onClick={() => props.navigate("NEXT")}>
+            <Icon>settings</Icon>
+          </IconButton>
+          <Button
+            variant="contained"
+            style={{ background: theme.palette.success.main, color: "#fff" }}
+          >
+            Save
+          </Button>
+        </div>
       </MuiToolbar>
     </AppBar>
   );

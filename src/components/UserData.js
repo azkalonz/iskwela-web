@@ -142,6 +142,7 @@ const UserData = {
       //     status: details.status,
       //   };
       // }
+      if (!Object.keys(c.next_schedule).length) return;
       allclasses[c.id] = c;
       allclasses[c.id].teacher.pic = await this.getUserPic(c.teacher.id);
     });

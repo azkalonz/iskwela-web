@@ -42,10 +42,10 @@ function Login(props) {
         window.location = redirect_url ? redirect_url : "/";
         return;
       } else {
-        window.login_error = "Invalid username/password";
+        window.login_error = "Your username or password is incorrect. ";
       }
     } catch (e) {
-      window.login_error = "Invalid username/password";
+      window.login_error = "Your username or password is incorrect. ";
     }
     props.setLoading(false);
   };
@@ -64,6 +64,8 @@ function Login(props) {
               {window.login_error && (
                 <Alert severity="error" style={{ margin: "30px 0" }}>
                   {window.login_error}
+                  <br />
+                  Please try again.
                 </Alert>
               )}
               <TextField

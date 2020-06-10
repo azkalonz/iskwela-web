@@ -1,4 +1,5 @@
 import axios from "axios";
+import { makeLinkTo } from "../components/router-dom";
 function Api() {}
 
 const domain = "https://dev-middleware.iskwela.net";
@@ -39,6 +40,20 @@ Api.post = (endpoint, params = {}) => {
       ...params.config,
     })
     .then((resp) => resp.data);
+};
+Api.pixabay = {
+  get: ({ search = "", page = 1 }) =>
+    axios
+      .get(
+        "https://pixabay.com/api" +
+          makeLinkTo(["key", "q", "safe", "p"], {
+            key: "?key=16972310-8d3dda4b0b9073ed9da25d551",
+            safe: "&safesearch=" + true,
+            q: "&q=" + search,
+            p: "&page=" + page,
+          })
+      )
+      .then((r) => r.data),
 };
 Api.postBlob = (endpoint, params = {}) => {
   return fetch(domain + endpoint, {
