@@ -7,6 +7,9 @@ import {
   Input,
   Slide as MuiSlide,
   DialogActions,
+  FormControl,
+  InputLabel,
+  MenuItem,
   DialogTitle as MuiDialogTitle,
   withStyles,
   Slider,
@@ -14,11 +17,13 @@ import {
   Icon,
   IconButton,
   Tooltip,
+  Select,
   Link,
   Dialog,
   DialogContent,
   CircularProgress,
   Button,
+  Toolbar,
 } from "@material-ui/core";
 import Skeleton from "react-loading-skeleton";
 import { useHistory } from "react-router-dom";
@@ -26,6 +31,8 @@ import Api from "../../api";
 import { SearchInput } from "../../components/Selectors";
 import { makeLinkTo } from "../../components/router-dom";
 import Pagination, { getPageItems } from "../../components/Pagination";
+import { MultipleChoice, TrueOrFalse } from "./questionTypes";
+
 const styles = (theme) => ({
   root: {
     margin: 0,
@@ -59,32 +66,18 @@ const DialogTitle = withStyles(styles)((props) => {
   );
 });
 
-const durationValues = [
-  {
-    value: 1000 * 20,
-    label: "20s",
-  },
-  {
-    value: 1000 * 30,
-    label: "30s",
-  },
-  {
-    value: 1000 * 60,
-    label: "60s",
-  },
-];
 const scoreValues = [
   {
     value: 100,
-    label: "100pts",
+    label: "100",
   },
   {
     value: 500,
-    label: "500pts",
+    label: "500",
   },
   {
     value: 1000,
-    label: "1000pts",
+    label: "1000",
   },
 ];
 
@@ -93,26 +86,16 @@ const useStyles = makeStyles((theme) => ({
     height: "100%",
     display: "inline-block",
     background: theme.palette.grey[100],
-    borderRight: "2px solid rgba(0, 0, 0, 0.12)",
-    padding: theme.spacing(2),
     overflow: "auto",
     minWidth: 290,
+    width: 290,
   },
-  slideAnswer: {
-    width: "100%",
-    display: "flex",
-    flexWrap: "wrap",
-    alignContent: "center",
-    justifyContent: "space-between",
-    "&>div": {
-      width: "49%",
-      marginBottom: theme.spacing(2),
-    },
-  },
+
   slideContainer: {
     background: theme.palette.type === "dark" ? "#111" : "#fff",
     border: "2px solid",
     position: "relative",
+    margin: theme.spacing(2),
     borderColor: theme.palette.grey[300],
     width: 250,
     marginBottom: theme.spacing(2),
@@ -159,13 +142,13 @@ export function SlideRenderer(props) {
     if (props.slide) {
       if (slide && props.slide.id !== slide.id) props.onChange(slide);
       setSlide(props.slide);
-    }
+    } else setSlide(null);
   }, [props.slide]);
-  const handleChangeAnswer = (index, value) => {
+  const handleChangeChoice = (index, value) => {
     let s = { ...slide };
-    if (!s.answers) s.answers = [];
-    if (value) s.answers[index] = value;
-    else s.answers[index] = null;
+    if (!s.choices) s.choices = [];
+    if (value) s.choices[index] = value;
+    else s.choices[index] = "";
     checkErrors(index, value, s);
     setSlide(s);
     props.onChange(s);
@@ -173,6 +156,10 @@ export function SlideRenderer(props) {
   useEffect(() => {
     searchMedia("school", 1);
   }, []);
+  useEffect(() => {
+    if (slide)
+      if (slide.choices) slide.choices.forEach((c, i) => checkErrors(i, c));
+  }, [slide]);
   const searchMedia = async (s, p) => {
     setMediaResult(null);
     let r = await Api.pixabay.get({ search: s, page: p });
@@ -182,12 +169,11 @@ export function SlideRenderer(props) {
   };
   const checkErrors = (index, value = "", s = slide) => {
     let err = { ...errors };
-    if (s.answers) {
-      if (s.answers.filter((i) => i === value).length > 1)
+    if (s.choices) {
+      if (s.choices.filter((i) => i === value).length > 1 && value !== "")
         err[index] = "Duplicate";
       else delete err[index];
     }
-
     setErrors(err);
   };
   return (
@@ -313,8 +299,63 @@ export function SlideRenderer(props) {
           width="100%"
           style={{
             background: theme.palette.type === "dark" ? "#111" : "#fff",
+            minHeight: "100%",
           }}
         >
+          <Dialog
+            TransitionComponent={Transition}
+            maxWidth="md"
+            fullWidth
+            onClose={() => history.push("#")}
+            open={props.location.hash === "#settings"}
+          >
+            <DialogTitle onClose={() => history.push("#")}>
+              Quiz Settings
+            </DialogTitle>
+            <DialogContent>
+              <Box p={2} style={{ width: "100%", position: "relative" }}>
+                <TextField
+                  type="text"
+                  label="Title"
+                  value={props.quiz.title}
+                  onChange={(e) =>
+                    props.onChange({}, { title: e.target.value })
+                  }
+                  variant="filled"
+                  fullWidth
+                />
+              </Box>
+              <Box p={2}>
+                <Typography variant="body1" color="textSecondary">
+                  Duration
+                </Typography>
+                <ValuePicker
+                  size={50}
+                  color="#fff"
+                  textColor={theme.palette.primary.main}
+                  value={props.quiz.duration ? props.quiz.duration : 10 * 60000}
+                  onChange={(d) => {
+                    props.onChange({}, { duration: d });
+                  }}
+                  values={() =>
+                    [10, 20, 30, 40, 50, 60].map((m) => ({
+                      value: 60000 * m,
+                      label: m + "mins",
+                    }))
+                  }
+                />
+              </Box>
+            </DialogContent>
+            <DialogActions>
+              <Button
+                onClick={() => history.push("#")}
+                color="primary"
+                variant="contained"
+              >
+                Done
+              </Button>
+            </DialogActions>
+          </Dialog>
           <Box display="flex" alignItems="center">
             <TextField
               fullWidth
@@ -330,64 +371,49 @@ export function SlideRenderer(props) {
             />
             <Box m={2}>
               <Typography variant="body1" color="textSecondary">
-                Duration
-              </Typography>
-              <ValuePicker
-                size={60}
-                value={
-                  slide.duration
-                    ? {
-                        value: slide.duration,
-                        label: slide.duration / 1000 + "s",
-                      }
-                    : {
-                        value: 20000,
-                        label: "20s",
-                      }
-                }
-                onChange={(d) => {
-                  setSlide({ ...slide, duration: d });
-                  props.onChange({ ...slide, duration: d });
-                }}
-                values={durationValues}
-              />
-            </Box>
-          </Box>
-          <Box display="flex">
-            <Box m={2} width={200} style={{ marginRight: 43 }}>
-              <Typography variant="body1" color="textSecondary">
                 Score
               </Typography>
-              <Slider
-                value={slide.score ? slide.score.toString() : ""}
-                getAriaValueText={(v) => v}
-                aria-labelledby="discrete-slider-custom"
-                step={100}
-                min={100}
-                max={1000}
-                valueLabelDisplay="auto"
-                marks={scoreValues}
-                onChange={(e, v) => {
-                  setSlide({ ...slide, score: v });
-                  props.onChange(slide);
+              <ValuePicker
+                size={50}
+                value={slide.score ? slide.score : 100}
+                onChange={(d) => {
+                  let s = { ...slide, score: d };
+                  setSlide(s);
+                  props.onChange(s);
                 }}
+                values={scoreValues}
               />
             </Box>
           </Box>
-
           <Box
             width="100%"
-            height={200}
+            minHeight={100}
             p={2}
             style={{ margin: "14px 0" }}
             display="flex"
             justifyContent="center"
             alignItems="center"
             overflow="hidden"
+            position="relative"
             border={"2px solid " + theme.palette.grey[300]}
           >
             {slide.media ? (
-              <img src={slide.media.large} height="100%" />
+              <React.Fragment>
+                <IconButton
+                  style={{ position: "absolute", top: 0, right: 0 }}
+                  onClick={() => {
+                    let s = {
+                      ...slide,
+                      media: null,
+                    };
+                    setSlide(s);
+                    props.onChange(s);
+                  }}
+                >
+                  <Icon>close</Icon>
+                </IconButton>
+                <img src={slide.media.thumb} height={300} />
+              </React.Fragment>
             ) : (
               <React.Fragment>
                 <Typography variant="h6" color="textSecondary">
@@ -396,73 +422,112 @@ export function SlideRenderer(props) {
               </React.Fragment>
             )}
           </Box>
-          <Box p={2}>
-            <Typography variant="body2" color="textSecondary">
-              Type
-            </Typography>
+          <Box marginBottom={2}>
+            <FormControl variant="filled">
+              <Typography variant="body1" color="textSecondary">
+                Question Type
+              </Typography>
+              <Select
+                value={parseInt(slide.type)}
+                padding={10}
+                onChange={(e) => {
+                  let s = {
+                    ...{ ...slide, answers: null, choices: ["", ""] },
+                    type: parseInt(e.target.value),
+                  };
+                  setSlide(s);
+                  props.onChange(s);
+                }}
+              >
+                <MenuItem value={1}>Multiple Choice</MenuItem>
+                <MenuItem value={2}>True or False</MenuItem>
+                <MenuItem value={3}>Yes or No</MenuItem>
+                <MenuItem value={4}>Checkbox</MenuItem>
+              </Select>
+            </FormControl>
           </Box>
-          <Box className={styles.slideAnswer}>
-            {[0, 1, 2, 3].map((a, i) => (
-              <Box key={i} style={{ position: "relative" }}>
-                <TextField
-                  type="text"
-                  label={"Answer " + String.fromCharCode(65 + i)}
-                  value={
-                    slide.answers && slide.answers[i] ? slide.answers[i] : ""
-                  }
-                  variant="filled"
-                  fullWidth
-                  onChange={(e) => handleChangeAnswer(i, e.target.value)}
-                  error={errors && errors[i] ? true : false}
-                  helperText={errors && errors[i] ? errors[i] : ""}
-                />
-                <IconButton
-                  style={{
-                    position: "absolute",
-                    right: 0,
-                    top: 5,
-                  }}
-                  onClick={() => {
-                    if (!slide.answers || (slide.answers && !slide.answers[i]))
-                      checkErrors(i);
-                    let correct_answers = slide.correct_answers
-                      ? [...slide.correct_answers]
-                      : [];
-                    if (slide.answers && slide.answers[i]) {
-                      if (correct_answers.indexOf(slide.answers[i]) >= 0)
-                        correct_answers.splice(
-                          correct_answers.indexOf(slide.answers[i]),
-                          1
-                        );
-                      else correct_answers.push(slide.answers[i]);
-                    }
-                    let s = { ...slide, correct_answers };
-                    setSlide(s);
-                    props.onChange(s);
-                  }}
-                >
-                  <Icon
-                    color={
-                      slide.correct_answers &&
-                      slide.answers &&
-                      slide.answers[i] &&
-                      slide.correct_answers.indexOf(slide.answers[i]) >= 0
-                        ? "primary"
-                        : "disabled"
-                    }
-                  >
-                    check_circle
-                  </Icon>
-                </IconButton>
-              </Box>
-            ))}
-          </Box>
+          {slide.type === 1 ? (
+            <MultipleChoice
+              onChange={(question) => {
+                let s = {
+                  ...slide,
+                  ...(question.choices && { choices: [...question.choices] }),
+                  ...(question.answers && {
+                    answers: question.answers,
+                  }),
+                };
+                setSlide(s);
+                props.onChange(s);
+              }}
+              answers={slide.answers ? slide.answers : []}
+              errors={errors}
+              choices={slide.choices}
+              onChoiceChange={(index, ans) => handleChangeChoice(index, ans)}
+            />
+          ) : slide.type === 2 ? (
+            <TrueOrFalse
+              values={["True", "False"]}
+              onChange={(question) => {
+                let s = {
+                  ...slide,
+                  ...(question.choices && { choices: [...question.choices] }),
+                  ...(question.answers && {
+                    answers: question.answers,
+                  }),
+                };
+                setSlide(s);
+                props.onChange(s);
+              }}
+              answers={slide.answers ? slide.answers : []}
+              errors={errors}
+              onChoiceChange={(index, ans) => handleChangeChoice(index, ans)}
+            />
+          ) : slide.type === 3 ? (
+            <TrueOrFalse
+              values={["Yes", "No"]}
+              onChange={(question) => {
+                let s = {
+                  ...slide,
+                  ...(question.choices && { choices: [...question.choices] }),
+                  ...(question.answers && {
+                    answers: question.answers,
+                  }),
+                };
+                setSlide(s);
+                props.onChange(s);
+              }}
+              answers={slide.answers ? slide.answers : []}
+              errors={errors}
+              onChoiceChange={(index, ans) => handleChangeChoice(index, ans)}
+            />
+          ) : (
+            <MultipleChoice
+              icon="check_box"
+              fullWidth
+              onChange={(question) => {
+                let s = {
+                  ...slide,
+                  ...(question.choices && { choices: [...question.choices] }),
+                  ...(question.answers && {
+                    answers: question.answers,
+                  }),
+                };
+                setSlide(s);
+                props.onChange(s);
+              }}
+              answers={slide.answers ? slide.answers : []}
+              errors={errors}
+              choices={slide.choices}
+              onChoiceChange={(index, ans) => handleChangeChoice(index, ans)}
+            />
+          )}
         </Box>
       )}
     </React.Fragment>
   );
 }
 function SlideContainer(props) {
+  const theme = useTheme();
   const styles = useStyles();
   return (
     <div
@@ -475,6 +540,55 @@ function SlideContainer(props) {
       }}
       {...props}
     >
+      <Toolbar
+        style={{
+          position: "sticky",
+          top: 0,
+          display: "flex",
+          alignItems: "center",
+          left: 0,
+          justifyContent: "space-between",
+          right: 0,
+          zIndex: 10,
+          background: theme.palette.grey[200],
+        }}
+      >
+        <div
+          style={{
+            position: "sticky",
+            display: "flex",
+            alignItems: "center",
+            color: theme.palette.primary.main,
+          }}
+        >
+          <Icon>star</Icon>
+          {props.score}
+        </div>
+        <div>
+          <IconButton onClick={() => props.onNavigate("BEFORE")}>
+            <Icon>navigate_before</Icon>
+          </IconButton>
+          <IconButton onClick={() => props.onNavigate("NEXT")}>
+            <Icon>navigate_next</Icon>
+          </IconButton>
+        </div>
+      </Toolbar>
+      <Box p={2}>
+        <FormControl variant="filled" style={{ width: "100%" }}>
+          <Select
+            label="Schedule"
+            padding={10}
+            value={props.selected}
+            onChange={(e) => props.onChange(parseInt(e.target.value))}
+          >
+            {props.slides.map((s, i) => (
+              <MenuItem value={i}>
+                {i + 1}. {s.question ? s.question : "Blank slide"}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+      </Box>
       {props.children}
     </div>
   );
@@ -504,7 +618,8 @@ export function Slide(props) {
     >
       {props.item ? (
         <React.Fragment>
-          <div
+          {props.index}
+          {/* <div
             style={{
               position: "absolute",
               top: 7,
@@ -514,7 +629,7 @@ export function Slide(props) {
             <Typography color={props.selected ? "primary" : "textSecondary"}>
               {props.item.score ? props.item.score + "pts" : ""}
             </Typography>
-          </div>
+          </div> */}
           <div>
             <Box width="70%">
               <Typography variant="body2" style={{ fontWeight: "bold" }}>
@@ -550,7 +665,7 @@ export function Slide(props) {
                   </Icon>
                 </div>
               )}
-              {props.item.duration && (
+              {props.item.score && (
                 <div style={{ position: "absolute", right: 30, bottom: 0 }}>
                   <div
                     style={{
@@ -568,7 +683,7 @@ export function Slide(props) {
                       justifyContent: "center",
                     }}
                   >
-                    {props.item.duration / 1000}s
+                    {props.item.score}
                   </div>
                 </div>
               )}
@@ -578,18 +693,21 @@ export function Slide(props) {
             <Box
               display="flex"
               width="100%"
-              alignItems="center"
+              alignItems="stretch"
               justifyContent="space-between"
               flexWrap="wrap"
               className={styles.answerprev}
             >
-              {[0, 1, 2, 3].map((i) => (
-                <Box key={i}>
-                  {props.item.answers && props.item.answers[i]
-                    ? props.item.answers[i]
-                    : " "}
-                </Box>
-              ))}
+              {props.item.choices &&
+                props.item.choices
+                  .slice(0, 4)
+                  .map((c, i) => (
+                    <Box key={i}>
+                      {props.item.choices && props.item.choices[i]
+                        ? props.item.choices[i]
+                        : String.fromCharCode(160)}
+                    </Box>
+                  ))}
             </Box>
           </div>
         </React.Fragment>
@@ -603,9 +721,9 @@ export function Slide(props) {
           style={{ position: "absolute", bottom: 0, right: 0 }}
           className="slide-actions"
         >
-          <Tooltip title="Duplicate">
-            <IconButton onClick={() => props.onDelete(props.item.index)}>
-              <Icon color="default">file_copy</Icon>
+          <Tooltip title="Add">
+            <IconButton onClick={() => props.onAddSlide(props.item.index)}>
+              <Icon>add</Icon>
             </IconButton>
           </Tooltip>
           <Tooltip title="Delete">
@@ -649,6 +767,8 @@ export function ValuePicker(props) {
       zIndex: 5,
     },
   };
+  const values =
+    typeof props.values === "function" ? props.values() : props.values;
   return (
     <div
       onClick={() => setOpen(!open)}
@@ -659,7 +779,7 @@ export function ValuePicker(props) {
         width: open ? props.values.length * (size + 8) : 50,
       }}
     >
-      {props.values.map((s, i) => (
+      {values.map((s, i) => (
         <div
           key={i}
           tabIndex={i}
@@ -671,7 +791,7 @@ export function ValuePicker(props) {
             zIndex: 1,
             ...styles.container,
             ...styles.values,
-            ...(props.value.value === s.value && styles.value),
+            ...(props.value === s.value && styles.value),
           }}
         >
           {s.label}

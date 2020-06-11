@@ -20,7 +20,7 @@ export default function StudenRating(props) {
   const [hover, setHover] = React.useState(-1);
   return (
     <Dialog
-      open={props.open}
+      open={props.open ? props.open : false}
       fullWidth
       maxWidth="sm"
       onClose={props.onClose}
@@ -60,7 +60,7 @@ export default function StudenRating(props) {
           <Box p={2}>
             <MuiRating
               name="hover-feedback"
-              value={value}
+              value={value ? value : 5}
               precision={0.5}
               onChange={(event, newValue) => {
                 setValue(newValue);

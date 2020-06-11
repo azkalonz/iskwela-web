@@ -1,57 +1,76 @@
 import React, { useState, useEffect } from "react";
 import Toolbar from "../components/quiz/Toolbar";
 import SlideContainer, { Slide, SlideRenderer } from "../components/quiz/Slide";
-import { Box, Button, IconButton, Icon } from "@material-ui/core";
+import {
+  Box,
+  Button,
+  IconButton,
+  Icon,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+} from "@material-ui/core";
 import { connect } from "react-redux";
+import moment from "moment";
 
 function Quiz(props) {
-  const [slides, setSlides] = useState([
-    {
-      id: 1,
-    },
-  ]);
-  const [currentSlide, setCurrentSlide] = useState();
+  const [ID, setID] = useState(2);
+  const [totalScore, setTotalScore] = useState(0);
+  const [confirmed, setConfirmed] = useState();
+  const slideTemplate = {
+    choices: ["", ""],
+    type: 1,
+    score: 100,
+  };
+  const [quiz, setQuiz] = useState({
+    title: "Untitled Quiz " + moment(new Date()).format("MM-DD-YYYY"),
+    duration: 60000 * 10,
+    slides: [
+      {
+        id: 1,
+        choices: ["", ""],
+        type: 1,
+        score: 100,
+      },
+    ],
+  });
+  const [currentSlide, setCurrentSlide] = useState(0);
   useEffect(() => {
     let s = document.querySelector("#slide-container");
     let x = document.querySelector("#selected-slide");
     if (x && s)
       s.scrollTop = x.offsetTop - (s.clientHeight / 2 - x.clientHeight / 2);
   }, [currentSlide]);
+  useEffect(() => {
+    let total = 0;
+    quiz.slides.forEach((i) => {
+      let score = i.score ? parseInt(i.score) : 0;
+      total += score;
+    });
+    setTotalScore(total);
+  }, [quiz.slides]);
+
   const handleNavigate = (d) => {
     switch (d) {
       case "NEXT":
-        if (!currentSlide && slides[1]) {
-          setCurrentSlide({ ...slides[1], index: 1 });
-        } else if (currentSlide && slides[currentSlide.index + 1]) {
-          let s = currentSlide.index + 1;
-          setCurrentSlide({
-            ...slides[s],
-            index: s,
-          });
-        } else
-          setCurrentSlide({
-            ...slides[0],
-            index: 0,
-          });
+        if (currentSlide < quiz.slides.length - 1)
+          setCurrentSlide(currentSlide + 1);
+        else setCurrentSlide(0);
         break;
       case "BEFORE":
-        if (!currentSlide) {
-          setCurrentSlide({
-            ...slides[slides.length - 1],
-            index: slides.length - 1,
-          });
-        } else if (currentSlide && slides[currentSlide.index - 1])
-          setCurrentSlide({
-            ...slides[currentSlide.index - 1],
-            index: currentSlide.index - 1,
-          });
-        else
-          setCurrentSlide({
-            ...slides[slides.length - 1],
-            index: slides.length - 1,
-          });
+        if (currentSlide > 0) setCurrentSlide(currentSlide - 1);
+        else setCurrentSlide(quiz.slides.length - 1);
         break;
     }
+  };
+
+  const handleSave = (s) => console.log(s);
+  const handleCreateSlide = () => {
+    let s = [...quiz.slides, { ...slideTemplate, id: ID }];
+    setID(ID + 1);
+    setQuiz({ ...quiz, slides: s });
+    setCurrentSlide(s.length - 1);
   };
   return (
     <Box
@@ -61,10 +80,36 @@ function Quiz(props) {
       flexDirection="column"
       alignItems="flex-start"
     >
+      {confirmed && (
+        <Dialog
+          open={confirmed ? true : false}
+          onClose={() => setConfirmed(null)}
+        >
+          <DialogTitle>{confirmed.title}</DialogTitle>
+          <DialogContent>{confirmed.message}</DialogContent>
+          <DialogActions>
+            <Button
+              onClick={() => {
+                setConfirmed(null);
+              }}
+            >
+              No
+            </Button>
+
+            <Button
+              color="primary"
+              variant="contained"
+              onClick={() => confirmed.yes()}
+            >
+              Yes
+            </Button>
+          </DialogActions>
+        </Dialog>
+      )}
       <Box display="flex" alignItems="flex-start" height="100%" width="100%">
         <SlideContainer
           id="slide-container"
-          onNavigate={handleNavigate}
+          onNavigate={(d) => handleNavigate(d)}
           style={{ outline: "none" }}
           onMouseOver={() => {
             document.querySelector("#add-slide").style.display = "block";
@@ -72,37 +117,47 @@ function Quiz(props) {
           onMouseOut={() => {
             document.querySelector("#add-slide").style.display = "none";
           }}
+          onChange={(index) => setCurrentSlide(index)}
+          slides={quiz.slides}
+          selected={currentSlide}
+          score={totalScore}
         >
-          {slides.map((s, i) => (
+          {quiz.slides.map((s, i) => (
             <Slide
               key={i}
-              onChange={(s, i) => setCurrentSlide({ ...s, index: i })}
+              index={i + 1}
+              onChange={(s, i) => setCurrentSlide(i)}
               item={{ ...s, index: i }}
-              selected={
-                !currentSlide
-                  ? i === 0
-                  : currentSlide.id === s.id
-                  ? true
-                  : false
-              }
-              onDelete={(i) => {
-                setSlides(() => {
-                  let s = [...slides];
-                  s.splice(i, 1);
-                  return s;
-                });
-                setTimeout(() => {
-                  if (slides[i + 1])
-                    setCurrentSlide({ ...slides[i + 1], index: i + 1 });
-                  else if (slides[i - 1])
-                    setCurrentSlide({ ...slides[i - 1], index: i - 1 });
-                  else if (slides[slides.length - 1])
-                    setCurrentSlide({
-                      ...slides[slides.length - 1],
-                      index: slides.length - 1,
-                    });
-                }, 0);
+              selected={currentSlide === i}
+              onAddSlide={(i) => {
+                let newSlide = { ...slideTemplate, id: ID };
+                let oldslides = [...quiz.slides];
+                oldslides.splice(i, 1, ...[oldslides[i], newSlide]);
+                setID(ID + 1);
+                setQuiz({ ...quiz, slides: oldslides });
               }}
+              onDelete={(i) =>
+                setConfirmed({
+                  title: "Delete Slide",
+                  message: "Are you sure you want to delete this slide?",
+                  yes: () => {
+                    let s = [...quiz.slides];
+                    s.splice(i, 1);
+                    if (!s.length) {
+                      setQuiz({
+                        ...quiz,
+                        slides: [{ ...slideTemplate, id: 1 }],
+                      });
+                    } else {
+                      setQuiz(() => {
+                        if (s[i]) setCurrentSlide(i);
+                        return { ...quiz, slides: s };
+                      });
+                    }
+                    setConfirmed(null);
+                  },
+                })
+              }
             />
           ))}
           <Slide
@@ -114,9 +169,7 @@ function Quiz(props) {
               bottom: 0,
               zIndex: 10,
             }}
-            onClick={() => {
-              setSlides([...slides, { id: slides.length + 1 }]);
-            }}
+            onClick={handleCreateSlide}
           />
         </SlideContainer>
         <Box
@@ -127,18 +180,23 @@ function Quiz(props) {
           display="flex"
           flexDirection="column"
         >
-          <Toolbar navigate={(d) => handleNavigate(d)} />
+          <Toolbar
+            onSave={() => handleSave(quiz)}
+            navigate={(d) => handleNavigate(d)}
+            {...props}
+          />
           <Box height="100%" overflow="auto">
             <SlideRenderer
               {...props}
-              slide={currentSlide ? currentSlide : slides[0]}
-              onChange={(s) => {
-                setSlides(() => {
-                  let ss = [...slides];
+              slide={quiz.slides[currentSlide]}
+              quiz={quiz}
+              onChange={(s, q = null) => {
+                setQuiz(() => {
+                  let ss = [...quiz.slides];
                   ss.forEach((i, ii) => {
                     if (i.id === s.id) ss[ii] = s;
                   });
-                  return ss;
+                  return { ...quiz, ...(q ? q : {}), slides: ss };
                 });
               }}
             />
