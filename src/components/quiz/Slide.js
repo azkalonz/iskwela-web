@@ -227,8 +227,17 @@ export function SlideRenderer(props) {
             </Box>
           </div>
           {hasUpload && (
-            <Box textAlign="center" height="100%">
+            <Box textAlign="center" height="100%" position="relative">
               <img src={hasUpload} height="100%" width="auto" />
+              <IconButton
+                style={{ position: "absolute", top: 0, right: 0 }}
+                onClick={() => {
+                  document.querySelector("#upload-file").value = "";
+                  setHasUpload(false);
+                }}
+              >
+                <Icon>close</Icon>
+              </IconButton>
             </Box>
           )}
           {!hasUpload && !mediaResult && (
@@ -299,7 +308,14 @@ export function SlideRenderer(props) {
               />
             )}
           </Box>
-          <Button variant="outlined" onClick={() => history.push("#")}>
+          <Button
+            variant="outlined"
+            onClick={() => {
+              document.querySelector("#upload-file").value = "";
+              setHasUpload(false);
+              history.push("#");
+            }}
+          >
             Cancel
           </Button>
           <Button
