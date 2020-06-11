@@ -19,7 +19,7 @@ function Quiz(props) {
   const [totalScore, setTotalScore] = useState(0);
   const [confirmed, setConfirmed] = useState();
   const slideTemplate = {
-    choices: ["", ""],
+    choices: ["", "", "", ""],
     type: 1,
     score: 100,
   };
@@ -29,7 +29,7 @@ function Quiz(props) {
     slides: [
       {
         id: 1,
-        choices: ["", ""],
+        choices: ["", "", "", ""],
         type: 1,
         score: 100,
       },

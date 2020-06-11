@@ -225,3 +225,29 @@ export function TrueOrFalse(props) {
     </Box>
   ) : null;
 }
+
+export function ShortAnswer(props) {
+  const answers = props.answers ? props.answers : [];
+  const styles = useStyles();
+
+  return (
+    <Box className={styles.slideAnswer}>
+      <Box
+        className={styles.choice}
+        style={{
+          position: "relative",
+          width: "100%",
+        }}
+      >
+        <TextField
+          type="text"
+          label={"Short Answer"}
+          multiline={true}
+          rows={8}
+          variant="filled"
+          fullWidth
+        />
+      </Box>
+    </Box>
+  );
+}

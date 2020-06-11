@@ -31,7 +31,7 @@ import Api from "../../api";
 import { SearchInput } from "../../components/Selectors";
 import { makeLinkTo } from "../../components/router-dom";
 import Pagination, { getPageItems } from "../../components/Pagination";
-import { MultipleChoice, TrueOrFalse } from "./questionTypes";
+import { MultipleChoice, TrueOrFalse, ShortAnswer } from "./questionTypes";
 
 const styles = (theme) => ({
   root: {
@@ -138,6 +138,7 @@ export function SlideRenderer(props) {
   const history = useHistory();
   const [mediaResult, setMediaResult] = useState({});
   const [errors, setErrors] = useState({});
+  const [hasUpload, setHasUpload] = useState(false);
   useEffect(() => {
     if (props.slide) {
       if (slide && props.slide.id !== slide.id) props.onChange(slide);
@@ -195,60 +196,89 @@ export function SlideRenderer(props) {
               right: 0,
               left: 0,
               background: "#fff",
+              display: "flex",
+              alignItems: "center",
+              width: "100%",
               zIndex: 10,
             }}
           >
             <SearchInput
+              style={{ width: "100%" }}
               onChange={(e) => {
                 searchMedia(e, 1);
               }}
             />
+            <input
+              type="file"
+              id="upload-file"
+              style={{ display: "none" }}
+              accept="image/x-png,image/gif,image/jpeg"
+              onChange={(e) =>
+                setHasUpload(URL.createObjectURL(e.target.files[0]))
+              }
+            />
+            <Box m={2}>
+              <Button
+                variant="contained"
+                onClick={() => document.querySelector("#upload-file").click()}
+              >
+                Upload<Icon>publish</Icon>
+              </Button>
+            </Box>
           </div>
-          {!mediaResult && (
+          {hasUpload && (
+            <Box textAlign="center" height="100%">
+              <img src={hasUpload} height="100%" width="auto" />
+            </Box>
+          )}
+          {!hasUpload && !mediaResult && (
             <Box display="flex" justifyContent="center" p={2}>
               <CircularProgress />
             </Box>
           )}
-          {mediaResult && mediaResult.total > 0 && mediaResult.hits && (
-            <React.Fragment>
-              <Box
-                display="flex"
-                justifyContent="space-around"
-                alignItems="center"
-                flexWrap="wrap"
-                p={2}
-              >
-                {mediaResult.hits.map((i, ii) => (
-                  <Box
-                    key={ii}
-                    display="flex"
-                    alignItems="center"
-                    justifyContent="center"
-                    overflow="hidden"
-                    width={200}
-                    position="relative"
-                    height={200}
-                    onClick={() =>
-                      setMediaResult({ ...mediaResult, selected: i })
-                    }
-                    tabIndex={ii}
-                    style={{
-                      cursor: "pointer",
-                      border:
-                        "2px solid " +
-                        (mediaResult &&
-                        mediaResult.selected &&
-                        mediaResult.selected.id === i.id
-                          ? theme.palette.primary.main
-                          : "transparent"),
-                    }}
-                  >
-                    <img src={i.previewURL} width="100%" />
-                  </Box>
-                ))}
-              </Box>
-            </React.Fragment>
-          )}
+          {!hasUpload &&
+            mediaResult &&
+            mediaResult.total > 0 &&
+            mediaResult.hits && (
+              <React.Fragment>
+                <Box
+                  display="flex"
+                  justifyContent="space-around"
+                  alignItems="center"
+                  flexWrap="wrap"
+                  p={2}
+                >
+                  {mediaResult.hits.map((i, ii) => (
+                    <Box
+                      key={ii}
+                      display="flex"
+                      alignItems="center"
+                      justifyContent="center"
+                      overflow="hidden"
+                      width={200}
+                      position="relative"
+                      height={200}
+                      onClick={() =>
+                        setMediaResult({ ...mediaResult, selected: i })
+                      }
+                      tabIndex={ii}
+                      style={{
+                        cursor: "pointer",
+                        border:
+                          "2px solid " +
+                          (mediaResult &&
+                          mediaResult.selected &&
+                          mediaResult.selected.id === i.id
+                            ? theme.palette.primary.main
+                            : "transparent"),
+                      }}
+                    >
+                      <img src={i.previewURL} width="100%" />
+                    </Box>
+                  ))}
+                </Box>
+              </React.Fragment>
+            )}
         </DialogContent>
         <DialogActions>
           <Box p={2}>
@@ -275,17 +305,29 @@ export function SlideRenderer(props) {
           <Button
             variant="contained"
             color="primary"
-            disabled={mediaResult && mediaResult.selected ? false : true}
+            disabled={
+              mediaResult && mediaResult.selected
+                ? false
+                : hasUpload
+                ? false
+                : true
+            }
             onClick={() => {
               let r = {
                 ...slide,
                 media: {
-                  thumb: mediaResult.selected.previewURL,
-                  large: mediaResult.selected.largeImageURL,
+                  thumb: !hasUpload
+                    ? mediaResult.selected.previewURL
+                    : hasUpload,
+                  large: !hasUpload
+                    ? mediaResult.selected.previewURL
+                    : hasUpload,
                 },
               };
               setSlide(r);
               props.onChange(r);
+              document.querySelector("#upload-file").value = "";
+              setHasUpload(false);
               history.push("#");
             }}
           >
@@ -432,7 +474,7 @@ export function SlideRenderer(props) {
                 padding={10}
                 onChange={(e) => {
                   let s = {
-                    ...{ ...slide, answers: null, choices: ["", ""] },
+                    ...{ ...slide, answers: null, choices: ["", "", "", ""] },
                     type: parseInt(e.target.value),
                   };
                   setSlide(s);
@@ -443,6 +485,7 @@ export function SlideRenderer(props) {
                 <MenuItem value={2}>True or False</MenuItem>
                 <MenuItem value={3}>Yes or No</MenuItem>
                 <MenuItem value={4}>Checkbox</MenuItem>
+                <MenuItem value={5}>Short Answer</MenuItem>
               </Select>
             </FormControl>
           </Box>
@@ -500,7 +543,7 @@ export function SlideRenderer(props) {
               errors={errors}
               onChoiceChange={(index, ans) => handleChangeChoice(index, ans)}
             />
-          ) : (
+          ) : slide.type === 4 ? (
             <MultipleChoice
               icon="check_box"
               fullWidth
@@ -520,6 +563,8 @@ export function SlideRenderer(props) {
               choices={slide.choices}
               onChoiceChange={(index, ans) => handleChangeChoice(index, ans)}
             />
+          ) : (
+            <ShortAnswer />
           )}
         </Box>
       )}
@@ -700,9 +745,17 @@ export function Slide(props) {
             >
               {props.item.choices &&
                 props.item.choices
-                  .slice(0, 4)
+                  .slice(
+                    0,
+                    props.item.type === 1 ? 4 : props.item.type === 5 ? 1 : 2
+                  )
                   .map((c, i) => (
-                    <Box key={i}>
+                    <Box
+                      key={i}
+                      style={{
+                        ...(props.item.type === 5 ? { width: "100%" } : {}),
+                      }}
+                    >
                       {props.item.choices && props.item.choices[i]
                         ? props.item.choices[i]
                         : String.fromCharCode(160)}
