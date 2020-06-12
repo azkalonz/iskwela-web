@@ -171,7 +171,7 @@ function Quiz(props) {
                 setQuiz({ ...quiz, slides: oldslides });
               }}
               onReposition={(indexFrom, indexTo, pos = null) => {
-                if (!quiz.slides[indexTo]) return;
+                if (!quiz.slides[indexTo] || !quiz.slides[indexFrom]) return;
                 let oldSlides = [...quiz.slides];
                 oldSlides.splice(
                   indexTo,

@@ -4,6 +4,7 @@ import FullscreenIcon from "@material-ui/icons/Fullscreen";
 import { IconButton, Box } from "@material-ui/core";
 import ShareOutlinedIcon from "@material-ui/icons/ShareOutlined";
 import Jitsi from "react-jitsi";
+import store from "../components/redux/store";
 
 function VideoConference(props) {
   const { getRoom } = props;
@@ -44,7 +45,11 @@ function VideoConference(props) {
         {room.name && (
           <Jitsi
             domain="jts.iskwela.net"
-            jwt="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJqaXRzaSIsImlzcyI6InNjaG9vbGh1YiIsInN1YiI6Imp0cy5pc2t3ZWxhLm5ldCIsInJvb20iOiIqIn0.3BQBpXgHFM51Al1qjPz-sCFDPEnuKwKb47-h2Dctsqg"
+            jwt={
+              true || store.getState().userInfo.user_type === "t"
+                ? "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJqaXRzaSIsImlzcyI6InNjaG9vbGh1YiIsInN1YiI6Imp0cy5pc2t3ZWxhLm5ldCIsInJvb20iOiIqIn0.3BQBpXgHFM51Al1qjPz-sCFDPEnuKwKb47-h2Dctsqg"
+                : null
+            }
             displayName={room.displayName}
             roomName={room.name}
             onAPILoad={handleAPI}
