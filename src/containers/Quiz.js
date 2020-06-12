@@ -169,6 +169,7 @@ function Quiz(props) {
                 oldslides.splice(i, 1, ...[oldslides[i], newSlide]);
                 setID(ID + 1);
                 setQuiz({ ...quiz, slides: oldslides });
+                setCurrentSlide(i + 1);
               }}
               onReposition={(indexFrom, indexTo, pos = null) => {
                 if (!quiz.slides[indexTo] || !quiz.slides[indexFrom]) return;
