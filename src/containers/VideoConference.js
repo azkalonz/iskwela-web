@@ -43,7 +43,8 @@ function VideoConference(props) {
       <Box width="100%" justifyContent="center" alignItems="center">
         {room.name && (
           <Jitsi
-            domain="jitsi.iskwela.net"
+            domain="jts.iskwela.net"
+            jwt="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJqaXRzaSIsImlzcyI6InNjaG9vbGh1YiIsInN1YiI6Imp0cy5pc2t3ZWxhLm5ldCIsInJvb20iOiIqIn0.3BQBpXgHFM51Al1qjPz-sCFDPEnuKwKb47-h2Dctsqg"
             displayName={room.displayName}
             roomName={room.name}
             onAPILoad={handleAPI}
