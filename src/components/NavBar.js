@@ -165,6 +165,13 @@ function NavBar(props) {
                     inputProps={{ "aria-label": "secondary checkbox" }}
                   />
                 </MenuItem>
+                <MenuItem
+                  onClick={() =>
+                    window.open("https://tinyurl.com/iSkwelaReport", "_blank")
+                  }
+                >
+                  Report a Problem
+                </MenuItem>
                 <MenuItem onClick={handleLogout}>Logout</MenuItem>
               </Menu>
             </div>
