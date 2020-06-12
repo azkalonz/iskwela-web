@@ -50,7 +50,7 @@ export function MultipleChoice(props) {
         onClick={() => {
           props.onChange({ choices: [...choices, ""] });
         }}
-        style={{ borderStyle: "dashed" }}
+        style={{ borderStyle: "dashed", minHeight: 50 }}
       >
         <Icon>add</Icon>
       </Button>

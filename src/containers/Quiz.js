@@ -136,6 +136,19 @@ function Quiz(props) {
                 setID(ID + 1);
                 setQuiz({ ...quiz, slides: oldslides });
               }}
+              onReposition={(indexFrom, indexTo, pos = null) => {
+                if (!quiz.slides[indexTo]) return;
+                let oldSlides = [...quiz.slides];
+                oldSlides.splice(
+                  indexTo,
+                  1,
+                  ...[oldSlides[indexFrom], oldSlides[indexTo]]
+                );
+                oldSlides.splice(indexFrom + 1, 1);
+                setQuiz({ ...quiz, slides: oldSlides });
+                console.log(indexFrom, indexTo);
+                setCurrentSlide(pos ? pos : indexTo);
+              }}
               onDelete={(i) =>
                 setConfirmed({
                   title: "Delete Slide",

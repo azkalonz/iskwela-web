@@ -165,7 +165,7 @@ export function SlideRenderer(props) {
     setMediaResult(null);
     let r = await Api.pixabay.get({ search: s, page: p });
     if (r) {
-      setMediaResult({ ...r, page: p });
+      setMediaResult({ ...r, search: s, page: p });
     }
   };
   const checkErrors = (index, value = "", s = slide) => {
@@ -176,6 +176,20 @@ export function SlideRenderer(props) {
       else delete err[index];
     }
     setErrors(err);
+  };
+  const handleSelectMedia = () => {
+    let r = {
+      ...slide,
+      media: {
+        thumb: !hasUpload ? mediaResult.selected.previewURL : hasUpload,
+        large: !hasUpload ? mediaResult.selected.previewURL : hasUpload,
+      },
+    };
+    setSlide(r);
+    props.onChange(r);
+    document.querySelector("#upload-file").value = "";
+    setHasUpload(false);
+    history.push("#");
   };
   return (
     <React.Fragment>
@@ -267,6 +281,7 @@ export function SlideRenderer(props) {
                       width={200}
                       position="relative"
                       height={200}
+                      onDoubleClick={handleSelectMedia}
                       onClick={() =>
                         setMediaResult({ ...mediaResult, selected: i })
                       }
@@ -302,8 +317,7 @@ export function SlideRenderer(props) {
                 nolink
                 itemsPerPage={20}
                 onChange={(p) => {
-                  searchMedia("school", p);
-                  setMediaResult({ ...mediaResult, page: p });
+                  searchMedia(mediaResult.search, p);
                 }}
               />
             )}
@@ -328,24 +342,7 @@ export function SlideRenderer(props) {
                 ? false
                 : true
             }
-            onClick={() => {
-              let r = {
-                ...slide,
-                media: {
-                  thumb: !hasUpload
-                    ? mediaResult.selected.previewURL
-                    : hasUpload,
-                  large: !hasUpload
-                    ? mediaResult.selected.previewURL
-                    : hasUpload,
-                },
-              };
-              setSlide(r);
-              props.onChange(r);
-              document.querySelector("#upload-file").value = "";
-              setHasUpload(false);
-              history.push("#");
-            }}
+            onClick={handleSelectMedia}
           >
             Done
           </Button>
@@ -453,7 +450,7 @@ export function SlideRenderer(props) {
             alignItems="center"
             overflow="hidden"
             position="relative"
-            border={"2px solid " + theme.palette.grey[300]}
+            border={"1px dashed " + theme.palette.grey[300]}
           >
             {slide.media ? (
               <React.Fragment>
@@ -474,9 +471,15 @@ export function SlideRenderer(props) {
               </React.Fragment>
             ) : (
               <React.Fragment>
-                <Typography variant="h6" color="textSecondary">
-                  <Link href="#insert_media">Insert Media</Link>
-                </Typography>
+                <Button
+                  variant="outlined"
+                  onClick={() => history.push("#insert_media")}
+                >
+                  Insert Media
+                </Button>
+                {/* <Typography variant="h6" color="textSecondary">
+                  <Link href="#insert_media"></Link>
+                </Typography> */}
               </React.Fragment>
             )}
           </Box>
@@ -672,112 +675,131 @@ export function Slide(props) {
             }
       }
       {...props}
-      onClick={() => {
-        if (props.item) props.onChange(props.item, props.item.index);
-        else if (props.onClick) props.onClick();
-      }}
     >
       {props.item ? (
         <React.Fragment>
           {props.index}
-          {/* <div
+          <div
+            className="slide-actions"
             style={{
               position: "absolute",
               top: 7,
               right: 7,
+              zIndex: 12,
             }}
           >
-            <Typography color={props.selected ? "primary" : "textSecondary"}>
-              {props.item.score ? props.item.score + "pts" : ""}
-            </Typography>
-          </div> */}
-          <div>
-            <Box width="70%">
-              <Typography variant="body2" style={{ fontWeight: "bold" }}>
-                {props.item.question ? props.item.question : ""}
-              </Typography>
-            </Box>
+            <div>
+              <IconButton
+                onClick={() =>
+                  props.onReposition(props.index - 1, props.index - 2)
+                }
+              >
+                <Icon>expand_less</Icon>
+              </IconButton>
+            </div>
+            <div>
+              <IconButton
+                onClick={() =>
+                  props.onReposition(props.index, props.index - 1, props.index)
+                }
+              >
+                <Icon>expand_more</Icon>
+              </IconButton>
+            </div>
           </div>
-          <div>
-            <Box
-              width="100%"
-              height={80}
-              display="flex"
-              alignItems="center"
-              justifyContent="center"
-              position="relative"
-              overflow="hidden"
-            >
-              {props.item.media ? (
-                <img src={props.item.media.thumb} width="70%" />
-              ) : (
-                <div
-                  style={{
-                    width: "70%",
-                    height: "100%",
-                    background: theme.palette.grey[200],
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
-                >
-                  <Icon color="disabled" style={{ fontSize: 60 }}>
-                    insert_photo
-                  </Icon>
-                </div>
-              )}
-              {props.item.score && (
-                <div style={{ position: "absolute", right: 30, bottom: 0 }}>
+          <div
+            onClick={(e) => {
+              if (props.item) props.onChange(props.item, props.item.index);
+            }}
+          >
+            <div>
+              <Box width="70%">
+                <Typography variant="body2" style={{ fontWeight: "bold" }}>
+                  {props.item.question ? props.item.question : ""}
+                </Typography>
+              </Box>
+            </div>
+            <div>
+              <Box
+                width="100%"
+                height={80}
+                display="flex"
+                alignItems="center"
+                justifyContent="center"
+                position="relative"
+                overflow="hidden"
+              >
+                {props.item.media ? (
+                  <img src={props.item.media.thumb} width="70%" />
+                ) : (
                   <div
                     style={{
-                      width: 30,
-                      height: 30,
-                      borderRadius: "50%",
-                      color: props.selected ? "#fff" : "#888",
-                      background: props.selected
-                        ? theme.palette.primary.main
-                        : theme.palette.grey[300],
+                      width: "70%",
+                      height: "100%",
+                      background: theme.palette.grey[200],
                       display: "flex",
-                      fontSize: 11,
-                      fontWeight: "bold",
                       alignItems: "center",
                       justifyContent: "center",
                     }}
                   >
-                    {props.item.score}
+                    <Icon color="disabled" style={{ fontSize: 60 }}>
+                      insert_photo
+                    </Icon>
                   </div>
-                </div>
-              )}
-            </Box>
-          </div>
-          <div style={{ marginBottom: 0 }}>
-            <Box
-              display="flex"
-              width="100%"
-              alignItems="stretch"
-              justifyContent="space-between"
-              flexWrap="wrap"
-              className={styles.answerprev}
-            >
-              {props.item.choices &&
-                props.item.choices
-                  .slice(
-                    0,
-                    props.item.type === 1 ? 4 : props.item.type === 5 ? 1 : 2
-                  )
-                  .map((c, i) => (
-                    <Box
-                      key={i}
+                )}
+                {props.item.score && (
+                  <div style={{ position: "absolute", right: 30, bottom: 0 }}>
+                    <div
                       style={{
-                        ...(props.item.type === 5 ? { width: "100%" } : {}),
+                        width: 30,
+                        height: 30,
+                        borderRadius: "50%",
+                        color: props.selected ? "#fff" : "#888",
+                        background: props.selected
+                          ? theme.palette.primary.main
+                          : theme.palette.grey[300],
+                        display: "flex",
+                        fontSize: 11,
+                        fontWeight: "bold",
+                        alignItems: "center",
+                        justifyContent: "center",
                       }}
                     >
-                      {props.item.choices && props.item.choices[i]
-                        ? props.item.choices[i]
-                        : String.fromCharCode(160)}
-                    </Box>
-                  ))}
-            </Box>
+                      {props.item.score}
+                    </div>
+                  </div>
+                )}
+              </Box>
+            </div>
+            <div style={{ marginBottom: 0 }}>
+              <Box
+                display="flex"
+                width="100%"
+                alignItems="stretch"
+                justifyContent="space-between"
+                flexWrap="wrap"
+                className={styles.answerprev}
+              >
+                {props.item.choices &&
+                  props.item.choices
+                    .slice(
+                      0,
+                      props.item.type === 1 ? 4 : props.item.type === 5 ? 1 : 2
+                    )
+                    .map((c, i) => (
+                      <Box
+                        key={i}
+                        style={{
+                          ...(props.item.type === 5 ? { width: "100%" } : {}),
+                        }}
+                      >
+                        {props.item.choices && props.item.choices[i]
+                          ? props.item.choices[i]
+                          : String.fromCharCode(160)}
+                      </Box>
+                    ))}
+              </Box>
+            </div>
           </div>
         </React.Fragment>
       ) : (
