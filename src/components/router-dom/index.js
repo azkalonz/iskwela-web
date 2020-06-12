@@ -6,9 +6,9 @@ import EventOutlinedIcon from "@material-ui/icons/EventOutlined";
 import FaceOutlinedIcon from "@material-ui/icons/FaceOutlined";
 import Activity from "../../screens/class/Activity";
 import LessonPlan from "../../screens/class/LessonPlan";
+import Quizzes from "../../screens/class/Quizzes";
 import Students from "../../screens/class/Students";
 import Schedule from "../../screens/class/Schedule";
-import Quiz from "../../containers/Quiz";
 import InstructionalMaterials from "../../screens/class/InstructionalMaterials";
 import CreateOutlinedIcon from "@material-ui/icons/CreateOutlined";
 export function makeLinkTo(path, options = {}) {
@@ -46,10 +46,10 @@ export const rightPanelOptions = [
     screen: InstructionalMaterials,
   },
   {
-    title: "Create Quiz",
-    link: "quiz",
+    title: "Quizzes",
+    link: "quizzes",
     icon: <CreateOutlinedIcon />,
-    screen: Quiz,
+    screen: Quizzes,
   },
   {
     title: "Schedule",
@@ -70,6 +70,12 @@ export const rightPanelOptionsStudents = [
     link: "activity",
     icon: <AssignmentOutlinedIcon />,
     screen: Activity,
+  },
+  {
+    title: "Quizzes",
+    link: "quizzes",
+    icon: <CreateOutlinedIcon />,
+    screen: Quizzes,
   },
   {
     title: "Lesson Materials",

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   AppBar,
   Toolbar as MuiToolbar,
@@ -15,6 +15,7 @@ import {
   useTheme,
   IconButton,
   Button,
+  CircularProgress,
 } from "@material-ui/core";
 import { useHistory } from "react-router-dom";
 import { ValuePicker } from "./Slide";
@@ -69,6 +70,7 @@ const DialogTitle = withStyles(styles)((props) => {
 function Toolbar(props) {
   const theme = useTheme();
   const history = useHistory();
+  const [saving, setSaving] = useState(false);
 
   return (
     <MuiToolbar
@@ -85,11 +87,24 @@ function Toolbar(props) {
           <Icon>settings</Icon>
         </IconButton>
         <Button
-          onClick={props.onSave}
+          onClick={() => {
+            setSaving(true);
+            props.onSave(() => setSaving(false));
+          }}
           variant="contained"
-          style={{ background: theme.palette.success.main, color: "#fff" }}
+          style={{
+            background: saving
+              ? theme.palette.disabled
+              : theme.palette.success.main,
+            color: "#fff",
+            position: "relative",
+          }}
+          disabled={saving}
         >
           Save
+          {saving && (
+            <CircularProgress size={18} style={{ position: "absolute" }} />
+          )}
         </Button>
       </div>
     </MuiToolbar>

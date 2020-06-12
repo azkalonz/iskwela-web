@@ -394,7 +394,7 @@ export function SlideRenderer(props) {
                   }}
                   values={() =>
                     [10, 20, 30, 40, 50, 60].map((m) => ({
-                      value: 60000 * m,
+                      value: 6000 * m,
                       label: m + "mins",
                     }))
                   }

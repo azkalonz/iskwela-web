@@ -15,6 +15,7 @@ import { connect } from "react-redux";
 import moment from "moment";
 
 function Quiz(props) {
+  const { schedule_id, quiz_id } = props.match.params;
   const [ID, setID] = useState(2);
   const [totalScore, setTotalScore] = useState(0);
   const [confirmed, setConfirmed] = useState();
@@ -23,18 +24,27 @@ function Quiz(props) {
     type: 1,
     score: 100,
   };
-  const [quiz, setQuiz] = useState({
-    title: "Untitled Quiz " + moment(new Date()).format("MM-DD-YYYY"),
-    duration: 60000 * 10,
-    slides: [
-      {
-        id: 1,
-        choices: ["", "", "", ""],
-        type: 1,
-        score: 100,
-      },
-    ],
-  });
+  const [quiz, setQuiz] = useState(
+    quiz_id &&
+      JSON.parse(window.localStorage["quiz-items"]).filter(
+        (i) => i.id === parseInt(quiz_id)
+      )[0]
+      ? JSON.parse(window.localStorage["quiz-items"]).filter(
+          (i) => i.id === parseInt(quiz_id)
+        )[0]
+      : {
+          title: "Untitled Quiz " + moment(new Date()).format("MM-DD-YYYY"),
+          duration: 6000 * 10,
+          slides: [
+            {
+              id: 1,
+              choices: ["", "", "", ""],
+              type: 1,
+              score: 100,
+            },
+          ],
+        }
+  );
   const [currentSlide, setCurrentSlide] = useState(0);
   useEffect(() => {
     let s = document.querySelector("#slide-container");
@@ -65,7 +75,31 @@ function Quiz(props) {
     }
   };
 
-  const handleSave = (s) => console.log(s);
+  const handleSave = (items, callback) => {
+    setTimeout(() => {
+      let storage = window.localStorage["quiz-items"];
+      items.total_score = totalScore;
+      items.schedule = schedule_id ? schedule_id : null;
+      callback();
+      if (storage) {
+        let s = JSON.parse(storage);
+        if (!items.id) {
+          items.id = s.length + 1;
+          s.push(items);
+        } else
+          s.map((ss, ii) => {
+            if (ss.id === items.id) s[ii] = items;
+          });
+
+        window.localStorage["quiz-items"] = JSON.stringify(s);
+      } else {
+        if (!items.id) items.id = 1;
+
+        window.localStorage["quiz-items"] = JSON.stringify([items]);
+      }
+      setQuiz(items);
+    }, 2000);
+  };
   const handleCreateSlide = () => {
     let s = [...quiz.slides, { ...slideTemplate, id: ID }];
     setID(ID + 1);
@@ -194,7 +228,7 @@ function Quiz(props) {
           flexDirection="column"
         >
           <Toolbar
-            onSave={() => handleSave(quiz)}
+            onSave={(callback) => handleSave(quiz, callback)}
             navigate={(d) => handleNavigate(d)}
             {...props}
           />

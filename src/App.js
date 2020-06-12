@@ -189,7 +189,11 @@ function App(props) {
           {!loading && (
             <BrowserRouter>
               <Switch>
-                <Route exact path="/quiz" component={Quiz} />
+                <Route
+                  exact
+                  path="/quiz/:schedule_id?/:quiz_id?"
+                  component={Quiz}
+                />
                 <Route exact path="/content-maker" component={ContentMaker} />
                 <Route exact path="/content-maker" component={ContentMaker} />
                 <Route exact path="/picker" component={GooglePicker} />
