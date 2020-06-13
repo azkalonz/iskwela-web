@@ -217,6 +217,7 @@ export function SlideRenderer(props) {
             }}
           >
             <SearchInput
+              quickSearch={false}
               style={{ width: "100%" }}
               onChange={(e) => {
                 searchMedia(e, 1);
@@ -303,10 +304,29 @@ export function SlideRenderer(props) {
                 </Box>
               </React.Fragment>
             )}
+          <Box p={2}>
+            {mediaResult && mediaResult.hits && !mediaResult.hits.length && (
+              <React.Fragment>
+                <Pagination
+                  match={props.match}
+                  icon="image_search"
+                  emptyTitle="Nothing Found"
+                  emptyMessage="Try a different keyword"
+                  count={mediaResult.total > 0 ? 26 * 20 : 0}
+                  page={mediaResult.page}
+                  nolink
+                  itemsPerPage={20}
+                  onChange={(p) => {
+                    searchMedia(mediaResult.search, p);
+                  }}
+                />
+              </React.Fragment>
+            )}
+          </Box>
         </DialogContent>
         <DialogActions>
           <Box p={2}>
-            {mediaResult && (
+            {mediaResult && mediaResult.hits && mediaResult.hits.length && (
               <Pagination
                 match={props.match}
                 icon="image_search"

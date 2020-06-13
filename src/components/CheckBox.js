@@ -18,7 +18,11 @@ function CheckBoxAction(props) {
   const isTeacher = props.userInfo.user_type === "t" ? true : false;
   const theme = useTheme();
   return isTeacher ? (
-    <AppBar position="sticky" style={{ background: theme.palette.grey[200] }}>
+    <AppBar
+      position="sticky"
+      style={{ top: 65, background: theme.palette.grey[200] }}
+      variant="outlined"
+    >
       <Toolbar
         style={{
           display: "flex",

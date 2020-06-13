@@ -78,10 +78,10 @@ function InstructionalMaterials(props) {
   const [fileViewerOpen, setfileViewerOpen] = useState(false);
   const [form, setForm] = useState({});
   const [hasFiles, setHasFiles] = useState(false);
-  const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState(false);
   const [errors, setErrors] = useState();
   const [confirmed, setConfirmed] = useState();
+  const [saving, setSaving] = useState(false);
   const [savingId, setSavingId] = useState([]);
   const [fileFullScreen, setFileFullScreen] = useState(false);
   const [progressData, setProgressData] = useState([]);

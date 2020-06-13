@@ -15,6 +15,14 @@ function FV(props) {
     "application/msword",
     "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
     "text/plain",
+    "video/mp4",
+    "video/x-flv",
+    "application/x-mpegURL",
+    "video/MP2T",
+    "video/3gpp",
+    "video/quicktime",
+    "video/x-msvideo",
+    "video/x-ms-wmv",
   ];
   const viewableLinks = [
     {
@@ -45,6 +53,15 @@ function FV(props) {
     "image/bmp",
     "image/png",
     "image/gif",
+    "video/mp4",
+    "video/x-flv",
+    "application/x-mpegURL",
+    "video/MP2T",
+    "video/3gpp",
+    "video/quicktime",
+    "video/x-msvideo",
+    "video/x-ms-wmv",
+    "text/plain",
   ]);
   const getCustomType = (url) => {
     for (let i in viewableLinks) {

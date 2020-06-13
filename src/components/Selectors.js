@@ -119,6 +119,8 @@ export function SearchInput(props) {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const searchRef = useRef();
+  const quickSearch =
+    props.quickSearch === undefined ? true : props.quickSearch;
   return (
     <Box
       border={1}
@@ -136,7 +138,11 @@ export function SearchInput(props) {
       <InputBase
         style={{ width: "100%" }}
         placeholder="Search"
-        onKeyDown={(e) => e.which === 13 && props.onChange(e.target.value)}
+        onKeyUp={(e) =>
+          !quickSearch
+            ? e.which === 13 && props.onChange(e.target.value)
+            : props.onChange(e.target.value)
+        }
         inputProps={{ "aria-label": "search activity" }}
         ref={searchRef}
       />

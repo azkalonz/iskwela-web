@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import Login from "./screens/Login";
+import Attendance from "./screens/class/Attendance";
 import Class from "./containers/Class";
 import Quiz from "./containers/Quiz";
 import Home from "./screens/Home";
@@ -26,6 +27,7 @@ import ContentMaker from "./components/content-creator";
 import { connect } from "react-redux";
 
 const primaryColor = "#7539ff";
+const secondaryColor = "#ffd000";
 
 function App(props) {
   const useStyles = makeStyles((theme) => ({
@@ -140,6 +142,9 @@ function App(props) {
       primary: {
         main: primaryColor,
       },
+      secondary: {
+        main: secondaryColor,
+      },
       grey:
         props.theme === "dark"
           ? {
@@ -189,6 +194,7 @@ function App(props) {
           {!loading && (
             <BrowserRouter>
               <Switch>
+                <Route exact path="/attendance" component={Attendance} />
                 <Route
                   exact
                   path="/quiz/:schedule_id?/:quiz_id?"

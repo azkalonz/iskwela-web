@@ -409,24 +409,27 @@ function Activity(props) {
             body.append("file", file);
             body.append("assignment_id", res.id);
             body.append("title", file.name);
-            let a = await FileUpload.upload("/api/upload/activity/material", {
-              body,
-              onUploadProgress: (event, source) =>
-                store.dispatch({
-                  type: "SET_PROGRESS",
-                  id: option_name,
-                  data: {
-                    title: file.name,
-                    loaded: event.loaded,
-                    total: event.total,
-                    onCancel: source,
-                  },
-                }),
-            });
-            if (a.errors) {
-              for (let e in a.errors) {
-                err.push(a.errors[e][0]);
+            let a;
+            try {
+              a = await FileUpload.upload("/api/upload/activity/material", {
+                body,
+                onUploadProgress: (event, source) =>
+                  store.dispatch({
+                    type: "SET_PROGRESS",
+                    id: option_name,
+                    data: {
+                      title: file.name,
+                      loaded: event.loaded,
+                      total: event.total,
+                      onCancel: source,
+                    },
+                  }),
+              });
+              if (a.errors) {
+                setErrors(["File size is too big or not supported."]);
               }
+            } catch (e) {
+              setErrors(["Oops! Something went wrong. Please try again."]);
             }
           });
         }
@@ -447,7 +450,7 @@ function Activity(props) {
         setErrors(err);
       }
     }
-    if (!errors && res) {
+    if (!errors && res && !err) {
       setSuccess(true);
       for (let i = 0; i < newScheduleDetails.activities.length; i++) {
         if (newScheduleDetails.activities[i].id === res.id) {
