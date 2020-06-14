@@ -31,7 +31,12 @@ import Api from "../../api";
 import { SearchInput } from "../../components/Selectors";
 import { makeLinkTo } from "../../components/router-dom";
 import Pagination, { getPageItems } from "../../components/Pagination";
-import { MultipleChoice, TrueOrFalse, ShortAnswer } from "./questionTypes";
+import {
+  MultipleChoice,
+  TrueOrFalse,
+  ShortAnswer,
+  MatchingType,
+} from "./questionTypes";
 
 const styles = (theme) => ({
   root: {
@@ -101,7 +106,7 @@ const useStyles = makeStyles((theme) => ({
     marginBottom: theme.spacing(2),
     padding: theme.spacing(2),
     borderRadius: 7,
-    "&:hover": {
+    "&:hover, &.selected": {
       background: theme.palette.primary.main + "3f",
       cursor: "pointer",
     },
@@ -525,6 +530,7 @@ export function SlideRenderer(props) {
                 <MenuItem value={3}>Yes or No</MenuItem>
                 <MenuItem value={4}>Checkbox</MenuItem>
                 <MenuItem value={5}>Short Answer</MenuItem>
+                <MenuItem value={6}>Match Type</MenuItem>
               </Select>
             </FormControl>
           </Box>
@@ -602,8 +608,10 @@ export function SlideRenderer(props) {
               choices={slide.choices}
               onChoiceChange={(index, ans) => handleChangeChoice(index, ans)}
             />
-          ) : (
+          ) : slide.type === 5 ? (
             <ShortAnswer />
+          ) : (
+            <MatchingType />
           )}
         </Box>
       )}
@@ -682,7 +690,9 @@ export function Slide(props) {
   const styles = useStyles();
   return (
     <div
-      className={styles.slideContainer}
+      className={[styles.slideContainer, props.selected ? "selected" : ""].join(
+        " "
+      )}
       id={props.selected ? "selected-slide" : ""}
       style={
         props.selected

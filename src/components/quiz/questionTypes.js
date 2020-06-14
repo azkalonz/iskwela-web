@@ -7,6 +7,8 @@ import {
   makeStyles,
   Button,
 } from "@material-ui/core";
+import { DndProvider } from "react-dnd";
+import { HTML5Backend } from "react-dnd-html5-backend";
 
 const useStyles = makeStyles((theme) => ({
   slideAnswer: {
@@ -249,5 +251,13 @@ export function ShortAnswer(props) {
         />
       </Box>
     </Box>
+  );
+}
+
+export function MatchingType(props) {
+  return (
+    <DndProvider backend={HTML5Backend}>
+      <div>Test</div>
+    </DndProvider>
   );
 }
