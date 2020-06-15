@@ -426,7 +426,7 @@ function Activity(props) {
                   }),
               });
               if (a.errors) {
-                setErrors(["File size is too big or not supported."]);
+                setErrors(["Oops! Something went wrong. Please try again."]);
               }
             } catch (e) {
               setErrors(["Oops! Something went wrong. Please try again."]);
