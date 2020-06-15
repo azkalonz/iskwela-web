@@ -896,7 +896,7 @@ function Quizzes(props) {
                       <ListItemText
                         onClick={() => _handleFileOption("edit", item)}
                         primary={item.title}
-                        secondary={item.duration / 6000 + "mins"}
+                        secondary={item.duration / 60000 + "mins"}
                       />
                       <Typography
                         variant="body1"

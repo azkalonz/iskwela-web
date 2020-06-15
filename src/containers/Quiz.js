@@ -18,6 +18,7 @@ import { connect } from "react-redux";
 import moment from "moment";
 import AnswerQuiz from "../screens/class/AnswerQuiz";
 import { useHistory } from "react-router-dom";
+import { makeLinkTo } from "../components/router-dom";
 const styles = (theme) => ({
   root: {
     margin: 0,
@@ -73,7 +74,7 @@ function Quiz(props) {
         )[0]
       : {
           title: "Untitled Quiz " + moment(new Date()).format("MM-DD-YYYY"),
-          duration: 6000 * 10,
+          duration: 60000 * 10,
           slides: [
             {
               id: 1,
@@ -136,8 +137,12 @@ function Quiz(props) {
 
         window.localStorage["quiz-items"] = JSON.stringify([items]);
       }
-      setModified(false);
-      setQuiz(items);
+      if (!quiz_id) {
+        history.push(makeLinkTo(["quiz", schedule_id, items.id]));
+      } else {
+        setModified(false);
+        setQuiz(items);
+      }
     }, 2000);
   };
   const handleCreateSlide = () => {
