@@ -187,7 +187,8 @@ export function SlideRenderer(props) {
       ...slide,
       media: {
         thumb: !hasUpload ? mediaResult.selected.previewURL : hasUpload,
-        large: !hasUpload ? mediaResult.selected.previewURL : hasUpload,
+        large: !hasUpload ? mediaResult.selected.largeImageURL : hasUpload,
+        web: !hasUpload ? mediaResult.selected.webformatURL : hasUpload,
       },
     };
     setSlide(r);
@@ -419,7 +420,7 @@ export function SlideRenderer(props) {
                   }}
                   values={() =>
                     [10, 20, 30, 40, 50, 60].map((m) => ({
-                      value: 6000 * m,
+                      value: 60000 * m,
                       label: m + "mins",
                     }))
                   }

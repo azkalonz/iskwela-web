@@ -4,6 +4,7 @@ import Attendance from "./screens/class/Attendance";
 import Class from "./containers/Class";
 import Quiz from "./containers/Quiz";
 import Home from "./screens/Home";
+import AnswerQuiz from "./screens/class/AnswerQuiz";
 
 import { BrowserRouter, Route, Switch, Redirect } from "react-router-dom";
 import {
@@ -168,23 +169,23 @@ function App(props) {
         UserData.addClassSchedule(c.id, c.details);
       }
     });
-    // setLoading(false);
-    Api.auth({
-      success: async (user) => {
-        await UserData.getUserData(user, setLoadingProgress);
-        setLoadingProgress(100);
-        setTimeout(() => {
-          setLoading(false);
-        }, 500);
-      },
-      fail: () => {
-        if (
-          window.location.pathname === "/login" ||
-          window.location.pathname === "/login/"
-        )
-          setLoading(false);
-      },
-    });
+    setLoading(false);
+    //   Api.auth({
+    //     success: async (user) => {
+    //       await UserData.getUserData(user, setLoadingProgress);
+    //       setLoadingProgress(100);
+    //       setTimeout(() => {
+    //         setLoading(false);
+    //       }, 500);
+    //     },
+    //     fail: () => {
+    //       if (
+    //         window.location.pathname === "/login" ||
+    //         window.location.pathname === "/login/"
+    //       )
+    //         setLoading(false);
+    //     },
+    //   });
   }, []);
   return (
     <MuiThemeProvider theme={theme}>
@@ -194,7 +195,7 @@ function App(props) {
           {!loading && (
             <BrowserRouter>
               <Switch>
-                <Route exact path="/attendance" component={Attendance} />
+                <Route exact path="/answer/:quiz_id?" component={AnswerQuiz} />
                 <Route
                   exact
                   path="/quiz/:schedule_id?/:quiz_id?"

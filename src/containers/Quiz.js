@@ -7,18 +7,57 @@ import {
   IconButton,
   Icon,
   Dialog,
-  DialogTitle,
+  Typography,
+  withStyles,
+  DialogTitle as MuiDialogTitle,
   DialogContent,
+  Slide as MuiSlide,
   DialogActions,
 } from "@material-ui/core";
 import { connect } from "react-redux";
 import moment from "moment";
+import AnswerQuiz from "../screens/class/AnswerQuiz";
+import { useHistory } from "react-router-dom";
+const styles = (theme) => ({
+  root: {
+    margin: 0,
+    padding: theme.spacing(2),
+  },
+  closeButton: {
+    position: "absolute",
+    right: theme.spacing(1),
+    top: theme.spacing(1),
+    color: theme.palette.grey[500],
+  },
+});
+const Transition = React.forwardRef(function Transition(props, ref) {
+  return <MuiSlide direction="up" ref={ref} {...props} />;
+});
+const DialogTitle = withStyles(styles)((props) => {
+  const { children, classes, onClose, ...other } = props;
+  return (
+    <MuiDialogTitle disableTypography {...other}>
+      <Typography variant="h6">{children}</Typography>
+      {onClose ? (
+        <IconButton
+          aria-label="close"
+          className={classes.closeButton}
+          onClick={onClose}
+        >
+          <Icon>close</Icon>
+        </IconButton>
+      ) : null}
+    </MuiDialogTitle>
+  );
+});
 
 function Quiz(props) {
   const { schedule_id, quiz_id } = props.match.params;
   const [ID, setID] = useState(2);
   const [totalScore, setTotalScore] = useState(0);
+  const history = useHistory();
   const [confirmed, setConfirmed] = useState();
+  const [modified, setModified] = useState(false);
   const slideTemplate = {
     choices: ["", "", "", ""],
     type: 1,
@@ -58,6 +97,7 @@ function Quiz(props) {
       let score = i.score ? parseInt(i.score) : 0;
       total += score;
     });
+    setModified(true);
     setTotalScore(total);
   }, [quiz.slides]);
 
@@ -74,7 +114,6 @@ function Quiz(props) {
         break;
     }
   };
-
   const handleSave = (items, callback) => {
     setTimeout(() => {
       let storage = window.localStorage["quiz-items"];
@@ -97,6 +136,7 @@ function Quiz(props) {
 
         window.localStorage["quiz-items"] = JSON.stringify([items]);
       }
+      setModified(false);
       setQuiz(items);
     }, 2000);
   };
@@ -140,6 +180,17 @@ function Quiz(props) {
           </DialogActions>
         </Dialog>
       )}
+      <Dialog
+        open={props.location.hash === "#preview"}
+        onClose={() => history.push("#")}
+        fullScreen={true}
+        TransitionComponent={Transition}
+      >
+        <DialogTitle onClose={() => history.push("#")}>Preview</DialogTitle>
+        <DialogContent>
+          <AnswerQuiz noPaging={true} fullHeight match={props.match} />
+        </DialogContent>
+      </Dialog>
       <Box display="flex" alignItems="flex-start" height="100%" width="100%">
         <SlideContainer
           id="slide-container"
@@ -229,6 +280,8 @@ function Quiz(props) {
           flexDirection="column"
         >
           <Toolbar
+            modified={modified}
+            preview={quiz.id ? true : false}
             onSave={(callback) => handleSave(quiz, callback)}
             navigate={(d) => handleNavigate(d)}
             {...props}

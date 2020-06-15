@@ -71,7 +71,6 @@ function Toolbar(props) {
   const theme = useTheme();
   const history = useHistory();
   const [saving, setSaving] = useState(false);
-
   return (
     <MuiToolbar
       style={{
@@ -87,19 +86,28 @@ function Toolbar(props) {
           <Icon>settings</Icon>
         </IconButton>
         <Button
+          onClick={() => history.push("#preview")}
+          variant="contained"
+          disabled={!props.preview}
+          style={{ marginRight: 13 }}
+        >
+          Preview
+        </Button>
+        <Button
           onClick={() => {
             setSaving(true);
             props.onSave(() => setSaving(false));
           }}
           variant="contained"
           style={{
-            background: saving
-              ? theme.palette.disabled
-              : theme.palette.success.main,
+            background:
+              saving || !props.modified
+                ? theme.palette.disabled
+                : theme.palette.success.main,
             color: "#fff",
             position: "relative",
           }}
-          disabled={saving}
+          disabled={!props.modified || saving}
         >
           Save
           {saving && (
