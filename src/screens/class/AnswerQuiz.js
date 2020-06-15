@@ -132,7 +132,7 @@ function AnswerQuiz(props) {
                 justifyContent="space-between"
               >
                 <Box>
-                  <Typography variant="h4">
+                  <Typography variant="h4" style={{ whiteSpace: "pre-wrap" }}>
                     {currentSlide + 1}. {quiz.slides[currentSlide].question}
                   </Typography>
                 </Box>

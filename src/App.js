@@ -169,23 +169,23 @@ function App(props) {
         UserData.addClassSchedule(c.id, c.details);
       }
     });
-    // setLoading(false);
-    Api.auth({
-      success: async (user) => {
-        await UserData.getUserData(user, setLoadingProgress);
-        setLoadingProgress(100);
-        setTimeout(() => {
-          setLoading(false);
-        }, 500);
-      },
-      fail: () => {
-        if (
-          window.location.pathname === "/login" ||
-          window.location.pathname === "/login/"
-        )
-          setLoading(false);
-      },
-    });
+    setLoading(false);
+    //   Api.auth({
+    //     success: async (user) => {
+    //       await UserData.getUserData(user, setLoadingProgress);
+    //       setLoadingProgress(100);
+    //       setTimeout(() => {
+    //         setLoading(false);
+    //       }, 500);
+    //     },
+    //     fail: () => {
+    //       if (
+    //         window.location.pathname === "/login" ||
+    //         window.location.pathname === "/login/"
+    //       )
+    //         setLoading(false);
+    //     },
+    //   });
   }, []);
   return (
     <MuiThemeProvider theme={theme}>
