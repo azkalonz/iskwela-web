@@ -59,6 +59,7 @@ function Quiz(props) {
   const history = useHistory();
   const [confirmed, setConfirmed] = useState();
   const [modified, setModified] = useState(false);
+  const [viewableSlide, setViewableSlide] = useState([0, 1, 2, 3]);
   const slideTemplate = {
     choices: ["", "", "", ""],
     type: 1,
@@ -101,7 +102,24 @@ function Quiz(props) {
     setModified(true);
     setTotalScore(total);
   }, [quiz.slides]);
-
+  useEffect(() => {
+    document
+      .querySelector("#slide-container")
+      .addEventListener("scroll", () => setViewableSlide(getViewableSlides()));
+  }, []);
+  const getViewableSlides = () => {
+    let s = document.querySelector("#slide-container");
+    let containerHeight = s.clientHeight;
+    let slideHeight = 232;
+    let totalViewableSlides = Math.ceil(containerHeight / slideHeight) + 2;
+    let containerViewport = s.scrollTop + s.clientHeight;
+    let range = Math.ceil(containerViewport / slideHeight);
+    let viewable = [];
+    for (let i = 0; i < totalViewableSlides; i++) {
+      viewable.push(range - i);
+    }
+    return viewable;
+  };
   const handleNavigate = (d) => {
     switch (d) {
       case "NEXT":
@@ -212,58 +230,64 @@ function Quiz(props) {
           selected={currentSlide}
           score={totalScore}
         >
-          {quiz.slides.map((s, i) => (
-            <Slide
-              key={i}
-              index={i + 1}
-              onChange={(s, i) => setCurrentSlide(i)}
-              item={{ ...s, index: i }}
-              selected={currentSlide === i}
-              onAddSlide={(i) => {
-                let newSlide = { ...slideTemplate, id: ID };
-                let oldslides = [...quiz.slides];
-                oldslides.splice(i, 1, ...[oldslides[i], newSlide]);
-                setID(ID + 1);
-                setQuiz({ ...quiz, slides: oldslides });
-                setCurrentSlide(i + 1);
-              }}
-              onReposition={(indexFrom, indexTo, pos = null) => {
-                if (!quiz.slides[indexTo] || !quiz.slides[indexFrom]) return;
-                let oldSlides = [...quiz.slides];
-                oldSlides.splice(
-                  indexTo,
-                  1,
-                  ...[oldSlides[indexFrom], oldSlides[indexTo]]
-                );
-                oldSlides.splice(indexFrom + 1, 1);
-                setQuiz({ ...quiz, slides: oldSlides });
-                console.log(indexFrom, indexTo);
-                setCurrentSlide(pos ? pos : indexTo);
-              }}
-              onDelete={(i) =>
-                setConfirmed({
-                  title: "Delete Slide",
-                  message: "Are you sure you want to delete this slide?",
-                  yes: () => {
-                    let s = [...quiz.slides];
-                    s.splice(i, 1);
-                    if (!s.length) {
-                      setQuiz({
-                        ...quiz,
-                        slides: [{ ...slideTemplate, id: 1 }],
-                      });
-                    } else {
-                      setQuiz(() => {
-                        if (s[i]) setCurrentSlide(i);
-                        return { ...quiz, slides: s };
-                      });
-                    }
-                    setConfirmed(null);
-                  },
-                })
-              }
-            />
-          ))}
+          {quiz.slides.map((s, i) =>
+            viewableSlide.indexOf(i) >= 0 ? (
+              <Slide
+                key={i}
+                index={i + 1}
+                onChange={(s, index) => {
+                  setCurrentSlide(index);
+                }}
+                item={{ ...s, index: i }}
+                selected={currentSlide === i}
+                onAddSlide={(i) => {
+                  let newSlide = { ...slideTemplate, id: ID };
+                  let oldslides = [...quiz.slides];
+                  oldslides.splice(i, 1, ...[oldslides[i], newSlide]);
+                  setID(ID + 1);
+                  setQuiz({ ...quiz, slides: oldslides });
+                  setCurrentSlide(i + 1);
+                }}
+                onReposition={(indexFrom, indexTo, pos = null) => {
+                  if (!quiz.slides[indexTo] || !quiz.slides[indexFrom]) return;
+                  let oldSlides = [...quiz.slides];
+                  oldSlides.splice(
+                    indexTo,
+                    1,
+                    ...[oldSlides[indexFrom], oldSlides[indexTo]]
+                  );
+                  oldSlides.splice(indexFrom + 1, 1);
+                  setQuiz({ ...quiz, slides: oldSlides });
+                  console.log(indexFrom, indexTo);
+                  setCurrentSlide(pos ? pos : indexTo);
+                }}
+                onDelete={(i) =>
+                  setConfirmed({
+                    title: "Delete Slide",
+                    message: "Are you sure you want to delete this slide?",
+                    yes: () => {
+                      let s = [...quiz.slides];
+                      s.splice(i, 1);
+                      if (!s.length) {
+                        setQuiz({
+                          ...quiz,
+                          slides: [{ ...slideTemplate, id: 1 }],
+                        });
+                      } else {
+                        setQuiz(() => {
+                          if (s[i]) setCurrentSlide(i);
+                          return { ...quiz, slides: s };
+                        });
+                      }
+                      setConfirmed(null);
+                    },
+                  })
+                }
+              />
+            ) : (
+              <div style={{ height: 232, width: "100%" }}></div>
+            )
+          )}
           <Slide
             id="add-slide"
             style={{
