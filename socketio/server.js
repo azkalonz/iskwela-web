@@ -22,6 +22,10 @@ io.on("connection", (socket) => {
   socket.on("update schedule details", (newScheduleDetails) => {
     socket.broadcast.emit("get schedule details", newScheduleDetails);
   });
+
+  socket.on("start quiz", (c) => {
+    socket.broadcast.emit("get quiz details", c);
+  });
 });
 
 httpsServer.listen(3001);

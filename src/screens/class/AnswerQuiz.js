@@ -16,11 +16,15 @@ import {
 import moment from "moment";
 import { useHistory } from "react-router-dom";
 import { makeLinkTo } from "../../components/router-dom";
+import { connect } from "react-redux";
 
 function AnswerQuiz(props) {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
-  const { quiz_id } = props.match.params;
+  const query = require("query-string").parse(window.location.search);
+  const [quiz_id, setId] = useState(
+    props.match.params.quiz_id || props.id || parseInt(query.id)
+  );
   const [quiz, setQuiz] = useState();
   const [isAvailable, setAvailable] = useState(true);
   const [answers, setAnswers] = useState(
@@ -28,7 +32,6 @@ function AnswerQuiz(props) {
       ? JSON.parse(window.localStorage["answered-questions-" + quiz_id])
       : {}
   );
-  const query = require("query-string").parse(window.location.search);
   const [currentSlide, setCurrentSlide] = useState(
     query.question ? parseInt(query.question) : 0
   );
@@ -39,8 +42,9 @@ function AnswerQuiz(props) {
   );
   const history = useHistory();
   useEffect(() => {
-    getQuiz();
-  }, []);
+    if (quiz_id) getQuiz();
+    console.log(quiz_id);
+  }, [quiz_id]);
   useEffect(() => {
     setCurrentSlide(query.question ? parseInt(query.question) : 0);
   }, [query.question]);
@@ -80,7 +84,9 @@ function AnswerQuiz(props) {
       alignItems="flex-start"
       flexWrap={isMobile ? "wrap" : ""}
       justifyContent="space-between"
-      height={props.fullHeight === undefined ? "100vh" : "auto"}
+      height={
+        props.fullHeight === undefined && !query.height ? "100vh" : "auto"
+      }
       overflow="auto"
     >
       {quiz && (
@@ -350,7 +356,7 @@ function Choices(props) {
     <React.Fragment>
       {type === 1 || type === 2 || type === 3 ? (
         choices.map((c) => (
-          <Box width="46%" m={2}>
+          <Box width="44%" m={2}>
             <Button
               fullWidth
               variant="outlined"
@@ -439,4 +445,4 @@ function CountDown(props) {
   return <React.Fragment>{duration}</React.Fragment>;
 }
 
-export default AnswerQuiz;
+export default connect()(AnswerQuiz);

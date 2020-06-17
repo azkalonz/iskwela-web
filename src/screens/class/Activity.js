@@ -2011,34 +2011,32 @@ function Activity(props) {
       >
         <DialogTitle id="alert-dialog-slide-title">Web Link</DialogTitle>
         <DialogContent>
-          <DialogContent id="alert-dialog-slide-description">
-            <Box display="flex" flexWrap="wrap">
-              <TextField
-                label="Title"
-                className={styles.textField}
-                InputLabelProps={{
-                  shrink: true,
-                }}
-                onChange={(e) => {
-                  setNewMaterial({ ...newMaterial, title: e.target.value });
-                }}
-                fullWidth
-              />
-              <TextField
-                label="link"
-                onChange={(e) => {
-                  setNewMaterial({
-                    ...newMaterial,
-                    resource_link: e.target.value,
-                  });
-                }}
-                InputLabelProps={{
-                  shrink: true,
-                }}
-                fullWidth
-              />
-            </Box>
-          </DialogContent>
+          <Box display="flex" flexWrap="wrap">
+            <TextField
+              label="Title"
+              className={styles.textField}
+              InputLabelProps={{
+                shrink: true,
+              }}
+              onChange={(e) => {
+                setNewMaterial({ ...newMaterial, title: e.target.value });
+              }}
+              fullWidth
+            />
+            <TextField
+              label="link"
+              onChange={(e) => {
+                setNewMaterial({
+                  ...newMaterial,
+                  resource_link: e.target.value,
+                });
+              }}
+              InputLabelProps={{
+                shrink: true,
+              }}
+              fullWidth
+            />
+          </Box>
         </DialogContent>
         <DialogActions>
           <Button

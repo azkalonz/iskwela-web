@@ -9,7 +9,8 @@ import {
   DialogContent,
   useTheme,
   useMediaQuery,
-  DialogTitle,
+  DialogTitle as MuiDialogTitle,
+  Icon,
   Menu,
   MenuItem,
   Toolbar,
@@ -22,6 +23,7 @@ import {
   ListItemSecondaryAction,
   makeStyles,
   Typography,
+  Slide,
   Snackbar,
   CircularProgress,
   Grow,
@@ -55,17 +57,52 @@ import { CheckBoxAction } from "../../components/CheckBox";
 import Progress from "../../components/Progress";
 import store from "../../components/redux/store";
 import { makeLinkTo } from "../../components/router-dom";
+import AnswerQuiz from "./AnswerQuiz";
+import { useHistory } from "react-router-dom";
+
+const styles = (theme) => ({
+  root: {
+    margin: 0,
+    padding: theme.spacing(2),
+  },
+  closeButton: {
+    position: "absolute",
+    right: theme.spacing(1),
+    top: theme.spacing(1),
+    color: theme.palette.grey[500],
+  },
+});
+const DialogTitle = withStyles(styles)((props) => {
+  const { children, classes, onClose, ...other } = props;
+  return (
+    <MuiDialogTitle disableTypography {...other}>
+      <Typography variant="h6">{children}</Typography>
+      {onClose ? (
+        <IconButton
+          aria-label="close"
+          className={classes.closeButton}
+          onClick={onClose}
+        >
+          <Icon>close</Icon>
+        </IconButton>
+      ) : null}
+    </MuiDialogTitle>
+  );
+});
 
 const queryString = require("query-string");
 function Alert(props) {
   return <MuiAlert elevation={6} variant="filled" {...props} />;
 }
-
+const Transition = React.forwardRef(function Transition(props, ref) {
+  return <Slide direction="up" ref={ref} {...props} />;
+});
 function Quizzes(props) {
   const query = queryString.parse(window.location.search);
   const theme = useTheme();
+  const history = useHistory();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
-  const { class_id, option_name, schedule_id } = props.match.params;
+  const { class_id, option_name, schedule_id, room_name } = props.match.params;
   const [importQuiz, setImportQuiz] = useState();
   const [materials, setMaterials] = useState();
   const [search, setSearch] = useState("");
@@ -114,6 +151,27 @@ function Quizzes(props) {
           }),
           "_blank"
         );
+        return;
+      case "answer":
+        history.push(
+          makeLinkTo(
+            [
+              "class",
+              class_id,
+              schedule_id,
+              "quiz",
+              "vc",
+              "?id=" + file.id,
+              "&height=auto",
+            ],
+            {
+              vc: room_name ? room_name : "",
+            }
+          )
+        );
+        return;
+      case "preview":
+        history.push("?id=" + file.id + "#preview");
         return;
       case "delete":
         setConfirmed({
@@ -613,6 +671,22 @@ function Quizzes(props) {
         <Progress id={option_name} data={props.dataProgress[option_name]} />
       )}
       <Dialog
+        open={props.location.hash === "#preview" && query.id}
+        onClose={() => history.push("#")}
+        fullScreen={true}
+        TransitionComponent={Transition}
+      >
+        <DialogTitle onClose={() => history.push("#")}>Preview</DialogTitle>
+        <DialogContent>
+          <AnswerQuiz
+            id={query.id && parseInt(query.id)}
+            noPaging={true}
+            fullHeight
+            match={props.match}
+          />
+        </DialogContent>
+      </Dialog>
+      <Dialog
         open={fileViewerOpen}
         keepMounted
         id="file-viewer-container"
@@ -894,7 +968,7 @@ function Quizzes(props) {
                         <InsertDriveFileOutlinedIcon />
                       </ListItemIcon>
                       <ListItemText
-                        onClick={() => _handleFileOption("edit", item)}
+                        onClick={() => _handleFileOption("answer", item)}
                         primary={item.title}
                         secondary={item.duration / 60000 + "mins"}
                       />
@@ -935,6 +1009,16 @@ function Quizzes(props) {
                               onClick={() => _handleFileOption("edit", item)}
                             >
                               <ListItemText primary="Edit" />
+                            </StyledMenuItem>
+                            <StyledMenuItem
+                              onClick={() => _handleFileOption("preview", item)}
+                            >
+                              <ListItemText primary="Preview" />
+                            </StyledMenuItem>
+                            <StyledMenuItem
+                              onClick={() => _handleFileOption("answer", item)}
+                            >
+                              <ListItemText primary="Answer" />
                             </StyledMenuItem>
                             <StyledMenuItem
                               onClick={() => _handleFileOption("delete", item)}

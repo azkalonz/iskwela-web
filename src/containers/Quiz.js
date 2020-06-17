@@ -30,6 +30,10 @@ import { makeLinkTo } from "../components/router-dom";
 import Api from "../api";
 import Pagination, { getPageItems } from "../components/Pagination";
 import { SearchInput } from "../components/Selectors";
+
+const Transition = React.forwardRef(function Transition(props, ref) {
+  return <MuiSlide direction="up" ref={ref} {...props} />;
+});
 const styles = (theme) => ({
   root: {
     margin: 0,
@@ -41,9 +45,6 @@ const styles = (theme) => ({
     top: theme.spacing(1),
     color: theme.palette.grey[500],
   },
-});
-const Transition = React.forwardRef(function Transition(props, ref) {
-  return <MuiSlide direction="up" ref={ref} {...props} />;
 });
 const DialogTitle = withStyles(styles)((props) => {
   const { children, classes, onClose, ...other } = props;

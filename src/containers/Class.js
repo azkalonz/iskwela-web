@@ -444,12 +444,12 @@ function Class(props) {
                   <Divider />
                   <List component="nav" aria-labelledby="nested-list-subheader">
                     {isTeacher
-                      ? rightPanelOptions.map((r, id) =>
-                          panelOption({ ...r, id })
-                        )
-                      : rightPanelOptionsStudents.map((r, id) =>
-                          panelOption({ ...r, id })
-                        )}
+                      ? rightPanelOptions
+                          .filter((s) => !s.hidden)
+                          .map((r, id) => panelOption({ ...r, id }))
+                      : rightPanelOptionsStudents
+                          .filter((s) => !s.hidden)
+                          .map((r, id) => panelOption({ ...r, id }))}
                   </List>
                 </div>
               ) : (

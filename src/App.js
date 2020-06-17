@@ -63,6 +63,9 @@ function App(props) {
           ":focus": {
             outline: 0,
           },
+          ".MuiBackdrop-root": {
+            backgroundColor: "rgba(117, 57, 255, 0.6)",
+          },
           "#selected-option": {
             position: "relative",
             "&:before": {
