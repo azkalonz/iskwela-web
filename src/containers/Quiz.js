@@ -201,6 +201,7 @@ function Quiz(props) {
             onChange={(e) => {
               handleCreateSlide({
                 choices: [e.answer, "", "", ""],
+                answers: [e.answer],
                 question: e.question,
                 type: 1,
                 score: 100,
@@ -335,7 +336,7 @@ function Quiz(props) {
               zIndex: 10,
             }}
           >
-            <Slide onClick={handleCreateSlide} />
+            <Slide onClick={() => handleCreateSlide()} />
             <Slide onClick={() => history.push("#question-bank")} />
           </Box>
         </SlideContainer>

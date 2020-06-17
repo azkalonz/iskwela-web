@@ -822,6 +822,11 @@ export function Slide(props) {
                         key={i}
                         style={{
                           ...(props.item.type === 5 ? { width: "100%" } : {}),
+                          ...{
+                            whiteSpace: "nowrap",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                          },
                         }}
                       >
                         {props.item.choices && props.item.choices[i]
