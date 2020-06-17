@@ -46,7 +46,7 @@ Api.pixabay = {
     axios
       .get(
         "https://pixabay.com/api" +
-          makeLinkTo(["key", "q", "safe", "p"], {
+          makeLinkTo(["key", "q", "safe", "p", "&perpage=20"], {
             key: "?key=16972310-8d3dda4b0b9073ed9da25d551",
             safe: "&safesearch=" + true,
             q: "&q=" + search,

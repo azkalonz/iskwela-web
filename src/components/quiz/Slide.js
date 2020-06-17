@@ -318,7 +318,7 @@ export function SlideRenderer(props) {
                   icon="image_search"
                   emptyTitle="Nothing Found"
                   emptyMessage="Try a different keyword"
-                  count={mediaResult.total > 0 ? 26 * 20 : 0}
+                  count={mediaResult.total > 520 ? 26 * 20 : mediaResult.total}
                   page={mediaResult.page}
                   nolink
                   itemsPerPage={20}
@@ -338,7 +338,7 @@ export function SlideRenderer(props) {
                 icon="image_search"
                 emptyTitle="Nothing Found"
                 emptyMessage="Try a different keyword"
-                count={mediaResult.total > 0 ? 26 * 20 : 0}
+                count={mediaResult.total > 520 ? 26 * 20 : mediaResult.total}
                 page={mediaResult.page}
                 nolink
                 itemsPerPage={20}
