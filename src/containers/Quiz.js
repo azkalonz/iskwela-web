@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import Toolbar from "../components/quiz/Toolbar";
 import SlideContainer, { Slide, SlideRenderer } from "../components/quiz/Slide";
+import PropTypes from "prop-types";
 import {
   Box,
   Button,
@@ -8,17 +9,27 @@ import {
   Icon,
   Dialog,
   Typography,
+  Tab,
+  Tabs,
   withStyles,
   DialogTitle as MuiDialogTitle,
   DialogContent,
   Slide as MuiSlide,
   DialogActions,
+  ListItemSecondaryAction,
+  List,
+  ListItem,
+  ListItemText,
+  CircularProgress,
 } from "@material-ui/core";
 import { connect } from "react-redux";
 import moment from "moment";
 import AnswerQuiz from "../screens/class/AnswerQuiz";
 import { useHistory } from "react-router-dom";
 import { makeLinkTo } from "../components/router-dom";
+import Api from "../api";
+import Pagination, { getPageItems } from "../components/Pagination";
+import { SearchInput } from "../components/Selectors";
 const styles = (theme) => ({
   root: {
     margin: 0,
@@ -163,8 +174,8 @@ function Quiz(props) {
       }
     }, 2000);
   };
-  const handleCreateSlide = () => {
-    let s = [...quiz.slides, { ...slideTemplate, id: ID }];
+  const handleCreateSlide = (items = null) => {
+    let s = [...quiz.slides, { ...(items ? items : slideTemplate), id: ID }];
     setID(ID + 1);
     setQuiz({ ...quiz, slides: s });
     setCurrentSlide(s.length - 1);
@@ -177,6 +188,28 @@ function Quiz(props) {
       flexDirection="column"
       alignItems="flex-start"
     >
+      <Dialog
+        maxWidth="md"
+        fullWidth
+        open={props.location.hash === "#question-bank"}
+        onClose={() => history.push("#")}
+      >
+        <DialogTitle onClose={() => history.push("#")}>Trivia</DialogTitle>
+        <DialogContent>
+          <QuestionBank
+            match={props.match}
+            onChange={(e) => {
+              handleCreateSlide({
+                choices: [e.answer, "", "", ""],
+                question: e.question,
+                type: 1,
+                score: 100,
+              });
+              history.push("#");
+            }}
+          />
+        </DialogContent>
+      </Dialog>
       {confirmed && (
         <Dialog
           open={confirmed ? true : false}
@@ -220,7 +253,7 @@ function Quiz(props) {
           onNavigate={(d) => handleNavigate(d)}
           style={{ outline: "none" }}
           onMouseOver={() => {
-            document.querySelector("#add-slide").style.display = "block";
+            document.querySelector("#add-slide").style.display = "flex";
           }}
           onMouseOut={() => {
             document.querySelector("#add-slide").style.display = "none";
@@ -288,17 +321,23 @@ function Quiz(props) {
               <div style={{ height: 232, width: "100%" }}></div>
             )
           )}
-          <Slide
+          <Box
+            justifyContent="space-between"
+            alignItems="space-between"
+            width="100%"
             id="add-slide"
             style={{
               position: "sticky",
               left: 0,
+              display: "none",
               right: 0,
               bottom: 0,
               zIndex: 10,
             }}
-            onClick={handleCreateSlide}
-          />
+          >
+            <Slide onClick={handleCreateSlide} />
+            <Slide onClick={() => history.push("#question-bank")} />
+          </Box>
         </SlideContainer>
         <Box
           width="100%"
@@ -336,5 +375,190 @@ function Quiz(props) {
     </Box>
   );
 }
+function QuestionBank(props) {
+  const [categories, setCategories] = useState([
+    {
+      id: 42,
+      title: "Sports",
+      clues_count: 275,
+    },
+    {
+      id: 21,
+      title: "Animals",
+      clues_count: 260,
+    },
+    {
+      id: 25,
+      title: "Science",
+      clues_count: 275,
+    },
+    {
+      id: 103,
+      title: "Transportation",
+      clues_count: 245,
+    },
+    {
+      id: 442,
+      title: "People",
+      clues_count: 240,
+    },
+    {
+      id: 7,
+      title: "US Cities",
+      clues_count: 245,
+    },
+    {
+      id: 109,
+      title: "State Capitals",
+      clues_count: 230,
+    },
+    {
+      id: 114,
+      title: "History",
+      clues_count: 230,
+    },
+    {
+      id: 1114,
+      title: "Annual Events",
+      clues_count: 217,
+    },
+    {
+      id: 49,
+      title: "Food",
+      clues_count: 215,
+    },
+    {
+      id: 530,
+      title: "World History",
+      clues_count: 150,
+    },
+  ]);
+  const [page, setPage] = useState(1);
+  const [qPage, setQPage] = useState(1);
+  const [offset, setOffset] = useState(0);
+  const [tabValue, setTab] = useState(0);
+  const [questions, setQuestions] = useState([]);
+  const [cSearch, setCSearch] = useState("");
+  const [qSearch, setQSearch] = useState("");
+  useEffect(() => {
+    getCategories();
+  }, []);
+  const getCategories = async () => {
+    let c = await Api.questions.get("categories?count=100&offset=" + offset);
+    setCategories([...categories, ...c]);
+    setOffset(offset + 100);
+  };
+  const getTrivia = async (id = 42) => {
+    setTab(1);
+    setQuestions({});
+    let t = await Api.questions.get("category?id=" + id);
+    setQuestions(t);
+    setCSearch("");
+  };
+  const handleChange = (event, newValue) => {
+    setTab(newValue);
+    if (!questions.clues) getTrivia();
+  };
+  return (
+    <React.Fragment>
+      <Tabs value={tabValue} onChange={handleChange}>
+        <Tab label="Categories" />
+        <Tab label="Trivias" />
+      </Tabs>
+      <TabPanel value={tabValue} index={0}>
+        {!categories && <CircularProgress />}
+        {categories && (
+          <React.Fragment>
+            <SearchInput onChange={(e) => setCSearch(e)} />
+            <List>
+              {getPageItems(
+                categories.filter(
+                  (c) => JSON.stringify(c).toLowerCase().indexOf(cSearch) >= 0
+                ),
+                page
+              ).map((c) => (
+                <ListItem
+                  onClick={() => getTrivia(c.id)}
+                  onMouseOver={(e) => (e.target.style.opacity = 0.7)}
+                  onMouseOut={(e) => (e.target.style.opacity = 1)}
+                >
+                  <ListItemText primary={c.title} />
+                  <ListItemSecondaryAction>
+                    {c.clues_count}
+                  </ListItemSecondaryAction>
+                </ListItem>
+              ))}
+            </List>
+          </React.Fragment>
+        )}
+        <Pagination
+          page={page}
+          onChange={(p) => {
+            if (p >= Math.ceil(categories.length / 16)) {
+              getCategories();
+            }
+            setPage(p);
+          }}
+          nolink
+          match={props.match}
+          noEmptyMessage
+          count={categories ? categories.length : 1}
+          itemsPerPage={16}
+        />
+      </TabPanel>
+      <TabPanel value={tabValue} index={1}>
+        {!questions.clues && <CircularProgress />}
+        {questions.clues && (
+          <React.Fragment>
+            <SearchInput onChange={(e) => setQSearch(e)} />
+            <List>
+              {getPageItems(
+                questions.clues.filter(
+                  (c) => JSON.stringify(c).toLowerCase().indexOf(qSearch) >= 0
+                ),
+                qPage
+              ).map(
+                (c) =>
+                  c.question && (
+                    <ListItem
+                      onClick={() => props.onChange(c)}
+                      onMouseOver={(e) => (e.target.style.opacity = 0.7)}
+                      onMouseOut={(e) => (e.target.style.opacity = 1)}
+                    >
+                      <ListItemText primary={c.question} />
+                    </ListItem>
+                  )
+              )}
+            </List>
+          </React.Fragment>
+        )}
+        <Pagination
+          page={qPage}
+          onChange={(p) => {
+            setQPage(p);
+          }}
+          nolink
+          match={props.match}
+          noEmptyMessage
+          count={questions.clues ? questions.clues.length : 1}
+          itemsPerPage={16}
+        />
+      </TabPanel>
+    </React.Fragment>
+  );
+}
+function TabPanel(props) {
+  const { children, value, index, ...other } = props;
 
+  return (
+    <React.Fragment>
+      {value === index && <React.Fragment>{children}</React.Fragment>}
+    </React.Fragment>
+  );
+}
+TabPanel.propTypes = {
+  children: PropTypes.node,
+  index: PropTypes.any.isRequired,
+  value: PropTypes.any.isRequired,
+};
 export default connect()(Quiz);

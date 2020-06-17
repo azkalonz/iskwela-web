@@ -202,7 +202,6 @@ function App(props) {
                   component={Quiz}
                 />
                 <Route exact path="/content-maker" component={ContentMaker} />
-                <Route exact path="/content-maker" component={ContentMaker} />
                 <Route exact path="/picker" component={GooglePicker} />
                 <Route exact path="/login">
                   <Login setLoading={(l) => setLoading(l)} />

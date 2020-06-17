@@ -36,6 +36,9 @@ function AnswerQuiz(props) {
   useEffect(() => {
     getQuiz();
   }, []);
+  useEffect(() => {
+    setCurrentSlide(query.question ? parseInt(query.question) : 0);
+  }, [query.question]);
   const getQuiz = () => {
     let quizList = window.localStorage["quiz-items"];
 

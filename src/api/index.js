@@ -55,6 +55,10 @@ Api.pixabay = {
       )
       .then((r) => r.data),
 };
+Api.questions = {
+  get: (endpoint) =>
+    axios.get("https://jservice.io/api/" + endpoint).then((r) => r.data),
+};
 Api.postBlob = (endpoint, params = {}) => {
   return fetch(domain + endpoint, {
     method: "post",
