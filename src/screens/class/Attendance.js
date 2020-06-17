@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Doughnut } from "react-chartjs-2";
 import {
   useTheme,
@@ -26,7 +26,7 @@ import {
 } from "@material-ui/core";
 import "react-calendar/dist/Calendar.css";
 import { connect } from "react-redux";
-import { ScheduleSelector, SearchInput } from "../../components/Selectors";
+import { SearchInput } from "../../components/Selectors";
 import Pagination, { getPageItems } from "../../components/Pagination";
 import ArrowDownwardOutlinedIcon from "@material-ui/icons/ArrowDownwardOutlined";
 import ArrowUpwardOutlinedIcon from "@material-ui/icons/ArrowUpwardOutlined";
@@ -51,7 +51,7 @@ const useStyles = makeStyles((theme) => ({
 
 function Attendance(props) {
   const theme = useTheme();
-  const { schedule_id, class_id } = props.match.params;
+  const { class_id } = props.match.params;
   const query = require("query-string").parse(window.location.search);
   const styles = useStyles();
   const [anchorEl, setAnchorEl] = useState(null);
@@ -63,7 +63,6 @@ function Attendance(props) {
   const [attendance, setAttendance] = useState(
     store.getState().classDetails[class_id].students
   );
-  console.log(attendance);
   const [page, setPage] = useState(query.page ? parseInt(query.page) : 1);
   const [search, setSearch] = useState("");
   const [selectedItems, setSelectedItems] = useState({});
@@ -128,7 +127,6 @@ function Attendance(props) {
     let newitem = {};
     newitem[item.id] = item;
     setSelectedItems({ ...selectedItems, ...newitem });
-    console.log(selectedItems);
   };
   return (
     <Box>
@@ -164,7 +162,6 @@ function Attendance(props) {
             </div>
             <SearchInput
               onChange={(e) => {
-                console.log(e);
                 _handleSearch(e);
               }}
             />
@@ -346,10 +343,7 @@ function Attendance(props) {
               >
                 Schedule
               </Typography>
-              <Calendar
-                onChange={(e) => console.log(e)}
-                style={{ margin: "0 auto" }}
-              />
+              <Calendar style={{ margin: "0 auto" }} />
             </Box>
           </Paper>
         </Box>

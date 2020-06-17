@@ -418,7 +418,6 @@ function LessonPlan(props) {
     let newitem = {};
     newitem[item.id] = item;
     setSelectedItems({ ...selectedItems, ...newitem });
-    console.log(selectedItems);
   };
   const _selectAll = () => {
     let filtered = getPageItems(getFilteredMaterials(), page);

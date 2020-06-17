@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Box, CircularProgress, Typography, Link } from "@material-ui/core";
+import { Box, Typography, Link } from "@material-ui/core";
 import LaunchIcon from "@material-ui/icons/Launch";
 
 function FV(props) {

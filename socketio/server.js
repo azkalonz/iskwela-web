@@ -13,7 +13,6 @@ var httpsServer = https.createServer(credentials, app);
 var io = require("socket.io")(httpsServer);
 
 io.on("connection", (socket) => {
-  console.log("connected");
   socket.on("new class details", (c) => {
     c = JSON.parse(c);
     socket.broadcast.emit("get class details", c);

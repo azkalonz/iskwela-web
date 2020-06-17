@@ -29,7 +29,6 @@ const classes = (state = [], payload) => {
 const classDetails = (state = {}, payload) => {
   switch (payload.type) {
     case "SET_CLASS_DETAILS":
-      console.log("class", payload.class_details);
       return payload.class_details;
     default:
       return state;
@@ -47,7 +46,6 @@ const theme = (state = "light", payload) => {
 const pics = (state = {}, payload) => {
   switch (payload.type) {
     case "SET_PIC":
-      console.log({ ...state, ...payload.userpic });
       return { ...state, ...payload.userpic };
     default:
       return state;

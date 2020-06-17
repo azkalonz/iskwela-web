@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import Drawer from "../components/Drawer";
 import NavBar from "../components/NavBar";
-import { Route, useHistory } from "react-router-dom";
+import { useHistory } from "react-router-dom";
 import {
   Box,
   makeStyles,
@@ -170,7 +170,6 @@ function Class(props) {
     });
     let newClassDetails = await UserData.updateClassDetails(class_id);
     UserData.updateClass(class_id, newClassDetails[class_id]);
-    console.log("a", newClassDetails);
     socket.emit(
       "new class details",
       JSON.stringify({ details: newClassDetails, id: class_id })

@@ -36,9 +36,7 @@ function JitsiMeetComponent(props) {
 
       const api = new window.JitsiMeetExternalAPI(domain, options);
       api.addEventListener("videoConferenceJoined", () => {
-        console.log("Local User Joined");
         setLoading(false);
-        // api.executeCommand('displayName', props.displayName);
       });
     } catch (error) {
       console.error("Failed to load Jitsi API", error);

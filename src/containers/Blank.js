@@ -14,7 +14,6 @@ function Blank(props) {
       p.text()
     );
     c = c.replace("src=", "src=" + l);
-    console.log(c);
     document.querySelector("#content").innerHTML = c;
     setLoading(false);
   };

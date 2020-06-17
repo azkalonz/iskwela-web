@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import {
   Box,
   Typography,
-  Divider,
   IconButton,
   Grow,
   Icon,
@@ -22,9 +21,7 @@ function AnswerQuiz(props) {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const query = require("query-string").parse(window.location.search);
-  const [quiz_id, setId] = useState(
-    props.match.params.quiz_id || props.id || parseInt(query.id)
-  );
+  const quiz_id = props.match.params.quiz_id || props.id || parseInt(query.id);
   const [quiz, setQuiz] = useState();
   const [isAvailable, setAvailable] = useState(true);
   const [answers, setAnswers] = useState(
@@ -43,7 +40,6 @@ function AnswerQuiz(props) {
   const history = useHistory();
   useEffect(() => {
     if (quiz_id) getQuiz();
-    console.log(quiz_id);
   }, [quiz_id]);
   useEffect(() => {
     setCurrentSlide(query.question ? parseInt(query.question) : 0);
@@ -135,14 +131,12 @@ function AnswerQuiz(props) {
                   />
                   <div
                     style={{
-                      background: `url('${quiz.slides[currentSlide].media.thumb}') no-repeat`,
-                      backgroundSize: "cover",
+                      background: `url('${quiz.slides[currentSlide].media.thumb}') 0% 0% / 100% no-repeat`,
                       position: "absolute",
                       top: 0,
                       right: 0,
                       left: 0,
                       bottom: 0,
-                      backgroundSize: "cover",
                       transform: "scale(1.3)",
                       filter: "blur(8px)",
                       opacity: 0.4,
@@ -180,7 +174,7 @@ function AnswerQuiz(props) {
                             color={
                               flaggedQuestions.indexOf(currentSlide) >= 0
                                 ? "error"
-                                : "default"
+                                : "disabled"
                             }
                           >
                             {flaggedQuestions.indexOf(currentSlide) >= 0
@@ -315,7 +309,7 @@ function QuestionsNavigator(props) {
   return (
     <React.Fragment>
       {props.questions.map((q, i) => (
-        <Box m={1}>
+        <Box m={1} key={i}>
           <Button
             style={{
               borderRadius: "50%",
@@ -363,8 +357,8 @@ function Choices(props) {
   return (
     <React.Fragment>
       {type === 1 || type === 2 || type === 3 ? (
-        choices.map((c) => (
-          <Box width="44%" m={2}>
+        choices.map((c, i) => (
+          <Box width="44%" key={i} m={2}>
             <Button
               fullWidth
               variant="outlined"
@@ -382,15 +376,16 @@ function Choices(props) {
           </Box>
         ))
       ) : type === 4 ? (
-        choices.map((c) => (
+        choices.map((c, i) => (
           <Box
+            key={i}
             width="100%"
             m={2}
             p={2}
             border={
               "2px " + props.selected && props.selected.indexOf(c) >= 0
                 ? "solid"
-                : "dashed" + " grey"
+                : "dashed grey"
             }
             display="flex"
             justifyContent="space-between"
@@ -418,7 +413,6 @@ function Choices(props) {
           multiline
           value={props.selected ? props.selected[0] : ""}
           label="Your Answer"
-          value={props.selected ? props.selected[0] : ""}
           onChange={(e) => props.onChooseAnwer(e.target.value)}
         />
       )}

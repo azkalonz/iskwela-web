@@ -84,7 +84,6 @@ function InstructionalMaterials(props) {
   const [saving, setSaving] = useState(false);
   const [savingId, setSavingId] = useState([]);
   const [fileFullScreen, setFileFullScreen] = useState(false);
-  const [progressData, setProgressData] = useState([]);
   const [selectedSched, setSelectedSched] = useState(
     query.date && query.date !== -1 ? parseInt(query.date) : -1
   );
@@ -572,7 +571,6 @@ function InstructionalMaterials(props) {
     let newitem = {};
     newitem[item.id] = item;
     setSelectedItems({ ...selectedItems, ...newitem });
-    console.log(selectedItems);
   };
   const _selectAll = () => {
     let filtered = getPageItems(getFilteredMaterials(), page);

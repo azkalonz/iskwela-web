@@ -175,14 +175,6 @@ function Activity(props) {
         return;
       case "edit":
         handleClickOpen();
-        console.log({
-          ...file,
-          activity_type: file.activity_type === "class activity" ? 1 : 2,
-          published: file.status === "unpublished" ? 0 : 1,
-          subject_id: props.classDetails[class_id].subject.id,
-          id: file.id,
-          class_id,
-        });
         setForm({
           ...file,
           activity_type: file.activity_type === "class activity" ? 1 : 2,
@@ -286,7 +278,6 @@ function Activity(props) {
         a[index].student.pic = "/logo192.png";
       }
     });
-    console.log({ ...currentActivity, answers: a });
     setCurrentActivity({ ...currentActivity, answers: a });
   };
   const _handleSort = (sortBy) => {
@@ -500,7 +491,6 @@ function Activity(props) {
           class_id,
           a.schedule_id
         );
-        console.log("update", newScheduleDetails);
         socket.emit("update schedule details", {
           id: class_id,
           details: newScheduleDetails,

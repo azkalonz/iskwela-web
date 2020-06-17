@@ -115,11 +115,6 @@ export const rightPanelOptionsStudents = [
   },
 ];
 export function getView(name) {
-  console.log(
-    rightPanelOptions
-      .concat(rightPanelOptionsStudents)
-      .filter((i) => i.link === name)[0]
-  );
   return rightPanelOptions
     .concat(rightPanelOptionsStudents)
     .filter((i) => i.link === name)[0].screen;

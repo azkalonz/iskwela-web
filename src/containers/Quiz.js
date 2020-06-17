@@ -293,7 +293,6 @@ function Quiz(props) {
                   );
                   oldSlides.splice(indexFrom + 1, 1);
                   setQuiz({ ...quiz, slides: oldSlides });
-                  console.log(indexFrom, indexTo);
                   setCurrentSlide(pos ? pos : indexTo);
                 }}
                 onDelete={(i) =>

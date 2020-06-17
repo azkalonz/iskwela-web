@@ -18,7 +18,6 @@ import {
   withStyles,
   Box,
   Button,
-  TextField,
   IconButton,
   ListItemSecondaryAction,
   makeStyles,
@@ -32,21 +31,15 @@ import InsertDriveFileOutlinedIcon from "@material-ui/icons/InsertDriveFileOutli
 import MoreHorizOutlinedIcon from "@material-ui/icons/MoreHorizOutlined";
 import ArrowDownwardOutlinedIcon from "@material-ui/icons/ArrowDownwardOutlined";
 import ArrowUpwardOutlinedIcon from "@material-ui/icons/ArrowUpwardOutlined";
-import AttachFileOutlinedIcon from "@material-ui/icons/AttachFileOutlined";
 import ExpandMoreOutlinedIcon from "@material-ui/icons/ExpandMoreOutlined";
 import InsertLinkOutlinedIcon from "@material-ui/icons/InsertLinkOutlined";
 import CloudUploadOutlinedIcon from "@material-ui/icons/CloudUploadOutlined";
 import FileViewer from "../../components/FileViewer";
 import { connect } from "react-redux";
-import FileUpload, { stageFiles } from "../../components/FileUpload";
 import MuiAlert from "@material-ui/lab/Alert";
-import UserData, { asyncForEach } from "../../components/UserData";
-import Api from "../../api";
 import CloseIcon from "@material-ui/icons/Close";
 import FullscreenIcon from "@material-ui/icons/Fullscreen";
 import FullscreenExitIcon from "@material-ui/icons/FullscreenExit";
-import { saveAs } from "file-saver";
-import socket from "../../components/socket.io";
 import Pagination, { getPageItems } from "../../components/Pagination";
 import {
   ScheduleSelector,
@@ -55,7 +48,6 @@ import {
 } from "../../components/Selectors";
 import { CheckBoxAction } from "../../components/CheckBox";
 import Progress from "../../components/Progress";
-import store from "../../components/redux/store";
 import { makeLinkTo } from "../../components/router-dom";
 import AnswerQuiz from "./AnswerQuiz";
 import { useHistory } from "react-router-dom";
@@ -115,15 +107,12 @@ function Quizzes(props) {
   const styles = useStyles();
   const [file, setFile] = useState();
   const [fileViewerOpen, setfileViewerOpen] = useState(false);
-  const [form, setForm] = useState({});
-  const [hasFiles, setHasFiles] = useState(false);
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState(false);
   const [errors, setErrors] = useState();
   const [confirmed, setConfirmed] = useState();
   const [savingId, setSavingId] = useState([]);
   const [fileFullScreen, setFileFullScreen] = useState(false);
-  const [progressData, setProgressData] = useState([]);
   const [selectedSched, setSelectedSched] = useState(
     query.date && query.date !== -1 ? parseInt(query.date) : -1
   );
@@ -237,19 +226,6 @@ function Quizzes(props) {
       });
   }, [materials]);
 
-  const _downloadFile = async (file) => {
-    setErrors(null);
-    setSaving(true);
-    setSavingId([...savingId, file.id]);
-    let res = await Api.postBlob(
-      "/api/download/class/material/" + file.id
-    ).then((resp) => (resp.ok ? resp.blob() : null));
-    if (res) saveAs(new File([res], file.title, { type: res.type }));
-    else setErrors(["Cannot download file."]);
-    setSaving(false);
-    setSavingId(null);
-  };
-
   const _handleSort = () => {
     if (sortType === "ASCENDING") {
       setMaterials(
@@ -275,300 +251,11 @@ function Quizzes(props) {
     setAddNewFileAnchor(null);
   };
 
-  const _handleOpenFile = async (f) => {
-    setFile({
-      title: f.title,
-    });
-    setfileViewerOpen(true);
-    if (!f.uploaded_file) {
-      setFile({ ...file, url: f.resource_link });
-      return;
-    }
-    let res = await Api.postBlob(
-      "/api/download/class/material/" + f.id
-    ).then((resp) => (resp.ok ? resp.blob() : null));
-    if (res)
-      setFile({
-        ...file,
-        url: URL.createObjectURL(new File([res], f.title, { type: res.type })),
-        type: res.type,
-      });
-    else setErrors(["Cannot open file."]);
-  };
-
-  const _handleMaterialAddLink = async () => {
-    if (!form) {
-      setErrors(["Invalid title"]);
-      return;
-    }
-    if (!form.title) {
-      setErrors(["Invalid url"]);
-      return;
-    }
-    if (!form.url) {
-      setErrors(["Invalid link"]);
-      return;
-    }
-    let err = [];
-    setErrors(null);
-    setSaving(true);
-    let res;
-    try {
-      res = await Api.post("/api/class/material/save", {
-        body: {
-          class_id,
-          schedule_id: selectedSched >= 0 ? selectedSched : classSched,
-          ...form,
-        },
-      });
-    } catch (e) {
-      setSuccess(true);
-      let newScheduleDetails = await UserData.updateScheduleDetails(
-        class_id,
-        selectedSched >= 0 ? selectedSched : schedule_id
-      );
-      socket.emit("update schedule details", {
-        id: class_id,
-        details: newScheduleDetails,
-      });
-      setForm({});
-      setModals([false, modals[1]]);
-      setSavingId([]);
-      setSaving(false);
-      setErrors(null);
-      // setErrors(["Oops! Something went wrong. Please try again."]);
-      // setSavingId([]);
-      // setSaving(false);
-    }
-    if (res) {
-      if (res.errors) {
-        for (let e in res.errors) {
-          err.push(res.errors[e][0]);
-        }
-      }
-      if (!err.length) {
-        setSuccess(true);
-        let newScheduleDetails = await UserData.updateScheduleDetails(
-          class_id,
-          selectedSched >= 0 ? selectedSched : schedule_id
-        );
-        socket.emit("update schedule details", {
-          id: class_id,
-          details: newScheduleDetails,
-        });
-        setForm({});
-        setModals([false, modals[1]]);
-      } else setErrors(err);
-      setSavingId([]);
-      setSaving(false);
-      setErrors(null);
-    }
-  };
-
-  const _handleMaterialUpload = async () => {
-    if (!form) {
-      setErrors(["Invalid title"]);
-      return;
-    }
-    let m = document.querySelector("#materials-upload");
-    if (!m.files.length) {
-      setErrors(["Attach file/s"]);
-      return;
-    }
-    let err = [];
-    setErrors(null);
-    setSaving(true);
-    await asyncForEach(m.files, async (file) => {
-      let body = new FormData();
-      body.append("class_id", class_id);
-      body.append("file", file);
-      body.append(
-        "schedule_id",
-        selectedSched >= 0 ? selectedSched : schedule_id
-      );
-      body.append("title", form.title);
-      let res = await FileUpload.upload("/api/upload/class/material", {
-        body,
-        onUploadProgress: (event, source) =>
-          store.dispatch({
-            type: "SET_PROGRESS",
-            id: option_name,
-            data: {
-              title: file.name,
-              loaded: event.loaded,
-              total: event.total,
-              onCancel: source,
-            },
-          }),
-      });
-
-      if (res.errors) {
-        for (let e in res.errors) {
-          err.push(res.errors[e][0]);
-        }
-      }
-    });
-    if (!err.length) {
-      setSuccess(true);
-      let newScheduleDetails = await UserData.updateScheduleDetails(
-        class_id,
-        selectedSched >= 0 ? selectedSched : schedule_id
-      );
-      socket.emit("update schedule details", {
-        id: class_id,
-        details: newScheduleDetails,
-      });
-      setForm({});
-      setHasFiles(false);
-      FileUpload.removeFiles("materials");
-      setModals([modals[0], false]);
-    } else setErrors(["Oops! Something went wrong. Please try again."]);
-    setSavingId([]);
-    setSaving(false);
-  };
-  const updateMaterialStatus = async (item, stat) => {
-    let { id } = item;
-    setConfirmed(null);
-    setErrors(null);
-    setSuccess(false);
-    setConfirmed({
-      title: stat.charAt(0).toUpperCase() + " Material",
-      message: "Are you sure you want to " + stat + " this material?",
-      yes: async () => {
-        setSavingId([...savingId, id]);
-        setSaving(true);
-        setConfirmed(null);
-        let res;
-        try {
-          res = await Api.post("/api/class/material/" + stat + "/" + id);
-        } catch (e) {
-          setErrors(["Oops! Something went wrong. Please try again."]);
-        }
-        if (res) {
-          if (!res.errors) {
-            setSuccess(true);
-            let newScheduleDetails = await UserData.updateScheduleDetails(
-              class_id,
-              item.schedule_id
-            );
-            socket.emit("update schedule details", {
-              id: class_id,
-              details: newScheduleDetails,
-            });
-          } else {
-            let err = [];
-            for (let e in res.errors) {
-              err.push(res.errors[e][0]);
-            }
-            setErrors(err);
-          }
-        }
-        setSavingId([]);
-        setSaving(false);
-      },
-    });
-  };
-  const _handleUpdateMaterialsStatus = (a, s) => {
-    let stat = s ? "Publish" : "Unpublish";
-    setConfirmed({
-      title: stat + " " + Object.keys(a).length + " Quizzes",
-      message: "Are you sure to " + stat + " this Quizzes?",
-      yes: async () => {
-        setErrors(null);
-        setSaving(true);
-        setConfirmed(null);
-        setSavingId([...savingId, ...Object.keys(a).map((i) => a[i].id)]);
-        await asyncForEach(Object.keys(a), async (i) => {
-          try {
-            await Api.post(
-              "/api/class/material/" + stat.toLowerCase() + "/" + a[i].id
-            );
-          } catch (e) {
-            setErrors(["Oops! Something went wrong. Please try again."]);
-            setSaving(false);
-            setSavingId([]);
-
-            return;
-          }
-        });
-        if (!errors) {
-          if (selectedSched < 0) {
-            let newClassDetails = await UserData.updateClassDetails(class_id);
-            UserData.updateClass(class_id, newClassDetails[class_id]);
-            socket.emit(
-              "new class details",
-              JSON.stringify({ details: newClassDetails, id: class_id })
-            );
-          } else {
-            let newScheduleDetails = await UserData.updateScheduleDetails(
-              class_id,
-              selectedSched
-            );
-            socket.emit("update schedule details", {
-              id: class_id,
-              details: newScheduleDetails,
-            });
-          }
-        }
-        setSavingId([]);
-
-        setSaving(false);
-      },
-    });
-  };
-  const _handleRemoveMaterial = (activity) => {
-    setConfirmed({
-      title: "Remove Material",
-      message: "Are you sure you want to remove this material?",
-      yes: async () => {
-        setErrors(null);
-        setSaving(true);
-        setConfirmed(null);
-        setSavingId([...savingId, activity.id]);
-        let res;
-        try {
-          res = await Api.post(
-            "/api/teacher/remove/class-material/" + activity.id,
-            {
-              body: {
-                id: activity.id,
-              },
-            }
-          );
-        } catch (e) {
-          setErrors(["Oops! Something went wrong. Please try again."]);
-        }
-        if (res) {
-          if (!res.errors) {
-            setSuccess(true);
-            let newScheduleDetails = await UserData.updateScheduleDetails(
-              class_id,
-              activity.schedule_id
-            );
-            socket.emit("update schedule details", {
-              id: class_id,
-              details: newScheduleDetails,
-            });
-          } else {
-            let err = [];
-            for (let e in res.errors) {
-              err.push(res.errors[e][0]);
-            }
-            setErrors(err);
-          }
-        }
-        setSavingId([]);
-
-        setSaving(false);
-      },
-    });
-  };
   const _handleRemoveMaterials = (materials) => {
     setConfirmed({
       title: "Remove " + Object.keys(materials).length + " Quizzes",
       message: "Are you sure to remove this Quizzes?",
       yes: async () => {
-        console.log(materials);
         let s = JSON.parse(window.localStorage["quiz-items"]);
         Object.keys(materials).forEach((k) => {
           s.forEach((m, ii) => {
@@ -579,56 +266,6 @@ function Quizzes(props) {
         window.localStorage["quiz-items"] = JSON.stringify(s);
         setConfirmed(null);
         setSuccess(true);
-        // setErrors(null);
-        // setSaving(true);
-        // setSavingId([
-        //   ...savingId,
-        //   ...Object.keys(materials).map((i) => materials[i].id),
-        // ]);
-        // let err = [];
-        // await asyncForEach(Object.keys(materials), async (i) => {
-        //   let id = parseInt(i);
-        //   let res;
-        //   try {
-        //     await Api.post("/api/teacher/remove/class-material/" + id, {
-        //       body: {
-        //         id,
-        //       },
-        //     });
-        //   } catch (e) {
-        //     setErrors(["Oops! Something went wrong. Please try again."]);
-        //   }
-        //   if (res) {
-        //     if (res.errors) {
-        //       for (let e in res.errors) {
-        //         err.push(res.errors[e][0]);
-        //       }
-        //       setErrors(err);
-        //     }
-        //   }
-        // });
-        // if (!errors) {
-        //   if (selectedSched < 0) {
-        //     let newClassDetails = await UserData.updateClassDetails(class_id);
-        //     UserData.updateClass(class_id, newClassDetails[class_id]);
-        //     socket.emit(
-        //       "new class details",
-        //       JSON.stringify({ details: newClassDetails, id: class_id })
-        //     );
-        //   } else {
-        //     let newScheduleDetails = await UserData.updateScheduleDetails(
-        //       class_id,
-        //       selectedSched
-        //     );
-        //     socket.emit("update schedule details", {
-        //       id: class_id,
-        //       details: newScheduleDetails,
-        //     });
-        //   }
-        // }
-        // setSavingId([]);
-
-        // setSaving(false);
       },
     });
   };
@@ -651,7 +288,6 @@ function Quizzes(props) {
     let newitem = {};
     newitem[item.id] = item;
     setSelectedItems({ ...selectedItems, ...newitem });
-    console.log(selectedItems);
   };
   const _selectAll = () => {
     let filtered = getPageItems(getFilteredMaterials(), page);
@@ -1058,7 +694,6 @@ function Quizzes(props) {
         fullWidth
         onClose={() => {
           setModals([modals[0], !modals[1]]);
-          setForm({});
         }}
       >
         <DialogTitle>Available Quizzes</DialogTitle>

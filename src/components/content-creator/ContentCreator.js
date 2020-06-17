@@ -135,18 +135,15 @@ function ContentCreator(fabric, id, params = {}) {
 
   this.canvas.on("object:added", (e) => {
     var object = e.target;
-    console.log("object:modified", object);
 
     if (this.history.action === true) {
       this.history.state = [this.history.state[this.history.index2]];
       this.history.list = [this.history.list[this.history.index2]];
 
       this.history.action = false;
-      console.log(this.history.state);
       this.history.index = 1;
     }
     object.saveState();
-    console.log(object._stateProperties);
     this.history.state[this.history.index] = JSON.stringify(
       object._stateProperties
     );
@@ -177,7 +174,6 @@ function ContentCreator(fabric, id, params = {}) {
   });
   this.canvas.on("object:modified", (e) => {
     var object = e.target;
-    console.log("object:modified");
     this.canvas.bringToFront(object);
 
     if (this.history.action === true) {
@@ -185,7 +181,6 @@ function ContentCreator(fabric, id, params = {}) {
       this.history.list = [this.history.list[this.history.index2]];
 
       this.history.action = false;
-      console.log(this.history.state);
       this.history.index = 1;
     }
 
@@ -198,7 +193,6 @@ function ContentCreator(fabric, id, params = {}) {
     this.history.index++;
     this.history.index2 = this.history.index - 1;
 
-    console.log(this.history.state);
     this.history.refresh = true;
     params.onModified && params.onModified();
     this.save();
@@ -308,8 +302,6 @@ function ContentCreator(fabric, id, params = {}) {
       return;
     }
 
-    console.log("redo");
-
     this.history.index2 = this.history.index + 1;
     this.history.current = this.history.list[this.history.index2];
     this.history.current.setOptions(
@@ -347,7 +339,6 @@ function ContentCreator(fabric, id, params = {}) {
       } else if (key === 65) {
         if (this.currentSelection) {
           this.currentSelection.fontFamily = "impact";
-          console.log(this.currentSelection);
           this.canvas.renderAll();
         }
       }

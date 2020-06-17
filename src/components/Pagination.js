@@ -1,9 +1,8 @@
 import React from "react";
 import { useHistory } from "react-router-dom";
 import { makeLinkTo } from "./router-dom";
-import { Button, Icon, Grow, Box, Typography } from "@material-ui/core";
+import { Icon, Grow, Box, Typography } from "@material-ui/core";
 import { Pagination as MuiPagination } from "@material-ui/lab";
-import ClassIcon from "@material-ui/icons/Class";
 
 const queryString = require("query-string");
 

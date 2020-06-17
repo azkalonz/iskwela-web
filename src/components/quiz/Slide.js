@@ -4,33 +4,27 @@ import {
   Typography,
   Box,
   useTheme,
-  Input,
   Slide as MuiSlide,
   DialogActions,
   FormControl,
-  InputLabel,
   MenuItem,
   DialogTitle as MuiDialogTitle,
   withStyles,
-  Slider,
   TextField,
   Icon,
   IconButton,
   Tooltip,
   Select,
-  Link,
   Dialog,
   DialogContent,
   CircularProgress,
   Button,
   Toolbar,
 } from "@material-ui/core";
-import Skeleton from "react-loading-skeleton";
 import { useHistory } from "react-router-dom";
 import Api from "../../api";
 import { SearchInput } from "../../components/Selectors";
-import { makeLinkTo } from "../../components/router-dom";
-import Pagination, { getPageItems } from "../../components/Pagination";
+import Pagination from "../../components/Pagination";
 import {
   MultipleChoice,
   TrueOrFalse,
@@ -139,7 +133,6 @@ const useStyles = makeStyles((theme) => ({
 export function SlideRenderer(props) {
   const [slide, setSlide] = useState();
   const theme = useTheme();
-  const styles = useStyles();
   const history = useHistory();
   const [mediaResult, setMediaResult] = useState({});
   const [errors, setErrors] = useState({});

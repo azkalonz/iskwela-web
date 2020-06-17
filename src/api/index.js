@@ -16,15 +16,6 @@ Api.get = (endpoint, params = {}) =>
     })
     .then((resp) => resp.data);
 Api.post = (endpoint, params = {}) => {
-  console.log({
-    headers: {
-      Accept: "application/json",
-      "Content-Type": "application/json",
-      Authorization: "Bearer " + Api.token,
-      ...params.headers,
-    },
-    ...params.config,
-  });
   return axios
     .post(domain + endpoint, params.body, {
       headers: {

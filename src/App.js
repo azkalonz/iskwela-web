@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import Login from "./screens/Login";
-import Attendance from "./screens/class/Attendance";
 import Class from "./containers/Class";
 import Quiz from "./containers/Quiz";
 import Home from "./screens/Home";
@@ -17,7 +16,6 @@ import {
 } from "@material-ui/core";
 import { StylesProvider } from "@material-ui/styles";
 import { SkeletonTheme } from "react-loading-skeleton";
-import { Paper } from "@material-ui/core";
 import Api from "./api";
 import store from "./components/redux/store";
 import CssBaseline from "@material-ui/core/CssBaseline";
@@ -36,9 +34,7 @@ function App(props) {
       background: props.theme === "dark" ? "#222222" : "#fff",
     },
   }));
-  const styles = useStyles();
   const [loading, setLoading] = useState(true);
-  const [loadingProgress, setLoadingProgress] = useState(0);
   const skeletonCustomTheme =
     props.theme === "dark"
       ? {
@@ -175,8 +171,7 @@ function App(props) {
     // setLoading(false);
     Api.auth({
       success: async (user) => {
-        await UserData.getUserData(user, setLoadingProgress);
-        setLoadingProgress(100);
+        await UserData.getUserData(user);
         setTimeout(() => {
           setLoading(false);
         }, 500);
@@ -233,11 +228,6 @@ function App(props) {
             >
               <Box p={2}>
                 <img src="/login/loader.svg" width={200} />
-                {/* <CircularProgressWithLabel
-                    value={loadingProgress}
-                    variant="static"
-                    color={props.theme === "dark" ? "white" : "primary"}
-                  /> */}
               </Box>
             </Box>
           )}
@@ -247,29 +237,6 @@ function App(props) {
   );
 }
 
-function CircularProgressWithLabel(props) {
-  return (
-    <Box position="relative" display="inline-flex">
-      <CircularProgress variant="static" {...props} />
-      <Box
-        top={0}
-        left={0}
-        bottom={0}
-        right={0}
-        position="absolute"
-        display="flex"
-        alignItems="center"
-        justifyContent="center"
-      >
-        <Typography
-          variant="caption"
-          component="div"
-          color="textSecondary"
-        >{`${Math.round(props.value)}%`}</Typography>
-      </Box>
-    </Box>
-  );
-}
 const defaultTheme = createMuiTheme();
 let mode = window.localStorage["mode"] ? window.localStorage["mode"] : "light";
 mode = mode === "dark" || mode === "light" ? mode : "light";

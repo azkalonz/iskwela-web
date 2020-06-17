@@ -21,7 +21,6 @@ FileUpload.upload = async (endpoint, params = {}) => {
     });
     return req;
   } catch (e) {
-    console.log("eee", e);
     return { errors: "Unprocessable entity" };
   }
 };
