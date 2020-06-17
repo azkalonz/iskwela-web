@@ -63,8 +63,15 @@ function AnswerQuiz(props) {
     if (!isAvailable) return;
     if (quiz.slides[index]) {
       setCurrentSlide(index);
-      if (props.noPaging === undefined)
-        history.push(makeLinkTo(["?question=" + index]).replace("/", ""));
+      if (props.noPaging === undefined) {
+        let qs = [];
+        Object.keys(query).forEach((q) => {
+          if (q !== "question") qs.push(`&${q}=${query[q]}`);
+        });
+        history.push(
+          makeLinkTo(["?question=" + index, ...qs]).replace("/", "")
+        );
+      }
     }
   };
   const flag = (index) => {
@@ -135,6 +142,7 @@ function AnswerQuiz(props) {
                       right: 0,
                       left: 0,
                       bottom: 0,
+                      backgroundSize: "cover",
                       transform: "scale(1.3)",
                       filter: "blur(8px)",
                       opacity: 0.4,
