@@ -23,6 +23,11 @@ function AnswerQuiz(props) {
   const { quiz_id } = props.match.params;
   const [quiz, setQuiz] = useState();
   const [isAvailable, setAvailable] = useState(true);
+  const [answers, setAnswers] = useState(
+    window.localStorage["answered-questions-" + quiz_id]
+      ? JSON.parse(window.localStorage["answered-questions-" + quiz_id])
+      : {}
+  );
   const query = require("query-string").parse(window.location.search);
   const [currentSlide, setCurrentSlide] = useState(
     query.question ? parseInt(query.question) : 0
@@ -47,7 +52,6 @@ function AnswerQuiz(props) {
         (q) => parseInt(q.id) === parseInt(quiz_id)
       )[0];
     }
-    console.log("aaa", quizList, props.id);
 
     setQuiz(quizList);
   };
@@ -179,7 +183,39 @@ function AnswerQuiz(props) {
                     justifyContent="space-between"
                     flexWrap="wrap"
                   >
-                    <Choices question={quiz.slides[currentSlide]} />
+                    <Choices
+                      onChooseAnwer={(a, combine = false) => {
+                        setAnswers(() => {
+                          let id = quiz.slides[currentSlide].id;
+                          let e = { ...answers };
+                          if (e[id] && e[id].indexOf(a) >= 0) {
+                            let x = e[id];
+                            x.splice(x.indexOf(a), 1);
+                            e[id] = x;
+                            if (!e[id].length || !a) delete e[id];
+                          } else {
+                            if (!combine) e[id] = [a];
+                            else if (combine) {
+                              if (e[id]) {
+                                let aa = e[id];
+                                e[id] = [...aa, a];
+                              } else e[id] = [a];
+                            }
+                          }
+                          if (!a) delete e[id];
+                          window.localStorage[
+                            "answered-questions-" + quiz_id
+                          ] = JSON.stringify(e);
+                          return e;
+                        });
+                      }}
+                      selected={
+                        answers[quiz.slides[currentSlide].id]
+                          ? answers[quiz.slides[currentSlide].id]
+                          : []
+                      }
+                      question={quiz.slides[currentSlide]}
+                    />
                   </Box>
                   <Box p={2} display="flex" justifyContent="space-between">
                     <Button
@@ -248,6 +284,7 @@ function AnswerQuiz(props) {
                       selected={currentSlide}
                       flags={flaggedQuestions}
                       disabled={!isAvailable}
+                      answered={answers}
                     />
                   </Box>
                 </Box>
@@ -275,8 +312,16 @@ function QuestionsNavigator(props) {
             }}
             disabled={props.disabled}
             onClick={() => props.onChange(i)}
-            variant={props.selected === i ? "contained" : "outlined"}
-            color={props.selected === i ? "primary" : "default"}
+            variant={
+              props.selected === i || props.answered[q.id]
+                ? "contained"
+                : "outlined"
+            }
+            color={
+              props.selected === i || props.answered[q.id]
+                ? "primary"
+                : "default"
+            }
           >
             {i + 1}
             {props.flags.indexOf(i) >= 0 && (
@@ -300,12 +345,24 @@ function QuestionsNavigator(props) {
 
 function Choices(props) {
   const { choices, type } = props.question;
+  const theme = useTheme();
   return (
     <React.Fragment>
       {type === 1 || type === 2 || type === 3 ? (
         choices.map((c) => (
           <Box width="46%" m={2}>
-            <Button fullWidth variant="outlined">
+            <Button
+              fullWidth
+              variant="outlined"
+              color={
+                props.selected
+                  ? props.selected.indexOf(c) >= 0
+                    ? "primary"
+                    : "default"
+                  : "default"
+              }
+              onClick={() => props.onChooseAnwer(c)}
+            >
               {c}
             </Button>
           </Box>
@@ -316,17 +373,40 @@ function Choices(props) {
             width="100%"
             m={2}
             p={2}
-            border="1px dashed grey"
+            border={
+              "2px " + props.selected && props.selected.indexOf(c) >= 0
+                ? "solid"
+                : "dashed" + " grey"
+            }
             display="flex"
             justifyContent="space-between"
             alignItems="center"
+            borderColor={
+              props.selected && props.selected.indexOf(c) >= 0
+                ? theme.palette.primary.main
+                : "default"
+            }
           >
             <div>{c}</div>
-            <Checkbox />
+            <Checkbox
+              checked={
+                props.selected && props.selected.indexOf(c) >= 0 ? true : false
+              }
+              color="primary"
+              onChange={() => props.onChooseAnwer(c, true)}
+            />
           </Box>
         ))
       ) : (
-        <TextField fullWidth variant="filled" multiline label="Your Answer" />
+        <TextField
+          fullWidth
+          variant="filled"
+          multiline
+          value={props.selected ? props.selected[0] : ""}
+          label="Your Answer"
+          value={props.selected ? props.selected[0] : ""}
+          onChange={(e) => props.onChooseAnwer(e.target.value)}
+        />
       )}
     </React.Fragment>
   );

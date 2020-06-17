@@ -531,7 +531,7 @@ export function SlideRenderer(props) {
                 <MenuItem value={3}>Yes or No</MenuItem>
                 <MenuItem value={4}>Checkbox</MenuItem>
                 <MenuItem value={5}>Short Answer</MenuItem>
-                <MenuItem value={6}>Match Type</MenuItem>
+                {/* <MenuItem value={6}>Match Type</MenuItem> */}
               </Select>
             </FormControl>
           </Box>
@@ -840,7 +840,7 @@ export function Slide(props) {
         </React.Fragment>
       ) : (
         <Box width="100%" textAlign="center">
-          <Icon>add</Icon>
+          <Icon color="disabled">{props.icon}</Icon>
         </Box>
       )}
       {props.onDelete && (

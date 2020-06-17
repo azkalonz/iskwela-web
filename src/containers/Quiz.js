@@ -336,8 +336,11 @@ function Quiz(props) {
               zIndex: 10,
             }}
           >
-            <Slide onClick={() => handleCreateSlide()} />
-            <Slide onClick={() => history.push("#question-bank")} />
+            <Slide onClick={() => handleCreateSlide()} icon="add" />
+            <Slide
+              onClick={() => history.push("#question-bank")}
+              icon="contact_support"
+            />
           </Box>
         </SlideContainer>
         <Box
