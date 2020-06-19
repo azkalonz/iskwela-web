@@ -9,17 +9,20 @@ import {
   Typography,
   IconButton,
   MenuItem,
+  withStyles,
   Dialog,
   Snackbar,
   DialogContent,
   Switch,
-  DialogTitle,
+  DialogTitle as MuiDialogTitle,
   Menu,
   Grow,
   Box,
   Tooltip,
   DialogActions,
   TextField,
+  useTheme,
+  useMediaQuery,
 } from "@material-ui/core";
 import { connect } from "react-redux";
 import actions from "./redux/actions";
@@ -32,7 +35,35 @@ import MuiAlert from "@material-ui/lab/Alert";
 import UserData from "./UserData";
 import HelpOutlineOutlinedIcon from "@material-ui/icons/HelpOutlineOutlined";
 import store from "./redux/store";
-
+const styles = (theme) => ({
+  root: {
+    margin: 0,
+    padding: theme.spacing(2),
+  },
+  closeButton: {
+    position: "absolute",
+    right: theme.spacing(1),
+    top: theme.spacing(1),
+    color: theme.palette.grey[500],
+  },
+});
+const DialogTitle = withStyles(styles)((props) => {
+  const { children, classes, onClose, ...other } = props;
+  return (
+    <MuiDialogTitle disableTypography className={classes.root} {...other}>
+      <Typography variant="h6">{children}</Typography>
+      {onClose ? (
+        <IconButton
+          aria-label="close"
+          className={classes.closeButton}
+          onClick={onClose}
+        >
+          <CloseIcon />
+        </IconButton>
+      ) : null}
+    </MuiDialogTitle>
+  );
+});
 function Alert(props) {
   return <MuiAlert elevation={6} variant="filled" {...props} />;
 }
@@ -325,6 +356,8 @@ const ChangePasswordDialog = React.memo(function (props) {
 });
 
 const ProfilePicDialog = React.memo(function (props) {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const [preview, setPreview] = useState();
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState();
@@ -365,6 +398,7 @@ const ProfilePicDialog = React.memo(function (props) {
           setErrors(false);
         }
       }}
+      fullScreen={isMobile}
     >
       {errors &&
         errors.map((e, i) => (
@@ -392,7 +426,17 @@ const ProfilePicDialog = React.memo(function (props) {
             </Grow>
           </Snackbar>
         ))}
-      <DialogTitle>Change Profile</DialogTitle>
+      <DialogTitle
+        onClose={() => {
+          if (!saving) {
+            setPreview(false);
+            props.onClose();
+            setErrors(false);
+          }
+        }}
+      >
+        Change Profile
+      </DialogTitle>
       <DialogContent>
         <div style={{ position: "relative" }}>
           {preview && (
@@ -427,7 +471,10 @@ const ProfilePicDialog = React.memo(function (props) {
             con
             id="preview"
             src={preview ? preview : props.userInfo.pic_url}
-            style={{ width: 500, height: 500 }}
+            style={{
+              width: isMobile ? "100%" : 500,
+              height: isMobile ? "auto" : 500,
+            }}
             variant="square"
           />
         </div>
