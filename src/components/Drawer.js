@@ -73,12 +73,9 @@ function Drawer(props) {
               borderLeft={5}
               onClick={() => {
                 history.push(
-                  makeLinkTo([
-                    "class",
-                    item.id,
-                    item.next_schedule.id,
-                    "activity",
-                  ])
+                  makeLinkTo(["class", item.id, item.next_schedule.id, "opt"], {
+                    opt: item.next_schedule.id ? "activity" : "",
+                  })
                 );
               }}
               borderColor={
@@ -310,5 +307,5 @@ Drawer.propTypes = {
 };
 
 export default connect((states) => ({
-  classes: states.classes,
+  classes: Object.keys(states.classes).map((k) => states.classes[k]),
 }))(Drawer);

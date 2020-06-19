@@ -68,24 +68,48 @@ const UserData = {
       class_details: classDetails,
     });
   },
-  updateClass: (class_id, classinfo) => {
-    let classes = [...store.getState().classes];
-    let all = [];
-    classes.forEach((c) => {
-      if (c) all[c.id] = c;
-    });
-    all[class_id] = classinfo;
-    store.dispatch({
-      type: "SET_CLASSES",
-      classes: all,
-    });
+  updateClass: (class_id, classinfo, dispatch = true) => {
+    let classes = { ...store.getState().classes };
+    classes[class_id] = classinfo;
+    if (dispatch)
+      store.dispatch({
+        type: "SET_CLASSES",
+        classes: classes,
+      });
+    return classes;
   },
-  updateClassDetails: async (class_id, details = null) => {
+  updateClassDetails: async function (
+    class_id,
+    details = null,
+    callback = null
+  ) {
     let newClassDetails;
+
     if (!details) {
       newClassDetails = await Api.get(
         "/api/teacher/class/" + class_id + "?include=schedules,students"
       );
+      let scheduleAdded;
+      if (
+        !Object.keys(store.getState().classes[class_id].next_schedule).length
+      ) {
+        scheduleAdded = {
+          ...store.getState().classes[class_id],
+          next_schedule: {
+            ...newClassDetails.schedules[newClassDetails.schedules.length - 1],
+            nosched: true,
+          },
+        };
+        console.log("neww", this.updateClass(class_id, scheduleAdded, false));
+        store.dispatch({
+          type: "SET_CLASSES",
+          classes: this.updateClass(class_id, scheduleAdded, false),
+        });
+        if (callback)
+          callback(
+            newClassDetails.schedules[newClassDetails.schedules.length - 1]
+          );
+      }
     } else {
       newClassDetails = details[class_id];
     }
@@ -129,7 +153,7 @@ const UserData = {
     } else {
       data.classes = await Api.get("/api/teacher/classes");
     }
-    let allclasses = [];
+    let allclasses = {};
     await asyncForEach(data.classes, async (c) => {
       // if (!Object.keys(c.next_schedule).length) {
       //   let details = await UserData.updateClassDetails(c.id);
@@ -142,11 +166,10 @@ const UserData = {
       //     status: details.status,
       //   };
       // }
-      if (!Object.keys(c.next_schedule).length) return;
+      // if (!Object.keys(c.next_schedule).length) return;
       allclasses[c.id] = c;
       allclasses[c.id].teacher.pic = await this.getUserPic(c.teacher.id);
     });
-
     data.classDetails = {};
     store.dispatch({
       type: "SET_CLASS_DETAILS",

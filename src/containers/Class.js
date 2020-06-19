@@ -93,7 +93,7 @@ function Class(props) {
   const [rightPanelLoading, setRightPanelLoading] = useState(true);
 
   useEffect(() => {
-    if (class_id && schedule_id) {
+    if (class_id) {
       if (!props.classDetails[class_id] || currentID !== class_id) {
         setCLASS(undefined);
         setLoading(true);
@@ -108,7 +108,10 @@ function Class(props) {
     if (props.classDetails[class_id]) {
       setCLASS(props.classDetails[class_id]);
     } else {
-      await UserData.updateClassDetails(class_id);
+      await UserData.updateClassDetails(class_id, null, (d) => {
+        console.log(d);
+        history.push(makeLinkTo(["class", class_id, d.id, "activity"]));
+      });
       setCLASS(undefined);
     }
     setRightPanelLoading(false);
@@ -159,16 +162,28 @@ function Class(props) {
   };
   const updateClass = async (status) => {
     setSaving(true);
+    let updatedClassSched = {
+      id: props.classDetails[class_id].schedules[schedule_id].id,
+      date_from: props.classDetails[class_id].schedules[schedule_id].from,
+      date_to: props.classDetails[class_id].schedules[schedule_id].to,
+      teacher_id: props.userInfo.id,
+      status: status,
+    };
     await Api.post("/api/schedule/save", {
-      body: {
-        id: props.classDetails[class_id].schedules[schedule_id].id,
-        date_from: props.classDetails[class_id].schedules[schedule_id].from,
-        date_to: props.classDetails[class_id].schedules[schedule_id].to,
-        teacher_id: props.userInfo.id,
-        status: status,
-      },
+      body: updatedClassSched,
     });
     let newClassDetails = await UserData.updateClassDetails(class_id);
+    newClassDetails[class_id] = {
+      ...newClassDetails[class_id],
+      next_schedule: {
+        ...updatedClassSched,
+        nosched:
+          !Object.keys(props.classDetails[class_id].next_schedule).length ||
+          props.classDetails[class_id].next_schedule.nosched
+            ? true
+            : false,
+      },
+    };
     UserData.updateClass(class_id, newClassDetails[class_id]);
     socket.emit(
       "new class details",

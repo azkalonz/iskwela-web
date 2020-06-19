@@ -158,13 +158,13 @@ function App(props) {
   useEffect(() => {
     window.localStorage.removeItem("greeted");
     socket.on("get class details", (c) => {
-      if (store.getState().classes.filter((c) => c.id === c.id)) {
+      if (store.getState().classes[c.id]) {
         UserData.updateClassDetails(c.id, c.details);
         UserData.updateClass(c.id, c.details[c.id]);
       }
     });
     socket.on("get schedule details", (c) => {
-      if (store.getState().classes.filter((c) => c.id === c.id)) {
+      if (store.getState().classes[c.id]) {
         UserData.addClassSchedule(c.id, c.details);
       }
     });
@@ -193,6 +193,10 @@ function App(props) {
           {!loading && (
             <BrowserRouter>
               <Switch>
+                <Route exact path="/" component={Home} />
+                <Route exact path="/login">
+                  <Login setLoading={(l) => setLoading(l)} />
+                </Route>
                 <Route exact path="/answer/:quiz_id?" component={AnswerQuiz} />
                 <Route
                   exact
@@ -201,11 +205,6 @@ function App(props) {
                 />
                 <Route exact path="/content-maker" component={ContentMaker} />
                 <Route exact path="/picker" component={GooglePicker} />
-                <Route exact path="/login">
-                  <Login setLoading={(l) => setLoading(l)} />
-                </Route>
-
-                <Route exact path="/" component={Home} />
                 <Route
                   path="/class/:class_id/:schedule_id?/:option_name?/:room_name?"
                   component={Class}

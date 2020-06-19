@@ -103,7 +103,9 @@ function Home(props) {
               style={{ position: "relative" }}
               onClick={() =>
                 history.push(
-                  makeLinkTo(["class", c.id, c.next_schedule.id, "activity"])
+                  makeLinkTo(["class", c.id, c.next_schedule.id, "opt"], {
+                    opt: c.next_schedule.id ? "activity" : "",
+                  })
                 )
               }
             >
@@ -202,20 +204,27 @@ function Home(props) {
               </CardActions>
             </CardActionArea>
           </Card>
-          <Paper
-            onClick={() =>
-              history.push(
-                c.next_schedule.status === "ONGOING" ? videoConferenceLink : "/"
+          {Object.keys(c.next_schedule).length
+            ? !c.next_schedule.nosched &&
+              message && (
+                <Paper
+                  onClick={() =>
+                    history.push(
+                      c.next_schedule.status === "ONGOING"
+                        ? videoConferenceLink
+                        : "/"
+                    )
+                  }
+                  className={[
+                    styles.classStatus,
+                    styles[c.next_schedule.status],
+                  ].join(" ")}
+                >
+                  <Typography variant="body1">{message}</Typography>
+                  {c.next_schedule.status === "ONGOING" && <VideocamIcon />}
+                </Paper>
               )
-            }
-            className={[
-              styles.classStatus,
-              styles[c.next_schedule.status],
-            ].join(" ")}
-          >
-            <Typography variant="body1">{message}</Typography>
-            {c.next_schedule.status === "ONGOING" && <VideocamIcon />}
-          </Paper>
+            : ""}
         </div>
       </Grow>
     );
@@ -367,7 +376,7 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 export default connect((states) => ({
-  classes: states.classes,
+  classes: Object.keys(states.classes).map((k) => states.classes[k]),
   pics: states.pics,
   userInfo: states.userInfo,
   classDetails: states.classDetails,

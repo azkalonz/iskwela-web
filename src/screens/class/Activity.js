@@ -535,11 +535,7 @@ function Activity(props) {
             details: newScheduleDetails,
           });
         } else if (res.errors) {
-          let err = [];
-          for (let e in res.errors) {
-            err.push(res.errors[e][0]);
-          }
-          setErrors(err);
+          setErrors(["Oops! Something went wrong. Please try again."]);
         }
         setSavingId([]);
 
@@ -630,10 +626,7 @@ function Activity(props) {
             return;
           }
           if (res && res.errors) {
-            for (let e in res.errors) {
-              err.push(res.errors[e][0]);
-            }
-            setErrors(err);
+            setErrors(["Oops! Something went wrong. Please try again."]);
           }
         });
         if (selectedSched < 0) {
@@ -786,10 +779,7 @@ function Activity(props) {
         }),
     });
     if (a.errors) {
-      for (let e in a.errors) {
-        err.push(a.errors[e][0]);
-      }
-      setErrors(err);
+      setErrors(["Oops! Something went wrong. Please try again."]);
     } else {
       setSuccess(true);
       FileUpload.removeFiles("answer");
