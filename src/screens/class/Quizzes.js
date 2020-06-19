@@ -271,8 +271,6 @@ function Quizzes(props) {
   };
   const getFilteredMaterials = () =>
     materials
-      .filter((i) => (isTeacher ? true : i.status === "published"))
-      .filter((a) => (selectedStatus ? selectedStatus === a.status : true))
       .filter((i) => JSON.stringify(i).toLowerCase().indexOf(search) >= 0)
       .filter((a) =>
         selectedSched >= 0 ? selectedSched === parseInt(a.schedule) : true
