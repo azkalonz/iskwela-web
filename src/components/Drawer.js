@@ -138,12 +138,12 @@ function Drawer(props) {
                   borderLeft={5}
                   onClick={() => {
                     history.push(
-                      makeLinkTo([
-                        "class",
-                        item.id,
-                        item.next_schedule.id,
-                        "activity",
-                      ])
+                      makeLinkTo(
+                        ["class", item.id, item.next_schedule.id, "opt"],
+                        {
+                          opt: item.next_schedule.id ? "activity" : "",
+                        }
+                      )
                     );
                   }}
                   borderColor={
