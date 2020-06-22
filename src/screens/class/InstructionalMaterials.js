@@ -83,7 +83,7 @@ function InstructionalMaterials(props) {
   const [confirmed, setConfirmed] = useState();
   const [saving, setSaving] = useState(false);
   const [savingId, setSavingId] = useState([]);
-  const [fileFullScreen, setFileFullScreen] = useState(false);
+  const [fileFullScreen, setFileFullScreen] = useState(true);
   const [selectedSched, setSelectedSched] = useState(
     query.date && query.date !== -1 ? parseInt(query.date) : -1
   );
@@ -208,10 +208,11 @@ function InstructionalMaterials(props) {
   const _handleOpenFile = async (f) => {
     setFile({
       title: f.title,
+      error: false,
     });
     setfileViewerOpen(true);
     if (!f.uploaded_file) {
-      setFile({ ...file, url: f.resource_link });
+      setFile({ ...file, title: f.title, url: f.resource_link, error: false });
       return;
     }
     let res = await Api.postBlob(
@@ -220,10 +221,19 @@ function InstructionalMaterials(props) {
     if (res)
       setFile({
         ...file,
+        title: f.title,
         url: URL.createObjectURL(new File([res], f.title, { type: res.type })),
         type: res.type,
+        error: false,
       });
-    else setErrors(["Cannot open file."]);
+    else {
+      setErrors(["Cannot open file."]);
+      setFile({
+        ...file,
+        title: f.title,
+        error: true,
+      });
+    }
   };
 
   const _handleMaterialAddLink = async () => {
@@ -641,6 +651,7 @@ function InstructionalMaterials(props) {
               title={file.title}
               type={file.type}
               onClose={() => setfileViewerOpen(false)}
+              error={file.error}
             />
           </DialogContent>
         )}

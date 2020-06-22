@@ -35,6 +35,9 @@ import {
   Avatar,
   ExpansionPanelActions,
   Icon,
+  FormControl,
+  InputLabel,
+  Select,
 } from "@material-ui/core";
 import MuiDialogTitle from "@material-ui/core/DialogTitle";
 import MoreHorizOutlinedIcon from "@material-ui/icons/MoreHorizOutlined";
@@ -75,6 +78,7 @@ import Progress from "../../components/Progress";
 import store from "../../components/redux/store";
 import RefreshIcon from "@material-ui/icons/Refresh";
 import StudentRating from "../../components/StudentRating";
+import { useHistory } from "react-router-dom";
 const queryString = require("query-string");
 function Alert(props) {
   return <MuiAlert elevation={6} variant="filled" {...props} />;
@@ -114,6 +118,7 @@ const DialogTitle = withStyles(styles)((props) => {
 
 function Activity(props) {
   const theme = useTheme();
+  const history = useHistory();
   const query = queryString.parse(window.location.search);
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const [saving, setSaving] = useState(false);
@@ -136,7 +141,7 @@ function Activity(props) {
   const [success, setSuccess] = useState(false);
   const [confirmed, setConfirmed] = useState(false);
   const [savingId, setSavingId] = useState([]);
-  const [fileFullScreen, setFileFullScreen] = useState(false);
+  const [fileFullScreen, setFileFullScreen] = useState(true);
   const [selectedItems, setSelectedItems] = useState({});
   const [progressData, setProgressData] = useState([]);
   const [answersSearch, setAnswersSearch] = useState("");
@@ -159,6 +164,7 @@ function Activity(props) {
     available_from: moment(new Date()).format("YYYY-MM-DD"),
     available_to: moment(new Date()).format("YYYY-MM-DD"),
     published: 0,
+    rating_type: "none",
     class_id,
   };
   const [form, setForm] = useState(formTemplate);
@@ -177,6 +183,7 @@ function Activity(props) {
         handleClickOpen();
         setForm({
           ...file,
+          rating_type: "none",
           activity_type: file.activity_type === "class activity" ? 1 : 2,
           published: file.status === "unpublished" ? 0 : 1,
           subject_id: props.classDetails[class_id].subject.id,
@@ -209,7 +216,6 @@ function Activity(props) {
       let offset = $("#video-conference-container");
       offset = offset[0] ? offset[0].offsetHeight : 0;
       document.querySelector("#right-panel").scrollTop = offset;
-      $("#navbar-title").text(currentActivity.title);
     } else {
       setAnswersSearch("");
     }
@@ -239,6 +245,7 @@ function Activity(props) {
   useEffect(() => {
     if (props.classDetails[class_id]) {
       _getActivities();
+      setCurrentActivity(null);
     }
   }, [props.classDetails[class_id]]);
 
@@ -423,6 +430,7 @@ function Activity(props) {
               setErrors(["Oops! Something went wrong. Please try again."]);
             }
           });
+          document.querySelector("#activity-material").value = "";
         }
         if (!noupdate) {
           newScheduleDetails = await UserData.updateScheduleDetails(
@@ -464,6 +472,23 @@ function Activity(props) {
     } else {
       setSaving(false);
     }
+    let newform;
+    try {
+      newform = props.classDetails[class_id].schedules[
+        schedule_id
+      ].activities.filter((a) => a.id === form.id)[0];
+      newform.activity_type =
+        newform.activity_type === "class activity" ? 1 : 2;
+    } catch (e) {
+      newform = props.classDetails[class_id].schedules[schedule_id].activities;
+      newform = newform[newform.length - 1];
+      newform.activity_type =
+        newform.activity_type === "class activity" ? 1 : 2;
+    }
+    setForm({
+      ...form,
+      ...newform,
+    });
     setSavingId([]);
     setProgressData([]);
   };
@@ -724,6 +749,7 @@ function Activity(props) {
     if (res)
       setFile({
         ...file,
+        title: f.name,
         url: URL.createObjectURL(
           new File([res], f.name + "'s Activity Answer", { type: res.type })
         ),
@@ -733,13 +759,16 @@ function Activity(props) {
   };
   const _handleOpenFile = async (f) => {
     setFile({
-      title: f.resource_link ? f.resource_link : f.uploaded_file,
+      title: f.title,
+      error: false,
     });
     setfileViewerOpen(true);
     if (!f.uploaded_file) {
       setFile({
         ...file,
+        title: f.title,
         url: f.resource_link,
+        error: false,
       });
       return;
     }
@@ -749,12 +778,21 @@ function Activity(props) {
     if (res)
       setFile({
         ...file,
+        title: f.title,
         url: URL.createObjectURL(
           new File([res], "activity-material-" + f.id, { type: res.type })
         ),
+        error: false,
         type: res.type,
       });
-    else setErrors(["Cannot open file."]);
+    else {
+      setErrors(["Cannot open file."]);
+      setFile({
+        ...file,
+        title: f.title,
+        error: true,
+      });
+    }
   };
 
   const _handleAnswerUpload = async () => {
@@ -963,8 +1001,6 @@ function Activity(props) {
         onClose={() => setfileViewerOpen(false)}
         maxWidth="xl"
         fullScreen={fileFullScreen}
-        aria-labelledby="alert-dialog-slide-title"
-        aria-describedby="alert-dialog-slide-description"
       >
         {file && (
           <DialogContent style={{ height: "100vh" }}>
@@ -987,7 +1023,7 @@ function Activity(props) {
                 color="textPrimary"
                 style={{ fontWeight: "bold" }}
               >
-                {/* {file.title} */}
+                {file.title}
               </Typography>
               <div>
                 <IconButton onClick={() => setFileFullScreen(!fileFullScreen)}>
@@ -1007,250 +1043,190 @@ function Activity(props) {
               title={file.title}
               type={file.type}
               onClose={() => setfileViewerOpen(false)}
+              error={file.error}
             />
           </DialogContent>
         )}
       </Dialog>
-      <Box
-        m={2}
-        display="flex"
-        justifyContent={isTeacher ? "space-between" : "flex-end"}
-        flexWrap="wrap"
-        alignItems="center"
-      >
-        {isTeacher && (
-          <Button
-            variant="contained"
-            style={{ order: isMobile ? 2 : 0 }}
-            color="primary"
-            onClick={() => {
-              handleClickOpen();
-              setForm(formTemplate);
-            }}
-          >
-            Add New Activity
-          </Button>
-        )}
+      {!currentActivity && (
         <Box
-          flexDirection="row"
-          flexWrap="wrap"
+          m={2}
           display="flex"
-          justifyContent="space-between"
+          justifyContent={isTeacher ? "space-between" : "flex-end"}
+          flexWrap="wrap"
           alignItems="center"
         >
-          <ScheduleSelector
-            onChange={(schedId) => setSelectedSched(schedId)}
-            schedule={selectedSched >= 0 ? selectedSched : -1}
-            match={props.match}
-          />
-          &nbsp;
           {isTeacher && (
-            <StatusSelector
-              onChange={(statusId) => setSelectedStatus(statusId)}
-              status={selectedStatus ? selectedStatus : "all"}
+            <Button
+              variant="contained"
+              style={{ order: isMobile ? 2 : 0 }}
+              color="primary"
+              onClick={() => {
+                handleClickOpen();
+                setForm(formTemplate);
+              }}
+            >
+              Add New Activity
+            </Button>
+          )}
+          <Box
+            flexDirection="row"
+            flexWrap="wrap"
+            display="flex"
+            justifyContent="space-between"
+            alignItems="center"
+          >
+            <ScheduleSelector
+              onChange={(schedId) => setSelectedSched(schedId)}
+              schedule={selectedSched >= 0 ? selectedSched : -1}
               match={props.match}
             />
-          )}
-          &nbsp;
-          <SearchInput onChange={(e) => _handleSearch(e)} />
+            &nbsp;
+            {isTeacher && (
+              <StatusSelector
+                onChange={(statusId) => setSelectedStatus(statusId)}
+                status={selectedStatus ? selectedStatus : "all"}
+                match={props.match}
+              />
+            )}
+            &nbsp;
+            <SearchInput onChange={(e) => _handleSearch(e)} />
+          </Box>
         </Box>
-      </Box>
+      )}
       {currentActivity && !search && (
-        <Grow in={true}>
-          <Box p={2}>
-            <Paper id="activity-preview">
-              <Box p={2}>
-                <Box display="flex" justifyContent="space-between">
-                  <Typography style={{ fontWeight: "bold" }} variant="body1">
-                    {currentActivity.title}
-                  </Typography>
-                  <IconButton onClick={() => setCurrentActivity(null)}>
-                    <CloseIcon />
-                  </IconButton>
+        <React.Fragment>
+          <IconButton onClick={() => setCurrentActivity(null)}>
+            <Icon>arrow_back</Icon>
+          </IconButton>
+          <Grow in={true}>
+            <Box p={2}>
+              <Paper id="activity-preview">
+                <Box p={2}>
+                  <Box
+                    display="flex"
+                    justifyContent="space-between"
+                    alignItems="center"
+                  >
+                    <Typography style={{ fontWeight: "bold" }} variant="body1">
+                      {currentActivity.title}
+                    </Typography>
+                  </Box>
+                  <Box m={2} style={{ marginLeft: 0, marginRight: 0 }}>
+                    <Typography component="div">
+                      {moment(currentActivity.available_from).format("LL")} -{" "}
+                      {moment(currentActivity.available_to).format("LL")}
+                    </Typography>
+                    <Typography style={{ whiteSpace: "pre-wrap" }}>
+                      {currentActivity.description}
+                    </Typography>
+                  </Box>
+                  <Box display="inline-block">
+                    <Typography color="textSecondary">Resources</Typography>
+                    {currentActivity.materials.map((m, i) => (
+                      <Typography component="div" key={i}>
+                        <Link
+                          component="div"
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            cursor: "pointer",
+                          }}
+                          onClick={() => {
+                            _handleOpenFile(m);
+                          }}
+                        >
+                          {m.title}
+                          <LaunchIcon fontSize="small" />
+                        </Link>
+                      </Typography>
+                    ))}
+                  </Box>
                 </Box>
-                <Box m={2} style={{ marginLeft: 0, marginRight: 0 }}>
-                  <Typography component="div">
-                    {moment(currentActivity.available_from).format("LL")} -{" "}
-                    {moment(currentActivity.available_to).format("LL")}
-                  </Typography>
-                  <Typography style={{ whiteSpace: "pre-wrap" }}>
-                    {currentActivity.description}
-                  </Typography>
-                </Box>
-                <Box display="inline-block">
-                  <Typography color="textSecondary">Resources</Typography>
-                  {currentActivity.materials.map((m, i) => (
-                    <Typography component="div" key={i}>
-                      <Link
-                        component="div"
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          cursor: "pointer",
-                        }}
+              </Paper>
+              <Box marginTop={2}>
+                <ExpansionPanel
+                  onChange={(e, v) =>
+                    setCurrentActivity({
+                      ...currentActivity,
+                      expanded:
+                        currentActivity.expanded !== undefined
+                          ? !currentActivity.expanded
+                          : false,
+                    })
+                  }
+                  expanded={
+                    currentActivity.expanded !== undefined
+                      ? currentActivity.expanded
+                      : true
+                  }
+                >
+                  <ExpansionPanelSummary>
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        flexDirection: "row",
+                        width: "100%",
+                      }}
+                    >
+                      <Typography
+                        style={{ fontWeight: "bold", marginBottom: 7 }}
+                        color="textSecondary"
+                      >
+                        {!isTeacher && "Your "}Submissions
+                      </Typography>
+                      <Icon>
+                        {currentActivity.expanded
+                          ? "expand_less"
+                          : "expand_more"}
+                      </Icon>
+                    </div>
+                  </ExpansionPanelSummary>
+                  <ExpansionPanelDetails style={{ flexWrap: "wrap" }}>
+                    <div
+                      style={{
+                        width: "100%",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "flex-end",
+                        textAlign: "right",
+                      }}
+                    >
+                      <IconButton
                         onClick={() => {
-                          _handleOpenFile(m);
+                          setCurrentActivity({
+                            ...currentActivity,
+                            answers: null,
+                          });
+                          getAnswers();
                         }}
                       >
-                        {m.title}
-                        <LaunchIcon fontSize="small" />
-                      </Link>
-                    </Typography>
-                  ))}
-                </Box>
-              </Box>
-            </Paper>
-            <Box marginTop={2}>
-              <ExpansionPanel
-                onChange={(e, v) =>
-                  setCurrentActivity({
-                    ...currentActivity,
-                    expanded: currentActivity.expanded
-                      ? !currentActivity.expanded
-                      : true,
-                  })
-                }
-              >
-                <ExpansionPanelSummary>
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                      flexDirection: "row",
-                      width: "100%",
-                    }}
-                  >
-                    <Typography
-                      style={{ fontWeight: "bold", marginBottom: 7 }}
-                      color="textSecondary"
-                    >
-                      {!isTeacher && "Your "}Answers
-                    </Typography>
-                    <Icon>
-                      {currentActivity.expanded ? "expand_less" : "expand_more"}
-                    </Icon>
-                  </div>
-                </ExpansionPanelSummary>
-                <ExpansionPanelDetails style={{ flexWrap: "wrap" }}>
-                  <div
-                    style={{
-                      width: "100%",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "flex-end",
-                      textAlign: "right",
-                    }}
-                  >
-                    <IconButton
-                      onClick={() => {
-                        setCurrentActivity({
-                          ...currentActivity,
-                          answers: null,
-                        });
-                        getAnswers();
-                      }}
-                    >
-                      <RefreshIcon />
-                    </IconButton>
-                    <SearchInput
-                      onChange={(e) => {
-                        setAnswersSearch(e.toLowerCase());
-                        setAnswerPage(1);
-                      }}
-                    />
-                  </div>
-                  {currentActivity.answers && !currentActivity.answers.length && (
-                    <div>
-                      <Typography variant="body1" color="textPrimary">
-                        NO SUBMISSIONS YET
-                      </Typography>
-                      <Typography variant="body2" color="textSecondary">
-                        Students' submissions will be shown in a table once they
-                        submit the papers
-                      </Typography>
+                        <RefreshIcon />
+                      </IconButton>
+                      <SearchInput
+                        onChange={(e) => {
+                          setAnswersSearch(e.toLowerCase());
+                          setAnswerPage(1);
+                        }}
+                      />
                     </div>
-                  )}
-                  {currentActivity.answers ? (
-                    <List style={{ width: "100%" }}>
-                      {getPageItems(
-                        currentActivity.answers
-                          .filter((a) =>
-                            isTeacher
-                              ? true
-                              : parseInt(a.student.id) ===
-                                parseInt(props.userInfo.id)
-                          )
-                          .filter(
-                            (a) =>
-                              JSON.stringify(a)
-                                .toLowerCase()
-                                .indexOf(answersSearch) >= 0
-                          ),
-                        answerPage
-                      ).map((i) => {
-                        return (
-                          <ListItem>
-                            <ListItemAvatar>
-                              <Avatar
-                                src={i.student.pic}
-                                alt={i.student.first_name}
-                              />
-                            </ListItemAvatar>
-                            <ListItemText
-                              onClick={() =>
-                                _handleOpenAnswer({
-                                  id: i.id,
-                                  name:
-                                    i.student.first_name +
-                                    " " +
-                                    i.student.last_name,
-                                })
-                              }
-                              primary={
-                                i.student.first_name + " " + i.student.last_name
-                              }
-                            />
-                            <ListItemSecondaryAction>
-                              <IconButton
-                                onClick={() =>
-                                  setCurrentActivity({
-                                    ...currentActivity,
-                                    rateStudent: true,
-                                    student: {
-                                      ...i.student,
-                                    },
-                                  })
-                                }
-                              >
-                                <MoreHorizOutlinedIcon />
-                              </IconButton>
-                            </ListItemSecondaryAction>
-                          </ListItem>
-                        );
-                      })}
-                    </List>
-                  ) : (
-                    <Box
-                      display="flex"
-                      justifyContent="center"
-                      flexDirection="row"
-                    >
-                      <CircularProgress />
-                    </Box>
-                  )}
-                  {currentActivity.answers && (
-                    <Box p={2} width="100%">
-                      <Pagination
-                        nolink
-                        noEmptyMessage={answersSearch ? false : true}
-                        icon={answersSearch ? "person_search" : ""}
-                        emptyTitle={"Nothing Found"}
-                        emptyMessage={"Try a different keyword."}
-                        page={answerPage}
-                        match={props.match}
-                        onChange={(p) => setAnswerPage(p)}
-                        count={
+                    {currentActivity.answers &&
+                      !currentActivity.answers.length && (
+                        <div>
+                          <Typography variant="body1" color="textPrimary">
+                            NO SUBMISSIONS YET
+                          </Typography>
+                          <Typography variant="body2" color="textSecondary">
+                            Students' submissions will be shown in a table once
+                            they submit the papers
+                          </Typography>
+                        </div>
+                      )}
+                    {currentActivity.answers ? (
+                      <List style={{ width: "100%" }}>
+                        {getPageItems(
                           currentActivity.answers
                             .filter((a) =>
                               isTeacher
@@ -1263,158 +1239,243 @@ function Activity(props) {
                                 JSON.stringify(a)
                                   .toLowerCase()
                                   .indexOf(answersSearch) >= 0
-                            ).length
-                        }
-                      />
-                    </Box>
-                  )}
-                </ExpansionPanelDetails>
-              </ExpansionPanel>
-            </Box>
-            {!isTeacher && (
-              <Box marginTop={2}>
-                <Typography
-                  style={{ fontWeight: "bold", marginBottom: 7 }}
-                  color="textSecondary"
-                >
-                  Upload your Answer
-                </Typography>
-
-                <Paper>
-                  <Box
-                    width="100%"
-                    p={2}
-                    style={{ boxSizing: "border-box" }}
-                    onDragOver={(e) => {
-                      e.preventDefault();
-                      setDragover(true);
-                      return false;
-                    }}
-                    onDrop={(e) => {
-                      e.preventDefault();
-                      stageFiles("answers", e.dataTransfer.files, (files) => {
-                        setHasFiles([true, hasFiles[1]]);
-                      });
-                      return false;
-                    }}
-                    onDragLeave={(e) => {
-                      e.preventDefault();
-                      setDragover(false);
-                      return false;
-                    }}
-                  >
-                    <input
-                      type="file"
-                      id="activity-answer"
-                      style={{ display: "none" }}
-                      onChange={(e) => {
-                        let isfiles = document.querySelector("#activity-answer")
-                          .files.length
-                          ? true
-                          : false;
-                        stageFiles(
-                          "answers",
-                          document.querySelector("#activity-answer").files
-                        );
-                        setHasFiles([isfiles, hasFiles[1]]);
-                      }}
-                    />
-                    <Box className={styles.upload}>
-                      {!hasFiles[0] ? (
-                        <div>
-                          {!dragover ? (
-                            <div
-                              style={{
-                                display: "flex",
-                                alignItems: "center",
-                              }}
-                            >
-                              <Link
-                                component="div"
-                                style={{
-                                  display: "flex",
-                                  alignItems: "center",
-                                  cursor: "pointer",
-                                  fontWeight: "bold",
-                                }}
+                            ),
+                          answerPage
+                        ).map((i) => {
+                          return (
+                            <ListItem>
+                              <ListItemAvatar>
+                                <Avatar
+                                  src={i.student.pic}
+                                  alt={i.student.first_name}
+                                />
+                              </ListItemAvatar>
+                              <ListItemText
                                 onClick={() =>
-                                  document
-                                    .querySelector("#activity-answer")
-                                    .click()
+                                  _handleOpenAnswer({
+                                    id: i.id,
+                                    name:
+                                      i.student.first_name +
+                                      " " +
+                                      i.student.last_name,
+                                  })
                                 }
-                              >
-                                <AttachFileOutlinedIcon fontSize="small" />
-                                Add file&nbsp;
-                              </Link>
-                              or drag file in here
-                            </div>
-                          ) : (
-                            <div>Drop here</div>
-                          )}
-                        </div>
-                      ) : (
-                        <div>
-                          <Box
-                            display="flex"
-                            flexDirection="column"
-                            alignItems="center"
-                            justifyContent="center"
-                          >
-                            {saving && (
+                                primary={
+                                  i.student.first_name +
+                                  " " +
+                                  i.student.last_name
+                                }
+                              />
+                              {isTeacher && (
+                                <ListItemSecondaryAction>
+                                  <Button
+                                    onClick={() =>
+                                      setCurrentActivity({
+                                        ...currentActivity,
+                                        rateStudent: true,
+                                        student: {
+                                          ...i.student,
+                                        },
+                                      })
+                                    }
+                                    variant="contained"
+                                    color="primary"
+                                  >
+                                    Add Score
+                                  </Button>
+                                </ListItemSecondaryAction>
+                              )}
+                            </ListItem>
+                          );
+                        })}
+                      </List>
+                    ) : (
+                      <Box
+                        display="flex"
+                        justifyContent="center"
+                        flexDirection="row"
+                      >
+                        <CircularProgress />
+                      </Box>
+                    )}
+                    {currentActivity.answers && (
+                      <Box p={2} width="100%">
+                        <Pagination
+                          nolink
+                          noEmptyMessage={answersSearch ? false : true}
+                          icon={answersSearch ? "person_search" : ""}
+                          emptyTitle={"Nothing Found"}
+                          emptyMessage={"Try a different keyword."}
+                          page={answerPage}
+                          match={props.match}
+                          onChange={(p) => setAnswerPage(p)}
+                          count={
+                            currentActivity.answers
+                              .filter((a) =>
+                                isTeacher
+                                  ? true
+                                  : parseInt(a.student.id) ===
+                                    parseInt(props.userInfo.id)
+                              )
+                              .filter(
+                                (a) =>
+                                  JSON.stringify(a)
+                                    .toLowerCase()
+                                    .indexOf(answersSearch) >= 0
+                              ).length
+                          }
+                        />
+                      </Box>
+                    )}
+                  </ExpansionPanelDetails>
+                </ExpansionPanel>
+              </Box>
+              {!isTeacher && (
+                <Box marginTop={2}>
+                  <Typography
+                    style={{ fontWeight: "bold", marginBottom: 7 }}
+                    color="textSecondary"
+                  >
+                    Upload your Answer
+                  </Typography>
+
+                  <Paper>
+                    <Box
+                      width="100%"
+                      p={2}
+                      style={{ boxSizing: "border-box" }}
+                      onDragOver={(e) => {
+                        e.preventDefault();
+                        setDragover(true);
+                        return false;
+                      }}
+                      onDrop={(e) => {
+                        e.preventDefault();
+                        stageFiles("answers", e.dataTransfer.files, (files) => {
+                          setHasFiles([true, hasFiles[1]]);
+                        });
+                        return false;
+                      }}
+                      onDragLeave={(e) => {
+                        e.preventDefault();
+                        setDragover(false);
+                        return false;
+                      }}
+                    >
+                      <input
+                        type="file"
+                        id="activity-answer"
+                        style={{ display: "none" }}
+                        onChange={(e) => {
+                          let isfiles = document.querySelector(
+                            "#activity-answer"
+                          ).files.length
+                            ? true
+                            : false;
+                          stageFiles(
+                            "answers",
+                            document.querySelector("#activity-answer").files
+                          );
+                          setHasFiles([isfiles, hasFiles[1]]);
+                        }}
+                      />
+                      <Box className={styles.upload}>
+                        {!hasFiles[0] ? (
+                          <div>
+                            {!dragover ? (
                               <div
                                 style={{
-                                  position: "absolute",
-                                  left: 0,
-                                  right: 0,
-                                  zIndex: 5,
-                                  top: 0,
-                                  bottom: 0,
                                   display: "flex",
-                                  justifyContent: "center",
                                   alignItems: "center",
-                                  background: "rgba(255,255,255,0.5)",
                                 }}
                               >
-                                <CircularProgress size={24} />
-                              </div>
-                            )}
-                            <div>
-                              {FileUpload.getFiles("answers").map((f, i) => (
-                                <Typography
-                                  variant="body1"
-                                  color="primary"
-                                  key={i}
+                                <Link
+                                  component="div"
+                                  style={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                    cursor: "pointer",
+                                    fontWeight: "bold",
+                                  }}
+                                  onClick={() =>
+                                    document
+                                      .querySelector("#activity-answer")
+                                      .click()
+                                  }
                                 >
-                                  {f.uploaded_file}
-                                </Typography>
-                              ))}
-                            </div>
-                            <div>
-                              <Button onClick={_handleAnswerUpload}>
-                                Upload
-                              </Button>
-                              <Button
-                                onClick={() => {
-                                  FileUpload.removeFiles("answers");
-                                  setDragover(false);
-                                  setHasFiles([false, hasFiles[1]]);
-                                }}
-                              >
-                                Remove
-                              </Button>
-                            </div>
-                          </Box>
-                        </div>
-                      )}
+                                  <AttachFileOutlinedIcon fontSize="small" />
+                                  Add file&nbsp;
+                                </Link>
+                                or drag file in here
+                              </div>
+                            ) : (
+                              <div>Drop here</div>
+                            )}
+                          </div>
+                        ) : (
+                          <div>
+                            <Box
+                              display="flex"
+                              flexDirection="column"
+                              alignItems="center"
+                              justifyContent="center"
+                            >
+                              {saving && (
+                                <div
+                                  style={{
+                                    position: "absolute",
+                                    left: 0,
+                                    right: 0,
+                                    zIndex: 5,
+                                    top: 0,
+                                    bottom: 0,
+                                    display: "flex",
+                                    justifyContent: "center",
+                                    alignItems: "center",
+                                    background: "rgba(255,255,255,0.5)",
+                                  }}
+                                >
+                                  <CircularProgress size={24} />
+                                </div>
+                              )}
+                              <div>
+                                {FileUpload.getFiles("answers").map((f, i) => (
+                                  <Typography
+                                    variant="body1"
+                                    color="primary"
+                                    key={i}
+                                  >
+                                    {f.uploaded_file}
+                                  </Typography>
+                                ))}
+                              </div>
+                              <div>
+                                <Button onClick={_handleAnswerUpload}>
+                                  Upload
+                                </Button>
+                                <Button
+                                  onClick={() => {
+                                    FileUpload.removeFiles("answers");
+                                    setDragover(false);
+                                    setHasFiles([false, hasFiles[1]]);
+                                  }}
+                                >
+                                  Remove
+                                </Button>
+                              </div>
+                            </Box>
+                          </div>
+                        )}
+                      </Box>
                     </Box>
-                  </Box>
-                </Paper>
-              </Box>
-            )}
-          </Box>
-        </Grow>
+                  </Paper>
+                </Box>
+              )}
+            </Box>
+          </Grow>
+        </React.Fragment>
       )}
-      {activities && (
+      {activities && !currentActivity && (
         <Box width="100%" alignSelf="flex-start">
           <Box m={2}>
             {!Object.keys(selectedItems).length ? (
@@ -1681,8 +1742,6 @@ function Activity(props) {
         keepMounted
         fullScreen={true}
         onClose={handleClose}
-        aria-labelledby="alert-dialog-slide-title"
-        aria-describedby="alert-dialog-slide-description"
       >
         <DialogTitle id="alert-dialog-slide-title" onClose={handleClose}>
           {form.id ? "Edit Activity" : "Create Activity"}
@@ -1702,6 +1761,27 @@ function Activity(props) {
               onChange={(e) => setForm({ ...form, title: e.target.value })}
               fullWidth
             />
+            <FormControl
+              style={{ width: isMobile ? "100%" : 160, marginTop: 23 }}
+              variant="outlined"
+            >
+              <InputLabel>Choose a Rating Type</InputLabel>
+              <Select
+                label="Choose a Rating Type"
+                padding={10}
+                value={form.rating_type}
+                onChange={(e) => {
+                  setForm({
+                    ...form,
+                    rating_type: e.target.value,
+                  });
+                }}
+              >
+                <MenuItem value="score">Score</MenuItem>
+                <MenuItem value="star">Star Rating</MenuItem>
+                <MenuItem value="none">None</MenuItem>
+              </Select>
+            </FormControl>
             <MuiPickersUtilsProvider utils={MomentUtils}>
               <Box
                 display="flex"
@@ -1986,8 +2066,6 @@ function Activity(props) {
           setNewMaterial(null);
           setModals([modals[0], false]);
         }}
-        aria-labelledby="alert-dialog-slide-title"
-        aria-describedby="alert-dialog-slide-description"
       >
         <DialogTitle id="alert-dialog-slide-title">Web Link</DialogTitle>
         <DialogContent>

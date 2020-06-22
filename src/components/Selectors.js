@@ -29,7 +29,7 @@ function ScheduleSelector(props) {
       <InputLabel>Date</InputLabel>
 
       <Select
-        label="Schedule"
+        label="Date"
         value={props.schedule}
         onChange={(e) => {
           props.onChange(parseInt(e.target.value) !== -1 ? e.target.value : -1);
@@ -80,7 +80,7 @@ function StatusSelector(props) {
     <FormControl style={{ width: isMobile ? "100%" : 160 }} variant="outlined">
       <InputLabel>Status</InputLabel>
       <Select
-        label="Schedule"
+        label="Status"
         value={props.status}
         onChange={(e) => {
           props.onChange(e.target.value !== "all" ? e.target.value : null);

@@ -142,9 +142,11 @@ function FV(props) {
           width="100%"
           height="100%"
         >
-          <Typography variant="body1">
+          {!props.error ? (
             <img src="/login/loader2.svg" width={130} />
-          </Typography>
+          ) : (
+            "Something went wrong"
+          )}
         </Box>
       )}
 
