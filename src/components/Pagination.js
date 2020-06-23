@@ -36,8 +36,10 @@ export default function Pagination(props) {
                 "page",
                 "date",
                 "status",
+                "queries",
               ],
               {
+                queries: props.queries ? props.queries : "",
                 room: room_name ? room_name : "",
                 page: "?page=" + p,
                 date: query.date ? "&date=" + query.date : "",

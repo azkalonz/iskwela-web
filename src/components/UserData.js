@@ -145,6 +145,25 @@ const UserData = {
     });
     return mergedClassDetails;
   },
+  addQuiz: (quiz) => {
+    store.dispatch({
+      type: "SET_QUIZZES",
+      quizzes: [...store.getState().quizzes, quiz],
+    });
+  },
+  removeQuiz: (id) => {
+    let index = store
+      .getState()
+      .quizzes.findIndex((q) => parseInt(q.id) === parseInt(id));
+    if (index >= 0) {
+      let quizzes = [...store.getState().quizzes];
+      quizzes.splice(index, 1);
+      store.dispatch({
+        type: "SET_QUIZZES",
+        quizzes,
+      });
+    }
+  },
   getUserData: async function (user, setProgress = (e) => {}) {
     let data = {};
     if (user.user_type === "s") {

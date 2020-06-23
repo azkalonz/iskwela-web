@@ -51,6 +51,8 @@ import Progress from "../../components/Progress";
 import { makeLinkTo } from "../../components/router-dom";
 import AnswerQuiz from "./AnswerQuiz";
 import { useHistory } from "react-router-dom";
+import Api from "../../api";
+import UserData, { asyncForEach } from "../../components/UserData";
 
 const styles = (theme) => ({
   root: {
@@ -141,6 +143,19 @@ function Quizzes(props) {
           "_blank"
         );
         return;
+      case "publish-to-class":
+        return;
+      case "view-scores":
+        props.history.push(
+          makeLinkTo([
+            "class",
+            class_id,
+            schedule_id,
+            "scores",
+            "?quiz_id=" + file.id,
+          ])
+        );
+        return;
       case "answer":
         history.push(
           makeLinkTo(
@@ -167,14 +182,16 @@ function Quizzes(props) {
           title: "Remove Quiz",
           message: "Are you sure to remove this quiz?",
           yes: async () => {
-            let s = JSON.parse(window.localStorage["quiz-items"]);
-            s.forEach((m, ii) => {
-              if (m.id === file.id) s.splice(ii, 1);
-            });
-            setMaterials(s);
-            window.localStorage["quiz-items"] = JSON.stringify(s);
             setConfirmed(null);
-            setSuccess(true);
+            setSaving(true);
+            setSavingId([file.id]);
+            let res = await Api.delete("/api/quiz/delete/" + file.id);
+            if (res && res.success) {
+              UserData.removeQuiz(file.id);
+              setSuccess(true);
+            }
+            setSaving(false);
+            setSavingId([]);
           },
         });
         return;
@@ -185,7 +202,7 @@ function Quizzes(props) {
   };
   useEffect(() => {
     _getMaterials();
-  }, [props.classDetails]);
+  }, [props.quizzes]);
   const _getMaterials = () => {
     setMaterials(props.quizzes);
   };
@@ -241,21 +258,28 @@ function Quizzes(props) {
       title: "Remove " + Object.keys(materials).length + " Quizzes",
       message: "Are you sure to remove this Quizzes?",
       yes: async () => {
-        let s = JSON.parse(window.localStorage["quiz-items"]);
-        Object.keys(materials).forEach((k) => {
-          s.forEach((m, ii) => {
-            if (m.id === materials[k].id) s.splice(ii, 1);
-          });
-        });
-        setMaterials(s);
-        window.localStorage["quiz-items"] = JSON.stringify(s);
+        let error = 0;
         setConfirmed(null);
-        setSuccess(true);
+        setSaving(true);
+        setSavingId([
+          ...savingId,
+          ...Object.keys(materials).map((k) => materials[k].id),
+        ]);
+        await asyncForEach(Object.keys(materials), async (k) => {
+          let res = await Api.delete("/api/quiz/delete/" + materials[k].id);
+          if (res && res.success) UserData.removeQuiz(materials[k].id);
+          else error++;
+        });
+        if (error) setErrors(["Oops! Something went wrong. Try again."]);
+        else setSuccess(true);
+        setSavingId([]);
+        setSaving(false);
       },
     });
   };
   const getFilteredMaterials = () =>
     materials
+      .filter((q) => q.subject_id === props.classes[class_id].subject.id)
       .filter((i) => JSON.stringify(i).toLowerCase().indexOf(search) >= 0)
       .filter((a) =>
         selectedSched >= 0 ? selectedSched === parseInt(a.schedule) : true
@@ -283,6 +307,16 @@ function Quizzes(props) {
       b[a.id] = a;
     });
     setSelectedItems(b);
+  };
+  const _handleImportQuiz = async (quiz) => {
+    let res = await Api.post(
+      `/api/quiz/class-publish?quiz_id=${quiz.id}&class_id=${class_id}`
+    );
+    UserData.addQuiz({
+      ...quiz,
+      subject_id: props.classes[class_id].subject.id,
+    });
+    console.log(res);
   };
   return (
     <Box width="100%" alignSelf="flex-start">
@@ -589,7 +623,6 @@ function Quizzes(props) {
                       <ListItemText
                         onClick={() => _handleFileOption("answer", item)}
                         primary={item.title}
-                        secondary={item.intro}
                       />
                       <Typography
                         variant="body1"
@@ -635,10 +668,31 @@ function Quizzes(props) {
                               <ListItemText primary="Preview" />
                             </StyledMenuItem>
                             <StyledMenuItem
+                              onClick={() =>
+                                _handleFileOption("view-scores", item)
+                              }
+                            >
+                              <ListItemText primary="View Scores" />
+                            </StyledMenuItem>
+                            <StyledMenuItem
                               onClick={() => _handleFileOption("answer", item)}
                             >
                               <ListItemText primary="Answer" />
                             </StyledMenuItem>
+                            {/* <StyledMenuItem
+                              onClick={() =>
+                                _handleFileOption("publish-to-school", item)
+                              }
+                            >
+                              <ListItemText primary="Publish to School" />
+                            </StyledMenuItem>
+                            <StyledMenuItem
+                              onClick={() =>
+                                _handleFileOption("publish-to-class", item)
+                              }
+                            >
+                              <ListItemText primary="Publish to Class" />
+                            </StyledMenuItem> */}
                             <StyledMenuItem
                               onClick={() => _handleFileOption("delete", item)}
                             >
@@ -726,19 +780,7 @@ function Quizzes(props) {
               className={styles.wrapper}
               color="primary"
               disabled={!importQuiz ? true : false}
-              onClick={() => {
-                let quizzes = [
-                  ...materials,
-                  {
-                    ...importQuiz,
-                    schedule: schedule_id,
-                    id: materials.length + 1,
-                  },
-                ];
-                setMaterials(quizzes);
-                window.localStorage["quiz-items"] = JSON.stringify(quizzes);
-                setModals([false, false]);
-              }}
+              onClick={() => _handleImportQuiz(importQuiz)}
             >
               Import
             </Button>

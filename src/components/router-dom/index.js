@@ -10,6 +10,7 @@ import LessonPlan from "../../screens/class/LessonPlan";
 import Quizzes from "../../screens/class/Quizzes";
 import Students from "../../screens/class/Students";
 import Schedule from "../../screens/class/Schedule";
+import Scores from "../../screens/class/Scores";
 import InstructionalMaterials from "../../screens/class/InstructionalMaterials";
 import CreateOutlinedIcon from "@material-ui/icons/CreateOutlined";
 import PeopleOutlinedIcon from "@material-ui/icons/PeopleOutlined";
@@ -53,6 +54,7 @@ export const rightPanelOptions = [
     title: "Quizzes",
     link: "quizzes",
     icon: <NoteAddOutlinedIcon />,
+    children: ["scores", "quiz"],
     screen: Quizzes,
   },
   {
@@ -80,6 +82,13 @@ export const rightPanelOptions = [
     screen: AnswerQuiz,
     hidden: true,
   },
+  {
+    title: "Scores",
+    link: "scores",
+    icon: null,
+    screen: Scores,
+    hidden: true,
+  },
 ];
 export const rightPanelOptionsStudents = [
   {
@@ -91,6 +100,7 @@ export const rightPanelOptionsStudents = [
   {
     title: "Quizzes",
     link: "quizzes",
+    children: ["scores", "quiz"],
     icon: <NoteAddOutlinedIcon />,
     screen: Quizzes,
   },

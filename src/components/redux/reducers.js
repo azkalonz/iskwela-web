@@ -40,6 +40,7 @@ const classDetails = (state = {}, payload) => {
 const quizzes = (state = [], payload) => {
   switch (payload.type) {
     case "SET_QUIZZES":
+      console.log(payload.quizzes);
       return payload.quizzes;
     default:
       return state;

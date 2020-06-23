@@ -172,35 +172,40 @@ function Quiz(props) {
     }
   };
   const handleSave = async (items, callback) => {
-    if (quiz_id) items.id = quiz_id;
-    items.total_score = totalScore;
-    items.questions = items.slides.map((q) => ({
-      question_type: "mcq",
-      media_url: q.media && q.media.large ? q.media.large : "",
-      weight: q.score,
-      question: q.question,
-      choices: q.choices,
-    }));
-    items.subject_id = subject_id ? parseInt(subject_id) : null;
-    callback();
-    let res = await Api.post("/api/quiz/save", {
-      body: items,
-    });
-    if (!quiz_id) {
-      history.push(makeLinkTo(["quiz", subject_id, res.id]));
+    try {
+      if (quiz_id) items.id = quiz_id;
+      items.total_score = totalScore;
+      items.questions = items.slides.map((q) => ({
+        question_type: "mcq",
+        media_url: q.media && q.media.large ? q.media.large : "",
+        weight: q.score,
+        question: q.question,
+        choices: q.choices,
+      }));
+      items.subject_id = subject_id ? parseInt(subject_id) : null;
+      let res = await Api.post("/api/quiz/save", {
+        body: items,
+      });
+      if (!quiz_id) {
+        history.push(makeLinkTo(["quiz", subject_id, res.id]));
+      }
+      socket.emit("new quiz", {
+        ...res,
+        author: {
+          id: props.userInfo.id,
+          first_name: props.userInfo.first_name,
+          last_name: props.userInfo.last_name,
+        },
+        school_published: 1,
+        school_published_date: null,
+      });
+      setModified(false);
+      setQuiz(items);
+      callback();
+    } catch (e) {
+      alert("Cannot save quiz. Please fill out the highlighted fields.");
+      callback();
     }
-    socket.emit("new quiz", {
-      ...res,
-      author: {
-        id: props.userInfo.id,
-        first_name: props.userInfo.first_name,
-        last_name: props.userInfo.last_name,
-      },
-      school_published: 1,
-      school_published_date: null,
-    });
-    setModified(false);
-    setQuiz(items);
   };
   const handleCreateSlide = (items = null) => {
     let s = [...quiz.slides, { ...(items ? items : slideTemplate), id: ID }];
@@ -384,7 +389,7 @@ function Quiz(props) {
         >
           <Toolbar
             modified={modified}
-            preview={quiz.id ? true : false}
+            preview={quiz.id || quiz_id ? true : false}
             onSave={(callback) => handleSave(quiz, callback)}
             navigate={(d) => handleNavigate(d)}
             {...props}

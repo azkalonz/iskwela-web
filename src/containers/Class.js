@@ -109,7 +109,6 @@ function Class(props) {
       setCLASS(props.classDetails[class_id]);
     } else {
       await UserData.updateClassDetails(class_id, null, (d) => {
-        console.log(d);
         history.push(makeLinkTo(["class", class_id, d.id, "activity"]));
       });
       setCLASS(undefined);
@@ -135,7 +134,15 @@ function Class(props) {
           }}
           style={{ cursor: "pointer" }}
         >
-          <ListItem id={option_name === p.link ? "selected-option" : ""} button>
+          <ListItem
+            id={
+              option_name === p.link ||
+              (p.children && p.children.indexOf(option_name) >= 0)
+                ? "selected-option"
+                : ""
+            }
+            button
+          >
             <ListItemIcon>{p.icon}</ListItemIcon>
             <ListItemText primary={p.title} />
           </ListItem>

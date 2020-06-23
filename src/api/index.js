@@ -64,6 +64,20 @@ Api.postBlob = (endpoint, params = {}) => {
   });
 };
 
+Api.delete = (endpoint, params = {}) => {
+  return axios
+    .delete(domain + endpoint, {
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+        Authorization: "Bearer " + Api.token,
+        ...params.headers,
+      },
+      ...params.config,
+    })
+    .then((resp) => resp.data);
+};
+
 Api.auth = async (callback = {}) => {
   if (localStorage["auth"]) {
     try {

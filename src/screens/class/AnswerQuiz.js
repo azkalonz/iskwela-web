@@ -20,6 +20,7 @@ import { connect } from "react-redux";
 function AnswerQuiz(props) {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+  const { class_id, schedule_id } = props.match.params;
   const query = require("query-string").parse(window.location.search);
   const quiz_id = props.match.params.quiz_id || props.id || parseInt(query.id);
   const [quiz, setQuiz] = useState();
@@ -85,226 +86,241 @@ function AnswerQuiz(props) {
     window.localStorage["flagged-items"] = JSON.stringify(flags);
   };
   return (
-    <Box
-      display="flex"
-      alignItems="flex-start"
-      flexWrap={isMobile ? "wrap" : ""}
-      justifyContent="space-between"
-      height={
-        props.fullHeight === undefined && !query.height ? "100vh" : "auto"
-      }
-      overflow="auto"
-    >
-      {quiz && (
-        <React.Fragment>
-          <Box width="100%">
-            {isMobile && (
-              <Box textAlign="right" m={3}>
-                <Paper>
-                  <Box p={2}>
-                    <Typography color="textSecondary">
-                      Time Remaining
-                    </Typography>
-                    <Typography variant="h5">
-                      <CountDown
-                        onTimesUp={() => setAvailable(false)}
-                        time={quiz.duration}
-                        started={new Date()}
-                      />
-                    </Typography>
-                  </Box>
-                </Paper>
-              </Box>
-            )}
-            {quiz.slides[currentSlide].media && (
-              <Grow in={true}>
-                <Box
-                  m={2}
-                  height={470}
-                  display="flex"
-                  justifyContent="center"
-                  position="relative"
-                  style={{ background: "linear-gradient(#fff,#4f4f4f)" }}
-                  overflow="hidden"
-                >
-                  <img
-                    src={quiz.slides[currentSlide].media.large}
-                    height="100%"
-                    style={{ position: "relative", zIndex: 2 }}
-                  />
-                  <div
-                    style={{
-                      background: `url('${quiz.slides[currentSlide].media.thumb}') 0% 0% / 100% no-repeat`,
-                      position: "absolute",
-                      top: 0,
-                      right: 0,
-                      left: 0,
-                      bottom: 0,
-                      transform: "scale(1.3)",
-                      filter: "blur(8px)",
-                      opacity: 0.4,
-                      zIndex: 0,
-                    }}
-                  />
+    <React.Fragment>
+      {class_id && schedule_id && (
+        <IconButton
+          onClick={() =>
+            props.history.push(
+              makeLinkTo(["class", class_id, schedule_id, "quizzes"])
+            )
+          }
+        >
+          <Icon>arrow_back</Icon>
+        </IconButton>
+      )}
+      <Box
+        display="flex"
+        alignItems="flex-start"
+        flexWrap={isMobile ? "wrap" : ""}
+        justifyContent="space-between"
+        height={
+          props.fullHeight === undefined && !query.height ? "100vh" : "auto"
+        }
+        overflow="auto"
+      >
+        {quiz && (
+          <React.Fragment>
+            <Box width="100%">
+              {isMobile && (
+                <Box textAlign="right" m={3}>
+                  <Paper>
+                    <Box p={2}>
+                      <Typography color="textSecondary">
+                        Time Remaining
+                      </Typography>
+                      <Typography variant="h5">
+                        <CountDown
+                          onTimesUp={() => setAvailable(false)}
+                          time={quiz.duration}
+                          started={new Date()}
+                        />
+                      </Typography>
+                    </Box>
+                  </Paper>
                 </Box>
-              </Grow>
-            )}
-            <Box m={2}>
-              <Paper>
-                <Paper>
-                  <Box p={2}>
-                    <Typography color="textSecondary">Question</Typography>
+              )}
+              {quiz.slides[currentSlide].media &&
+                quiz.slides[currentSlide].media.large && (
+                  <Grow in={true}>
                     <Box
+                      m={2}
+                      height={470}
                       display="flex"
-                      alignItems="flex-start"
-                      justifyContent="space-between"
+                      justifyContent="center"
+                      position="relative"
+                      style={{ background: "linear-gradient(#fff,#4f4f4f)" }}
+                      overflow="hidden"
                     >
-                      <Box>
-                        <Typography
-                          variant="h4"
-                          style={{ whiteSpace: "pre-wrap" }}
-                        >
-                          {currentSlide + 1}.{" "}
-                          {quiz.slides[currentSlide].question}
-                        </Typography>
-                      </Box>
-                      <Box>
-                        <IconButton
-                          onClick={() => flag(currentSlide)}
-                          disabled={!isAvailable}
-                        >
-                          <Icon
-                            color={
-                              flaggedQuestions.indexOf(currentSlide) >= 0
-                                ? "error"
-                                : "disabled"
-                            }
+                      <img
+                        src={quiz.slides[currentSlide].media.large}
+                        height="100%"
+                        style={{ position: "relative", zIndex: 2 }}
+                      />
+                      <div
+                        style={{
+                          background: `url('${quiz.slides[currentSlide].media.thumb}') 0% 0% / 100% no-repeat`,
+                          position: "absolute",
+                          top: 0,
+                          right: 0,
+                          left: 0,
+                          bottom: 0,
+                          transform: "scale(1.3)",
+                          filter: "blur(8px)",
+                          opacity: 0.4,
+                          zIndex: 0,
+                        }}
+                      />
+                    </Box>
+                  </Grow>
+                )}
+              <Box m={2}>
+                <Paper>
+                  <Paper>
+                    <Box p={2}>
+                      <Typography color="textSecondary">Question</Typography>
+                      <Box
+                        display="flex"
+                        alignItems="flex-start"
+                        justifyContent="space-between"
+                      >
+                        <Box>
+                          <Typography
+                            variant="h4"
+                            style={{ whiteSpace: "pre-wrap" }}
                           >
-                            {flaggedQuestions.indexOf(currentSlide) >= 0
-                              ? "flag"
-                              : "outlined_flag"}
-                          </Icon>
-                        </IconButton>
+                            {currentSlide + 1}.{" "}
+                            {quiz.slides[currentSlide].question}
+                          </Typography>
+                        </Box>
+                        <Box>
+                          <IconButton
+                            onClick={() => flag(currentSlide)}
+                            disabled={!isAvailable}
+                          >
+                            <Icon
+                              color={
+                                flaggedQuestions.indexOf(currentSlide) >= 0
+                                  ? "error"
+                                  : "disabled"
+                              }
+                            >
+                              {flaggedQuestions.indexOf(currentSlide) >= 0
+                                ? "flag"
+                                : "outlined_flag"}
+                            </Icon>
+                          </IconButton>
+                        </Box>
                       </Box>
                     </Box>
-                  </Box>
-                  <Box
-                    m={2}
-                    display="flex"
-                    justifyContent="space-between"
-                    flexWrap="wrap"
-                  >
-                    <Choices
-                      onChooseAnwer={(a, combine = false) => {
-                        setAnswers(() => {
-                          let id = quiz.slides[currentSlide].id;
-                          let e = { ...answers };
-                          if (e[id] && e[id].indexOf(a) >= 0) {
-                            let x = e[id];
-                            x.splice(x.indexOf(a), 1);
-                            e[id] = x;
-                            if (!e[id].length || !a) delete e[id];
-                          } else {
-                            if (!combine) e[id] = [a];
-                            else if (combine) {
-                              if (e[id]) {
-                                let aa = e[id];
-                                e[id] = [...aa, a];
-                              } else e[id] = [a];
-                            }
-                          }
-                          if (!a) delete e[id];
-                          window.localStorage[
-                            "answered-questions-" + quiz_id
-                          ] = JSON.stringify(e);
-                          return e;
-                        });
-                      }}
-                      selected={
-                        answers[quiz.slides[currentSlide].id]
-                          ? answers[quiz.slides[currentSlide].id]
-                          : []
-                      }
-                      question={quiz.slides[currentSlide]}
-                    />
-                  </Box>
-                  <Box p={2} display="flex" justifyContent="space-between">
-                    <Button
-                      variant="outlined"
-                      disabled={currentSlide <= 0 || !isAvailable}
-                      onClick={() => navigateSlide(currentSlide - 1)}
+                    <Box
+                      m={2}
+                      display="flex"
+                      justifyContent="space-between"
+                      flexWrap="wrap"
                     >
-                      Previous Question
-                    </Button>
-                    {currentSlide === quiz.slides.length - 1 || !isAvailable ? (
+                      <Choices
+                        onChooseAnwer={(a, combine = false) => {
+                          setAnswers(() => {
+                            let id = quiz.slides[currentSlide].id;
+                            let e = { ...answers };
+                            if (e[id] && e[id].indexOf(a) >= 0) {
+                              let x = e[id];
+                              x.splice(x.indexOf(a), 1);
+                              e[id] = x;
+                              if (!e[id].length || !a) delete e[id];
+                            } else {
+                              if (!combine) e[id] = [a];
+                              else if (combine) {
+                                if (e[id]) {
+                                  let aa = e[id];
+                                  e[id] = [...aa, a];
+                                } else e[id] = [a];
+                              }
+                            }
+                            if (!a) delete e[id];
+                            window.localStorage[
+                              "answered-questions-" + quiz_id
+                            ] = JSON.stringify(e);
+                            return e;
+                          });
+                        }}
+                        selected={
+                          answers[quiz.slides[currentSlide].id]
+                            ? answers[quiz.slides[currentSlide].id]
+                            : []
+                        }
+                        question={quiz.slides[currentSlide]}
+                      />
+                    </Box>
+                    <Box p={2} display="flex" justifyContent="space-between">
                       <Button
                         variant="outlined"
-                        color="primary"
-                        onClick={() => navigateSlide(currentSlide + 1)}
+                        disabled={currentSlide <= 0 || !isAvailable}
+                        onClick={() => navigateSlide(currentSlide - 1)}
                       >
-                        Submit
+                        Previous Question
                       </Button>
-                    ) : (
-                      <Button
-                        variant="outlined"
-                        onClick={() => navigateSlide(currentSlide + 1)}
-                      >
-                        Next Question
-                      </Button>
-                    )}
-                  </Box>
+                      {currentSlide === quiz.slides.length - 1 ||
+                      !isAvailable ? (
+                        <Button
+                          variant="outlined"
+                          color="primary"
+                          onClick={() => navigateSlide(currentSlide + 1)}
+                        >
+                          Submit
+                        </Button>
+                      ) : (
+                        <Button
+                          variant="outlined"
+                          onClick={() => navigateSlide(currentSlide + 1)}
+                        >
+                          Next Question
+                        </Button>
+                      )}
+                    </Box>
+                  </Paper>
                 </Paper>
-              </Paper>
+              </Box>
             </Box>
-          </Box>
-          <Box
-            minWidth={isMobile ? "100%" : 330}
-            width={isMobile ? "100%" : 330}
-          >
-            {!isMobile && (
-              <Box textAlign="right" m={2}>
+            <Box
+              minWidth={isMobile ? "100%" : 330}
+              width={isMobile ? "100%" : 330}
+            >
+              {!isMobile && (
+                <Box textAlign="right" m={2}>
+                  <Paper>
+                    <Box p={2}>
+                      <Typography color="textSecondary">
+                        Time Remaining
+                      </Typography>
+                      <Typography variant="h5">
+                        <CountDown
+                          onTimesUp={() => setAvailable(false)}
+                          time={quiz.duration}
+                          started={new Date()}
+                        />
+                      </Typography>
+                    </Box>
+                  </Paper>
+                </Box>
+              )}
+              <Box m={2}>
                 <Paper>
                   <Box p={2}>
-                    <Typography color="textSecondary">
-                      Time Remaining
-                    </Typography>
-                    <Typography variant="h5">
-                      <CountDown
-                        onTimesUp={() => setAvailable(false)}
-                        time={quiz.duration}
-                        started={new Date()}
+                    <Typography color="textSecondary">Questions</Typography>
+                    <Box
+                      display="flex"
+                      flexWrap="wrap"
+                      justifyContent="flex-start"
+                      alignItems="flex-start"
+                    >
+                      <QuestionsNavigator
+                        onChange={(index) => navigateSlide(index)}
+                        questions={quiz.slides}
+                        selected={currentSlide}
+                        flags={flaggedQuestions}
+                        disabled={!isAvailable}
+                        answered={answers}
                       />
-                    </Typography>
+                    </Box>
                   </Box>
                 </Paper>
               </Box>
-            )}
-            <Box m={2}>
-              <Paper>
-                <Box p={2}>
-                  <Typography color="textSecondary">Questions</Typography>
-                  <Box
-                    display="flex"
-                    flexWrap="wrap"
-                    justifyContent="flex-start"
-                    alignItems="flex-start"
-                  >
-                    <QuestionsNavigator
-                      onChange={(index) => navigateSlide(index)}
-                      questions={quiz.slides}
-                      selected={currentSlide}
-                      flags={flaggedQuestions}
-                      disabled={!isAvailable}
-                      answered={answers}
-                    />
-                  </Box>
-                </Box>
-              </Paper>
             </Box>
-          </Box>
-        </React.Fragment>
-      )}
-    </Box>
+          </React.Fragment>
+        )}
+      </Box>
+    </React.Fragment>
   );
 }
 
