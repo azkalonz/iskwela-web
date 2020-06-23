@@ -282,7 +282,7 @@ function Home(props) {
       if (props.location.hash === "#meeting") return;
       let m = document.querySelector("main").clientWidth;
       let p = (Math.round(m / 300) - 1) * 2;
-      setItemsPerPage(p ? p : 1);
+      setItemsPerPage(p >= 8 ? p : 10);
     };
     cardPerPage();
     window.onresize = () => cardPerPage();
