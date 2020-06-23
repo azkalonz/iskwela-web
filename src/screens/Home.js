@@ -23,6 +23,8 @@ import {
   DialogTitle as MuiDialogTitle,
   withStyles,
   TextField,
+  useTheme,
+  useMediaQuery,
 } from "@material-ui/core";
 import QueryBuilderOutlinedIcon from "@material-ui/icons/QueryBuilderOutlined";
 import CalendarTodayOutlinedIcon from "@material-ui/icons/CalendarTodayOutlined";
@@ -71,6 +73,8 @@ const DialogTitle = withStyles(styles)((props) => {
 });
 function Home(props) {
   const styles = useStyles();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const query = require("query-string").parse(window.location.search);
   const [loading, setLoading] = useState(true);
   const history = useHistory();
@@ -399,16 +403,17 @@ function Home(props) {
           >
             <Box
               width="100%"
-              display="flex"
+              display={isMobile ? "block" : "flex"}
               justifyContent="space-between"
               alignItems="center"
               p={4}
               style={{ paddingTop: 7, paddingBottom: 7 }}
             >
               {props.userInfo.user_type === "t" ? (
-                <Box>
+                <Box width={isMobile ? "100%" : "auto"}>
                   <Button
                     variant="contained"
+                    fullWidth
                     color="primary"
                     onClick={() => meeting.open()}
                   >
@@ -418,7 +423,11 @@ function Home(props) {
               ) : (
                 <div></div>
               )}
-              <Box p={0.3} width={230} style={{ display: "flex" }}>
+              <Box
+                p={0.3}
+                width={isMobile ? "100%" : 230}
+                style={{ display: "flex" }}
+              >
                 <SearchInput
                   onChange={(s) => {
                     setPage(1);
