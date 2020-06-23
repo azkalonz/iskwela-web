@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import PropTypes from "prop-types";
 import {
   Divider,
@@ -27,8 +27,23 @@ function Drawer(props) {
   const classes = props.classes.sort((a, b) =>
     a.next_schedule.status === "ONGOING" ? -1 : 0
   );
+  useEffect(() => {
+    focusCurrentTab();
+  }, []);
+  const focusCurrentTab = () => {
+    let t = document.querySelector(".selected.tab");
+    if (!t) {
+      setMore(true);
+      setTimeout(() => focusCurrentTab(), 0);
+    } else {
+      let cont = document.querySelector("#tabs-container");
+      if (cont) {
+        cont.parentElement.scrollTop = t.offsetTop - t.clientHeight;
+      }
+    }
+  };
   const drawer = (
-    <div>
+    <React.Fragment>
       <Toolbar className={styles.toolbar}>
         <Typography
           variant="h6"
@@ -41,10 +56,11 @@ function Drawer(props) {
           SH
         </Typography>
       </Toolbar>
-      <div style={{ textAlign: "center" }}>
+      <div style={{ textAlign: "center" }} id="tabs-container">
         <Box
           {...listItem.container}
           borderLeft={5}
+          className={window.location.pathname === "/" ? "selected tab" : "tab"}
           borderColor={
             window.location.pathname === "/" ? "primary.main" : "transparent"
           }
@@ -70,6 +86,11 @@ function Drawer(props) {
             <Box
               {...listItem.container}
               key={index}
+              className={
+                class_id && parseInt(class_id) === parseInt(item.id)
+                  ? "selected tab"
+                  : "tab"
+              }
               borderLeft={5}
               onClick={() => {
                 history.push(
@@ -133,6 +154,11 @@ function Drawer(props) {
             return (
               <Grow in={more}>
                 <Box
+                  className={
+                    class_id && parseInt(class_id) === parseInt(item.id)
+                      ? "selected tab"
+                      : "tab"
+                  }
                   {...listItem.container}
                   key={index}
                   borderLeft={5}
@@ -226,7 +252,7 @@ function Drawer(props) {
           </Tooltip>
         </Box>
       </div>
-    </div>
+    </React.Fragment>
   );
 
   return (

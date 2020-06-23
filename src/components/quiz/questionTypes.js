@@ -35,7 +35,6 @@ const useStyles = makeStyles((theme) => ({
 }));
 export function MultipleChoice(props) {
   const choices = props.choices;
-  const answers = props.answers ? props.answers : [];
   const styles = useStyles();
 
   const add_choice = (
@@ -50,7 +49,9 @@ export function MultipleChoice(props) {
         fullWidth
         variant="outlined"
         onClick={() => {
-          props.onChange({ choices: [...choices, ""] });
+          props.onChange({
+            choices: [...choices, { option: "", is_correct: false }],
+          });
         }}
         style={{ borderStyle: "dashed", minHeight: 50 }}
       >
@@ -72,16 +73,10 @@ export function MultipleChoice(props) {
           <TextField
             type="text"
             label={"Choice " + String.fromCharCode(65 + i)}
-            value={choices[i] ? choices[i] : ""}
+            value={choices[i].option ? choices[i].option : ""}
             variant="filled"
             fullWidth
             onChange={(e) => props.onChoiceChange(i, e.target.value)}
-            error={
-              props.errors && props.errors[i] && choices[i] !== ""
-                ? true
-                : false
-            }
-            helperText={props.errors && props.errors[i] ? props.errors[i] : ""}
           />
           {i > 1 && (
             <div
@@ -118,22 +113,12 @@ export function MultipleChoice(props) {
               top: 5,
             }}
             onClick={() => {
-              if (choices[i]) {
-                if (answers.indexOf(choices[i]) >= 0)
-                  answers.splice(answers.indexOf(choices[i]), 1);
-                else answers.push(choices[i]);
-              }
-              let s = { choices: [...choices], answers };
+              choices[i].is_correct = !choices[i].is_correct;
+              let s = { choices: [...choices] };
               props.onChange(s);
             }}
           >
-            <Icon
-              color={
-                answers && choices[i] && answers.indexOf(choices[i]) >= 0
-                  ? "primary"
-                  : "disabled"
-              }
-            >
+            <Icon color={choices[i].is_correct ? "primary" : "disabled"}>
               {props.icon ? props.icon : "check_circle"}
             </Icon>
           </IconButton>
@@ -147,8 +132,7 @@ export function MultipleChoice(props) {
 }
 
 export function TrueOrFalse(props) {
-  const choices = props.values ? props.values : ["True", "False"];
-  const answers = props.answers ? props.answers : [];
+  const choices = props.values;
   const styles = useStyles();
 
   return choices ? (
@@ -165,19 +149,13 @@ export function TrueOrFalse(props) {
           <TextField
             type="text"
             label={"Choice " + String.fromCharCode(65 + i)}
-            value={a}
+            value={a.option}
             inputProps={{
               readOnly: true,
             }}
             variant="filled"
             fullWidth
             onChange={(e) => props.onChoiceChange(i, e.target.value)}
-            error={
-              props.errors && props.errors[i] && choices[i] !== ""
-                ? true
-                : false
-            }
-            helperText={props.errors && props.errors[i] ? props.errors[i] : ""}
           />
           {i > 1 && (
             <div
@@ -214,11 +192,15 @@ export function TrueOrFalse(props) {
               top: 5,
             }}
             onClick={() => {
-              let s = { choices: [...choices], answers: a };
+              choices.forEach((ii, index) => {
+                choices[index].is_correct = false;
+              });
+              choices[i].is_correct = true;
+              let s = { choices: [...choices] };
               props.onChange(s);
             }}
           >
-            <Icon color={answers.indexOf(a) >= 0 ? "primary" : "disabled"}>
+            <Icon color={choices[i].is_correct ? "primary" : "disabled"}>
               check_circle
             </Icon>
           </IconButton>

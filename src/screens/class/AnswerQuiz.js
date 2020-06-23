@@ -45,15 +45,18 @@ function AnswerQuiz(props) {
     setCurrentSlide(query.question ? parseInt(query.question) : 0);
   }, [query.question]);
   const getQuiz = () => {
-    let quizList = window.localStorage["quiz-items"];
-
-    if (quizList) {
-      quizList = JSON.parse(quizList).filter(
-        (q) => parseInt(q.id) === parseInt(quiz_id)
-      )[0];
-    }
-
-    setQuiz(quizList);
+    let quiz = props.quizzes.find((q) => q.id === parseInt(quiz_id));
+    quiz.slides = quiz.questions.map((q) => ({
+      ...q,
+      type: 1,
+      media: {
+        thumb: q.media_url,
+        large: q.media_url,
+      },
+      score: q.weight,
+    }));
+    setQuiz(quiz);
+    console.log("quiz", quiz);
   };
   const navigateSlide = (index) => {
     if (!isAvailable) return;
@@ -371,7 +374,7 @@ function Choices(props) {
               }
               onClick={() => props.onChooseAnwer(c)}
             >
-              {c}
+              {c.option}
             </Button>
           </Box>
         ))
@@ -447,4 +450,6 @@ function CountDown(props) {
   return <React.Fragment>{duration}</React.Fragment>;
 }
 
-export default connect()(AnswerQuiz);
+export default connect((states) => ({
+  quizzes: states.quizzes,
+}))(AnswerQuiz);

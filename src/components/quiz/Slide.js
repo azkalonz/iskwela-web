@@ -146,34 +146,20 @@ export function SlideRenderer(props) {
   const handleChangeChoice = (index, value) => {
     let s = { ...slide };
     if (!s.choices) s.choices = [];
-    if (value) s.choices[index] = value;
-    else s.choices[index] = "";
-    checkErrors(index, value, s);
+    if (value) s.choices[index] = { ...s.choices[index], option: value };
+    else s.choices[index] = { option: "", is_correct: false };
     setSlide(s);
     props.onChange(s);
   };
   useEffect(() => {
     searchMedia("school", 1);
   }, []);
-  useEffect(() => {
-    if (slide)
-      if (slide.choices) slide.choices.forEach((c, i) => checkErrors(i, c));
-  }, [slide]);
   const searchMedia = async (s, p) => {
     setMediaResult(null);
     let r = await Api.pixabay.get({ search: s, page: p });
     if (r) {
       setMediaResult({ ...r, search: s, page: p });
     }
-  };
-  const checkErrors = (index, value = "", s = slide) => {
-    let err = { ...errors };
-    if (s.choices) {
-      if (s.choices.filter((i) => i === value).length > 1 && value !== "")
-        err[index] = "Duplicate";
-      else delete err[index];
-    }
-    setErrors(err);
   };
   const handleSelectMedia = () => {
     let r = {
@@ -398,6 +384,17 @@ export function SlideRenderer(props) {
                   variant="filled"
                   fullWidth
                 />
+                <TextField
+                  type="text"
+                  label="Introduction"
+                  multiline={true}
+                  value={props.quiz.intro}
+                  onChange={(e) =>
+                    props.onChange({}, { intro: e.target.value })
+                  }
+                  variant="filled"
+                  fullWidth
+                />
               </Box>
               <Box p={2}>
                 <Typography variant="body1" color="textSecondary">
@@ -471,7 +468,7 @@ export function SlideRenderer(props) {
             position="relative"
             border={"1px dashed " + theme.palette.grey[300]}
           >
-            {slide.media ? (
+            {slide.media && slide.media.large ? (
               <React.Fragment>
                 <IconButton
                   style={{ position: "absolute", top: 0, right: 0 }}
@@ -512,7 +509,11 @@ export function SlideRenderer(props) {
                 padding={10}
                 onChange={(e) => {
                   let s = {
-                    ...{ ...slide, answers: null, choices: ["", "", "", ""] },
+                    ...{
+                      ...slide,
+                      answers: null,
+                      choices: slide.choices,
+                    },
                     type: parseInt(e.target.value),
                   };
                   setSlide(s);
@@ -541,14 +542,16 @@ export function SlideRenderer(props) {
                 setSlide(s);
                 props.onChange(s);
               }}
-              answers={slide.answers ? slide.answers : []}
               errors={errors}
               choices={slide.choices}
               onChoiceChange={(index, ans) => handleChangeChoice(index, ans)}
             />
           ) : slide.type === 2 ? (
             <TrueOrFalse
-              values={["True", "False"]}
+              values={[
+                { option: "True", is_correct: slide.choices[0].is_correct },
+                { option: "False", is_correct: slide.choices[1].is_correct },
+              ]}
               onChange={(question) => {
                 let s = {
                   ...slide,
@@ -566,7 +569,10 @@ export function SlideRenderer(props) {
             />
           ) : slide.type === 3 ? (
             <TrueOrFalse
-              values={["Yes", "No"]}
+              values={[
+                { option: "Yes", is_correct: slide.choices[0].is_correct },
+                { option: "No", is_correct: slide.choices[1].is_correct },
+              ]}
               onChange={(question) => {
                 let s = {
                   ...slide,
@@ -753,7 +759,7 @@ export function Slide(props) {
                 position="relative"
                 overflow="hidden"
               >
-                {props.item.media ? (
+                {props.item.media && props.item.media.thumb ? (
                   <img src={props.item.media.thumb} width="70%" />
                 ) : (
                   <div
@@ -822,8 +828,8 @@ export function Slide(props) {
                           },
                         }}
                       >
-                        {props.item.choices && props.item.choices[i]
-                          ? props.item.choices[i]
+                        {props.item.choices && props.item.choices[i].option
+                          ? props.item.choices[i].option
                           : String.fromCharCode(160)}
                       </Box>
                     ))}

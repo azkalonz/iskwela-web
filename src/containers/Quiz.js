@@ -30,6 +30,7 @@ import { makeLinkTo } from "../components/router-dom";
 import Api from "../api";
 import Pagination, { getPageItems } from "../components/Pagination";
 import { SearchInput } from "../components/Selectors";
+import socket from "../components/socket.io";
 
 const Transition = React.forwardRef(function Transition(props, ref) {
   return <MuiSlide direction="up" ref={ref} {...props} />;
@@ -65,7 +66,7 @@ const DialogTitle = withStyles(styles)((props) => {
 });
 
 function Quiz(props) {
-  const { schedule_id, quiz_id } = props.match.params;
+  const { subject_id, quiz_id } = props.match.params;
   const [ID, setID] = useState(2);
   const [totalScore, setTotalScore] = useState(0);
   const history = useHistory();
@@ -73,25 +74,50 @@ function Quiz(props) {
   const [modified, setModified] = useState(false);
   const [viewableSlide, setViewableSlide] = useState([0, 1, 2, 3]);
   const slideTemplate = {
-    choices: ["", "", "", ""],
+    choices: [
+      {
+        option: "",
+        is_correct: false,
+      },
+      {
+        option: "",
+        is_correct: false,
+      },
+      {
+        option: "",
+        is_correct: false,
+      },
+      {
+        option: "",
+        is_correct: false,
+      },
+    ],
     type: 1,
     score: 100,
   };
   const [quiz, setQuiz] = useState(
-    quiz_id &&
-      JSON.parse(window.localStorage["quiz-items"]).filter(
-        (i) => i.id === parseInt(quiz_id)
-      )[0]
-      ? JSON.parse(window.localStorage["quiz-items"]).filter(
-          (i) => i.id === parseInt(quiz_id)
-        )[0]
+    quiz_id && props.quizzes.find((q) => q.id === parseInt(quiz_id))
+      ? {
+          ...props.quizzes.find((q) => q.id === parseInt(quiz_id)),
+          slides: props.quizzes
+            .find((q) => q.id === parseInt(quiz_id))
+            .questions.map((q) => ({
+              ...q,
+              score: q.weight,
+              type: 1,
+              media: {
+                thumb: q.media_url,
+                large: q.media_url,
+              },
+            })),
+        }
       : {
           title: "Untitled Quiz " + moment(new Date()).format("MM-DD-YYYY"),
           duration: 60000 * 10,
           slides: [
             {
               id: 1,
-              choices: ["", "", "", ""],
+              choices: slideTemplate.choices,
               type: 1,
               score: 100,
             },
@@ -145,35 +171,36 @@ function Quiz(props) {
         break;
     }
   };
-  const handleSave = (items, callback) => {
-    setTimeout(() => {
-      let storage = window.localStorage["quiz-items"];
-      items.total_score = totalScore;
-      items.schedule = schedule_id ? schedule_id : null;
-      callback();
-      if (storage) {
-        let s = JSON.parse(storage);
-        if (!items.id) {
-          items.id = s.length + 1;
-          s.push(items);
-        } else
-          s.map((ss, ii) => {
-            if (ss.id === items.id) s[ii] = items;
-          });
-
-        window.localStorage["quiz-items"] = JSON.stringify(s);
-      } else {
-        if (!items.id) items.id = 1;
-
-        window.localStorage["quiz-items"] = JSON.stringify([items]);
-      }
-      if (!quiz_id) {
-        history.push(makeLinkTo(["quiz", schedule_id, items.id]));
-      } else {
-        setModified(false);
-        setQuiz(items);
-      }
-    }, 2000);
+  const handleSave = async (items, callback) => {
+    if (quiz_id) items.id = quiz_id;
+    items.total_score = totalScore;
+    items.questions = items.slides.map((q) => ({
+      question_type: "mcq",
+      media_url: q.media && q.media.large ? q.media.large : "",
+      weight: q.score,
+      question: q.question,
+      choices: q.choices,
+    }));
+    items.subject_id = subject_id ? parseInt(subject_id) : null;
+    callback();
+    let res = await Api.post("/api/quiz/save", {
+      body: items,
+    });
+    if (!quiz_id) {
+      history.push(makeLinkTo(["quiz", subject_id, res.id]));
+    }
+    socket.emit("new quiz", {
+      ...res,
+      author: {
+        id: props.userInfo.id,
+        first_name: props.userInfo.first_name,
+        last_name: props.userInfo.last_name,
+      },
+      school_published: 1,
+      school_published_date: null,
+    });
+    setModified(false);
+    setQuiz(items);
   };
   const handleCreateSlide = (items = null) => {
     let s = [...quiz.slides, { ...(items ? items : slideTemplate), id: ID }];
@@ -201,8 +228,12 @@ function Quiz(props) {
             match={props.match}
             onChange={(e) => {
               handleCreateSlide({
-                choices: [e.answer, "", "", ""],
-                answers: [e.answer],
+                choices: [
+                  { option: e.answer, is_correct: true },
+                  { option: "", is_correct: false },
+                  { option: "", is_correct: false },
+                  { option: "", is_correct: false },
+                ],
                 question: e.question,
                 type: 1,
                 score: 100,
@@ -565,4 +596,7 @@ TabPanel.propTypes = {
   index: PropTypes.any.isRequired,
   value: PropTypes.any.isRequired,
 };
-export default connect()(Quiz);
+export default connect((states) => ({
+  quizzes: states.quizzes,
+  userInfo: states.userInfo,
+}))(Quiz);

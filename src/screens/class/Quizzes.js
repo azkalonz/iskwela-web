@@ -135,8 +135,8 @@ function Quizzes(props) {
     switch (option) {
       case "edit":
         window.open(
-          makeLinkTo(["quiz", "sched", file.id], {
-            sched: selectedSched >= 0 ? selectedSched : schedule_id,
+          makeLinkTo(["quiz", "subject_id", file.id], {
+            subject_id: props.classes[class_id].subject.id,
           }),
           "_blank"
         );
@@ -187,22 +187,7 @@ function Quizzes(props) {
     _getMaterials();
   }, [props.classDetails]);
   const _getMaterials = () => {
-    if (!classSched) return;
-    try {
-      let a = props.classDetails[class_id].schedules;
-      let allMaterials = [];
-      a.forEach((s) => {
-        s.materials.forEach((ss) => {
-          allMaterials.push({ ...ss, schedule_id: s.id });
-        });
-      });
-      let q = window.localStorage["quiz-items"]
-        ? JSON.parse(window.localStorage["quiz-items"])
-        : [];
-      setMaterials(q);
-    } catch (e) {
-      //handle invalid schedule
-    }
+    setMaterials(props.quizzes);
   };
 
   useEffect(
@@ -462,8 +447,8 @@ function Quizzes(props) {
               <StyledMenuItem
                 onClick={() =>
                   window.open(
-                    makeLinkTo(["quiz", "sched"], {
-                      sched: selectedSched >= 0 ? selectedSched : schedule_id,
+                    makeLinkTo(["quiz", "subject_id"], {
+                      subject_id: props.classes[class_id].subject.id,
                     }),
                     "_blank"
                   )
@@ -604,7 +589,7 @@ function Quizzes(props) {
                       <ListItemText
                         onClick={() => _handleFileOption("answer", item)}
                         primary={item.title}
-                        secondary={item.duration / 60000 + "mins"}
+                        secondary={item.intro}
                       />
                       <Typography
                         variant="body1"
@@ -851,6 +836,8 @@ const useStyles = makeStyles((theme) => ({
 
 export default connect((states) => ({
   userInfo: states.userInfo,
+  quizzes: states.quizzes,
+  classes: states.classes,
   classDetails: states.classDetails,
   dataProgress: states.dataProgress,
 }))(Quizzes);

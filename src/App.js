@@ -163,6 +163,20 @@ function App(props) {
         UserData.updateClass(c.id, c.details[c.id]);
       }
     });
+    socket.on("get quiz", (q) => {
+      let quizzes = [...store.getState().quizzes];
+      let quizIndex = quizzes.findIndex((qq) => q.id === qq.id);
+      if (quizIndex >= 0) {
+        quizzes.splice(quizIndex, 1, q);
+      } else {
+        quizzes.push(q);
+      }
+      console.log(quizzes);
+      store.dispatch({
+        type: "SET_QUIZZES",
+        quizzes,
+      });
+    });
     socket.on("get schedule details", (c) => {
       if (store.getState().classes[c.id]) {
         UserData.addClassSchedule(c.id, c.details);
@@ -200,7 +214,7 @@ function App(props) {
                 <Route exact path="/answer/:quiz_id?" component={AnswerQuiz} />
                 <Route
                   exact
-                  path="/quiz/:schedule_id?/:quiz_id?"
+                  path="/quiz/:subject_id?/:quiz_id?"
                   component={Quiz}
                 />
                 <Route exact path="/content-maker" component={ContentMaker} />

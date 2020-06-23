@@ -37,6 +37,15 @@ const classDetails = (state = {}, payload) => {
   }
 };
 
+const quizzes = (state = [], payload) => {
+  switch (payload.type) {
+    case "SET_QUIZZES":
+      return payload.quizzes;
+    default:
+      return state;
+  }
+};
+
 const theme = (state = "light", payload) => {
   switch (payload.type) {
     case "SET_THEME":
@@ -73,6 +82,7 @@ export default combineReducers({
   classes,
   route,
   dataProgress,
+  quizzes,
   classDetails,
   theme,
   pics,

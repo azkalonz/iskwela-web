@@ -25,6 +25,10 @@ io.on("connection", (socket) => {
   socket.on("start quiz", (c) => {
     socket.broadcast.emit("get quiz details", c);
   });
+
+  socket.on("new quiz", (quiz) => {
+    io.emit("get quiz", quiz);
+  });
 });
 
 httpsServer.listen(3001);
