@@ -268,7 +268,10 @@ function Drawer(props) {
           {drawer}
         </MuiDrawer>
       </nav>
-      <main className={styles.content} style={{ padding: 0 }}>
+      <main
+        className={styles.content}
+        style={{ padding: 0, minHeight: "100vh" }}
+      >
         {props.children}
       </main>
     </div>

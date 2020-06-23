@@ -16,6 +16,13 @@ import {
   Box,
   Paper,
   Avatar,
+  Button,
+  Icon,
+  Dialog,
+  DialogContent,
+  DialogTitle as MuiDialogTitle,
+  withStyles,
+  TextField,
 } from "@material-ui/core";
 import QueryBuilderOutlinedIcon from "@material-ui/icons/QueryBuilderOutlined";
 import CalendarTodayOutlinedIcon from "@material-ui/icons/CalendarTodayOutlined";
@@ -27,17 +34,50 @@ import SearchIcon from "@material-ui/icons/Search";
 import { makeLinkTo } from "../components/router-dom";
 import { connect } from "react-redux";
 import MuiAlert from "@material-ui/lab/Alert";
+import { SearchInput } from "../components/Selectors";
+import Pagination, { getPageItems } from "../components/Pagination";
+import Jitsi from "react-jitsi";
 function Alert(props) {
   return <MuiAlert elevation={6} variant="filled" {...props} />;
 }
-
+const styles = (theme) => ({
+  root: {
+    margin: 0,
+    padding: theme.spacing(2),
+  },
+  closeButton: {
+    position: "absolute",
+    right: theme.spacing(1),
+    top: theme.spacing(1),
+    color: theme.palette.grey[500],
+  },
+});
+const DialogTitle = withStyles(styles)((props) => {
+  const { children, classes, onClose, ...other } = props;
+  return (
+    <MuiDialogTitle disableTypography className={classes.root} {...other}>
+      <Typography variant="h6">{children}</Typography>
+      {onClose ? (
+        <IconButton
+          aria-label="close"
+          className={classes.closeButton}
+          onClick={onClose}
+        >
+          <Icon>close</Icon>
+        </IconButton>
+      ) : null}
+    </MuiDialogTitle>
+  );
+});
 function Home(props) {
   const styles = useStyles();
+  const query = require("query-string").parse(window.location.search);
   const [loading, setLoading] = useState(true);
   const history = useHistory();
   const [greeting, setGreeting] = useState(true);
   const [search, setSearch] = useState("");
-
+  const [page, setPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(6);
   useEffect(() => {
     if (props.classes) setLoading(false);
   }, [props.classes]);
@@ -234,74 +274,199 @@ function Home(props) {
       setTimeout(() => {
         window.localStorage["greeted"] = true;
       }, 6000);
+    let cardPerPage = () => {
+      if (props.location.hash === "#meeting") return;
+      let m = document.querySelector("main").clientWidth;
+      let p = (Math.round(m / 300) - 1) * 2;
+      setItemsPerPage(p ? p : 1);
+    };
+    cardPerPage();
+    window.onresize = () => cardPerPage();
   }, []);
-  return (
-    <div style={{ height: "100vh", overflow: "hidden auto" }}>
-      <Drawer {...props}>
-        <NavBar title="Classes" />
-        <Box m={2} display="flex" flexWrap="wrap" justifyContent="center">
-          <Box width="100%" p={4} style={{ paddingTop: 7, paddingBottom: 7 }}>
-            <Box
-              border={1}
-              p={0.3}
-              borderRadius={7}
-              width={230}
-              style={{ float: "right", display: "flex" }}
-            >
-              <InputBase
-                placeholder="Search"
-                inputProps={{ "aria-label": "search activity" }}
-                onChange={(e) => setSearch(e.target.value)}
-              />
-              <IconButton
-                type="submit"
-                aria-label="search"
-                style={{ padding: 0 }}
-              >
-                <SearchIcon />
-              </IconButton>
-            </Box>
-          </Box>
-          {loading && [1, 1, 1].map((c, i) => fakeLoader(i))}
-          {!loading &&
-            props.classes &&
-            props.classes
-              .filter(
-                (c) =>
-                  JSON.stringify(c)
-                    .toLowerCase()
-                    .indexOf(search.toLowerCase()) >= 0
-              )
-              .sort((a, b) => {
-                if (!a.next_schedule || !b.next_schedule) return;
-                return (
-                  new Date(b.next_schedule.from) -
-                  new Date(a.next_schedule.from)
-                );
-              })
-              .sort((a, b) => (a.next_schedule.status === "ONGOING" ? -1 : 0))
-              .map((c) => classItem(c))}
-        </Box>
-        {!window.localStorage["greeted"] && (
-          <Snackbar
-            open={greeting}
-            autoHideDuration={12000}
-            onClose={() => {
-              setGreeting(false);
+  const getFilteredClass = () =>
+    props.classes
+      .filter(
+        (c) =>
+          JSON.stringify(c).toLowerCase().indexOf(search.toLowerCase()) >= 0
+      )
+      .sort((a, b) => {
+        if (!a.next_schedule || !b.next_schedule) return;
+        return new Date(b.next_schedule.from) - new Date(a.next_schedule.from);
+      })
+      .sort((a, b) => (a.next_schedule.status === "ONGOING" ? -1 : 0));
+  const meeting = {
+    open: () => {
+      let id = document.querySelector("#room-name");
+      props.history.push(
+        makeLinkTo(["id"], {
+          id: id && id.value ? "?id=" + id.value + "#meeting" : "#meeting",
+        })
+      );
+    },
+    close: () => props.history.push("/"),
+    create: () => {
+      let id = document.querySelector("#room-name");
+      if (id.value) {
+        props.history.push(
+          makeLinkTo(["id"], {
+            id: "?id=" + id.value.replace(" ", "-") + "#meeting",
+          })
+        );
+      }
+    },
+  };
+  function Conference(pp) {
+    const { name, id } = pp;
+    return (
+      <Box
+        m={2}
+        display="flex"
+        justifyContent="space-between"
+        alignItems="flex-start"
+        height="90%"
+      >
+        <Box width="100%" height="100%">
+          <Jitsi
+            displayName={name}
+            roomName={id}
+            containerStyle={{
+              margin: "0 auto",
+              width: "100%",
+              display: "flex",
+              height: "100%",
+              alignItems: "center",
+              justifyContent: "center",
             }}
+          />
+        </Box>
+      </Box>
+    );
+  }
+  return (
+    <React.Fragment>
+      <Dialog
+        fullScreen
+        open={props.location.hash === "#meeting"}
+        onClose={meeting.close}
+      >
+        <DialogTitle onClose={meeting.close}>iSkwela Meeting</DialogTitle>
+        <DialogContent>
+          {query.id ? (
+            <Conference
+              id={query.id}
+              name={props.userInfo.first_name + " " + props.userInfo.last_name}
+            />
+          ) : (
+            <Box m={2}>
+              <TextField
+                variant="filled"
+                fullWidth
+                id="room-name"
+                fullWidth
+                type="text"
+                label="Meeting ID"
+              />
+              <Box display="flex" marginTop={2} alignItems="center">
+                <Button
+                  fullWidth
+                  variant="outlined"
+                  color="primary"
+                  onClick={meeting.open}
+                >
+                  Join
+                </Button>
+                <Button
+                  fullWidth
+                  variant="contained"
+                  color="primary"
+                  onClick={meeting.create}
+                >
+                  Create
+                </Button>
+              </Box>
+            </Box>
+          )}
+        </DialogContent>
+      </Dialog>
+      <div style={{ height: "100vh", overflow: "hidden auto" }}>
+        <Drawer {...props}>
+          <NavBar title="Classes" />
+          <Box
+            m={2}
+            display="flex"
+            flexWrap="wrap"
+            justifyContent={itemsPerPage / 2}
           >
-            <Alert
-              severity="info"
+            <Box
+              width="100%"
+              display="flex"
+              justifyContent="space-between"
+              alignItems="center"
+              p={4}
+              style={{ paddingTop: 7, paddingBottom: 7 }}
+            >
+              {props.userInfo.user_type === "t" ? (
+                <Box>
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    onClick={() => meeting.open()}
+                  >
+                    <Icon>videocam</Icon> Start a Meeting
+                  </Button>
+                </Box>
+              ) : (
+                <div></div>
+              )}
+              <Box p={0.3} width={230} style={{ display: "flex" }}>
+                <SearchInput
+                  onChange={(s) => {
+                    setPage(1);
+                    setSearch(s);
+                  }}
+                />
+              </Box>
+            </Box>
+            {loading && [1, 1, 1].map((c, i) => fakeLoader(i))}
+            {!loading &&
+              props.classes &&
+              getPageItems(getFilteredClass(), page, itemsPerPage).map((c) =>
+                classItem(c)
+              )}
+          </Box>
+          <Box m={2}>
+            <Pagination
+              match={props.match}
+              count={getFilteredClass().length}
+              itemsPerPage={itemsPerPage}
+              nolink
+              emptyTitle={"Nothing Found"}
+              emptyMessage={"Try a different keyword."}
+              page={page}
+              onChange={(p) => setPage(p)}
+            />
+          </Box>
+          {!window.localStorage["greeted"] && (
+            <Snackbar
+              open={greeting}
+              autoHideDuration={12000}
               onClose={() => {
                 setGreeting(false);
               }}
             >
-              Welcome back! <b>{props.userInfo.first_name}!</b>
-            </Alert>
-          </Snackbar>
-        )}
-      </Drawer>
-    </div>
+              <Alert
+                severity="info"
+                onClose={() => {
+                  setGreeting(false);
+                }}
+              >
+                Welcome back! <b>{props.userInfo.first_name}!</b>
+              </Alert>
+            </Snackbar>
+          )}
+        </Drawer>
+      </div>
+    </React.Fragment>
   );
 }
 
