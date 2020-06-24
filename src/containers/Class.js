@@ -361,11 +361,11 @@ function Class(props) {
                         {moment(
                           props.classDetails[class_id].schedules[schedule_id]
                             .from
-                        ).format("H:mm A")}
+                        ).format("hh:mm A")}
                         {" - "}
                         {moment(
                           props.classDetails[class_id].schedules[schedule_id].to
-                        ).format("H:mm A")}
+                        ).format("hh:mm A")}
                       </Typography>
                     </Box>
                   </Box>

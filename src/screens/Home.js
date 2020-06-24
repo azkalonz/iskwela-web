@@ -210,9 +210,9 @@ function Home(props) {
                       variant="body2"
                       style={{ fontSize: "0.75rem", marginLeft: 5 }}
                     >
-                      {moment(c.next_schedule.from).format("hh:mm") +
+                      {moment(c.next_schedule.from).format("hh:mm A") +
                         " - " +
-                        moment(c.next_schedule.to).format("hh:mm")}
+                        moment(c.next_schedule.to).format("hh:mm A")}
                     </Typography>
                   </Box>
                   <div style={{ position: "absolute", top: -40, right: 0 }}>
