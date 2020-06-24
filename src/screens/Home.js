@@ -128,6 +128,10 @@ function Home(props) {
         break;
       case "PENDING":
         message = "Starts " + moment(c.next_schedule.from).fromNow();
+        message =
+          message.indexOf("ago") >= 0
+            ? message.replace("Starts", "Ended")
+            : message;
         break;
       default:
         message = "";
@@ -287,17 +291,40 @@ function Home(props) {
     cardPerPage();
     window.onresize = () => cardPerPage();
   }, []);
-  const getFilteredClass = () =>
-    props.classes
+  const getFilteredClass = () => {
+    let r = props.classes
       .filter(
         (c) =>
           JSON.stringify(c).toLowerCase().indexOf(search.toLowerCase()) >= 0
       )
       .sort((a, b) => {
         if (!a.next_schedule || !b.next_schedule) return;
-        return new Date(b.next_schedule.from) - new Date(a.next_schedule.from);
-      })
+        let ans = moment(a.next_schedule.from).diff(
+          moment(b.next_schedule.from)
+        );
+        return ans;
+      });
+    return r
+      .filter((a) =>
+        moment(a.next_schedule.from).diff(moment(new Date())) > 0 ? true : false
+      )
+      .concat(
+        r
+          .filter((a) =>
+            moment(a.next_schedule.from).diff(moment(new Date())) > 0
+              ? false
+              : true
+          )
+          .sort((a, b) => {
+            if (!a.next_schedule || !b.next_schedule) return;
+            let ans = moment(b.next_schedule.from).diff(
+              moment(a.next_schedule.from)
+            );
+            return ans;
+          })
+      )
       .sort((a, b) => (a.next_schedule.status === "ONGOING" ? -1 : 0));
+  };
   const meeting = {
     open: () => {
       let id = document.querySelector("#room-name");
