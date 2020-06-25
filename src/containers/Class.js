@@ -224,6 +224,7 @@ function Class(props) {
               sc: schedule_id ? schedule_id : "",
             })
           );
+          if (isMobile) setCollapsePanel(false);
           return;
         case "PENDING":
           await updateClass("ONGOING");
@@ -252,6 +253,7 @@ function Class(props) {
             }
           )
         );
+        if (isMobile) setCollapsePanel(false);
       }
     }
   };

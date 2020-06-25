@@ -35,6 +35,8 @@ import MuiAlert from "@material-ui/lab/Alert";
 import UserData from "./UserData";
 import HelpOutlineOutlinedIcon from "@material-ui/icons/HelpOutlineOutlined";
 import store from "./redux/store";
+import { makeLinkTo } from "./router-dom";
+import { useHistory } from "react-router-dom";
 const styles = (theme) => ({
   root: {
     margin: 0,
@@ -87,11 +89,23 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 function NavBar(props) {
+  const history = useHistory();
   const classes = useStyles();
   const [anchorEl, setAnchorEl] = React.useState(null);
   const open = Boolean(anchorEl);
   const [changeProfileDialog, setChangeProfileDialog] = useState(false);
   const [changePassDialog, setchangePassDialog] = useState(false);
+
+  const meeting = {
+    open: () => {
+      let id = document.querySelector("#room-name");
+      history.push(
+        makeLinkTo(["id"], {
+          id: id && id.value ? "?id=" + id.value + "#meeting" : "#meeting",
+        })
+      );
+    },
+  };
 
   const handleMenu = (event) => {
     setAnchorEl(event.currentTarget);
@@ -184,6 +198,11 @@ function NavBar(props) {
                 open={open}
                 onClose={handleClose}
               >
+                {props.userInfo.user_type === "t" && (
+                  <MenuItem onClick={() => meeting.open()}>
+                    Start a Meeting
+                  </MenuItem>
+                )}
                 <MenuItem onClick={() => setchangePassDialog(true)}>
                   Preferences
                 </MenuItem>

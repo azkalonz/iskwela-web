@@ -82,6 +82,9 @@ function Home(props) {
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(6);
+  const [errors, setErrors] = useState([]);
+  const [success, setSuccess] = useState(false);
+
   useEffect(() => {
     if (props.classes) setLoading(false);
   }, [props.classes]);
@@ -328,21 +331,29 @@ function Home(props) {
   const meeting = {
     open: () => {
       let id = document.querySelector("#room-name");
-      props.history.push(
-        makeLinkTo(["id"], {
-          id: id && id.value ? "?id=" + id.value + "#meeting" : "#meeting",
-        })
-      );
+      if (id.value && id.value.length >= 7) {
+        props.history.push(
+          makeLinkTo(["id"], {
+            id: id && id.value ? "?id=" + id.value + "#meeting" : "#meeting",
+          })
+        );
+        setSuccess(true);
+      } else {
+        setErrors(["Room ID must be at least 7 characters long."]);
+      }
     },
     close: () => props.history.push("/"),
     create: () => {
       let id = document.querySelector("#room-name");
-      if (id.value) {
-        props.history.push(
+      if (id.value && id.value.length >= 7) {
+        history.push(
           makeLinkTo(["id"], {
             id: "?id=" + id.value.replace(" ", "-") + "#meeting",
           })
         );
+        setSuccess(true);
+      } else {
+        setErrors(["Room ID must be at least 7 characters long."]);
       }
     },
   };
@@ -375,6 +386,41 @@ function Home(props) {
   }
   return (
     <React.Fragment>
+      <Snackbar
+        open={success}
+        autoHideDuration={6000}
+        onClose={() => setSuccess(false)}
+      >
+        <Alert onClose={() => setSuccess(false)} severity="success">
+          Success
+        </Alert>
+      </Snackbar>
+      {errors &&
+        errors.map((e, i) => (
+          <Snackbar
+            key={i}
+            open={errors ? true : false}
+            autoHideDuration={6000}
+            onClose={() => setErrors(null)}
+          >
+            <Grow in={true}>
+              <Alert
+                key={i}
+                style={{ marginBottom: 9 }}
+                severity="error"
+                onClose={() => {
+                  setErrors(() => {
+                    let e = [...errors];
+                    e.splice(i, 1);
+                    return e;
+                  });
+                }}
+              >
+                {e}
+              </Alert>
+            </Grow>
+          </Snackbar>
+        ))}
       <Dialog
         fullScreen
         open={props.location.hash === "#meeting"}
@@ -431,25 +477,11 @@ function Home(props) {
             <Box
               width="100%"
               display={isMobile ? "block" : "flex"}
-              justifyContent="space-between"
+              justifyContent="flex-end"
               alignItems="center"
               p={4}
               style={{ paddingTop: 7, paddingBottom: 7 }}
             >
-              {props.userInfo.user_type === "t" ? (
-                <Box width={isMobile ? "100%" : "auto"}>
-                  <Button
-                    variant="contained"
-                    fullWidth
-                    color="primary"
-                    onClick={() => meeting.open()}
-                  >
-                    <Icon>videocam</Icon> Start a Meeting
-                  </Button>
-                </Box>
-              ) : (
-                <div></div>
-              )}
               <Box
                 p={0.3}
                 width={isMobile ? "100%" : 230}
