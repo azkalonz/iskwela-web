@@ -11,6 +11,8 @@ import {
   makeStyles,
   IconButton,
   Avatar,
+  Icon,
+  useTheme,
 } from "@material-ui/core";
 import DashboardOutlined from "@material-ui/icons/DashboardOutlined";
 import { connect } from "react-redux";
@@ -21,12 +23,27 @@ import ExpandMoreOutlinedIcon from "@material-ui/icons/ExpandMoreOutlined";
 
 function Drawer(props) {
   const styles = useStyles();
+  const theme = useTheme();
   const history = useHistory();
   const { class_id } = props.match.params;
   const [more, setMore] = useState(false);
   const classes = props.classes.sort((a, b) =>
     a.next_schedule.status === "ONGOING" ? -1 : 0
   );
+  const listItem = {
+    container: {
+      display: "flex",
+      position: "relative",
+      justifyContent: "center",
+      borderColor: "primary.main",
+    },
+    item: {
+      position: "relative",
+      m: 1,
+      width: 50,
+      height: 50,
+    },
+  };
   useEffect(() => {
     focusCurrentTab();
   }, []);
@@ -44,181 +61,175 @@ function Drawer(props) {
   };
   const drawer = (
     <React.Fragment>
-      <Toolbar className={styles.toolbar}>
-        <Typography
-          variant="h6"
-          align="center"
-          style={{ width: "100%", cursor: "pointer" }}
-          onClick={() => {
-            history.push("/");
-          }}
-        >
-          SH
-        </Typography>
-      </Toolbar>
-      <div style={{ textAlign: "center" }} id="tabs-container">
-        <Box
-          {...listItem.container}
-          borderLeft={5}
-          className={window.location.pathname === "/" ? "selected tab" : "tab"}
-          borderColor={
-            window.location.pathname === "/" ? "primary.main" : "transparent"
-          }
-        >
-          <Box
+      <Box>
+        <Box p={2}>
+          <Typography
+            variant="h6"
+            align="center"
+            style={{ width: "100%", cursor: "pointer" }}
             onClick={() => {
               history.push("/");
             }}
-            {...listItem.item}
-            style={{
-              alignItems: "center",
-              cursor: "pointer",
-              justifyContent: "center",
-              display: "flex",
-              transform: "translateX(-1.5px)",
-            }}
           >
-            <DashboardOutlined />
-          </Box>
+            SH
+          </Typography>
         </Box>
-        {classes.slice(0, 5).map((item, index) => {
-          return (
+        <div style={{ textAlign: "center" }} id="tabs-container">
+          <Box
+            {...listItem.container}
+            className={
+              window.location.pathname === "/" ? "selected tab bordered" : "tab"
+            }
+          >
             <Box
-              {...listItem.container}
-              key={index}
-              className={
-                class_id && parseInt(class_id) === parseInt(item.id)
-                  ? "selected tab"
-                  : "tab"
-              }
-              borderLeft={5}
               onClick={() => {
-                history.push(
-                  makeLinkTo(["class", item.id, item.next_schedule.id, "opt"], {
-                    opt: item.next_schedule.id ? "activity" : "",
-                  })
-                );
+                history.push("/");
               }}
-              borderColor={
-                class_id && parseInt(class_id) === parseInt(item.id)
-                  ? "primary.main"
-                  : "transparent"
-              }
-              style={{ cursor: "pointer" }}
+              {...listItem.item}
+              style={{
+                alignItems: "center",
+                cursor: "pointer",
+                justifyContent: "center",
+                display: "flex",
+                transform: "translateX(-1.5px)",
+              }}
             >
-              <Tooltip title={item.name} placement="right">
-                <Box
-                  {...listItem.item}
-                  {...item.props}
-                  style={{
-                    alignItems: "center",
-                    justifyContent: "center",
-                    display: "flex",
-                    transform: "translateX(-1.5px)",
-                  }}
-                  bgcolor={
-                    item.next_schedule.status === "ONGOING"
-                      ? "primary.main"
-                      : "grey.700"
-                  }
-                >
-                  <Typography
-                    variant="body1"
-                    component="h2"
-                    style={{ color: "#fff" }}
-                  >
-                    {item.name[0].toUpperCase()}
-                  </Typography>
-                  {/* <div
-                    style={{
-                      position: "absolute",
-                      top: 0,
-                      right: -5,
-                      width: 15,
-                      height: 15,
-                      borderRadius: "50%",
-                      borderWidth: 2,
-                      borderStyle: "solid",
-                      borderColor:
-                        theme.palette.type === "dark" ? "#111" : "#fff",
-                      background: theme.palette.primary.main,
-                    }}
-                  ></div> */}
-                </Box>
-              </Tooltip>
+              <DashboardOutlined color="#38108d" />
             </Box>
-          );
-        })}
-        {more &&
-          classes.slice(5, props.classes.length).map((item, index) => {
+          </Box>
+          {classes.slice(0, 5).map((item, index) => {
             return (
-              <Grow in={more}>
-                <Box
-                  className={
-                    class_id && parseInt(class_id) === parseInt(item.id)
-                      ? "selected tab"
-                      : "tab"
-                  }
-                  {...listItem.container}
-                  key={index}
-                  borderLeft={5}
-                  onClick={() => {
-                    history.push(
-                      makeLinkTo(
-                        ["class", item.id, item.next_schedule.id, "opt"],
-                        {
-                          opt: item.next_schedule.id ? "activity" : "",
-                        }
-                      )
-                    );
-                  }}
-                  borderColor={
-                    class_id && parseInt(class_id) === parseInt(item.id)
-                      ? "primary.main"
-                      : "transparent"
-                  }
-                  style={{ cursor: "pointer" }}
-                >
-                  <Tooltip title={item.name} placement="right">
-                    <Box
-                      {...listItem.item}
-                      {...item.props}
-                      style={{
-                        alignItems: "center",
-                        justifyContent: "center",
-                        display: "flex",
-                        transform: "translateX(-1.5px)",
-                      }}
-                      bgcolor={
-                        item.next_schedule.status === "ONGOING"
-                          ? "primary.main"
-                          : "grey.700"
+              <Box
+                {...listItem.container}
+                key={index}
+                className={
+                  class_id && parseInt(class_id) === parseInt(item.id)
+                    ? "selected tab"
+                    : "tab"
+                }
+                onClick={() => {
+                  history.push(
+                    makeLinkTo(
+                      ["class", item.id, item.next_schedule.id, "opt"],
+                      {
+                        opt: item.next_schedule.id ? "activity" : "",
                       }
-                    >
-                      <Typography
-                        variant="body1"
-                        component="h2"
-                        style={{ color: "#fff" }}
-                      >
+                    )
+                  );
+                }}
+                style={{ cursor: "pointer" }}
+              >
+                <Tooltip title={item.name} placement="right">
+                  <Box
+                    {...listItem.item}
+                    {...item.props}
+                    style={{
+                      alignItems: "center",
+                      justifyContent: "center",
+                      display: "flex",
+                      transform: "translateX(-1.5px)",
+                      borderRadius: 7,
+                      ...(item.next_schedule.status === "ONGOING"
+                        ? {
+                            backgroundColor: theme.palette.primary.main,
+                          }
+                        : {
+                            backgroundColor: theme.palette.primary.main + "15",
+                            color: "#38108d",
+                          }),
+                    }}
+                  >
+                    <Typography variant="body1" component="h2">
+                      <span style={{ fontWeight: "bold" }}>
                         {item.name[0].toUpperCase()}
-                      </Typography>
-                    </Box>
-                  </Tooltip>
-                </Box>
-              </Grow>
+                      </span>
+                      <span style={{ fontSize: "0.8em" }}>
+                        {item.name.substr(
+                          item.name.search(/\d/),
+                          item.name.length
+                        )}
+                      </span>
+                    </Typography>
+                  </Box>
+                </Tooltip>
+              </Box>
             );
           })}
-        {!more ? (
-          <IconButton onClick={() => setMore(true)}>
-            <ExpandMoreOutlinedIcon />
-          </IconButton>
-        ) : (
-          <IconButton onClick={() => setMore(false)}>
-            <ExpandLessOutlinedIcon />
-          </IconButton>
-        )}
-        <Divider />
-        <Box {...listItem.container}>
+          {more &&
+            classes.slice(5, props.classes.length).map((item, index) => {
+              return (
+                <Grow in={more}>
+                  <Box
+                    className={
+                      class_id && parseInt(class_id) === parseInt(item.id)
+                        ? "selected tab"
+                        : "tab"
+                    }
+                    {...listItem.container}
+                    key={index}
+                    onClick={() => {
+                      history.push(
+                        makeLinkTo(
+                          ["class", item.id, item.next_schedule.id, "opt"],
+                          {
+                            opt: item.next_schedule.id ? "activity" : "",
+                          }
+                        )
+                      );
+                    }}
+                    style={{ cursor: "pointer" }}
+                  >
+                    <Tooltip title={item.name} placement="right">
+                      <Box
+                        {...listItem.item}
+                        {...item.props}
+                        style={{
+                          alignItems: "center",
+                          justifyContent: "center",
+                          display: "flex",
+                          transform: "translateX(-1.5px)",
+                          borderRadius: 7,
+                          ...(item.next_schedule.status === "ONGOING"
+                            ? {
+                                backgroundColor: theme.palette.primary.main,
+                              }
+                            : {
+                                backgroundColor:
+                                  theme.palette.primary.main + "15",
+                                color: "#38108d",
+                              }),
+                        }}
+                      >
+                        <Typography variant="body1" component="h2">
+                          <span style={{ fontWeight: "bold" }}>
+                            {item.name[0].toUpperCase()}
+                          </span>
+                          <span style={{ fontSize: "0.8em" }}>
+                            {item.name.substr(
+                              item.name.search(/\d/),
+                              item.name.length
+                            )}
+                          </span>
+                        </Typography>
+                      </Box>
+                    </Tooltip>
+                  </Box>
+                </Grow>
+              );
+            })}
+          {!more ? (
+            <IconButton onClick={() => setMore(true)}>
+              <ExpandMoreOutlinedIcon />
+            </IconButton>
+          ) : (
+            <IconButton onClick={() => setMore(false)}>
+              <ExpandLessOutlinedIcon />
+            </IconButton>
+          )}
+          <Box m={1}>
+            <Divider style={{ backgroundColor: "#38108d", height: 2 }} />
+          </Box>
+          {/* <Box {...listItem.container}>
           <Tooltip title="DepEd Commons" placement="right">
             <Box
               onClick={() =>
@@ -250,8 +261,25 @@ function Drawer(props) {
               />
             </Box>
           </Tooltip>
-        </Box>
-      </div>
+        </Box> */}
+        </div>
+      </Box>
+      <Box>
+        <Tooltip title="Help" placement="right">
+          <IconButton
+            onClick={() =>
+              window.open(
+                "https://files.iskwela.net/public/iSkwela_UserManual_Beta1.0.pdf",
+                "_blank"
+              )
+            }
+          >
+            <Icon fontSize="large" color="#38108d">
+              help_outline
+            </Icon>
+          </IconButton>
+        </Tooltip>
+      </Box>
     </React.Fragment>
   );
 
@@ -265,7 +293,14 @@ function Drawer(props) {
           variant="permanent"
           open
         >
-          {drawer}
+          <Box
+            height="100%"
+            display="flex"
+            justifyContent="space-between"
+            flexDirection="column"
+          >
+            {drawer}
+          </Box>
         </MuiDrawer>
       </nav>
       <main
@@ -278,23 +313,6 @@ function Drawer(props) {
   );
 }
 
-const listItem = {
-  container: {
-    display: "flex",
-    position: "relative",
-    justifyContent: "center",
-    borderColor: "primary.main",
-  },
-  item: {
-    borderRadius: "50%",
-    position: "relative",
-    border: 1,
-    borderColor: "grey.500",
-    m: 1,
-    width: 40,
-    height: 40,
-  },
-};
 const drawerWidth = 60;
 const useStyles = makeStyles((theme) => ({
   toolbar: {
@@ -309,6 +327,23 @@ const useStyles = makeStyles((theme) => ({
     right: 0,
   },
   root: {
+    "& .selected.tab": {
+      position: "relative",
+      "&:not(.bordered)>div": {
+        backgroundColor: theme.palette.primary.main + "!important",
+        color: theme.palette.secondary.main + "!important",
+      },
+      "&.bordered::after": {
+        content: "''",
+        position: "absolute",
+        right: 0,
+        top: 0,
+        bottom: 0,
+        width: 6,
+        background: theme.palette.primary.main,
+        borderRadius: "6px 0 0 6px",
+      },
+    },
     display: "flex",
   },
   drawer: {
@@ -323,8 +358,7 @@ const useStyles = makeStyles((theme) => ({
     [theme.breakpoints.down("xs")]: {
       width: "84%",
     },
-    background:
-      theme.palette.type === "dark" ? "#222222" : theme.palette.grey[300],
+    background: theme.palette.type === "dark" ? "#222222" : "#f9f5fe",
     flexGrow: 1,
     padding: theme.spacing(3),
     width: "100%",

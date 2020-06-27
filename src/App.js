@@ -38,12 +38,12 @@ function App(props) {
   const skeletonCustomTheme =
     props.theme === "dark"
       ? {
-          color: "#474747",
-          highlightColor: "#575757",
+          color: "#4747471a",
+          highlightColor: "#5757571a",
         }
       : {
-          color: "#d9d9d9",
-          highlightColor: "#e9e9e9",
+          color: "#d9d9d91a",
+          highlightColor: "#e9e9e91a",
         };
   const theme = createMuiTheme({
     typography: {
@@ -76,6 +76,28 @@ function App(props) {
               zIndex: -1,
             },
           },
+        },
+      },
+      MuiAppBar: {
+        root: {
+          background: "#fff!important",
+          boxShadow: "0 -4px 17px rgba(143, 45, 253,0.2)!important",
+          "& > div": {
+            border: "none",
+          },
+        },
+      },
+      MuiExpansionPanel: {
+        root: {
+          "&::before": {
+            display: "none",
+          },
+        },
+      },
+      MuiDrawer: {
+        paperAnchorDockedLeft: {
+          borderRight: "none",
+          boxShadow: "4px 0 3px rgba(143, 45, 253,0.1)!important",
         },
       },
       MuiFilledInput: {

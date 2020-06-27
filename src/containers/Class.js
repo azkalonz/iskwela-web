@@ -141,6 +141,12 @@ function Class(props) {
                 ? "selected-option"
                 : ""
             }
+            className={
+              option_name === p.link ||
+              (p.children && p.children.indexOf(option_name) >= 0)
+                ? "selected panel-option"
+                : "panel-option"
+            }
             button
           >
             <ListItemIcon>{p.icon}</ListItemIcon>
@@ -163,7 +169,6 @@ function Class(props) {
               )}
             />
           )}
-        <Divider />
       </div>
     );
   };
@@ -411,7 +416,7 @@ function Class(props) {
                   </Box>
                   <Divider />
                   <Box p={2} className={styles.centered}>
-                    <Box flex={1} style={{ width: "100%" }}>
+                    <Box flex={1} style={{ width: "100%", margin: "0 13px" }}>
                       <div className={styles.wrapper}>
                         <Button
                           style={{
@@ -554,6 +559,15 @@ function Class(props) {
                   ? isValidOption(option_name).title
                   : ""
               }
+              routes={
+                isTeacher
+                  ? rightPanelOptions.filter(
+                      (r) => r.children && r.children.indexOf(option_name) >= 0
+                    )
+                  : rightPanelOptionsStudents.filter(
+                      (r) => r.children && r.children.indexOf(option_name) >= 0
+                    )
+              }
               left={
                 !collapsePanel ? (
                   <Tooltip title="Show class panel" placement="bottom-start">
@@ -572,6 +586,7 @@ function Class(props) {
               display="flex"
               alignItems="center"
               height="86%"
+              m={4}
               justifyContent="center"
             >
               {rightPanelLoading && (
@@ -619,25 +634,39 @@ const useStyles = makeStyles((theme) => ({
     color: theme.palette.common.white,
   },
   startClass: {
-    color: theme.palette.primary.main,
-    background: theme.palette.common.white,
+    color: "#000",
+    background: theme.palette.secondary.main,
   },
   panel: {
     [theme.breakpoints.up("sm")]: {
       width: 320,
     },
-    background: theme.palette.grey[100],
+    background: theme.palette.primary.main,
     boxShadow: "0 0 5px rgba(0,0,0,0.3)",
+    color: "#fff",
     zIndex: 12,
     position: "relative",
     width: "100vw",
+    "& .panel-option": {
+      opacity: 0.6,
+      "& svg": {
+        color: "#fff",
+      },
+      "&.selected": {
+        opacity: 1,
+        borderRight: "8px solid " + theme.palette.secondary.main,
+        "& svg": {
+          color: theme.palette.secondary.main,
+        },
+      },
+    },
   },
   toolbar: {
     position: "sticky",
     top: 0,
     left: 0,
+    background: theme.palette.primary.main,
     right: 0,
-    background: theme.palette.grey[200],
     zIndex: 9,
   },
   buttonProgress: {

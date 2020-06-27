@@ -198,21 +198,7 @@ function Home(props) {
                   <Box
                     flex={1}
                     className={[styles.centered, styles.start].join(" ")}
-                    style={{ marginBottom: 6 }}
                   >
-                    <CalendarTodayOutlinedIcon />
-                    <Typography
-                      variant="body2"
-                      style={{ fontSize: "0.8rem", marginLeft: 5 }}
-                    >
-                      {moment(c.next_schedule.from).format("MMM D, YYYY")}
-                    </Typography>
-                  </Box>
-                  <Box
-                    flex={1}
-                    className={[styles.centered, styles.start].join(" ")}
-                  >
-                    <QueryBuilderOutlinedIcon />
                     <Typography
                       variant="body2"
                       style={{ fontSize: "0.75rem", marginLeft: 5 }}
@@ -222,6 +208,19 @@ function Home(props) {
                         moment(c.next_schedule.to).format("hh:mm A")}
                     </Typography>
                   </Box>
+                  <Box
+                    flex={1}
+                    className={[styles.centered, styles.start].join(" ")}
+                    style={{ marginBottom: 6 }}
+                  >
+                    <Typography
+                      variant="body2"
+                      style={{ fontSize: "0.8rem", marginLeft: 5 }}
+                    >
+                      {moment(c.next_schedule.from).format("MMM D, YYYY")}
+                    </Typography>
+                  </Box>
+
                   <div style={{ position: "absolute", top: -40, right: 0 }}>
                     <Box
                       borderRadius="50%"

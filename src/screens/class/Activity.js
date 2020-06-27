@@ -1552,10 +1552,12 @@ function Activity(props) {
                       key={index}
                       className={styles.listItem}
                       style={{
+                        boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
                         borderColor:
                           item.status === "published"
                             ? theme.palette.success.main
-                            : "#fff",
+                            : theme.palette.error.main,
+                        backgroundColor: index % 2 ? "#f9f6ff" : "#fff",
                         ...(currentActivity &&
                         parseInt(item.id) === parseInt(currentActivity.id)
                           ? {
@@ -1609,10 +1611,14 @@ function Activity(props) {
                             className={styles.hideonmobile}
                             variant="body1"
                             component="div"
-                            style={{ marginRight: 55 }}
+                            style={{
+                              marginRight: 55,
+                              display: "flex",
+                              alignItems: "center",
+                            }}
                           >
                             {moment(item.available_from).format("LL")}
-                            &nbsp;-&nbsp;
+                            <Icon>arrow_right_alt</Icon>
                             {moment(item.available_to).format("LL")}
                           </Typography>
                         </ExpansionPanelSummary>
@@ -2236,7 +2242,6 @@ const useStyles = makeStyles((theme) => ({
   },
   listItem: {
     padding: 0,
-    backgroundColor: theme.palette.grey[100],
     borderLeft: "4px solid",
     marginBottom: 7,
   },

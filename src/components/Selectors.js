@@ -123,17 +123,17 @@ export function SearchInput(props) {
     props.quickSearch === undefined ? true : props.quickSearch;
   return (
     <Box
-      border={1}
       p={0.3}
       borderRadius={7}
       display="flex"
-      style={
-        isMobile
+      style={{
+        ...(isMobile
           ? { width: "100%", ...(props.style ? props.style : {}) }
           : props.style
           ? props.style
-          : {}
-      }
+          : {}),
+        ...{ background: "#efe7ff" },
+      }}
     >
       <InputBase
         style={{ width: "100%" }}
@@ -154,7 +154,7 @@ export function SearchInput(props) {
           props.onChange(searchRef.current.querySelector("input").value)
         }
       >
-        <SearchIcon />
+        <SearchIcon color="primary" />
       </IconButton>
     </Box>
   );

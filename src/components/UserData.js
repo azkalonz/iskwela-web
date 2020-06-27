@@ -172,19 +172,19 @@ const UserData = {
     } else {
       data.classes = await Api.get("/api/teacher/classes");
     }
-    let quizzes = await Api.get(
-      "/api/quizzes?types[]=myQuizzes&types[]=schoolQuizzes&types[]=classQuizzes"
-    );
+    // let quizzes = await Api.get(
+    //   "/api/quizzes?types[]=myQuizzes&types[]=schoolQuizzes&types[]=classQuizzes"
+    // );
     let allclasses = {};
     await asyncForEach(data.classes, async (c) => {
       allclasses[c.id] = c;
       allclasses[c.id].teacher.pic = await this.getUserPic(c.teacher.id);
     });
     data.classDetails = {};
-    store.dispatch({
-      type: "SET_QUIZZES",
-      quizzes,
-    });
+    // store.dispatch({
+    //   type: "SET_QUIZZES",
+    //   quizzes,
+    // });
     store.dispatch({
       type: "SET_CLASS_DETAILS",
       class_details: data.classDetails,

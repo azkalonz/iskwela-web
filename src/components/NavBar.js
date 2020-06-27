@@ -163,18 +163,6 @@ function NavBar(props) {
                   src={props.userInfo.pic_url}
                 />
               </IconButton>
-              <Tooltip title="Help" placement="bottom-start">
-                <IconButton
-                  onClick={() =>
-                    window.open(
-                      "https://files.iskwela.net/public/iSkwela_UserManual_Beta1.0.pdf",
-                      "_blank"
-                    )
-                  }
-                >
-                  <HelpOutlineOutlinedIcon />
-                </IconButton>
-              </Tooltip>
               <IconButton
                 aria-label="account of current user"
                 aria-controls="menu-appbar"
