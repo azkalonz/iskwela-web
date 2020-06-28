@@ -597,13 +597,22 @@ function LessonPlan(props) {
           flexWrap="wrap"
           display="flex"
           justifyContent="space-between"
+          width={isMobile ? "100%" : "auto"}
           alignItems="center"
         >
-          <ScheduleSelector
-            match={props.match}
-            onChange={(schedId) => setSelectedSched(schedId)}
-            schedule={selectedSched >= 0 ? selectedSched : -1}
-          />
+          <Box
+            width={isMobile ? "100%" : 160}
+            style={{
+              order: isMobile ? 2 : 0,
+              margin: isMobile ? "10px 0" : "",
+            }}
+          >
+            <ScheduleSelector
+              match={props.match}
+              onChange={(schedId) => setSelectedSched(schedId)}
+              schedule={selectedSched >= 0 ? selectedSched : -1}
+            />
+          </Box>
           &nbsp;
           <SearchInput onChange={(e) => _handleSearch(e)} />
         </Box>

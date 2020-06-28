@@ -24,6 +24,7 @@ import {
   Divider,
   LinearProgress,
   ListItemSecondaryAction,
+  Backdrop,
 } from "@material-ui/core";
 import Skeleton from "react-loading-skeleton";
 import CreateOutlined from "@material-ui/icons/CreateOutlined";
@@ -94,6 +95,7 @@ function ClassRightPanel(props) {
 function Class(props) {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  const isTablet = useMediaQuery(theme.breakpoints.down("md"));
   const { room_name, class_id, schedule_id, option_name } = props.match.params;
   const history = useHistory();
   const styles = useStyles();
@@ -105,7 +107,9 @@ function Class(props) {
   const [saving, setSaving] = useState(false);
   const [currentID, setCurrentID] = useState(class_id);
   const [rightPanelLoading, setRightPanelLoading] = useState(true);
-
+  useEffect(() => {
+    if (isMobile) setCollapsePanel(false);
+  }, [isMobile]);
   useEffect(() => {
     if (class_id) {
       if (!props.classDetails[class_id] || currentID !== class_id) {
@@ -135,7 +139,6 @@ function Class(props) {
 
   const panelOption = (p) => {
     const handleExpand = () => {
-      if (isMobile) setCollapsePanel(false);
       if (p.link) {
         history.push(
           makeLinkTo(["class", CLASS.id, "sc", p.link, "room_name"], {
@@ -144,6 +147,8 @@ function Class(props) {
           })
         );
       }
+      if (isMobile && !p.children) setCollapsePanel(false);
+
       if (!p.children || !p.children.filter((c) => !c.hidden).length) return;
       let i = {
         expanded: document.querySelector("#is-expanded-" + p.id),
@@ -368,6 +373,17 @@ function Class(props) {
                 <React.Fragment>
                   <Paper className="box-container">
                     <Toolbar className={styles.toolbar}>
+                      {isTablet && (
+                        <IconButton
+                          aria-label="Collapse Panel"
+                          onClick={() => {
+                            props.history.push("#menu");
+                          }}
+                          style={{ marginLeft: -15 }}
+                        >
+                          <Icon>menu</Icon>
+                        </IconButton>
+                      )}
                       <Typography
                         variant="body1"
                         style={{ fontWeight: "bold" }}
@@ -656,7 +672,7 @@ function Class(props) {
 
             <NavBar
               title={
-                isValidOption(option_name) && !isMobile
+                isValidOption(option_name)
                   ? isValidOption(option_name).title
                   : ""
               }
@@ -687,9 +703,9 @@ function Class(props) {
               display="flex"
               alignItems="center"
               height="86%"
-              m={4}
+              m={isMobile ? 0 : 4}
               style={{
-                marginTop: 12,
+                marginTop: isMobile ? 0 : 12,
               }}
               justifyContent="center"
             >
@@ -702,7 +718,7 @@ function Class(props) {
                   flexDirection="column"
                   p={2}
                   justifyContent="flex-start"
-                  flexWrap="wrap"
+                  flexWrap="nowrap"
                 >
                   <Box style={{ padding: "6px 0" }} width={200}>
                     <Skeleton width="100%" height={50} />
@@ -729,6 +745,18 @@ function Class(props) {
           </Box>
         </Box>
       </Drawer>
+      <Backdrop
+        open={
+          (collapsePanel || props.location.hash === "#menu") && isMobile
+            ? true
+            : false
+        }
+        style={{ zIndex: 10, backgroundColor: "rgba(0,0,0,0.7)" }}
+        onClick={() => {
+          props.history.push("#");
+          setCollapsePanel(false);
+        }}
+      />
     </div>
   );
 }
@@ -742,15 +770,22 @@ const useStyles = makeStyles((theme) => ({
     background: theme.palette.secondary.main,
   },
   panel: {
-    [theme.breakpoints.up("sm")]: {
-      width: 320,
+    [theme.breakpoints.down("sm")]: {
+      color: "#fff",
+      zIndex: 20,
+      position: "fixed",
+      width: "80vw",
+      maxWidth: 330,
+      minWidth: 330,
     },
+    [theme.breakpoints.down("md")]: {
+      marginLeft: -8,
+    },
+    width: 320,
+    position: "relative",
     // background: theme.palette.primary.main,
     // boxShadow: "0 0 5px rgba(0,0,0,0.3)",
-    color: "#fff",
-    zIndex: 12,
-    position: "relative",
-    width: "100vw",
+
     "& .box-container": {
       background: theme.palette.primary.main,
       color: "#fff",

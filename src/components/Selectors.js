@@ -23,9 +23,10 @@ function ScheduleSelector(props) {
   const history = useHistory();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  const isTablet = useMediaQuery(theme.breakpoints.down("md"));
 
   return (
-    <FormControl style={{ width: isMobile ? "100%" : 160 }} variant="outlined">
+    <FormControl style={{ width: "100%" }} variant="outlined">
       <InputLabel>Date</InputLabel>
 
       <Select
@@ -76,9 +77,10 @@ function StatusSelector(props) {
   const query = queryString.parse(window.location.search);
   const history = useHistory();
   const theme = useTheme();
+  const isTablet = useMediaQuery(theme.breakpoints.down("md"));
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   return (
-    <FormControl style={{ width: isMobile ? "100%" : 160 }} variant="outlined">
+    <FormControl style={{ width: "100%" }} variant="outlined">
       <InputLabel>Status</InputLabel>
       <Select
         style={{ background: "#efe7ff" }}
@@ -119,6 +121,7 @@ function StatusSelector(props) {
 
 export function SearchInput(props) {
   const theme = useTheme();
+  const isTablet = useMediaQuery(theme.breakpoints.down("md"));
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const searchRef = useRef();
   const quickSearch =

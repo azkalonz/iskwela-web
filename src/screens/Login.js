@@ -44,8 +44,8 @@ function Login(props) {
               flex={1}
               width="45%"
               style={{
-                background:
-                  "radial-gradient(circle at top center,#7335fa,#1f094c)",
+                background: "url('/login-bg.png') no-repeat center ",
+                backgroundSize: "cover",
               }}
             ></Box>
           )}

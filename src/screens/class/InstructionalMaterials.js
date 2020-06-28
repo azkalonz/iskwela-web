@@ -722,21 +722,42 @@ function InstructionalMaterials(props) {
           display="flex"
           justifyContent="space-between"
           alignItems="center"
+          style={{ width: isMobile ? "100%" : "auto" }}
         >
-          <ScheduleSelector
-            match={props.match}
-            onChange={(schedId) => setSelectedSched(schedId)}
-            schedule={selectedSched >= 0 ? selectedSched : -1}
-          />
-          &nbsp;
-          {isTeacher && (
-            <StatusSelector
-              match={props.match}
-              onChange={(statusId) => setSelectedStatus(statusId)}
-              status={selectedStatus ? selectedStatus : "all"}
-            />
-          )}
-          &nbsp;
+          <Box
+            style={{
+              ...(isMobile
+                ? {
+                    order: 2,
+                    width: "100%",
+                    justifyContent: "space-between",
+                    margin: "10px 0",
+                  }
+                : {}),
+              ...{
+                display: "flex",
+              },
+            }}
+          >
+            <Box width={isMobile ? "49%" : 160}>
+              <ScheduleSelector
+                onChange={(schedId) => setSelectedSched(schedId)}
+                schedule={selectedSched >= 0 ? selectedSched : -1}
+                match={props.match}
+              />
+            </Box>
+            {!isMobile && String.fromCharCode(160)}
+            <Box width={isMobile ? "49%" : 160}>
+              {isTeacher && (
+                <StatusSelector
+                  onChange={(statusId) => setSelectedStatus(statusId)}
+                  status={selectedStatus ? selectedStatus : "all"}
+                  match={props.match}
+                />
+              )}
+            </Box>
+            {!isMobile && String.fromCharCode(160)}
+          </Box>
           <SearchInput onChange={(e) => setSearch(e.toLowerCase())} />
         </Box>
       </Box>

@@ -198,112 +198,120 @@ export function Table(props) {
             />
           ) : null}
           <Grow in={items ? true : false}>
-            <List>
-              {getPageItems(props.filtered(items), page).map((item, index) => (
-                <ListItem
-                  key={index}
-                  className={styles.listItem}
-                  style={{
-                    boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
-                    borderColor:
-                      item.status === "published"
-                        ? theme.palette.success.main
-                        : theme.palette.error.main,
-                    backgroundColor: index % 2 ? "#f8f8f8" : "#fff",
-                  }}
-                >
-                  {isTeacher && (
-                    <ListItemIcon>
-                      <Checkbox
-                        checked={selectedItems[item.id] ? true : false}
-                        onChange={() => {
-                          _handleSelectOption(item);
-                        }}
-                      />
-                    </ListItemIcon>
-                  )}
-                  {saving && savingId.indexOf(item.id) >= 0 && (
-                    <div className={styles.itemLoading}>
-                      <CircularProgress />
-                    </div>
-                  )}
-                  {props.rowRender(item)}
-                  <ListItemSecondaryAction>
-                    <IconButton
-                      onClick={(event) =>
-                        setAnchorEl(() => {
-                          let a = {};
-                          a[item.id] = event.currentTarget;
-                          return { ...anchorEl, ...a };
-                        })
-                      }
-                      color="primary"
+            {true ? (
+              <List>
+                {getPageItems(props.filtered(items), page).map(
+                  (item, index) => (
+                    <ListItem
+                      key={index}
+                      className={styles.listItem}
+                      style={{
+                        boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+                        borderColor:
+                          item.status === "published"
+                            ? theme.palette.success.main
+                            : theme.palette.error.main,
+                        backgroundColor: index % 2 ? "#f8f8f8" : "#fff",
+                      }}
                     >
-                      <Icon>more_horiz</Icon>
-                    </IconButton>
-                    {anchorEl && (
-                      <StyledMenu
-                        id="customized-menu"
-                        anchorEl={anchorEl[item.id]}
-                        keepMounted
-                        open={Boolean(anchorEl[item.id])}
-                        onClose={() =>
-                          setAnchorEl(() => {
-                            let a = {};
-                            a[item.id] = null;
-                            return { ...anchorEl, ...a };
-                          })
-                        }
-                      >
-                        {props.options.map((t) => (
-                          <StyledMenuItem
-                            onClick={() => {
-                              if (props.actions["_handleFileOption"]) {
-                                props.actions["_handleFileOption"](
-                                  t.value,
-                                  item
-                                );
-                                setAnchorEl(() => {
-                                  let a = {};
-                                  a[item.id] = null;
-                                  return { ...anchorEl, ...a };
-                                });
-                              }
+                      {isTeacher && (
+                        <ListItemIcon>
+                          <Checkbox
+                            checked={selectedItems[item.id] ? true : false}
+                            onChange={() => {
+                              _handleSelectOption(item);
                             }}
+                          />
+                        </ListItemIcon>
+                      )}
+                      {saving && savingId.indexOf(item.id) >= 0 && (
+                        <div className={styles.itemLoading}>
+                          <CircularProgress />
+                        </div>
+                      )}
+                      {props.rowRender(item)}
+                      <ListItemSecondaryAction>
+                        <IconButton
+                          onClick={(event) =>
+                            setAnchorEl(() => {
+                              let a = {};
+                              a[item.id] = event.currentTarget;
+                              return { ...anchorEl, ...a };
+                            })
+                          }
+                          color="primary"
+                        >
+                          <Icon>more_horiz</Icon>
+                        </IconButton>
+                        {anchorEl && (
+                          <StyledMenu
+                            id="customized-menu"
+                            anchorEl={anchorEl[item.id]}
+                            keepMounted
+                            open={Boolean(anchorEl[item.id])}
+                            onClose={() =>
+                              setAnchorEl(() => {
+                                let a = {};
+                                a[item.id] = null;
+                                return { ...anchorEl, ...a };
+                              })
+                            }
                           >
-                            <ListItemText primary={t.name} />
-                          </StyledMenuItem>
-                        ))}
-                        {isTeacher && (
-                          <div>
-                            {props.teacherOptions &&
-                              props.teacherOptions.map((t) => (
-                                <StyledMenuItem
-                                  onClick={() => {
-                                    if (props.actions["_handleFileOption"]) {
-                                      props.actions["_handleFileOption"](
-                                        t.value,
-                                        item
-                                      );
-                                      setAnchorEl(() => {
-                                        let a = {};
-                                        a[item.id] = null;
-                                        return { ...anchorEl, ...a };
-                                      });
-                                    }
-                                  }}
-                                >
-                                  <ListItemText primary={t.name} />
-                                </StyledMenuItem>
-                              ))}
-                          </div>
+                            {props.options.map((t) => (
+                              <StyledMenuItem
+                                onClick={() => {
+                                  if (props.actions["_handleFileOption"]) {
+                                    props.actions["_handleFileOption"](
+                                      t.value,
+                                      item
+                                    );
+                                    setAnchorEl(() => {
+                                      let a = {};
+                                      a[item.id] = null;
+                                      return { ...anchorEl, ...a };
+                                    });
+                                  }
+                                }}
+                              >
+                                <ListItemText primary={t.name} />
+                              </StyledMenuItem>
+                            ))}
+                            {isTeacher && (
+                              <div>
+                                {props.teacherOptions &&
+                                  props.teacherOptions.map((t) => (
+                                    <StyledMenuItem
+                                      onClick={() => {
+                                        if (
+                                          props.actions["_handleFileOption"]
+                                        ) {
+                                          props.actions["_handleFileOption"](
+                                            t.value,
+                                            item
+                                          );
+                                          setAnchorEl(() => {
+                                            let a = {};
+                                            a[item.id] = null;
+                                            return { ...anchorEl, ...a };
+                                          });
+                                        }
+                                      }}
+                                    >
+                                      <ListItemText primary={t.name} />
+                                    </StyledMenuItem>
+                                  ))}
+                              </div>
+                            )}
+                          </StyledMenu>
                         )}
-                      </StyledMenu>
-                    )}
-                  </ListItemSecondaryAction>
-                </ListItem>
-              ))}
-            </List>
+                      </ListItemSecondaryAction>
+                    </ListItem>
+                  )
+                )}
+              </List>
+            ) : (
+              <div>Mobile</div>
+            )}
           </Grow>
         </Box>
         {props.pagination && <Box p={2}>{props.pagination}</Box>}

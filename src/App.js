@@ -96,9 +96,17 @@ function App(props) {
           boxShadow: "4px 0 3px rgba(143, 45, 253,0.1)!important",
         },
       },
-      MuiFilledInput: {
+      MuiInputBase: {
         root: {
-          backgroundColor: "rgba(0, 0, 0, 0.03)",
+          paddingLeft: 10,
+          backgroundColor: "#efe7ff!important",
+          borderRadius: 4,
+          "&:hover": {
+            backgroundColor: "#efe7ff!important",
+          },
+          "&:focus": {
+            backgroundColor: "#efe7ff!important",
+          },
         },
       },
       MuiDivider: {
@@ -134,7 +142,7 @@ function App(props) {
       },
       MuiButton: {
         root: {
-          [defaultTheme.breakpoints.down("xs")]: {
+          [defaultTheme.breakpoints.down("sm")]: {
             width: "100%",
             marginTop: 5,
             marginBottom: 5,
@@ -142,13 +150,7 @@ function App(props) {
           },
         },
       },
-      MuiInputBase: {
-        input: {
-          paddingLeft: 10,
-          background: "#efe7ff",
-          borderRadius: 4,
-        },
-      },
+
       MuiTextField: {
         root: {
           "&.no-legend": {

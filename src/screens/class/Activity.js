@@ -122,6 +122,7 @@ function Activity(props) {
   const history = useHistory();
   const query = queryString.parse(window.location.search);
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  const isTablet = useMediaQuery(theme.breakpoints.down("md"));
   const [saving, setSaving] = useState(false);
   const [hasFiles, setHasFiles] = useState([false, false]);
   const { class_id, option_name, schedule_id } = props.match.params;
@@ -443,12 +444,13 @@ function Activity(props) {
     } catch (e) {
       newform = props.classDetails[class_id].schedules[schedule_id].activities;
       newform = newform[newform.length - 1];
-      newform.activity_type =
-        newform.activity_type === "class activity" ? 1 : 2;
+      if (newform)
+        newform.activity_type =
+          newform.activity_type === "class activity" ? 1 : 2;
     }
     setForm({
       ...form,
-      ...newform,
+      ...(newform ? newform : {}),
     });
     setSavingId([]);
   };
@@ -1010,21 +1012,42 @@ function Activity(props) {
             display="flex"
             justifyContent="space-between"
             alignItems="center"
+            style={{ width: isMobile ? "100%" : "auto" }}
           >
-            <ScheduleSelector
-              onChange={(schedId) => setSelectedSched(schedId)}
-              schedule={selectedSched >= 0 ? selectedSched : -1}
-              match={props.match}
-            />
-            &nbsp;
-            {isTeacher && (
-              <StatusSelector
-                onChange={(statusId) => setSelectedStatus(statusId)}
-                status={selectedStatus ? selectedStatus : "all"}
-                match={props.match}
-              />
-            )}
-            &nbsp;
+            <Box
+              style={{
+                ...(isMobile
+                  ? {
+                      order: 2,
+                      width: "100%",
+                      justifyContent: "space-between",
+                      margin: "10px 0",
+                    }
+                  : {}),
+                ...{
+                  display: "flex",
+                },
+              }}
+            >
+              <Box width={isMobile ? "49%" : 160}>
+                <ScheduleSelector
+                  onChange={(schedId) => setSelectedSched(schedId)}
+                  schedule={selectedSched >= 0 ? selectedSched : -1}
+                  match={props.match}
+                />
+              </Box>
+              {!isMobile && String.fromCharCode(160)}
+              <Box width={isMobile ? "49%" : 160}>
+                {isTeacher && (
+                  <StatusSelector
+                    onChange={(statusId) => setSelectedStatus(statusId)}
+                    status={selectedStatus ? selectedStatus : "all"}
+                    match={props.match}
+                  />
+                )}
+              </Box>
+              {!isMobile && String.fromCharCode(160)}
+            </Box>
             <SearchInput onChange={(e) => _handleSearch(e)} />
           </Box>
         </Box>
@@ -1450,6 +1473,7 @@ function Activity(props) {
           rowRender={(item) => (
             <React.Fragment>
               <ListItemText
+                onClick={() => _handleFileOption("view", item)}
                 primary={item.title}
                 secondaryTypographyProps={{
                   style: {
@@ -1487,7 +1511,11 @@ function Activity(props) {
           {form.id ? "Edit Activity" : "Create Activity"}
         </DialogTitle>
         <DialogContent
-          style={{ display: "flex", flexWrap: isMobile ? "wrap" : "nowrap" }}
+          style={{
+            display: "flex",
+            flexWrap: isMobile ? "wrap" : "nowrap",
+            ...(isMobile ? { padding: "8px 0" } : {}),
+          }}
         >
           <Box display="block" width={isMobile ? "100%" : "70%"} m={2}>
             <TextField
@@ -1583,7 +1611,7 @@ function Activity(props) {
               fullWidth
             />
           </Box>
-          <Box flex={1} m={isMobile ? 0 : 2} width={isMobile ? "100%" : "30%"}>
+          <Box flex={1} m={2} width={isMobile ? "100%" : "30%"}>
             <Box
               display="flex"
               justifyContent="space-between"

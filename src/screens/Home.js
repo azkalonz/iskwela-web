@@ -25,6 +25,7 @@ import {
   TextField,
   useTheme,
   useMediaQuery,
+  Backdrop,
 } from "@material-ui/core";
 import QueryBuilderOutlinedIcon from "@material-ui/icons/QueryBuilderOutlined";
 import CalendarTodayOutlinedIcon from "@material-ui/icons/CalendarTodayOutlined";
@@ -75,6 +76,7 @@ function Home(props) {
   const styles = useStyles();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  const isTablet = useMediaQuery(theme.breakpoints.down("md"));
   const query = require("query-string").parse(window.location.search);
   const [loading, setLoading] = useState(true);
   const history = useHistory();
@@ -148,7 +150,16 @@ function Home(props) {
     ]);
     return (
       <Grow in={true} key={c.id}>
-        <div className={styles.root}>
+        <div
+          className={styles.root}
+          style={{
+            marginBottom: Object.keys(c.next_schedule).length
+              ? !c.next_schedule.nosched && message
+                ? 60
+                : 0
+              : 0,
+          }}
+        >
           <Card style={{ position: "relative", zIndex: 2, borderRadius: 17 }}>
             <CardActionArea
               style={{ position: "relative" }}
@@ -462,7 +473,22 @@ function Home(props) {
       </Dialog>
       <div style={{ height: "100vh", overflow: "hidden auto" }}>
         <Drawer {...props}>
-          <NavBar title="Classes" />
+          <NavBar
+            title="Classes"
+            left={
+              isTablet && (
+                <IconButton
+                  aria-label="Collapse Panel"
+                  onClick={() => {
+                    props.history.push("#menu");
+                  }}
+                  style={{ marginLeft: -15 }}
+                >
+                  <Icon>menu</Icon>
+                </IconButton>
+              )
+            }
+          />
           <Box
             m={2}
             display="flex"
@@ -510,6 +536,13 @@ function Home(props) {
             />
           </Box>
         </Drawer>
+        <Backdrop
+          open={props.location.hash === "#menu" && isMobile ? true : false}
+          style={{ zIndex: 10, backgroundColor: "rgba(0,0,0,0.7)" }}
+          onClick={() => {
+            props.history.push("#");
+          }}
+        />
       </div>
     </React.Fragment>
   );
@@ -519,11 +552,11 @@ const useStyles = makeStyles((theme) => ({
   root: {
     [theme.breakpoints.down("xs")]: {
       maxWidth: "95%",
+      width: "100%",
     },
     maxWidth: 345,
     position: "relative",
     margin: 20,
-    marginBottom: 60,
     borderRadius: 20,
   },
   ONGOING: {
