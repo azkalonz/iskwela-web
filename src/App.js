@@ -96,7 +96,7 @@ function App(props) {
           boxShadow: "4px 0 3px rgba(143, 45, 253,0.1)!important",
         },
       },
-      MuiInputBase: {
+      MuiOutlinedInput: {
         root: {
           paddingLeft: 10,
           backgroundColor: "#efe7ff!important",
