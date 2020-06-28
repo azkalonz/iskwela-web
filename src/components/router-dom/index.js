@@ -33,29 +33,51 @@ export function makeLinkTo(path, options = {}) {
 }
 export const rightPanelOptions = [
   {
-    title: "Activity",
-    link: "activity",
-    icon: <AssignmentOutlinedIcon />,
-    screen: Activity,
-  },
-  {
     title: "Lesson Plan",
     link: "lesson-plan",
     icon: <BorderColorOutlinedIcon />,
     screen: LessonPlan,
   },
   {
+    title: "Student Activity",
+    icon: <AssignmentOutlinedIcon />,
+    screen: Activity,
+    children: [
+      {
+        title: "Seat Work",
+        link: "activity",
+        icon: <AssignmentOutlinedIcon />,
+        screen: Activity,
+      },
+      {
+        title: "Quiz",
+        link: "quizzes",
+        icon: <NoteAddOutlinedIcon />,
+        children: [
+          {
+            title: "Quiz",
+            link: "quiz",
+            icon: null,
+            screen: AnswerQuiz,
+            hidden: true,
+          },
+          {
+            title: "Scores",
+            link: "scores",
+            icon: null,
+            screen: Scores,
+            hidden: true,
+          },
+        ],
+        screen: Quizzes,
+      },
+    ],
+  },
+  {
     title: "Instructional Materials",
     link: "instructional-materials",
     icon: <EventNoteOutlinedIcon />,
     screen: InstructionalMaterials,
-  },
-  {
-    title: "Quizzes",
-    link: "quizzes",
-    icon: <NoteAddOutlinedIcon />,
-    children: ["scores", "quiz"],
-    screen: Quizzes,
   },
   {
     title: "Schedule",
@@ -75,24 +97,10 @@ export const rightPanelOptions = [
     icon: <FaceOutlinedIcon />,
     screen: Students,
   },
-  {
-    title: "Quiz",
-    link: "quiz",
-    icon: null,
-    screen: AnswerQuiz,
-    hidden: true,
-  },
-  {
-    title: "Scores",
-    link: "scores",
-    icon: null,
-    screen: Scores,
-    hidden: true,
-  },
 ];
 export const rightPanelOptionsStudents = [
   {
-    title: "Activity",
+    title: "Seat Work",
     link: "activity",
     icon: <AssignmentOutlinedIcon />,
     screen: Activity,
@@ -100,7 +108,6 @@ export const rightPanelOptionsStudents = [
   {
     title: "Quizzes",
     link: "quizzes",
-    children: ["scores", "quiz"],
     icon: <NoteAddOutlinedIcon />,
     screen: Quizzes,
   },
@@ -134,5 +141,5 @@ export function isValidOption(name) {
   if (!name) return;
   return rightPanelOptions
     .concat(rightPanelOptionsStudents)
-    .find((o) => o.link.toLowerCase() === name.toLowerCase());
+    .find((o) => o.link && o.link.toLowerCase() === name.toLowerCase());
 }

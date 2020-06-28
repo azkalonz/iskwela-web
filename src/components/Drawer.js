@@ -132,6 +132,7 @@ function Drawer(props) {
                       ...(item.next_schedule.status === "ONGOING"
                         ? {
                             backgroundColor: theme.palette.primary.main,
+                            color: "#fff",
                           }
                         : {
                             backgroundColor: theme.palette.primary.main + "15",
@@ -217,17 +218,45 @@ function Drawer(props) {
                 </Grow>
               );
             })}
-          {!more ? (
-            <IconButton onClick={() => setMore(true)}>
-              <ExpandMoreOutlinedIcon />
-            </IconButton>
-          ) : (
-            <IconButton onClick={() => setMore(false)}>
-              <ExpandLessOutlinedIcon />
-            </IconButton>
+          {classes && classes.length >= 6 && (
+            <React.Fragment>
+              {!more ? (
+                <IconButton onClick={() => setMore(true)}>
+                  <ExpandMoreOutlinedIcon />
+                </IconButton>
+              ) : (
+                <IconButton onClick={() => setMore(false)}>
+                  <ExpandLessOutlinedIcon />
+                </IconButton>
+              )}
+            </React.Fragment>
           )}
-          <Box m={1}>
-            <Divider style={{ backgroundColor: "#38108d", height: 2 }} />
+          <Box m={2}>
+            <Divider />
+          </Box>
+          <Box
+            {...listItem.container}
+            className={
+              window.location.pathname === "/improvement"
+                ? "selected tab bordered"
+                : "tab"
+            }
+          >
+            <Box
+              onClick={() => {
+                history.push("/");
+              }}
+              {...listItem.item}
+              style={{
+                alignItems: "center",
+                cursor: "pointer",
+                justifyContent: "center",
+                display: "flex",
+                transform: "translateX(-1.5px)",
+              }}
+            >
+              <Icon style={{ color: "#38108d" }}>school</Icon>
+            </Box>
           </Box>
           {/* <Box {...listItem.container}>
           <Tooltip title="DepEd Commons" placement="right">
@@ -274,7 +303,7 @@ function Drawer(props) {
               )
             }
           >
-            <Icon fontSize="large" color="#38108d">
+            <Icon fontSize="large" style={{ color: "#38108d" }}>
               help_outline
             </Icon>
           </IconButton>
@@ -313,7 +342,7 @@ function Drawer(props) {
   );
 }
 
-const drawerWidth = 60;
+const drawerWidth = 66;
 const useStyles = makeStyles((theme) => ({
   toolbar: {
     minHeight: 50,
@@ -330,8 +359,7 @@ const useStyles = makeStyles((theme) => ({
     "& .selected.tab": {
       position: "relative",
       "&:not(.bordered)>div": {
-        backgroundColor: theme.palette.primary.main + "!important",
-        color: theme.palette.secondary.main + "!important",
+        backgroundColor: theme.palette.secondary.main + "!important",
       },
       "&.bordered::after": {
         content: "''",
@@ -340,7 +368,7 @@ const useStyles = makeStyles((theme) => ({
         top: 0,
         bottom: 0,
         width: 6,
-        background: theme.palette.primary.main,
+        background: theme.palette.secondary.main,
         borderRadius: "6px 0 0 6px",
       },
     },

@@ -46,6 +46,7 @@ import FullscreenExitIcon from "@material-ui/icons/FullscreenExit";
 import { saveAs } from "file-saver";
 import socket from "../../components/socket.io";
 import Pagination, { getPageItems } from "../../components/Pagination";
+import { Table as MTable } from "../../components/Table";
 import {
   ScheduleSelector,
   StatusSelector,
@@ -67,9 +68,7 @@ function InstructionalMaterials(props) {
   const { class_id, option_name, schedule_id } = props.match.params;
   const [materials, setMaterials] = useState();
   const [search, setSearch] = useState("");
-  const [sortType, setSortType] = useState("DESCENDING");
   const [modals, setModals] = useState([false, false]);
-  const [anchorEl, setAnchorEl] = useState(null);
   const [addNewFileAnchor, setAddNewFileAnchor] = useState(null);
   const classSched = props.classSched;
   const isTeacher = props.userInfo.user_type === "t" ? true : false;
@@ -96,13 +95,12 @@ function InstructionalMaterials(props) {
   );
   const [page, setPage] = useState(query.page ? parseInt(query.page) : 1);
   const [selectedItems, setSelectedItems] = useState({});
+  const cellheaders = [
+    { id: "title", title: "Title", width: "50%" },
+    { id: "added_by", title: "Added By" },
+  ];
 
   const _handleFileOption = (option, file) => {
-    setAnchorEl(() => {
-      let a = {};
-      a[file.id] = null;
-      return { ...anchorEl, ...a };
-    });
     switch (option) {
       case "view":
         _handleOpenFile(file);
@@ -156,16 +154,6 @@ function InstructionalMaterials(props) {
   useEffect(() => {
     if (!fileViewerOpen) setFile();
   }, [fileViewerOpen]);
-  useEffect(() => {
-    if (materials)
-      setAnchorEl(() => {
-        let a = {};
-        materials.forEach((i) => {
-          a[i.id] = null;
-        });
-        return a;
-      });
-  }, [materials]);
 
   const _downloadFile = async (file) => {
     setErrors(null);
@@ -177,24 +165,7 @@ function InstructionalMaterials(props) {
     if (res) saveAs(new File([res], file.title, { type: res.type }));
     else setErrors(["Cannot download file."]);
     setSaving(false);
-    setSavingId(null);
-  };
-
-  const _handleSort = () => {
-    if (sortType === "ASCENDING") {
-      setMaterials(
-        materials.sort((a, b) => ("" + a.title).localeCompare(b.title))
-      );
-      setSortType("DESCENDING");
-    } else {
-      setMaterials(
-        materials.sort((a, b) => ("" + b.title).localeCompare(a.title))
-      );
-      setSortType("ASCENDING");
-    }
-  };
-  const _handleSearch = (e) => {
-    setSearch(e.toLowerCase());
+    setSavingId([]);
   };
 
   const handleClickOpen = (event) => {
@@ -372,7 +343,10 @@ function InstructionalMaterials(props) {
     setErrors(null);
     setSuccess(false);
     setConfirmed({
-      title: stat.charAt(0).toUpperCase() + " Material",
+      title:
+        stat.charAt(0).toUpperCase() +
+        stat.substr(1, stat.length) +
+        " Material",
       message: "Are you sure you want to " + stat + " this material?",
       yes: async () => {
         setSavingId([...savingId, id]);
@@ -562,8 +536,8 @@ function InstructionalMaterials(props) {
       },
     });
   };
-  const getFilteredMaterials = () =>
-    materials
+  const getFilteredMaterials = (ma = materials) =>
+    ma
       .filter((i) => (isTeacher ? true : i.status === "published"))
       .filter((a) => (selectedStatus ? selectedStatus === a.status : true))
       .filter((i) => JSON.stringify(i).toLowerCase().indexOf(search) >= 0)
@@ -581,18 +555,6 @@ function InstructionalMaterials(props) {
     let newitem = {};
     newitem[item.id] = item;
     setSelectedItems({ ...selectedItems, ...newitem });
-  };
-  const _selectAll = () => {
-    let filtered = getPageItems(getFilteredMaterials(), page);
-    if (Object.keys(selectedItems).length === filtered.length) {
-      setSelectedItems({});
-      return;
-    }
-    let b = {};
-    filtered.forEach((a) => {
-      b[a.id] = a;
-    });
-    setSelectedItems(b);
   };
   return (
     <Box width="100%" alignSelf="flex-start">
@@ -775,206 +737,19 @@ function InstructionalMaterials(props) {
             />
           )}
           &nbsp;
-          <SearchInput onChange={(e) => _handleSearch(e)} />
+          <SearchInput onChange={(e) => setSearch(e.toLowerCase())} />
         </Box>
       </Box>
 
       {materials && (
-        <Box width="100%" alignSelf="flex-start">
-          <Box m={2}>
-            {!Object.keys(selectedItems).length ? (
-              <List className={styles.hideonmobile}>
-                <ListItem
-                  ContainerComponent="li"
-                  style={{
-                    display: "flex",
-                    flexDirection: "row",
-                    justifyContent: "space-between",
-                    backgroundColor: "transparent",
-                  }}
-                >
-                  <div style={{ display: "flex", alignItems: "center" }}>
-                    {isTeacher && (
-                      <ListItemIcon>
-                        <Checkbox
-                          checked={
-                            Object.keys(selectedItems).length ===
-                            getPageItems(getFilteredMaterials(), page).length
-                              ? getPageItems(getFilteredMaterials(), page)
-                                  .length > 0
-                                ? true
-                                : false
-                              : false
-                          }
-                          onChange={() => {
-                            _selectAll();
-                          }}
-                        />
-                      </ListItemIcon>
-                    )}
-
-                    <Button size="small" onClick={_handleSort}>
-                      <ListItemText primary="Title" />
-                      {sortType === "ASCENDING" ? (
-                        <ArrowUpwardOutlinedIcon />
-                      ) : (
-                        <ArrowDownwardOutlinedIcon />
-                      )}
-                    </Button>
-                  </div>
-
-                  <Typography variant="body1" style={{ marginRight: 10 }}>
-                    ADDED BY
-                  </Typography>
-                  <ListItemSecondaryAction></ListItemSecondaryAction>
-                </ListItem>
-              </List>
-            ) : (
-              <CheckBoxAction
-                checked={
-                  Object.keys(selectedItems).length ===
-                  getPageItems(getFilteredMaterials(), page).length
-                }
-                onSelect={_selectAll}
-                onDelete={() => _handleRemoveMaterials(selectedItems)}
-                onCancel={() => setSelectedItems({})}
-                onUnpublish={() =>
-                  _handleUpdateMaterialsStatus(selectedItems, 0)
-                }
-                onPublish={() => _handleUpdateMaterialsStatus(selectedItems, 1)}
-              />
-            )}
-            <Grow in={materials ? true : false}>
-              <List>
-                {getPageItems(getFilteredMaterials(), page).map(
-                  (item, index) => (
-                    <ListItem
-                      key={index}
-                      className={styles.listItem}
-                      style={{
-                        borderColor:
-                          item.status === "published"
-                            ? theme.palette.success.main
-                            : "#fff",
-                      }}
-                    >
-                      {isTeacher && (
-                        <ListItemIcon>
-                          <Checkbox
-                            checked={selectedItems[item.id] ? true : false}
-                            onChange={() => {
-                              _handleSelectOption(item);
-                            }}
-                          />
-                        </ListItemIcon>
-                      )}
-                      {saving && savingId.indexOf(item.id) >= 0 && (
-                        <div className={styles.itemLoading}>
-                          <CircularProgress />
-                        </div>
-                      )}
-                      <ListItemIcon className={styles.hideonmobile}>
-                        <InsertDriveFileOutlinedIcon />
-                      </ListItemIcon>
-                      <ListItemText
-                        onClick={() => _handleFileOption("view", item)}
-                        primary={item.title}
-                        secondary={
-                          item.resource_link
-                            ? item.resource_link
-                            : item.uploaded_file
-                        }
-                      />
-                      <Typography
-                        variant="body1"
-                        style={{ marginRight: 10 }}
-                        className={styles.hideonmobile}
-                      >
-                        {item.added_by.first_name} {item.added_by.last_name}
-                      </Typography>
-                      <ListItemSecondaryAction>
-                        <IconButton
-                          onClick={(event) =>
-                            setAnchorEl(() => {
-                              let a = {};
-                              a[item.id] = event.currentTarget;
-                              return { ...anchorEl, ...a };
-                            })
-                          }
-                        >
-                          <MoreHorizOutlinedIcon />
-                        </IconButton>
-                        {anchorEl && (
-                          <StyledMenu
-                            id="customized-menu"
-                            anchorEl={anchorEl[item.id]}
-                            keepMounted
-                            open={Boolean(anchorEl[item.id])}
-                            onClose={() =>
-                              setAnchorEl(() => {
-                                let a = {};
-                                a[item.id] = null;
-                                return { ...anchorEl, ...a };
-                              })
-                            }
-                          >
-                            <StyledMenuItem
-                              onClick={() => _handleFileOption("view", item)}
-                            >
-                              <ListItemText primary="View" />
-                            </StyledMenuItem>
-                            <StyledMenuItem disabled={!item.uploaded_file}>
-                              <ListItemText
-                                primary="Download"
-                                onClick={() =>
-                                  _handleFileOption("download", item)
-                                }
-                              />
-                            </StyledMenuItem>
-                            {isTeacher && (
-                              <div>
-                                <StyledMenuItem
-                                  onClick={() =>
-                                    _handleFileOption("publish", item)
-                                  }
-                                >
-                                  <ListItemText primary="Publish" />
-                                </StyledMenuItem>
-                                <StyledMenuItem
-                                  onClick={() =>
-                                    _handleFileOption("unpublish", item)
-                                  }
-                                >
-                                  <ListItemText primary="Unpublish" />
-                                </StyledMenuItem>
-                                <StyledMenuItem
-                                  disabled={!item.resource_link}
-                                  onClick={() =>
-                                    _handleFileOption("edit", item)
-                                  }
-                                >
-                                  <ListItemText primary="Edit" />
-                                </StyledMenuItem>
-                                <StyledMenuItem
-                                  onClick={() =>
-                                    _handleFileOption("delete", item)
-                                  }
-                                >
-                                  <ListItemText primary="Delete" />
-                                </StyledMenuItem>
-                              </div>
-                            )}
-                          </StyledMenu>
-                        )}
-                      </ListItemSecondaryAction>
-                    </ListItem>
-                  )
-                )}
-              </List>
-            </Grow>
-          </Box>
-
-          <Box p={2}>
+        <MTable
+          page={page}
+          headers={cellheaders}
+          onPage={(p) => setPage(p)}
+          data={materials}
+          saving={saving}
+          savingId={savingId}
+          pagination={
             <Pagination
               icon={search ? "search" : "library_books"}
               emptyTitle={search ? "Nothing Found" : false}
@@ -988,8 +763,47 @@ function InstructionalMaterials(props) {
               onChange={(p) => setPage(p)}
               count={getFilteredMaterials().length}
             />
-          </Box>
-        </Box>
+          }
+          options={[
+            {
+              name: "View",
+              value: "view",
+            },
+          ]}
+          teacherOptions={[
+            { name: "Download", value: "download" },
+            { name: "Publish", value: "publish" },
+            { name: "Unpublish", value: "unpublish" },
+            { name: "Delete", value: "delete" },
+          ]}
+          filtered={(a) => getFilteredMaterials(a)}
+          actions={{
+            onDelete: (s) => _handleRemoveMaterials(s),
+            onUpdate: (a, s) => _handleUpdateMaterialsStatus(a, s),
+            _handleFileOption: (opt, file) => _handleFileOption(opt, file),
+          }}
+          rowRender={(item) => (
+            <React.Fragment>
+              <ListItemIcon className={styles.hideonmobile}>
+                <InsertDriveFileOutlinedIcon />
+              </ListItemIcon>
+              <ListItemText
+                onClick={() => _handleFileOption("view", item)}
+                primary={item.title}
+                secondary={
+                  item.resource_link ? item.resource_link : item.uploaded_file
+                }
+              />
+              <Typography
+                variant="body1"
+                style={{ marginRight: 45 }}
+                className={styles.hideonmobile}
+              >
+                {item.added_by.first_name} {item.added_by.last_name}
+              </Typography>
+            </React.Fragment>
+          )}
+        />
       )}
       <Dialog
         open={modals[0]}

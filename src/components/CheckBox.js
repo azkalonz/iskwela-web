@@ -28,6 +28,7 @@ function CheckBoxAction(props) {
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
+          paddingLeft: 20,
         }}
       >
         <div>
@@ -37,7 +38,7 @@ function CheckBoxAction(props) {
               props.onSelect();
             }}
           />
-          {props.onDelete && (
+          {props.onDelete !== undefined && (
             <Grow in={true}>
               <Tooltip title="Delete" placement="bottom">
                 <IconButton onClick={props.onDelete}>
@@ -46,7 +47,7 @@ function CheckBoxAction(props) {
               </Tooltip>
             </Grow>
           )}
-          {props.onUnpublish && (
+          {props.onUnpublish !== undefined && (
             <Grow in={true}>
               <Tooltip title="Unpublish" placement="bottom">
                 <IconButton onClick={props.onUnpublish}>
@@ -55,7 +56,7 @@ function CheckBoxAction(props) {
               </Tooltip>
             </Grow>
           )}
-          {props.onPublish && (
+          {props.onPublish !== undefined && (
             <Grow in={true}>
               <Tooltip title="Publish" placement="bottom">
                 <IconButton onClick={props.onPublish}>

@@ -35,16 +35,11 @@ function App(props) {
     },
   }));
   const [loading, setLoading] = useState(true);
-  const skeletonCustomTheme =
-    props.theme === "dark"
-      ? {
-          color: "#4747471a",
-          highlightColor: "#5757571a",
-        }
-      : {
-          color: "#d9d9d91a",
-          highlightColor: "#e9e9e91a",
-        };
+  const skeletonCustomTheme = {
+    color: "rgba(215, 215, 215, 0.4)",
+    highlightColor: "rgba(176,176,176,0.2)",
+  };
+
   const theme = createMuiTheme({
     typography: {
       fontFamily: '"NotoSansJP-Black", Helvetica, Arial, serif',
@@ -56,12 +51,13 @@ function App(props) {
             backgroundColor: primaryColor,
             color: "#fff",
           },
+          ".react-loading-skeleton": {
+            backgroundImage:
+              "linear-gradient( 90deg,rgba(255, 255, 255, 0),rgba(255,255,255,0.14),rgba(65, 65, 65, 0) )!important",
+          },
           ":focus": {
             outline: 0,
           },
-          // ".MuiBackdrop-root": {
-          //   backgroundColor: "rgba(117, 57, 255, 0.6)",
-          // },
           "#selected-option": {
             position: "relative",
             "&:before": {
@@ -149,6 +145,28 @@ function App(props) {
       MuiInputBase: {
         input: {
           paddingLeft: 10,
+          background: "#efe7ff",
+          borderRadius: 4,
+        },
+      },
+      MuiTextField: {
+        root: {
+          "&.no-legend": {
+            border: "1px solid #c9b8eb",
+            borderRadius: 4,
+            marginTop: defaultTheme.spacing(4),
+            "& fieldset": {
+              display: "none",
+            },
+            "& .MuiInputLabel-outlined.MuiInputLabel-shrink": {
+              transform: "translate(0px, -20px) scale(0.9)",
+              fontWeight: "bold",
+              color: defaultTheme.palette.grey[800],
+            },
+            "&.light .MuiInputLabel-outlined.MuiInputLabel-shrink": {
+              color: "#fff",
+            },
+          },
         },
       },
       MuiTypography: {
@@ -178,7 +196,6 @@ function App(props) {
     },
   });
   useEffect(() => {
-    window.localStorage.removeItem("greeted");
     socket.on("get class details", (c) => {
       if (store.getState().classes[c.id]) {
         UserData.updateClassDetails(c.id, c.details);

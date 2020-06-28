@@ -280,10 +280,6 @@ function Home(props) {
     );
   };
   useEffect(() => {
-    if (!window.localStorage["greeted"])
-      setTimeout(() => {
-        window.localStorage["greeted"] = true;
-      }, 6000);
     let cardPerPage = () => {
       if (props.location.hash === "#meeting") return;
       let m = document.querySelector("main").clientWidth;
@@ -513,24 +509,6 @@ function Home(props) {
               onChange={(p) => setPage(p)}
             />
           </Box>
-          {!window.localStorage["greeted"] && (
-            <Snackbar
-              open={greeting}
-              autoHideDuration={12000}
-              onClose={() => {
-                setGreeting(false);
-              }}
-            >
-              <Alert
-                severity="info"
-                onClose={() => {
-                  setGreeting(false);
-                }}
-              >
-                Welcome back! <b>{props.userInfo.first_name}!</b>
-              </Alert>
-            </Snackbar>
-          )}
         </Drawer>
       </div>
     </React.Fragment>

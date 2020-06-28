@@ -23,19 +23,18 @@ import {
   Slide,
   Divider,
   LinearProgress,
+  ListItemSecondaryAction,
 } from "@material-ui/core";
 import Skeleton from "react-loading-skeleton";
 import CreateOutlined from "@material-ui/icons/CreateOutlined";
-import QueryBuilderOutlinedIcon from "@material-ui/icons/QueryBuilderOutlined";
-import CalendarTodayOutlinedIcon from "@material-ui/icons/CalendarTodayOutlined";
 import VideocamOutlinedIcon from "@material-ui/icons/VideocamOutlined";
 import VideoConference from "../containers/VideoConference";
 import ArrowBackIosRoundedIcon from "@material-ui/icons/ArrowBackIosRounded";
 import ArrowForwardIosRoundedIcon from "@material-ui/icons/ArrowForwardIosRounded";
 import {
   makeLinkTo,
-  rightPanelOptionsStudents,
-  rightPanelOptions,
+  rightPanelOptionsStudents as studentPanel,
+  rightPanelOptions as teacherPanel,
   getView,
   isValidOption,
 } from "../components/router-dom";
@@ -45,6 +44,21 @@ import UserData from "../components/UserData";
 import $ from "jquery";
 import socket from "../components/socket.io";
 import moment from "moment";
+
+function setPanelIds(panel, i = 0) {
+  panel.forEach((p) => {
+    p.id = i;
+    i++;
+    if (p.children) {
+      p.children = setPanelIds(p.children, i);
+      i += p.children.length;
+    }
+  });
+  return panel;
+}
+const rightPanelOptions = setPanelIds(teacherPanel);
+const rightPanelOptionsStudents = setPanelIds(studentPanel);
+console.log(rightPanelOptions);
 
 function ClassRightPanel(props) {
   const { option_name, class_id } = props.match.params;
@@ -109,7 +123,8 @@ function Class(props) {
       setCLASS(props.classDetails[class_id]);
     } else {
       await UserData.updateClassDetails(class_id, null, (d) => {
-        history.push(makeLinkTo(["class", class_id, d.id, "activity"]));
+        if (!schedule_id)
+          history.push(makeLinkTo(["class", class_id, d.id, "activity"]));
       });
       setCLASS(undefined);
     }
@@ -119,56 +134,118 @@ function Class(props) {
   };
 
   const panelOption = (p) => {
+    const handleExpand = () => {
+      if (isMobile) setCollapsePanel(false);
+      if (p.link) {
+        history.push(
+          makeLinkTo(["class", CLASS.id, "sc", p.link, "room_name"], {
+            room_name: room_name ? "/video-conference" : "",
+            sc: schedule_id ? schedule_id : "",
+          })
+        );
+      }
+      if (!p.children || !p.children.filter((c) => !c.hidden).length) return;
+      let i = {
+        expanded: document.querySelector("#is-expanded-" + p.id),
+        notexpanded: document.querySelector("#not-expanded-" + p.id),
+      };
+      i.expanded.style.display = "none";
+      i.notexpanded.style.display = "none";
+      let o = document.querySelector("#panel-option-" + p.id);
+      let h = o.firstElementChild.clientHeight;
+      if (o.classList.value.indexOf("opened") < 0) {
+        if (p.isChild) {
+          let parent = o.parentElement.parentElement;
+          let parentHeight = parent.clientHeight - 48;
+          parent.style.height = parentHeight + h + "px";
+        }
+        o.style.height = h + "px";
+        i.expanded.style.display = "block";
+      } else {
+        if (p.isChild) {
+          let parent = o.parentElement.parentElement;
+          let parentHeight = parent.firstElementChild.clientHeight - h + 48;
+          parent.style.height = parentHeight + "px";
+        }
+        o.style.height = "48px";
+        i.notexpanded.style.display = "block";
+      }
+      o.classList.toggle("opened");
+    };
     return (
-      <div key={p.id}>
-        <Typography
-          component="div"
-          onClick={() => {
-            if (isMobile) setCollapsePanel(false);
-            history.push(
-              makeLinkTo(["class", CLASS.id, "sc", p.link, "room_name"], {
-                room_name: room_name ? "/video-conference" : "",
-                sc: schedule_id ? schedule_id : "",
-              })
-            );
-          }}
-          style={{ cursor: "pointer" }}
+      <div
+        key={p.id}
+        id={"panel-option-" + p.id}
+        className="panel-option-container"
+        style={{ ...(p.children ? { height: 48, overflow: "hidden" } : {}) }}
+      >
+        <div
+          className="wrapper"
+          style={{ ...(p.isChild ? { background: "#5719dc" } : {}) }}
         >
-          <ListItem
-            id={
-              option_name === p.link ||
-              (p.children && p.children.indexOf(option_name) >= 0)
-                ? "selected-option"
-                : ""
-            }
-            className={
-              option_name === p.link ||
-              (p.children && p.children.indexOf(option_name) >= 0)
-                ? "selected panel-option"
-                : "panel-option"
-            }
-            button
+          <Typography
+            component="div"
+            onClick={() => {
+              handleExpand();
+            }}
+            style={{ cursor: "pointer" }}
           >
-            <ListItemIcon>{p.icon}</ListItemIcon>
-            <ListItemText primary={p.title} />
-          </ListItem>
-        </Typography>
-        {props.dataProgress[p.link] &&
-          p.link !== option_name &&
-          Math.ceil(
-            (props.dataProgress[p.link].loaded /
-              props.dataProgress[p.link].total) *
-              100
-          ) < 100 && (
-            <LinearProgress
-              variant="determinate"
-              value={Math.ceil(
-                (props.dataProgress[p.link].loaded /
-                  props.dataProgress[p.link].total) *
-                  100
-              )}
-            />
-          )}
+            <ListItem
+              id={
+                option_name === p.link ||
+                (p.children &&
+                  p.children.findIndex((q) => q.link === option_name) >= 0)
+                  ? "selected-option"
+                  : ""
+              }
+              className={
+                option_name === p.link ||
+                (p.children &&
+                  p.children.findIndex((q) => q.link === option_name) >= 0)
+                  ? "selected panel-option"
+                  : "panel-option"
+              }
+              button
+              style={{ ...(p.isChild ? { paddingLeft: 71 } : {}) }}
+            >
+              {!p.isChild && <ListItemIcon>{p.icon}</ListItemIcon>}
+              <ListItemText primary={p.title} />
+              {p.children && p.children.filter((c) => !c.hidden).length ? (
+                <ListItemSecondaryAction>
+                  <IconButton id={"not-expanded-" + p.id}>
+                    <Icon style={{ color: "#fff" }}>navigate_next</Icon>
+                  </IconButton>
+                  <IconButton
+                    id={"is-expanded-" + p.id}
+                    style={{ display: "none" }}
+                  >
+                    <Icon style={{ color: "#fff" }}>expand_more</Icon>
+                  </IconButton>
+                </ListItemSecondaryAction>
+              ) : null}
+            </ListItem>
+          </Typography>
+          {props.dataProgress[p.link] &&
+            p.link !== option_name &&
+            Math.ceil(
+              (props.dataProgress[p.link].loaded /
+                props.dataProgress[p.link].total) *
+                100
+            ) < 100 && (
+              <LinearProgress
+                variant="determinate"
+                value={Math.ceil(
+                  (props.dataProgress[p.link].loaded /
+                    props.dataProgress[p.link].total) *
+                    100
+                )}
+              />
+            )}
+          {p.children &&
+            Object.keys(p.children)
+              .filter((s) => !p.children[s].hidden)
+              .map((k, id) => panelOption({ ...p.children[k], isChild: true }))}
+        </div>
       </div>
     );
   };
@@ -286,202 +363,226 @@ function Class(props) {
             unmountOnExit
             style={{ height: "100vh", overflow: "auto" }}
           >
-            <Paper className={styles.panel} width="100vw">
+            <Box className={styles.panel} width="100vw">
               {CLASS !== undefined && props.classDetails[class_id] ? (
-                <div>
-                  <Toolbar className={styles.toolbar}>
-                    <Typography variant="body1" style={{ fontWeight: "bold" }}>
-                      {CLASS.name}
-                    </Typography>
-                    <Tooltip title="Hide class panel" placement="bottom-start">
-                      <IconButton
-                        style={{ position: "absolute", right: 0 }}
-                        aria-label="Collapse Panel"
-                        onClick={() => setCollapsePanel(!collapsePanel)}
-                      >
-                        <ArrowBackIosRoundedIcon />
-                      </IconButton>
-                    </Tooltip>
-                  </Toolbar>
-                  <Box
-                    width="100%"
-                    height={140}
-                    position="relative"
-                    overflow="hidden"
-                  >
-                    <img
-                      alt="Class Wallpaper"
-                      src="https://www.iskwela.net/img/on-iskwela.svg"
-                      width="100%"
-                      height="100%"
-                    />
-                    {isTeacher && (
-                      <Tooltip
-                        title="Edit class picture"
-                        placement="left-start"
-                      >
-                        <IconButton
-                          style={{
-                            position: "absolute",
-                            bottom: 10,
-                            right: 10,
-                          }}
-                        >
-                          <CreateOutlined />
-                        </IconButton>
-                      </Tooltip>
-                    )}
-                  </Box>
-                  <Divider />
-                  <Box p={2.2} className={styles.centered}>
-                    <Box
-                      flex={1}
-                      className={[styles.centered, styles.start].join(" ")}
-                      width="50%"
-                    >
-                      <CalendarTodayOutlinedIcon />
-                      <Typography
-                        variant="body2"
-                        style={{ fontSize: "0.8rem", marginLeft: 5 }}
-                      >
-                        {moment(
-                          props.classDetails[class_id].schedules[schedule_id]
-                            .from
-                        ).format("LL")}
-                      </Typography>
-                    </Box>
-                    <Divider
-                      orientation="vertical"
-                      style={{ marginRight: 5 }}
-                      flexItem
-                    />
-                    <Box
-                      flex={1}
-                      className={[styles.centered, styles.start].join(" ")}
-                      width="50%"
-                    >
-                      <QueryBuilderOutlinedIcon />
-                      <Typography
-                        variant="body2"
-                        style={{ fontSize: "0.75rem", marginLeft: 5 }}
-                      >
-                        {moment(
-                          props.classDetails[class_id].schedules[schedule_id]
-                            .from
-                        ).format("hh:mm A")}
-                        {" - "}
-                        {moment(
-                          props.classDetails[class_id].schedules[schedule_id].to
-                        ).format("hh:mm A")}
-                      </Typography>
-                    </Box>
-                  </Box>
-                  <Divider />
-                  <Box
-                    p={2.2}
-                    className={[styles.centered, styles.start].join(" ")}
-                  >
-                    <Box
-                      width={50}
-                      height={50}
-                      borderRadius="50%"
-                      bgcolor="grey.500"
-                      overflow="hidden"
-                    >
-                      <Avatar
-                        src={props.pics[CLASS.teacher.id]}
-                        alt={
-                          CLASS.teacher.first_name +
-                          " " +
-                          CLASS.teacher.last_name
-                        }
-                        style={{
-                          width: "100%",
-                          height: "100%",
-                          background: "#fff",
-                        }}
-                      />
-                    </Box>
-                    <Box p={1}>
+                <React.Fragment>
+                  <Paper className="box-container">
+                    <Toolbar className={styles.toolbar}>
                       <Typography
                         variant="body1"
                         style={{ fontWeight: "bold" }}
                       >
-                        {CLASS.teacher.first_name} {CLASS.teacher.last_name}
+                        {CLASS.name}
                       </Typography>
-                      <Typography variant="body1">
-                        {CLASS.subject.name} Teacher
-                      </Typography>
+                      <Tooltip
+                        title="Hide class panel"
+                        placement="bottom-start"
+                      >
+                        <IconButton
+                          style={{ position: "absolute", right: 0 }}
+                          aria-label="Collapse Panel"
+                          onClick={() => setCollapsePanel(!collapsePanel)}
+                        >
+                          <ArrowBackIosRoundedIcon />
+                        </IconButton>
+                      </Tooltip>
+                    </Toolbar>
+                    <Box
+                      width="100%"
+                      height={140}
+                      position="relative"
+                      overflow="hidden"
+                    >
+                      <img
+                        alt="Class Wallpaper"
+                        src="https://www.iskwela.net/img/on-iskwela.svg"
+                        width="100%"
+                        height="100%"
+                      />
+                      {isTeacher && (
+                        <Tooltip
+                          title="Edit class picture"
+                          placement="left-start"
+                        >
+                          <IconButton
+                            style={{
+                              position: "absolute",
+                              bottom: 10,
+                              right: 10,
+                            }}
+                          >
+                            <CreateOutlined />
+                          </IconButton>
+                        </Tooltip>
+                      )}
                     </Box>
-                  </Box>
-                  <Divider />
-                  <Box p={2} className={styles.centered}>
-                    <Box flex={1} style={{ width: "100%", margin: "0 13px" }}>
-                      <div className={styles.wrapper}>
-                        <Button
+                    <Box p={2.2} className={styles.centered}>
+                      <Box
+                        flex={1}
+                        className={[styles.centered, styles.start].join(" ")}
+                        width="50%"
+                      >
+                        <Typography
+                          variant="body2"
+                          style={{ fontSize: "0.8rem", marginLeft: 5 }}
+                        >
+                          {moment(
+                            props.classDetails[class_id].schedules[schedule_id]
+                              .from
+                          ).format("LL")}
+                        </Typography>
+                      </Box>
+                      <Divider
+                        orientation="vertical"
+                        style={{ marginRight: 5 }}
+                        flexItem
+                      />
+                      <Box
+                        flex={1}
+                        className={[styles.centered, styles.start].join(" ")}
+                        width="50%"
+                      >
+                        <Typography
+                          variant="body2"
+                          style={{ fontSize: "0.75rem", marginLeft: 5 }}
+                        >
+                          {moment(
+                            props.classDetails[class_id].schedules[schedule_id]
+                              .from
+                          ).format("hh:mm A")}
+                          {" - "}
+                          {moment(
+                            props.classDetails[class_id].schedules[schedule_id]
+                              .to
+                          ).format("hh:mm A")}
+                        </Typography>
+                      </Box>
+                    </Box>
+                  </Paper>
+                  <Paper className="box-container">
+                    <Box
+                      p={2.2}
+                      className={[styles.centered, styles.start].join(" ")}
+                      style={{ paddingBottom: 0 }}
+                    >
+                      <Box
+                        width={50}
+                        height={50}
+                        borderRadius="50%"
+                        bgcolor="grey.500"
+                        overflow="hidden"
+                      >
+                        <Avatar
+                          src={props.pics[CLASS.teacher.id]}
+                          alt={
+                            CLASS.teacher.first_name +
+                            " " +
+                            CLASS.teacher.last_name
+                          }
                           style={{
                             width: "100%",
+                            height: "100%",
+                            background: "#fff",
                           }}
-                          className={
-                            isTeacher &&
-                            props.classDetails[class_id].schedules[schedule_id]
-                              .status === "ONGOING"
-                              ? room_name
-                                ? styles.endClass
-                                : styles.startClass
-                              : styles.startClass
-                          }
-                          size="small"
-                          variant="contained"
-                          disabled={
-                            saving
-                              ? true
-                              : isTeacher
-                              ? false
-                              : room_name
-                              ? true
-                              : props.classDetails[class_id].schedules[
-                                  schedule_id
-                                ].status !== "ONGOING"
-                          }
-                          onClick={() => _handleJoinClass()}
+                        />
+                      </Box>
+                      <Box p={1}>
+                        <Typography
+                          variant="body1"
+                          style={{ fontWeight: "bold" }}
                         >
-                          <VideocamOutlinedIcon
-                            color="inherit"
-                            style={{ marginRight: 8 }}
-                          />
-                          {isTeacher
-                            ? props.classDetails[class_id].schedules[
+                          {CLASS.teacher.first_name} {CLASS.teacher.last_name}
+                        </Typography>
+                        <Typography variant="body1">
+                          {CLASS.subject.name} Teacher
+                        </Typography>
+                      </Box>
+                    </Box>
+                    <Box
+                      p={2}
+                      className={styles.centered}
+                      style={{ paddingTop: 0 }}
+                    >
+                      <Box flex={1} style={{ width: "100%", margin: "0 13px" }}>
+                        <div className={styles.wrapper}>
+                          <Button
+                            style={{
+                              width: "100%",
+                              fontWeight: "bold",
+                            }}
+                            className={
+                              isTeacher &&
+                              props.classDetails[class_id].schedules[
                                 schedule_id
                               ].status === "ONGOING"
-                              ? room_name
-                                ? "End Class"
-                                : "Return to Class"
-                              : "Start Class"
-                            : "Join Class"}
-                        </Button>
-                        {saving && (
-                          <CircularProgress
-                            className={styles.buttonProgress}
-                            size={24}
-                          />
-                        )}
-                      </div>
+                                ? room_name
+                                  ? styles.endClass
+                                  : styles.startClass
+                                : styles.startClass
+                            }
+                            size="small"
+                            variant="contained"
+                            disabled={
+                              saving
+                                ? true
+                                : isTeacher
+                                ? false
+                                : room_name
+                                ? true
+                                : props.classDetails[class_id].schedules[
+                                    schedule_id
+                                  ].status !== "ONGOING"
+                            }
+                            onClick={() => _handleJoinClass()}
+                          >
+                            <VideocamOutlinedIcon
+                              color="inherit"
+                              style={{ marginRight: 8 }}
+                            />
+                            {isTeacher
+                              ? props.classDetails[class_id].schedules[
+                                  schedule_id
+                                ].status === "ONGOING"
+                                ? room_name
+                                  ? "End Class"
+                                  : "Return to Class"
+                                : "Start Class"
+                              : "Join Class"}
+                          </Button>
+                          {saving && (
+                            <CircularProgress
+                              className={styles.buttonProgress}
+                              size={24}
+                            />
+                          )}
+                        </div>
+                      </Box>
                     </Box>
-                  </Box>
-                  <Divider />
-                  <List component="nav" aria-labelledby="nested-list-subheader">
-                    {isTeacher
-                      ? rightPanelOptions
-                          .filter((s) => !s.hidden)
-                          .map((r, id) => panelOption({ ...r, id }))
-                      : rightPanelOptionsStudents
-                          .filter((s) => !s.hidden)
-                          .map((r, id) => panelOption({ ...r, id }))}
-                  </List>
-                </div>
+                  </Paper>
+                  <Paper
+                    className="box-container"
+                    style={{ minHeight: "100%" }}
+                  >
+                    <List
+                      component="nav"
+                      aria-labelledby="nested-list-subheader"
+                    >
+                      {isTeacher
+                        ? rightPanelOptions
+                            .filter((s) => !s.hidden)
+                            .map((r, id) =>
+                              panelOption({ ...r, isChild: false })
+                            )
+                        : rightPanelOptionsStudents
+                            .filter((s) => !s.hidden)
+                            .map((r, id) =>
+                              panelOption({ ...r, isChild: false })
+                            )}
+                    </List>
+                  </Paper>
+                </React.Fragment>
               ) : (
-                <div>
+                <Paper className="box-container" style={{ minHeight: "100vh" }}>
                   <Skeleton width="100%" height={170} />
                   <Box m={2}>
                     <Skeleton width="100%" height={20} />
@@ -490,9 +591,9 @@ function Class(props) {
                     <Skeleton circle={true} width={70} height={70} />
                     <Skeleton width={100} height={20} />
                   </Box>
-                </div>
+                </Paper>
               )}
-            </Paper>
+            </Box>
           </Slide>
           <Box
             flex={1}
@@ -587,6 +688,9 @@ function Class(props) {
               alignItems="center"
               height="86%"
               m={4}
+              style={{
+                marginTop: 12,
+              }}
               justifyContent="center"
             >
               {rightPanelLoading && (
@@ -641,12 +745,23 @@ const useStyles = makeStyles((theme) => ({
     [theme.breakpoints.up("sm")]: {
       width: 320,
     },
-    background: theme.palette.primary.main,
-    boxShadow: "0 0 5px rgba(0,0,0,0.3)",
+    // background: theme.palette.primary.main,
+    // boxShadow: "0 0 5px rgba(0,0,0,0.3)",
     color: "#fff",
     zIndex: 12,
     position: "relative",
     width: "100vw",
+    "& .box-container": {
+      background: theme.palette.primary.main,
+      color: "#fff",
+      margin: theme.spacing(1),
+      "&:first-of-type": {
+        marginTop: 0,
+      },
+    },
+    "& .panel-option-container": {
+      transition: "all 0.2s ease-in-out",
+    },
     "& .panel-option": {
       opacity: 0.6,
       "& svg": {
@@ -654,7 +769,7 @@ const useStyles = makeStyles((theme) => ({
       },
       "&.selected": {
         opacity: 1,
-        borderRight: "8px solid " + theme.palette.secondary.main,
+        background: "#5e20e4",
         "& svg": {
           color: theme.palette.secondary.main,
         },

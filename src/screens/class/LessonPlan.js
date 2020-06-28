@@ -49,6 +49,7 @@ import Pagination, { getPageItems } from "../../components/Pagination";
 import { CheckBoxAction } from "../../components/CheckBox";
 import socket from "../../components/socket.io";
 import store from "../../components/redux/store";
+import { Table as MTable } from "../../components/Table";
 import Progress from "../../components/Progress";
 
 const queryString = require("query-string");
@@ -86,7 +87,10 @@ function LessonPlan(props) {
   const [selectedSched, setSelectedSched] = useState(
     query.date && query.date !== -1 ? parseInt(query.date) : -1
   );
-
+  const cellheaders = [
+    { id: "title", title: "Title", width: "50%" },
+    { id: "added_by", title: "Added By" },
+  ];
   const _handleFileOption = (option, file) => {
     setAnchorEl(() => {
       let a = {};
@@ -161,22 +165,9 @@ function LessonPlan(props) {
     if (res) saveAs(new File([res], file.title, { type: res.type }));
     else setErrors(["Cannot download file."]);
     setSaving(false);
-    setSavingId(null);
+    setSavingId([]);
   };
 
-  const _handleSort = () => {
-    if (sortType === "ASCENDING") {
-      setMaterials(
-        materials.sort((a, b) => ("" + a.title).localeCompare(b.title))
-      );
-      setSortType("DESCENDING");
-    } else {
-      setMaterials(
-        materials.sort((a, b) => ("" + b.title).localeCompare(a.title))
-      );
-      setSortType("ASCENDING");
-    }
-  };
   const _handleSearch = (e) => {
     setSearch(e.toLowerCase());
   };
@@ -617,195 +608,66 @@ function LessonPlan(props) {
           <SearchInput onChange={(e) => _handleSearch(e)} />
         </Box>
       </Box>
-
       {materials && (
-        <Box width="100%" alignSelf="flex-start">
-          <Box m={2}>
-            {!Object.keys(selectedItems).length ? (
-              <List className={styles.hideonmobile}>
-                <ListItem
-                  ContainerComponent="li"
-                  style={{
-                    display: "flex",
-                    flexDirection: "row",
-                    justifyContent: "space-between",
-                    backgroundColor: "transparent",
-                  }}
-                >
-                  <div style={{ display: "flex", alignItems: "center" }}>
-                    {isTeacher && (
-                      <ListItemIcon>
-                        <Checkbox
-                          checked={
-                            Object.keys(selectedItems).length ===
-                            getPageItems(getFilteredMaterials(), page).length
-                              ? getPageItems(getFilteredMaterials(), page)
-                                  .length > 0
-                                ? true
-                                : false
-                              : false
-                          }
-                          onChange={() => {
-                            _selectAll();
-                          }}
-                        />
-                      </ListItemIcon>
-                    )}
-
-                    <Button size="small" onClick={_handleSort}>
-                      <ListItemText primary="Title" />
-                      {sortType === "ASCENDING" ? (
-                        <ArrowUpwardOutlinedIcon />
-                      ) : (
-                        <ArrowDownwardOutlinedIcon />
-                      )}
-                    </Button>
-                  </div>
-
-                  <Typography variant="body1" style={{ marginRight: 10 }}>
-                    ADDED BY
-                  </Typography>
-                  <ListItemSecondaryAction></ListItemSecondaryAction>
-                </ListItem>
-              </List>
-            ) : (
-              <CheckBoxAction
-                checked={
-                  Object.keys(selectedItems).length ===
-                  getPageItems(getFilteredMaterials(), page).length
-                }
-                onSelect={_selectAll}
-                onDelete={() => _handleRemoveMaterials(selectedItems)}
-                onCancel={() => setSelectedItems({})}
-              />
-            )}
-            <Grow in={true}>
-              <List>
-                {getPageItems(getFilteredMaterials(), page).map(
-                  (item, index) => (
-                    <ListItem key={index} className={styles.listItem}>
-                      {isTeacher && (
-                        <ListItemIcon>
-                          <Checkbox
-                            checked={
-                              Object.keys(selectedItems) &&
-                              selectedItems[item.id]
-                                ? true
-                                : false
-                            }
-                            onChange={() => {
-                              _handleSelectOption(item);
-                            }}
-                          />
-                        </ListItemIcon>
-                      )}
-                      {saving && savingId.indexOf(item.id) >= 0 && (
-                        <div className={styles.itemLoading}>
-                          <CircularProgress />
-                        </div>
-                      )}
-                      <ListItemIcon className={styles.hideonmobile}>
-                        <InsertDriveFileOutlinedIcon />
-                      </ListItemIcon>
-                      <ListItemText
-                        onClick={() => _handleFileOption("view", item)}
-                        primary={item.title}
-                        secondary={
-                          item.resource_link
-                            ? item.resource_link
-                            : item.uploaded_file
-                        }
-                      />
-                      <Typography
-                        variant="body1"
-                        style={{ marginRight: 10 }}
-                        className={styles.hideonmobile}
-                      >
-                        {item.added_by.first_name} {item.added_by.last_name}
-                      </Typography>
-                      <ListItemSecondaryAction>
-                        <IconButton
-                          onClick={(event) =>
-                            setAnchorEl(() => {
-                              let a = {};
-                              a[item.id] = event.currentTarget;
-                              return { ...anchorEl, ...a };
-                            })
-                          }
-                        >
-                          <MoreHorizOutlinedIcon />
-                        </IconButton>
-                        {anchorEl && (
-                          <StyledMenu
-                            id="customized-menu"
-                            anchorEl={anchorEl[item.id]}
-                            keepMounted
-                            open={Boolean(anchorEl[item.id])}
-                            onClose={() =>
-                              setAnchorEl(() => {
-                                let a = {};
-                                a[item.id] = null;
-                                return { ...anchorEl, ...a };
-                              })
-                            }
-                          >
-                            <StyledMenuItem
-                              onClick={() => _handleFileOption("view", item)}
-                            >
-                              <ListItemText primary="View" />
-                            </StyledMenuItem>
-                            <StyledMenuItem disabled={!item.uploaded_file}>
-                              <ListItemText
-                                primary="Download"
-                                onClick={() =>
-                                  _handleFileOption("download", item)
-                                }
-                              />
-                            </StyledMenuItem>
-                            {isTeacher && (
-                              <div>
-                                <StyledMenuItem
-                                  disabled={!item.resource_link}
-                                  onClick={() =>
-                                    _handleFileOption("edit", item)
-                                  }
-                                >
-                                  <ListItemText primary="Edit" />
-                                </StyledMenuItem>
-                                <StyledMenuItem
-                                  onClick={() =>
-                                    _handleFileOption("delete", item)
-                                  }
-                                >
-                                  <ListItemText primary="Delete" />
-                                </StyledMenuItem>
-                              </div>
-                            )}
-                          </StyledMenu>
-                        )}
-                      </ListItemSecondaryAction>
-                    </ListItem>
-                  )
-                )}
-              </List>
-            </Grow>
-          </Box>
-          <Box p={2}>
+        <MTable
+          page={page}
+          headers={cellheaders}
+          onPage={(p) => setPage(p)}
+          data={materials}
+          saving={saving}
+          savingId={savingId}
+          pagination={
             <Pagination
-              match={props.match}
               icon={search ? "search" : "event_note"}
               emptyTitle={search ? "Nothing Found" : false}
               emptyMessage={
                 search
                   ? "Try a different keyword."
-                  : "There's no Lesson Plan yet."
+                  : "There's no Class Materials yet."
               }
+              match={props.match}
               page={page}
               onChange={(p) => setPage(p)}
               count={getFilteredMaterials().length}
             />
-          </Box>
-        </Box>
+          }
+          options={[
+            {
+              name: "View",
+              value: "view",
+            },
+          ]}
+          teacherOptions={[
+            { name: "Download", value: "download" },
+            { name: "Delete", value: "delete" },
+          ]}
+          filtered={(a) => getFilteredMaterials(a)}
+          actions={{
+            onDelete: (s) => _handleRemoveMaterials(s),
+            _handleFileOption: (opt, file) => _handleFileOption(opt, file),
+          }}
+          rowRender={(item) => (
+            <React.Fragment>
+              <ListItemIcon className={styles.hideonmobile}>
+                <InsertDriveFileOutlinedIcon />
+              </ListItemIcon>
+              <ListItemText
+                onClick={() => _handleFileOption("view", item)}
+                primary={item.title}
+                secondary={
+                  item.resource_link ? item.resource_link : item.uploaded_file
+                }
+              />
+              <Typography
+                variant="body1"
+                style={{ marginRight: 45 }}
+                className={styles.hideonmobile}
+              >
+                {item.added_by.first_name} {item.added_by.last_name}
+              </Typography>
+            </React.Fragment>
+          )}
+        />
       )}
       <Dialog
         open={modals[0]}

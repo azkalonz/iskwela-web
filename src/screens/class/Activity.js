@@ -79,6 +79,7 @@ import store from "../../components/redux/store";
 import RefreshIcon from "@material-ui/icons/Refresh";
 import StudentRating from "../../components/StudentRating";
 import { useHistory } from "react-router-dom";
+import { Table as MTable } from "../../components/Table";
 const queryString = require("query-string");
 function Alert(props) {
   return <MuiAlert elevation={6} variant="filled" {...props} />;
@@ -126,10 +127,8 @@ function Activity(props) {
   const { class_id, option_name, schedule_id } = props.match.params;
   const [activities, setActivities] = useState();
   const [dragover, setDragover] = useState(false);
-  const [sortType, setSortType] = useState("DESCENDING");
   const [search, setSearch] = useState("");
   const [modals, setModals] = React.useState([false, false]);
-  const [anchorEl, setAnchorEl] = React.useState(null);
   const [file, setFile] = useState();
   const [fileViewerOpen, setfileViewerOpen] = useState(false);
   const isTeacher = props.userInfo.user_type === "t" ? true : false;
@@ -142,8 +141,6 @@ function Activity(props) {
   const [confirmed, setConfirmed] = useState(false);
   const [savingId, setSavingId] = useState([]);
   const [fileFullScreen, setFileFullScreen] = useState(true);
-  const [selectedItems, setSelectedItems] = useState({});
-  const [progressData, setProgressData] = useState([]);
   const [answersSearch, setAnswersSearch] = useState("");
   const [selectedStatus, setSelectedStatus] = useState(
     isTeacher
@@ -168,13 +165,11 @@ function Activity(props) {
     class_id,
   };
   const [form, setForm] = useState(formTemplate);
-
+  const cellheaders = [
+    { id: "title", title: "Title" },
+    { id: "available_from", title: "Date" },
+  ];
   const _handleFileOption = (option, file) => {
-    setAnchorEl(() => {
-      let a = {};
-      a[file.id] = null;
-      return { ...anchorEl, ...a };
-    });
     switch (option) {
       case "view":
         _handleItemClick(file);
@@ -233,13 +228,6 @@ function Activity(props) {
         }
       });
       setActivities(allActivities);
-      setAnchorEl(() => {
-        let a = {};
-        allActivities.forEach((i) => {
-          a[i.id] = null;
-        });
-        return a;
-      });
     } catch (e) {}
   };
   useEffect(() => {
@@ -286,33 +274,6 @@ function Activity(props) {
       }
     });
     setCurrentActivity({ ...currentActivity, answers: a });
-  };
-  const _handleSort = (sortBy) => {
-    if (sortType === "ASCENDING") {
-      setActivities(() => {
-        if (sortBy !== "available_from")
-          return activities.sort(
-            (a, b) => "" + a[sortBy].localeCompare(b[sortBy])
-          );
-        else
-          return activities.sort(
-            (a, b) => new Date(a[sortBy]) - new Date(b[sortBy])
-          );
-      });
-      setSortType("DESCENDING");
-    } else {
-      setActivities(() => {
-        if (sortBy !== "available_from")
-          return activities.sort(
-            (b, a) => "" + a[sortBy].localeCompare(b[sortBy])
-          );
-        else
-          return activities.sort(
-            (b, a) => new Date(a[sortBy]) - new Date(b[sortBy])
-          );
-      });
-      setSortType("ASCENDING");
-    }
   };
   const _handleSearch = (e) => {
     setSearch(e.toLowerCase());
@@ -490,7 +451,6 @@ function Activity(props) {
       ...newform,
     });
     setSavingId([]);
-    setProgressData([]);
   };
 
   const _handleUpdateActivityStatus = async (a, s) => {
@@ -825,9 +785,7 @@ function Activity(props) {
     }
 
     getAnswers();
-    setProgressData([]);
     setSavingId([]);
-
     setSaving(false);
   };
   const handleGooglePicker = () => {
@@ -878,20 +836,8 @@ function Activity(props) {
     };
   };
 
-  const _handleSelectOption = (item) => {
-    if (selectedItems[item.id]) {
-      let b = { ...selectedItems };
-      delete b[item.id];
-      setSelectedItems(b);
-      return;
-    }
-    let newitem = {};
-    newitem[item.id] = item;
-    setSelectedItems({ ...selectedItems, ...newitem });
-  };
-
-  const getFilteredActivities = () =>
-    activities
+  const getFilteredActivities = (ac = activities) =>
+    ac
       .filter((a) => JSON.stringify(a).toLowerCase().indexOf(search) >= 0)
       .filter((a) => (isTeacher ? true : a.status === "published"))
       .filter((a) =>
@@ -901,18 +847,7 @@ function Activity(props) {
       )
       .filter((a) => (selectedStatus ? selectedStatus === a.status : true))
       .reverse();
-  const _selectAll = () => {
-    let filtered = getPageItems(getFilteredActivities(), page);
-    if (Object.keys(selectedItems).length === filtered.length) {
-      setSelectedItems({});
-      return;
-    }
-    let b = {};
-    filtered.forEach((a) => {
-      b[a.id] = a;
-    });
-    setSelectedItems(b);
-  };
+
   useEffect(() => {
     if (document.querySelector("#activity-material") && !saving)
       document.querySelector("#activity-material").value = "";
@@ -1476,260 +1411,14 @@ function Activity(props) {
         </React.Fragment>
       )}
       {activities && !currentActivity && (
-        <Box width="100%" alignSelf="flex-start">
-          <Box m={2}>
-            {!Object.keys(selectedItems).length ? (
-              <List>
-                <ListItem
-                  ContainerComponent="li"
-                  style={{
-                    display: "flex",
-                    flexDirection: "row",
-                    justifyContent: "space-between",
-                    backgroundColor: "transparent",
-                  }}
-                >
-                  <div style={{ display: "flex", alignItems: "center" }}>
-                    {isTeacher && (
-                      <ListItemIcon>
-                        <Checkbox
-                          checked={
-                            Object.keys(selectedItems).length ===
-                            getPageItems(getFilteredActivities(), page).length
-                              ? getPageItems(getFilteredActivities(), page)
-                                  .length > 0
-                                ? true
-                                : false
-                              : false
-                          }
-                          onChange={() => {
-                            _selectAll();
-                          }}
-                        />
-                      </ListItemIcon>
-                    )}
-                    <Button size="small" onClick={() => _handleSort("title")}>
-                      <ListItemText primary="Title" />
-                      {sortType === "ASCENDING" ? (
-                        <ArrowUpwardOutlinedIcon />
-                      ) : (
-                        <ArrowDownwardOutlinedIcon />
-                      )}
-                    </Button>
-                  </div>
-                  <Typography
-                    variant="body1"
-                    style={{ marginRight: 10 }}
-                    onClick={() => _handleSort("available_from")}
-                  >
-                    DATE
-                  </Typography>
-                  <ListItemSecondaryAction></ListItemSecondaryAction>
-                </ListItem>
-              </List>
-            ) : (
-              <CheckBoxAction
-                checked={
-                  Object.keys(selectedItems).length ===
-                  getFilteredActivities().length
-                }
-                onSelect={_selectAll}
-                onDelete={() => _handleRemoveActivities(selectedItems)}
-                onCancel={() => setSelectedItems({})}
-                onUnpublish={() =>
-                  _handleUpdateActivitiesStatus(selectedItems, 0)
-                }
-                onPublish={() =>
-                  _handleUpdateActivitiesStatus(selectedItems, 1)
-                }
-              />
-            )}
-            <Grow in={activities ? true : false}>
-              <List>
-                {getPageItems(getFilteredActivities(), page).map(
-                  (item, index) => (
-                    <ListItem
-                      key={index}
-                      className={styles.listItem}
-                      style={{
-                        boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
-                        borderColor:
-                          item.status === "published"
-                            ? theme.palette.success.main
-                            : theme.palette.error.main,
-                        backgroundColor: index % 2 ? "#f9f6ff" : "#fff",
-                        ...(currentActivity &&
-                        parseInt(item.id) === parseInt(currentActivity.id)
-                          ? {
-                              background:
-                                props.theme === "dark" ? "#111" : "#fff",
-                            }
-                          : {}),
-                      }}
-                    >
-                      {isTeacher && (
-                        <ListItemIcon>
-                          <Checkbox
-                            checked={selectedItems[item.id] ? true : false}
-                            onChange={() => {
-                              _handleSelectOption(item);
-                            }}
-                          />
-                        </ListItemIcon>
-                      )}
-                      {saving && savingId.indexOf(item.id) >= 0 && (
-                        <div className={styles.itemLoading}>
-                          <CircularProgress />
-                        </div>
-                      )}
-
-                      <ExpansionPanel
-                        style={{
-                          width: "100%",
-                          boxShadow: "none",
-                          background: "transparent",
-                        }}
-                      >
-                        <ExpansionPanelSummary
-                          className={styles.expansionSummary}
-                        >
-                          <ListItemText
-                            primary={item.title}
-                            primaryTypographyProps={{
-                              style: {
-                                width: isMobile ? "80%" : "100%",
-                              },
-                            }}
-                            secondaryTypographyProps={{
-                              style: {
-                                width: isMobile ? "80%" : "100%",
-                              },
-                            }}
-                            secondary={item.description.substr(0, 100) + "..."}
-                          />
-                          <Typography
-                            className={styles.hideonmobile}
-                            variant="body1"
-                            component="div"
-                            style={{
-                              marginRight: 55,
-                              display: "flex",
-                              alignItems: "center",
-                            }}
-                          >
-                            {moment(item.available_from).format("LL")}
-                            <Icon>arrow_right_alt</Icon>
-                            {moment(item.available_to).format("LL")}
-                          </Typography>
-                        </ExpansionPanelSummary>
-                        <ExpansionPanelDetails
-                          className={styles.expansionDetails}
-                        >
-                          <Box width="100%">{item.description}</Box>
-                          <Box width="100%">
-                            <Typography color="textSecondary">
-                              Resources
-                            </Typography>
-                            {item.materials.map((m, i) => (
-                              <Typography key={i} component="div">
-                                <Link
-                                  component="div"
-                                  style={{
-                                    display: "flex",
-                                    alignItems: "center",
-                                    cursor: "pointer",
-                                  }}
-                                  onClick={() => {
-                                    _handleOpenFile(m);
-                                  }}
-                                >
-                                  {m.title}
-                                  <LaunchIcon fontSize="small" />
-                                </Link>
-                              </Typography>
-                            ))}
-                          </Box>
-                        </ExpansionPanelDetails>
-                      </ExpansionPanel>
-                      <ListItemSecondaryAction
-                        style={{
-                          top: 40,
-                        }}
-                      >
-                        <IconButton
-                          onClick={(event) =>
-                            setAnchorEl(() => {
-                              let a = {};
-                              a[item.id] = event.currentTarget;
-                              return { ...anchorEl, ...a };
-                            })
-                          }
-                        >
-                          <MoreHorizOutlinedIcon />
-                        </IconButton>
-                        {anchorEl && (
-                          <StyledMenu
-                            id="customized-menu"
-                            anchorEl={anchorEl[item.id]}
-                            keepMounted
-                            open={Boolean(anchorEl[item.id])}
-                            onClose={() =>
-                              setAnchorEl(() => {
-                                let a = {};
-                                a[item.id] = null;
-                                return { ...anchorEl, ...a };
-                              })
-                            }
-                          >
-                            <StyledMenuItem
-                              onClick={() => _handleFileOption("view", item)}
-                            >
-                              <ListItemText
-                                primary={isTeacher ? "View" : "Upload Answer"}
-                              />
-                            </StyledMenuItem>
-                            {isTeacher && (
-                              <div>
-                                <StyledMenuItem
-                                  onClick={() =>
-                                    _handleFileOption("publish", item)
-                                  }
-                                >
-                                  <ListItemText primary="Publish" />
-                                </StyledMenuItem>
-                                <StyledMenuItem
-                                  onClick={() =>
-                                    _handleFileOption("unpublish", item)
-                                  }
-                                >
-                                  <ListItemText primary="Unpublish" />
-                                </StyledMenuItem>
-                                <StyledMenuItem
-                                  onClick={() =>
-                                    _handleFileOption("edit", item)
-                                  }
-                                >
-                                  <ListItemText primary="Edit" />
-                                </StyledMenuItem>
-                                <StyledMenuItem
-                                  onClick={() => {
-                                    _handleFileOption("delete", item);
-                                  }}
-                                >
-                                  <ListItemText primary="Delete" />
-                                </StyledMenuItem>
-                              </div>
-                            )}
-                          </StyledMenu>
-                        )}
-                      </ListItemSecondaryAction>
-                    </ListItem>
-                  )
-                )}
-              </List>
-            </Grow>
-          </Box>
-          <Box p={2}>
+        <MTable
+          page={page}
+          headers={cellheaders}
+          onPage={(p) => setPage(p)}
+          data={activities}
+          saving={saving}
+          savingId={savingId}
+          pagination={
             <Pagination
               page={page}
               match={props.match}
@@ -1739,8 +1428,53 @@ function Activity(props) {
               onChange={(p) => setPage(p)}
               count={getFilteredActivities().length}
             />
-          </Box>
-        </Box>
+          }
+          actions={{
+            onDelete: (i) => _handleRemoveActivities(i),
+            onUpdate: (a, s) => _handleUpdateActivitiesStatus(a, s),
+            _handleFileOption: (opt, file) => _handleFileOption(opt, file),
+          }}
+          options={[
+            {
+              name: "View",
+              value: "view",
+            },
+          ]}
+          teacherOptions={[
+            { name: "Edit", value: "edit" },
+            { name: "Publish", value: "publish" },
+            { name: "Unpublish", value: "unpublish" },
+            { name: "Delete", value: "delete" },
+          ]}
+          filtered={(a) => getFilteredActivities(a)}
+          rowRender={(item) => (
+            <React.Fragment>
+              <ListItemText
+                primary={item.title}
+                secondaryTypographyProps={{
+                  style: {
+                    width: isMobile ? "80%" : "100%",
+                  },
+                }}
+                secondary={item.description.substr(0, 100) + "..."}
+              />
+              <Typography
+                variant="body1"
+                component="div"
+                style={{
+                  marginRight: 45,
+                  display: "flex",
+                  alignItems: "center",
+                  textAlign: "right",
+                }}
+              >
+                {moment(item.available_from).format("LL")}
+                <Icon>arrow_right_alt</Icon>
+                {moment(item.available_to).format("LL")}
+              </Typography>
+            </React.Fragment>
+          )}
+        />
       )}
       <Dialog
         open={modals[0]}
@@ -2161,51 +1895,6 @@ const StyledMenuItem = withStyles((theme) => ({
 }))(MenuItem);
 
 const useStyles = makeStyles((theme) => ({
-  itemLoading: {
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-    position: "absolute",
-    zIndex: 5,
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    "& > div": {
-      position: "relative",
-      zIndex: 2,
-    },
-    "&::before": {
-      content: "''",
-      position: "absolute",
-      backgroundColor: theme.palette.type === "dark" ? "#111" : "#fff",
-      opacity: 0.7,
-      top: 0,
-      zIndex: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-    },
-  },
-  expansionSummary: {
-    "& > div": {
-      alignItems: "center",
-      width: "100%",
-    },
-  },
-  expansionDetails: {
-    flexWrap: "wrap",
-    paddingRight: 30,
-  },
-  hideonmobile: {
-    [theme.breakpoints.down("xs")]: {
-      display: "none",
-    },
-    textField: {
-      marginLeft: theme.spacing(1),
-      marginRight: theme.spacing(1),
-    },
-  },
   buttonProgress: {
     position: "absolute",
     top: "50%",
@@ -2239,11 +1928,6 @@ const useStyles = makeStyles((theme) => ({
       backgroundColor: theme.palette.primary.main,
       opacity: 0.1,
     },
-  },
-  listItem: {
-    padding: 0,
-    borderLeft: "4px solid",
-    marginBottom: 7,
   },
 }));
 

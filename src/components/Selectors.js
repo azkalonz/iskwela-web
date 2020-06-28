@@ -30,6 +30,7 @@ function ScheduleSelector(props) {
 
       <Select
         label="Date"
+        style={{ background: "#efe7ff" }}
         value={props.schedule}
         onChange={(e) => {
           props.onChange(parseInt(e.target.value) !== -1 ? e.target.value : -1);
@@ -80,6 +81,7 @@ function StatusSelector(props) {
     <FormControl style={{ width: isMobile ? "100%" : 160 }} variant="outlined">
       <InputLabel>Status</InputLabel>
       <Select
+        style={{ background: "#efe7ff" }}
         label="Status"
         value={props.status}
         onChange={(e) => {
@@ -124,7 +126,7 @@ export function SearchInput(props) {
   return (
     <Box
       p={0.3}
-      borderRadius={7}
+      borderRadius={4}
       display="flex"
       style={{
         ...(isMobile
@@ -132,7 +134,7 @@ export function SearchInput(props) {
           : props.style
           ? props.style
           : {}),
-        ...{ background: "#efe7ff" },
+        ...{ background: "#efe7ff", border: "1px solid #c9b8eb" },
       }}
     >
       <InputBase
