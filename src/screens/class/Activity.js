@@ -1529,7 +1529,7 @@ function Activity(props) {
               onChange={(e) => setForm({ ...form, title: e.target.value })}
               fullWidth
             />
-            <FormControl
+            {/* <FormControl
               style={{ width: isMobile ? "100%" : 160, marginTop: 23 }}
               variant="outlined"
             >
@@ -1549,7 +1549,7 @@ function Activity(props) {
                 <MenuItem value="star">Star Rating</MenuItem>
                 <MenuItem value="none">None</MenuItem>
               </Select>
-            </FormControl>
+            </FormControl> */}
             <MuiPickersUtilsProvider utils={MomentUtils}>
               <Box
                 display="flex"
