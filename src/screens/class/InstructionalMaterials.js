@@ -770,21 +770,25 @@ function InstructionalMaterials(props) {
           data={materials}
           saving={saving}
           savingId={savingId}
-          pagination={
-            <Pagination
-              icon={search ? "search" : "library_books"}
-              emptyTitle={search ? "Nothing Found" : false}
-              emptyMessage={
-                search
-                  ? "Try a different keyword."
-                  : "There's no Class Materials yet."
-              }
-              match={props.match}
-              page={page}
-              onChange={(p) => setPage(p)}
-              count={getFilteredMaterials().length}
-            />
-          }
+          pagination={{
+            render: (
+              <Pagination
+                icon={search ? "search" : "library_books"}
+                emptyTitle={search ? "Nothing Found" : false}
+                emptyMessage={
+                  search
+                    ? "Try a different keyword."
+                    : "There's no Class Materials yet."
+                }
+                match={props.match}
+                page={page}
+                onChange={(p) => setPage(p)}
+                count={getFilteredMaterials().length}
+              />
+            ),
+            page,
+            onChangePage: (p) => setPage(p),
+          }}
           options={[
             {
               name: "View",
@@ -803,6 +807,46 @@ function InstructionalMaterials(props) {
             onUpdate: (a, s) => _handleUpdateMaterialsStatus(a, s),
             _handleFileOption: (opt, file) => _handleFileOption(opt, file),
           }}
+          rowRenderMobile={(item) => (
+            <Box
+              display="flex"
+              flexWrap="wrap"
+              flexDirection="column"
+              justifyContent="space-between"
+              width="90%"
+              style={{ padding: "30px 0" }}
+            >
+              <Box width="100%" marginBottom={1}>
+                <Typography
+                  style={{
+                    fontWeight: "bold",
+                    color: "#38108d",
+                    fontSize: "1em",
+                  }}
+                >
+                  TITLE
+                </Typography>
+                <Typography variant="body1">{item.title}</Typography>
+                <Typography variant="body1" color="textSecondary">
+                  {item.resource_link ? item.resource_link : item.uploaded_file}
+                </Typography>
+              </Box>
+              <Box width="100%">
+                <Typography
+                  style={{
+                    fontWeight: "bold",
+                    color: "#38108d",
+                    fontSize: "1em",
+                  }}
+                >
+                  ADDED BY
+                </Typography>
+                <Box display="flex" alignItems="center">
+                  {item.added_by.first_name} {item.added_by.last_name}
+                </Box>
+              </Box>
+            </Box>
+          )}
           rowRender={(item) => (
             <React.Fragment>
               <ListItemIcon className={styles.hideonmobile}>

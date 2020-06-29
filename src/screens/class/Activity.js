@@ -1435,23 +1435,26 @@ function Activity(props) {
       )}
       {activities && !currentActivity && (
         <MTable
-          page={page}
           headers={cellheaders}
           onPage={(p) => setPage(p)}
           data={activities}
           saving={saving}
           savingId={savingId}
-          pagination={
-            <Pagination
-              page={page}
-              match={props.match}
-              icon={search ? "search" : ""}
-              emptyTitle={search ? "Nothing Found" : false}
-              emptyMessage={search ? "Try a different keyword." : false}
-              onChange={(p) => setPage(p)}
-              count={getFilteredActivities().length}
-            />
-          }
+          pagination={{
+            render: (
+              <Pagination
+                page={page}
+                match={props.match}
+                icon={search ? "search" : ""}
+                emptyTitle={search ? "Nothing Found" : false}
+                emptyMessage={search ? "Try a different keyword." : false}
+                onChange={(p) => setPage(p)}
+                count={getFilteredActivities().length}
+              />
+            ),
+            page,
+            onChangePage: (p) => setPage(p),
+          }}
           actions={{
             onDelete: (i) => _handleRemoveActivities(i),
             onUpdate: (a, s) => _handleUpdateActivitiesStatus(a, s),
@@ -1470,6 +1473,48 @@ function Activity(props) {
             { name: "Delete", value: "delete" },
           ]}
           filtered={(a) => getFilteredActivities(a)}
+          rowRenderMobile={(item) => (
+            <Box
+              display="flex"
+              flexWrap="wrap"
+              width="90%"
+              flexDirection="column"
+              justifyContent="space-between"
+              style={{ padding: "30px 0" }}
+            >
+              <Box width="100%" marginBottom={1}>
+                <Typography
+                  style={{
+                    fontWeight: "bold",
+                    color: "#38108d",
+                    fontSize: "1em",
+                  }}
+                >
+                  TITLE
+                </Typography>
+                <Typography variant="body1">{item.title}</Typography>
+                <Typography variant="body1" color="textSecondary">
+                  {item.description}
+                </Typography>
+              </Box>
+              <Box width="100%">
+                <Typography
+                  style={{
+                    fontWeight: "bold",
+                    color: "#38108d",
+                    fontSize: "1em",
+                  }}
+                >
+                  DATE
+                </Typography>
+                <Box display="flex" alignItems="center">
+                  {moment(item.available_from).format("LL")}
+                  <Icon>arrow_right_alt</Icon>
+                  {moment(item.available_to).format("LL")}
+                </Box>
+              </Box>
+            </Box>
+          )}
           rowRender={(item) => (
             <React.Fragment>
               <ListItemText
