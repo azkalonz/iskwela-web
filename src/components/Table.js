@@ -182,8 +182,8 @@ export function Table(props) {
                             disabled={
                               page >=
                               Math.ceil(
-                                items.length / props.pagination.itemsPerPage ||
-                                  10
+                                items.length /
+                                  (props.pagination.itemsPerPage || 10)
                               )
                             }
                             onClick={() => {
