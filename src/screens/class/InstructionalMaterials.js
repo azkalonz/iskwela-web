@@ -688,7 +688,8 @@ function InstructionalMaterials(props) {
           <div style={isMobile ? { width: "100%", order: 2 } : {}}>
             <Button
               variant="contained"
-              color="primary"
+              color="secondary"
+              style={{ fontWeight: "bold" }}
               onClick={handleClickOpen}
             >
               Add New File

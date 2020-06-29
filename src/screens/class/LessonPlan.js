@@ -564,7 +564,8 @@ function LessonPlan(props) {
           <div style={isMobile ? { order: 2, width: "100%" } : {}}>
             <Button
               variant="contained"
-              color="primary"
+              color="secondary"
+              style={{ fontWeight: "bold" }}
               onClick={handleClickOpen}
             >
               Add New File

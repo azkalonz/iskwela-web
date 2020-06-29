@@ -997,7 +997,7 @@ function Activity(props) {
           {isTeacher && (
             <Button
               variant="contained"
-              style={{ order: isMobile ? 2 : 0 }}
+              style={{ order: isMobile ? 2 : 0, fontWeight: "bold" }}
               color="secondary"
               onClick={() => {
                 handleClickOpen();
