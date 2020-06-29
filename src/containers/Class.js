@@ -109,6 +109,7 @@ function Class(props) {
   const [rightPanelLoading, setRightPanelLoading] = useState(true);
   useEffect(() => {
     if (isMobile) setCollapsePanel(false);
+    else setCollapsePanel(true);
   }, [isMobile]);
   useEffect(() => {
     if (class_id) {

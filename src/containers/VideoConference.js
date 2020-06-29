@@ -32,9 +32,20 @@ function VideoConference(props) {
       props.updateClass("PENDING");
     });
   };
-  const doneResizing = () => setisResizing(false);
+  const doneResizing = () => {
+    document.body.style.userSelect = "initial";
+    noLightVresize();
+    setisResizing(false);
+  };
+  const noLightVresize = () =>
+    (document.querySelector("#v-resize").style.backgroundColor =
+      "rgba(0, 0, 0, 0.12)");
+  const highLightVresize = () =>
+    (document.querySelector("#v-resize").style.backgroundColor = "#7539ff");
   useEffect(() => {
     if (isResizing) {
+      document.body.style.userSelect = "none";
+      highLightVresize();
       document.querySelector("#voverlay").style.display = "block";
       window.removeEventListener("mouseup", doneResizing);
       window.addEventListener("mousemove", resize);
@@ -125,6 +136,9 @@ function VideoConference(props) {
           bottom: 0,
           zIndex: 2,
         }}
+        onMouseOut={() => !isResizing && noLightVresize()}
+        onMouseOver={highLightVresize}
+        id="v-resize"
         onMouseDown={() => setisResizing(true)}
       />
     </Box>

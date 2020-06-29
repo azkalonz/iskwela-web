@@ -206,6 +206,7 @@ export function Table(props) {
                           <Typography
                             variant="body1"
                             style={{
+                              userSelect: "none",
                               marginRight: 10,
                               fontWeight: "bold",
                               fontSize: "1em",
