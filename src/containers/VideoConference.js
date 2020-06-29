@@ -38,9 +38,11 @@ function VideoConference(props) {
     setisResizing(false);
   };
   const noLightVresize = () =>
+    document.querySelector("#v-resize") &&
     (document.querySelector("#v-resize").style.backgroundColor =
       "rgba(0, 0, 0, 0.12)");
   const highLightVresize = () =>
+    document.querySelector("#v-resize") &&
     (document.querySelector("#v-resize").style.backgroundColor = "#7539ff");
   useEffect(() => {
     if (isResizing) {
