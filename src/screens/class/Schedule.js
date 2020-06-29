@@ -26,6 +26,7 @@ import {
   makeStyles,
   useTheme,
   useMediaQuery,
+  Typography,
 } from "@material-ui/core";
 import MoreHorizOutlinedIcon from "@material-ui/icons/MoreHorizOutlined";
 import SearchIcon from "@material-ui/icons/Search";
@@ -46,6 +47,8 @@ import Api from "../../api";
 import { SearchInput } from "../../components/Selectors";
 import Pagination, { getPageItems } from "../../components/Pagination";
 import socket from "../../components/socket.io";
+import { Table as MTable } from "../../components/Table";
+
 function Alert(props) {
   return <MuiAlert elevation={6} variant="filled" {...props} />;
 }
@@ -65,7 +68,7 @@ function Schedule(props) {
   const [search, setSearch] = useState("");
   const isTeacher = props.userInfo.user_type === "t" ? true : false;
   const styles = useStyles();
-  const [savingId, setSavingId] = useState();
+  const [savingId, setSavingId] = useState([]);
   const [page, setPage] = useState(query.page ? parseInt(query.page) : 1);
   const [form, setForm] = useState({
     id: schedule_id,
@@ -90,10 +93,10 @@ function Schedule(props) {
       setSchedules(props.classDetailss[class_id].schedules);
     }
   }, [props.classDetails]);
-  const getFilteredSchedules = () =>
-    schedules.filter(
-      (i) => JSON.stringify(i).toLowerCase().indexOf(search) >= 0
-    );
+  const getFilteredSchedules = (sc = schedules) =>
+    sc
+      .filter((i) => JSON.stringify(i).toLowerCase().indexOf(search) >= 0)
+      .filter((a) => a !== null);
   const _handleFileOption = (option, file) => {
     setAnchorEl(() => {
       let a = {};
@@ -129,7 +132,7 @@ function Schedule(props) {
   };
   const _handleUpdateStatus = async (status, item) => {
     setSaving(true);
-    setSavingId(item.id);
+    setSavingId([item.id]);
     await Api.post("/api/schedule/save", {
       body: {
         id: item.id,
@@ -146,24 +149,9 @@ function Schedule(props) {
       JSON.stringify({ details: newClassDetails, id: class_id })
     );
     setSaving(false);
-    setSavingId(null);
+    setSavingId([]);
   };
 
-  const _handleSort = (sortBy, order) => {
-    if (!schedules) return;
-    setOrderBy(sortBy);
-    if (order === "asc") {
-      setSchedules(
-        schedules.sort((a, b) => ("" + a[sortBy]).localeCompare(b[sortBy]))
-      );
-      setOrder("desc");
-    } else {
-      setSchedules(
-        schedules.sort((a, b) => ("" + b[sortBy]).localeCompare(a[sortBy]))
-      );
-      setOrder("asc");
-    }
-  };
   const _handleSearch = (e) => {
     setSearch(e.toLowerCase());
   };
@@ -209,171 +197,130 @@ function Schedule(props) {
         <SearchInput onChange={(e) => _handleSearch(e)} />
       </Box>
 
-      <Box m={2}>
-        <Grow in={true}>
-          <TableContainer>
-            <Table aria-label="simple table">
-              <TableHead>
-                <TableRow>
-                  {headCells.map((headCell) => (
-                    <TableCell
-                      key={headCell.id}
-                      align={headCell.numeric ? "right" : "left"}
-                      padding={headCell.disablePadding ? "none" : "default"}
-                      sortDirection={orderBy === headCell.id ? order : false}
-                      onClick={() => _handleSort(headCell.id, order)}
+      {schedules && (
+        <Box m={2}>
+          <Grow in={true}>
+            <MTable
+              headers={[
+                { id: "from", title: "Date", width: "25%" },
+                { id: "time", title: "Time", width: "25%" },
+                { id: "teacher_name", title: "Teacher", width: "25%" },
+                { id: "status", title: "Status", width: "25%" },
+              ]}
+              saving={saving}
+              savingId={savingId}
+              actions={{
+                _handleFileOption: (opt, file) => _handleFileOption(opt, file),
+              }}
+              filtered={(a) => getFilteredSchedules(a)}
+              options={[
+                {
+                  name: "Join",
+                  value: "join",
+                },
+              ]}
+              teacherOptions={[
+                { name: "Start", value: "start" },
+                { name: "End", value: "end" },
+                { name: "Cancel", value: "cancel" },
+                { name: "Edit", value: "edit" },
+              ]}
+              data={schedules.filter((a) => a !== null)}
+              noSelect={true}
+              pagination={{
+                render: (
+                  <Pagination
+                    emptyMessage={
+                      search
+                        ? "Try a different keyword"
+                        : "There's no schedule in your class yet."
+                    }
+                    icon={search ? "person_search" : "calendar_today"}
+                    emptyTitle={search ? "Nothing Found" : ""}
+                    match={props.match}
+                    page={page}
+                    onChange={(e) => setPage(e)}
+                    count={getFilteredSchedules().length}
+                  />
+                ),
+                page,
+                onChangePage: (p) => setPage(p),
+              }}
+              rowRenderMobile={(item) => (
+                <Box
+                  display="flex"
+                  flexWrap="wrap"
+                  flexDirection="column"
+                  justifyContent="space-between"
+                  width="90%"
+                  style={{ padding: "30px 0" }}
+                >
+                  <Box width="100%" marginBottom={1}>
+                    <Typography
+                      style={{
+                        fontWeight: "bold",
+                        color: "#38108d",
+                        fontSize: "1em",
+                      }}
                     >
-                      <TableSortLabel
-                        active={orderBy === headCell.id}
-                        direction={orderBy === headCell.id ? order : "asc"}
-                      >
-                        {headCell.label}
-                        {orderBy === headCell.id ? (
-                          <span className={styles.visuallyHidden}>
-                            {order === "desc"
-                              ? "sorted descending"
-                              : "sorted ascending"}
-                          </span>
-                        ) : null}
-                      </TableSortLabel>
-                    </TableCell>
-                  ))}
-                  <TableCell></TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {schedules &&
-                  getPageItems(getFilteredSchedules(), page).map((row, i) => {
-                    let status = {
-                      className: styles[row.status],
-                      label: row.status,
-                      color: styles[row.status + "_color"],
-                    };
-                    return (
-                      <TableRow
-                        key={row.id}
-                        className={[styles.row, status.color].join(" ")}
-                      >
-                        <TableCell component="th" scope="row">
-                          {moment(row.from).format("MMMM D, YYYY")}
-                        </TableCell>
-                        <TableCell align="right">
-                          {moment(row.from).format("h:mm A")} -{" "}
-                          {moment(row.to).format("h:mm A")}
-                        </TableCell>
-                        <TableCell align="right">{row.teacher_name}</TableCell>
-                        <TableCell align="center">
-                          {saving && savingId === row.id ? (
-                            <CircularProgress size={17} />
-                          ) : (
-                            <Chip
-                              label={status.label.toUpperCase()}
-                              className={status.className}
-                            />
-                          )}
-                        </TableCell>
-                        <TableCell align="right">
-                          <IconButton
-                            onClick={(event) =>
-                              setAnchorEl(() => {
-                                let a = {};
-                                a[row.id] = event.currentTarget;
-                                return { ...anchorEl, ...a };
-                              })
-                            }
-                          >
-                            <MoreHorizOutlinedIcon />
-                          </IconButton>
-                          {anchorEl && (
-                            <StyledMenu
-                              id="customized-menu"
-                              anchorEl={anchorEl[row.id]}
-                              keepMounted
-                              open={Boolean(anchorEl[row.id])}
-                              onClose={() =>
-                                setAnchorEl(() => {
-                                  let a = {};
-                                  a[row.id] = null;
-                                  return { ...anchorEl, ...a };
-                                })
-                              }
-                            >
-                              <StyledMenuItem
-                                disabled={
-                                  row.status !== "ONGOING" ? true : false
-                                }
-                              >
-                                <ListItemText
-                                  primary="Join"
-                                  onClick={() => _handleFileOption("join", row)}
-                                />
-                              </StyledMenuItem>
-                              {isTeacher && (
-                                <div>
-                                  <StyledMenuItem>
-                                    <ListItemText
-                                      primary="Start"
-                                      disabled={row.status === "ONGOING"}
-                                      onClick={() =>
-                                        _handleFileOption("start", row)
-                                      }
-                                    />
-                                  </StyledMenuItem>
-                                  <StyledMenuItem>
-                                    <ListItemText
-                                      primary="End"
-                                      disabled={row.status !== "ONGOING"}
-                                      onClick={() =>
-                                        _handleFileOption("end", row)
-                                      }
-                                    />
-                                  </StyledMenuItem>
-                                  <StyledMenuItem>
-                                    <ListItemText
-                                      primary="Cancel"
-                                      onClick={() =>
-                                        _handleFileOption("cancel", row)
-                                      }
-                                    />
-                                  </StyledMenuItem>
-                                  <StyledMenuItem>
-                                    <ListItemText
-                                      primary="Edit"
-                                      onClick={() =>
-                                        _handleFileOption("edit", row)
-                                      }
-                                    />
-                                  </StyledMenuItem>
-                                </div>
-                              )}
-                            </StyledMenu>
-                          )}
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        </Grow>
-        {schedules && (
-          <Box p={2}>
-            <Pagination
-              emptyMessage={
-                search
-                  ? "Try a different keyword"
-                  : "There's no schedule in your class yet."
-              }
-              icon={search ? "person_search" : "calendar_today"}
-              emptyTitle={search ? "Nothing Found" : ""}
-              match={props.match}
-              page={page}
-              onChange={(e) => setPage(e)}
-              count={getFilteredSchedules().length}
+                      DATE
+                    </Typography>
+                    <Typography variant="body1">
+                      {moment(item.from).format("MMMM D, YYYY")}
+                    </Typography>
+                  </Box>
+                  <Box width="100%">
+                    <Typography
+                      style={{
+                        fontWeight: "bold",
+                        color: "#38108d",
+                        fontSize: "1em",
+                      }}
+                    >
+                      TIME
+                    </Typography>
+                    <Box display="flex" alignItems="center">
+                      {moment(item.from).format("h:mm A")} -{" "}
+                      {moment(item.to).format("h:mm A")}
+                    </Box>
+                  </Box>
+                  <Box width="100%">
+                    <Typography
+                      style={{
+                        fontWeight: "bold",
+                        color: "#38108d",
+                        fontSize: "1em",
+                      }}
+                    >
+                      TEACHER
+                    </Typography>
+                    <Box display="flex" alignItems="center">
+                      {item.teacher_name}
+                    </Box>
+                  </Box>
+                </Box>
+              )}
+              rowRender={(item) => (
+                <Box display="flex" width="100%" style={{ padding: "13px 0" }}>
+                  <Box width="25%" maxWidth="25%" overflow="hidden">
+                    {moment(item.from).format("MMMM D, YYYY")}
+                  </Box>
+                  <Box width="25%" maxWidth="25%" overflow="hidden">
+                    {moment(item.from).format("h:mm A")} -{" "}
+                    {moment(item.to).format("h:mm A")}
+                  </Box>
+                  <Box width="25%" maxWidth="25%" overflow="hidden">
+                    {item.teacher_name}
+                  </Box>
+                  <Box width="25%" maxWidth="25%" overflow="hidden">
+                    {item.status}
+                  </Box>
+                </Box>
+              )}
             />
-          </Box>
-        )}
-      </Box>
+          </Grow>
+        </Box>
+      )}
       <Dialog
         open={open}
         onClose={() => setOpen(false)}

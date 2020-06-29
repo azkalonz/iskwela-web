@@ -997,7 +997,7 @@ function Quizzes(props) {
             <Button
               variant="contained"
               style={{ order: isMobile ? 2 : 0 }}
-              color="primary"
+              color="secondary"
               onClick={() => {
                 handleClickOpen();
                 setForm(formTemplate);

@@ -725,10 +725,10 @@ function Class(props) {
                     <Skeleton width="100%" height={50} />
                   </Box>
                   <Box style={{ padding: "6px 0" }} width="100%">
-                    <Skeleton width="100%" height={70} />
+                    <Skeleton width="100%" height={40} />
                   </Box>
                   <Box style={{ padding: "6px 0" }} width="100%">
-                    <Skeleton width="100%" height={70} />
+                    <Skeleton width="100%" height={40} />
                   </Box>
                   <Box style={{ padding: "6px 0" }} width="100%">
                     <Skeleton width="100%" height={300} />

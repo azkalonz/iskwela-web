@@ -14,6 +14,7 @@ import {
   Avatar,
   Typography,
   CircularProgress,
+  Grow,
 } from "@material-ui/core";
 import store from "../../components/redux/store";
 import SearchIcon from "@material-ui/icons/Search";
@@ -22,6 +23,7 @@ import Api from "../../api";
 import Pagination, { getPageItems } from "../../components/Pagination";
 import { SearchInput } from "../../components/Selectors";
 import { connect } from "react-redux";
+import { Table as MTable } from "../../components/Table";
 
 const useStyles = makeStyles((theme) => ({
   hideonmobile: {
@@ -115,8 +117,8 @@ function Students(props) {
     },
     { id: "email", numeric: true, disablePadding: false, label: "Email" },
   ];
-  const getFilteredStudents = () =>
-    students.filter(
+  const getFilteredStudents = (st = students) =>
+    st.filter(
       (s) => JSON.stringify(s).toLowerCase().indexOf(search.toLowerCase()) >= 0
     );
   return (
@@ -126,73 +128,124 @@ function Students(props) {
       </Box>
 
       <Box m={2}>
-        <TableContainer>
-          <Table aria-label="simple table">
-            <TableHead>
-              <TableRow>
-                {headCells.map((headCell) => (
-                  <TableCell
-                    key={headCell.id}
-                    align={headCell.numeric ? "right" : "left"}
-                    padding={headCell.disablePadding ? "none" : "default"}
-                    sortDirection={orderBy === headCell.id ? order : false}
-                    onClick={() => _handleSort(headCell.id, order)}
-                  >
-                    <TableSortLabel
-                      active={orderBy === headCell.id}
-                      direction={orderBy === headCell.id ? order : "asc"}
-                    >
-                      {headCell.label}
-                      {orderBy === headCell.id ? (
-                        <span className={styles.visuallyHidden}>
-                          {order === "desc"
-                            ? "sorted descending"
-                            : "sorted ascending"}
-                        </span>
-                      ) : null}
-                    </TableSortLabel>
-                  </TableCell>
-                ))}
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {students &&
-                getPageItems(getFilteredStudents(), page).map((row) => {
-                  return (
-                    <TableRow key={row.id} className={styles.row}>
-                      <TableCell component="th" scope="row">
-                        <div style={{ display: "flex", alignItems: "center" }}>
-                          <Avatar src={row.pic} alt={row.first_name} />
-                          <Typography variant="body1" style={{ marginLeft: 7 }}>
-                            {row.first_name} {row.last_name}
-                          </Typography>
-                        </div>
-                      </TableCell>
-                      <TableCell align="right">{row.phone_number}</TableCell>
-                      <TableCell align="right">{row.email}</TableCell>
-                    </TableRow>
-                  );
-                })}
-            </TableBody>
-          </Table>
-        </TableContainer>
-        {!students && <CircularProgress />}
         {students && (
-          <Box p={2}>
-            <Pagination
-              emptyMessage={
-                search
-                  ? "Try a different keyword"
-                  : "There's no students in your class yet."
-              }
-              icon={search ? "person_search" : "face"}
-              emptyTitle={search ? "Nothing Found" : ""}
-              match={props.match}
-              page={page}
-              onChange={(e) => setPage(e)}
-              count={getFilteredStudents().length}
+          <Grow in={true}>
+            <MTable
+              headers={[
+                { id: "first_name", title: "Name", width: "33%" },
+                {
+                  id: "phone_number",
+                  title: "Phone",
+                  width: "33%",
+                  align: "flex-end",
+                },
+                {
+                  id: "email",
+                  title: "Email",
+                  width: "33%",
+                  align: "flex-end",
+                },
+              ]}
+              filtered={(a) => getFilteredStudents(a)}
+              data={students}
+              noSelect={true}
+              pagination={{
+                render: (
+                  <Pagination
+                    emptyMessage={
+                      search
+                        ? "Try a different keyword"
+                        : "There's no students in your class yet."
+                    }
+                    icon={search ? "person_search" : "face"}
+                    emptyTitle={search ? "Nothing Found" : ""}
+                    match={props.match}
+                    page={page}
+                    onChange={(e) => setPage(e)}
+                    count={getFilteredStudents().length}
+                  />
+                ),
+                page,
+                onChangePage: (p) => setPage(p),
+              }}
+              rowRenderMobile={(item) => (
+                <Box
+                  display="flex"
+                  flexWrap="wrap"
+                  flexDirection="column"
+                  justifyContent="space-between"
+                  width="90%"
+                  style={{ padding: "30px 0" }}
+                >
+                  <Box width="100%" marginBottom={1}>
+                    <Typography
+                      style={{
+                        fontWeight: "bold",
+                        color: "#38108d",
+                        fontSize: "1em",
+                      }}
+                    >
+                      NAME
+                    </Typography>
+                    <Typography variant="body1">
+                      {item.first_name} {item.last_name}
+                    </Typography>
+                  </Box>
+                  <Box width="100%">
+                    <Typography
+                      style={{
+                        fontWeight: "bold",
+                        color: "#38108d",
+                        fontSize: "1em",
+                      }}
+                    >
+                      PHONE
+                    </Typography>
+                    <Box display="flex" alignItems="center">
+                      {item.phone_number}
+                    </Box>
+                  </Box>
+                  <Box width="100%">
+                    <Typography
+                      style={{
+                        fontWeight: "bold",
+                        color: "#38108d",
+                        fontSize: "1em",
+                      }}
+                    >
+                      EMAIL
+                    </Typography>
+                    <Box display="flex" alignItems="center">
+                      {item.email}
+                    </Box>
+                  </Box>
+                </Box>
+              )}
+              rowRender={(item) => (
+                <Box display="flex" width="100%" style={{ padding: "13px 0" }}>
+                  <Box width="33%" maxWidth="33%" overflow="hidden">
+                    {item.first_name} {item.last_name}
+                  </Box>
+                  <Box
+                    width="33%"
+                    maxWidth="33%"
+                    overflow="hidden"
+                    textAlign="right"
+                  >
+                    {item.phone_number}
+                  </Box>
+                  <Box
+                    width="33%"
+                    maxWidth="33%"
+                    overflow="hidden"
+                    textAlign="right"
+                  >
+                    {item.email}
+                  </Box>
+                </Box>
+              )}
             />
-          </Box>
+          </Grow>
         )}
       </Box>
     </Box>

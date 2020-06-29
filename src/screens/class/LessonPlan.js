@@ -89,7 +89,7 @@ function LessonPlan(props) {
   );
   const cellheaders = [
     { id: "title", title: "Title", width: "50%" },
-    { id: "added_by", title: "Added By" },
+    { id: "added_by", title: "Added By", width: "50%", align: "flex-end" },
   ];
   const _handleFileOption = (option, file) => {
     setAnchorEl(() => {
@@ -699,25 +699,32 @@ function LessonPlan(props) {
             </Box>
           )}
           rowRender={(item) => (
-            <React.Fragment>
-              <ListItemIcon className={styles.hideonmobile}>
-                <InsertDriveFileOutlinedIcon />
-              </ListItemIcon>
-              <ListItemText
-                onClick={() => _handleFileOption("view", item)}
-                primary={item.title}
-                secondary={
-                  item.resource_link ? item.resource_link : item.uploaded_file
-                }
-              />
-              <Typography
-                variant="body1"
-                style={{ marginRight: 45 }}
-                className={styles.hideonmobile}
+            <Box width="100%" display="flex">
+              <Box width="50%" overflow="hidden" maxWidth="50%">
+                <ListItemText
+                  onClick={() => _handleFileOption("view", item)}
+                  primary={item.title}
+                  secondary={
+                    item.resource_link ? item.resource_link : item.uploaded_file
+                  }
+                />
+              </Box>
+              <Box
+                justifyContent="flex-end"
+                width="50%"
+                overflow="hidden"
+                display="flex"
+                maxWidth="50%"
               >
-                {item.added_by.first_name} {item.added_by.last_name}
-              </Typography>
-            </React.Fragment>
+                <Typography
+                  variant="body1"
+                  style={{ marginRight: 45 }}
+                  className={styles.hideonmobile}
+                >
+                  {item.added_by.first_name} {item.added_by.last_name}
+                </Typography>
+              </Box>
+            </Box>
           )}
         />
       )}

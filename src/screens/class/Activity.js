@@ -167,8 +167,9 @@ function Activity(props) {
   };
   const [form, setForm] = useState(formTemplate);
   const cellheaders = [
-    { id: "title", title: "Title" },
-    { id: "available_from", title: "Date" },
+    { id: "title", title: "Title", width: "50%" },
+    { id: "status", title: "Status", align: "center", width: "15%" },
+    { id: "available_from", title: "Date", align: "flex-end", width: "35%" },
   ];
   const _handleFileOption = (option, file) => {
     switch (option) {
@@ -997,7 +998,7 @@ function Activity(props) {
             <Button
               variant="contained"
               style={{ order: isMobile ? 2 : 0 }}
-              color="primary"
+              color="secondary"
               onClick={() => {
                 handleClickOpen();
                 setForm(formTemplate);
@@ -1436,7 +1437,6 @@ function Activity(props) {
       {activities && !currentActivity && (
         <MTable
           headers={cellheaders}
-          onPage={(p) => setPage(p)}
           data={activities}
           saving={saving}
           savingId={savingId}
@@ -1497,6 +1497,30 @@ function Activity(props) {
                   {item.description}
                 </Typography>
               </Box>
+              <Box width="100%" marginBottom={1}>
+                <Typography
+                  style={{
+                    fontWeight: "bold",
+                    color: "#38108d",
+                    fontSize: "1em",
+                  }}
+                >
+                  STATUS
+                </Typography>
+                <Typography
+                  variant="body1"
+                  style={{
+                    fontWeight: "bold",
+                    fontSize: "0.9em",
+                    color:
+                      item.status === "published"
+                        ? theme.palette.success.main
+                        : theme.palette.error.main,
+                  }}
+                >
+                  {item.status === "published" ? "OPEN" : "CLOSED"}
+                </Typography>
+              </Box>
               <Box width="100%">
                 <Typography
                   style={{
@@ -1516,32 +1540,65 @@ function Activity(props) {
             </Box>
           )}
           rowRender={(item) => (
-            <React.Fragment>
-              <ListItemText
-                onClick={() => _handleFileOption("view", item)}
-                primary={item.title}
-                secondaryTypographyProps={{
-                  style: {
-                    width: isMobile ? "80%" : "100%",
-                  },
-                }}
-                secondary={item.description.substr(0, 100) + "..."}
-              />
-              <Typography
-                variant="body1"
-                component="div"
-                style={{
-                  marginRight: 45,
-                  display: "flex",
-                  alignItems: "center",
-                  textAlign: "right",
-                }}
+            <Box width="100%" display="flex">
+              <Box flex={1} overflow="hidden" width="50%" maxWidth="50%">
+                <ListItemText
+                  onClick={() => _handleFileOption("view", item)}
+                  primary={item.title}
+                  secondaryTypographyProps={{
+                    style: {
+                      width: isMobile ? "80%" : "100%",
+                    },
+                  }}
+                  secondary={item.description.substr(0, 100) + "..."}
+                />
+              </Box>
+              <Box
+                flex={1}
+                overflow="hidden"
+                width="15%"
+                maxWidth="15%"
+                display="flex"
+                alignItems="center"
+                justifyContent="center"
               >
-                {moment(item.available_from).format("LL")}
-                <Icon>arrow_right_alt</Icon>
-                {moment(item.available_to).format("LL")}
-              </Typography>
-            </React.Fragment>
+                <Typography
+                  variant="body1"
+                  style={{
+                    fontWeight: "bold",
+                    fontSize: "0.9em",
+                    color:
+                      item.status === "published"
+                        ? theme.palette.success.main
+                        : theme.palette.error.main,
+                  }}
+                >
+                  {item.status === "published" ? "OPEN" : "CLOSED"}
+                </Typography>
+              </Box>
+              <Box
+                overflow="hidden"
+                width="35%"
+                maxWidth="35%"
+                justifyContent="flex-end"
+                display="flex"
+              >
+                <Typography
+                  variant="body1"
+                  component="div"
+                  style={{
+                    marginRight: 45,
+                    display: "flex",
+                    alignItems: "center",
+                    textAlign: "right",
+                  }}
+                >
+                  {moment(item.available_from).format("LL")}
+                  <Icon>arrow_right_alt</Icon>
+                  {moment(item.available_to).format("LL")}
+                </Typography>
+              </Box>
+            </Box>
           )}
         />
       )}

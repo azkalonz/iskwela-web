@@ -30,7 +30,7 @@ export function Table(props) {
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const [anchorEl, setAnchorEl] = useState(null);
   const saving = props.saving;
-  const savingId = props.savingId;
+  const savingId = props.savingId || [];
   const [selectedItems, setSelectedItems] = useState({});
   const [sortType, setSortType] = useState({ order: "asc" });
   const [items, setItems] = useState([]);
@@ -117,6 +117,7 @@ export function Table(props) {
                   flexDirection: "row",
                   justifyContent: "space-between",
                   paddingLeft: 20,
+                  paddingRight: 48,
                   backgroundColor: "transparent",
                   boxShadow: !isMobile ? "0 2px 4px rgba(0,0,0,0.1)" : "none",
                 }}
@@ -128,7 +129,7 @@ export function Table(props) {
                     width: "100%",
                   }}
                 >
-                  {isTeacher && (
+                  {isTeacher && !props.noSelect && (
                     <ListItemIcon>
                       <Checkbox
                         checked={
@@ -155,21 +156,31 @@ export function Table(props) {
                   )}
                   <Box
                     display="flex"
-                    justifyContent="space-between"
+                    justifyContent="flex-start"
                     width="100%"
                     alignItems="center"
                   >
                     {isMobile && (
-                      <React.Fragment>
-                        <Typography
-                          style={{
-                            fontWeight: "bold",
-                            fontSize: "1em",
-                          }}
-                        >
-                          Select All
-                        </Typography>
-                        <Box>
+                      <Box
+                        display="flex"
+                        width="100%"
+                        alignItems="center"
+                        justifyContent="space-between"
+                      >
+                        {!props.noSelect ? (
+                          <Typography
+                            style={{
+                              fontWeight: "bold",
+                              fontSize: "1em",
+                            }}
+                            onClick={_selectAll}
+                          >
+                            Select All
+                          </Typography>
+                        ) : (
+                          <div></div>
+                        )}
+                        <Box style={{ transform: "translateX(60px)" }}>
                           <IconButton
                             disabled={page <= 1}
                             onClick={() => {
@@ -193,15 +204,17 @@ export function Table(props) {
                             <Icon>navigate_next</Icon>
                           </IconButton>
                         </Box>
-                      </React.Fragment>
+                      </Box>
                     )}
                     {!isMobile &&
                       props.headers.map((c) => (
                         <Box
                           display="flex"
                           width={c.width ? c.width : "auto"}
-                          style={{ paddingRight: 15 }}
+                          maxWidth={c.width ? c.width : "auto"}
                           onClick={() => _handleSort(c.id)}
+                          flex={c.width ? "auto" : 1}
+                          justifyContent={c.align || "flex-start"}
                         >
                           <Typography
                             variant="body1"
@@ -230,7 +243,7 @@ export function Table(props) {
                 </div>
               </ListItem>
             </List>
-          ) : Object.keys(selectedItems).length ? (
+          ) : Object.keys(selectedItems).length && !props.noSelect ? (
             <CheckBoxAction
               checked={
                 Object.keys(selectedItems).length ===
@@ -274,7 +287,7 @@ export function Table(props) {
                     backgroundColor: index % 2 ? "#f8f8f8" : "#fff",
                   }}
                 >
-                  {isTeacher && (
+                  {isTeacher && !props.noSelect && (
                     <ListItemIcon>
                       <Checkbox
                         checked={selectedItems[item.id] ? true : false}

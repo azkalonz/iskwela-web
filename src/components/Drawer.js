@@ -357,6 +357,7 @@ function Drawer(props) {
           mountOnEnter
           unmountOnExit
           style={{
+            boxShadow: "4px 0 10px rgba(143, 45, 253, 0.16)",
             height: "100vh",
             zIndex: 30,
             overflow: "auto",
