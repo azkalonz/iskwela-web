@@ -235,19 +235,22 @@ export function Table(props) {
                 Object.keys(selectedItems).length ===
                 props.filtered(items).length
               }
-              onSelect={_selectAll}
+              onSelect={() => _selectAll()}
               onDelete={
-                props.actions["onDelete"] &&
-                props.actions["onDelete"](selectedItems)
+                props.actions["onDelete"]
+                  ? () => props.actions["onDelete"](selectedItems)
+                  : null
               }
               onCancel={() => setSelectedItems({})}
               onUnpublish={
-                props.actions["onUpdate"] &&
-                props.actions["onUpdate"](selectedItems, 0)
+                props.actions["onUpdate"]
+                  ? () => props.actions["onUpdate"](selectedItems, 0)
+                  : null
               }
               onPublish={
-                props.actions["onUpdate"] &&
-                props.actions["onUpdate"](selectedItems, 1)
+                props.actions["onUpdate"]
+                  ? () => props.actions["onUpdate"](selectedItems, 1)
+                  : null
               }
             />
           ) : null}
