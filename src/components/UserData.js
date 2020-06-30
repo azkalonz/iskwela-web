@@ -145,22 +145,22 @@ const UserData = {
     });
     return mergedClassDetails;
   },
-  addQuiz: (quiz) => {
+  addQuiz: (questionnaires) => {
     store.dispatch({
-      type: "SET_QUIZZES",
-      quizzes: [...store.getState().quizzes, quiz],
+      type: "SET_QUESTIONNAIRES",
+      questionnaires: [...store.getState().questionnaires, questionnaires],
     });
   },
   removeQuiz: (id) => {
     let index = store
       .getState()
-      .quizzes.findIndex((q) => parseInt(q.id) === parseInt(id));
+      .questionnaires.findIndex((q) => parseInt(q.id) === parseInt(id));
     if (index >= 0) {
-      let quizzes = [...store.getState().quizzes];
-      quizzes.splice(index, 1);
+      let questionnaires = [...store.getState().questionnaires];
+      questionnaires.splice(index, 1);
       store.dispatch({
-        type: "SET_QUIZZES",
-        quizzes,
+        type: "SET_QUESTIONNAIRES",
+        questionnaires,
       });
     }
   },
@@ -172,19 +172,23 @@ const UserData = {
     } else {
       data.classes = await Api.get("/api/teacher/classes");
     }
-    // let quizzes = await Api.get(
-    //   "/api/quizzes?types[]=myQuizzes&types[]=schoolQuizzes&types[]=classQuizzes"
-    // );
+    let questionnaires = await Api.get(
+      "/api/questionnaires?types[]=myQnrs&limit=100"
+    );
     let allclasses = {};
+    const colors = ["#424a9a", "#67c6bc", "#a74ff8"];
+    let colorID = 0;
     await asyncForEach(data.classes, async (c) => {
+      if (colorID > 2) colorID = 0;
       allclasses[c.id] = c;
+      allclasses[c.id].theme = colors[colorID++];
       allclasses[c.id].teacher.pic = await this.getUserPic(c.teacher.id);
     });
     data.classDetails = {};
-    // store.dispatch({
-    //   type: "SET_QUIZZES",
-    //   quizzes,
-    // });
+    store.dispatch({
+      type: "SET_QUESTIONNAIRES",
+      questionnaires,
+    });
     store.dispatch({
       type: "SET_CLASS_DETAILS",
       class_details: data.classDetails,

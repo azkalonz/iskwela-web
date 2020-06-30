@@ -35,35 +35,9 @@ function Drawer(props) {
   const classes = props.classes.sort((a, b) =>
     a.next_schedule.status === "ONGOING" ? -1 : 0
   );
-  const listItem = {
-    container: {
-      display: "flex",
-      position: "relative",
-      justifyContent: "center",
-      borderColor: "primary.main",
-      ...(isTablet
-        ? {
-            justifyContent: "flex-start",
-            alignItems: "center",
-          }
-        : {}),
-    },
-    item: {
-      position: "relative",
-      m: 1,
-      width: 50,
-      boxShadow: "0px 0px 11px rgba(0,0,0,0.1)",
-      height: 50,
-      ...(isTablet
-        ? {
-            marginRight: 2,
-          }
-        : {}),
-    },
-  };
   useEffect(() => {
     focusCurrentTab();
-  }, []);
+  }, [isTablet, props.location.hash]);
   const focusCurrentTab = () => {
     let t = document.querySelector(".selected.tab");
     if (!t) {
@@ -71,15 +45,27 @@ function Drawer(props) {
       setTimeout(() => focusCurrentTab(), 0);
     } else {
       let cont = document.querySelector("#tabs-container");
-      if (cont) {
-        cont.parentElement.scrollTop = t.offsetTop - t.clientHeight;
-      }
+      if (cont && !isTablet) {
+        cont.parentElement.parentElement.parentElement.scrollTop =
+          t.offsetTop - t.clientHeight * 2;
+      } else t.parentElement.scrollTop = t.offsetTop - t.clientHeight * 2;
     }
   };
   const drawer = (
     <React.Fragment>
       <Box>
-        <Box p={2}>
+        <Box
+          p={2}
+          id="logo-drawer"
+          style={{
+            position: "sticky",
+            top: 0,
+            left: 0,
+            right: 0,
+            zIndex: 1,
+            background: "#fff",
+          }}
+        >
           <Typography
             variant="h6"
             align="center"
@@ -93,7 +79,6 @@ function Drawer(props) {
         </Box>
         <div style={{ textAlign: "center" }} id="tabs-container">
           <Box
-            {...listItem.container}
             className={
               window.location.pathname === "/" ? "selected tab bordered" : "tab"
             }
@@ -102,7 +87,7 @@ function Drawer(props) {
               onClick={() => {
                 history.push("/");
               }}
-              {...listItem.item}
+              className="tab-btn screen-btn"
               style={{
                 alignItems: "center",
                 cursor: "pointer",
@@ -117,7 +102,6 @@ function Drawer(props) {
           {classes.slice(0, 5).map((item, index) => {
             return (
               <Box
-                {...listItem.container}
                 key={index}
                 className={
                   class_id && parseInt(class_id) === parseInt(item.id)
@@ -138,23 +122,10 @@ function Drawer(props) {
               >
                 <Tooltip title={item.name} placement="right">
                   <Box
-                    {...listItem.item}
                     {...item.props}
+                    className="tab-btn"
                     style={{
-                      alignItems: "center",
-                      justifyContent: "center",
-                      display: "flex",
-                      transform: "translateX(-1.5px)",
-                      borderRadius: 7,
-                      ...(item.next_schedule.status === "ONGOING"
-                        ? {
-                            backgroundColor: theme.palette.primary.main,
-                            color: "#fff",
-                          }
-                        : {
-                            backgroundColor: theme.palette.primary.main + "15",
-                            color: "#38108d",
-                          }),
+                      backgroundColor: item.theme,
                     }}
                   >
                     <Typography variant="body1" component="h2">
@@ -183,7 +154,6 @@ function Drawer(props) {
                         ? "selected tab"
                         : "tab"
                     }
-                    {...listItem.container}
                     key={index}
                     onClick={() => {
                       history.push(
@@ -199,23 +169,10 @@ function Drawer(props) {
                   >
                     <Tooltip title={item.name} placement="right">
                       <Box
-                        {...listItem.item}
                         {...item.props}
+                        className="tab-btn"
                         style={{
-                          alignItems: "center",
-                          justifyContent: "center",
-                          display: "flex",
-                          transform: "translateX(-1.5px)",
-                          borderRadius: 7,
-                          ...(item.next_schedule.status === "ONGOING"
-                            ? {
-                                backgroundColor: theme.palette.primary.main,
-                              }
-                            : {
-                                backgroundColor:
-                                  theme.palette.primary.main + "15",
-                                color: "#38108d",
-                              }),
+                          backgroundColor: item.theme,
                         }}
                       >
                         <Typography variant="body1" component="h2">
@@ -238,11 +195,27 @@ function Drawer(props) {
           {classes && classes.length >= 6 && (
             <React.Fragment>
               {!more ? (
-                <IconButton onClick={() => setMore(true)}>
+                <IconButton
+                  onClick={() => setMore(true)}
+                  style={{
+                    position: "sticky",
+                    background: "#fff",
+                    bottom: 0,
+                    zIndex: 1,
+                  }}
+                >
                   <ExpandMoreOutlinedIcon />
                 </IconButton>
               ) : (
-                <IconButton onClick={() => setMore(false)}>
+                <IconButton
+                  onClick={() => setMore(false)}
+                  style={{
+                    position: "sticky",
+                    background: "#fff",
+                    bottom: 0,
+                    zIndex: 1,
+                  }}
+                >
                   <ExpandLessOutlinedIcon />
                 </IconButton>
               )}
@@ -252,7 +225,6 @@ function Drawer(props) {
             <Divider />
           </Box>
           <Box
-            {...listItem.container}
             className={
               window.location.pathname === "/improvement"
                 ? "selected tab bordered"
@@ -263,7 +235,7 @@ function Drawer(props) {
               onClick={() => {
                 history.push("/");
               }}
-              {...listItem.item}
+              className="tab-btn screen-btn"
               style={{
                 alignItems: "center",
                 cursor: "pointer",
@@ -275,39 +247,6 @@ function Drawer(props) {
               <Icon style={{ color: "#38108d" }}>school</Icon>
             </Box>
           </Box>
-          {/* <Box {...listItem.container}>
-          <Tooltip title="DepEd Commons" placement="right">
-            <Box
-              onClick={() =>
-                window.open("https://commons.deped.gov.ph/", "_blank")
-              }
-              {...listItem.item}
-              style={{
-                alignItems: "center",
-                cursor: "pointer",
-                justifyContent: "center",
-                display: "flex",
-                transform: "translateX(-1.5px)",
-              }}
-            >
-              <Avatar
-                src="/deped-logo.png"
-                imgProps={{
-                  style: {
-                    width: "100%",
-                    height: "auto",
-                  },
-                }}
-                style={{
-                  margin: "0 auto",
-                  border: "1px solid rgb(172, 172, 172)",
-                  padding: 2,
-                  background: "#fff",
-                }}
-              />
-            </Box>
-          </Tooltip>
-        </Box> */}
         </div>
       </Box>
       <Box>
@@ -334,11 +273,19 @@ function Drawer(props) {
       {!isTablet ? (
         <nav className={styles.drawer}>
           <MuiDrawer
+            id="drawer-container"
             styles={{
               paper: styles.drawerPaper,
             }}
             variant="permanent"
             open
+            onScroll={() => {
+              let $ = (a) => document.querySelector(a);
+              if ($("#drawer-container > div").scrollTop > 0)
+                $("#logo-drawer").style.borderBottom =
+                  "1px solid rgba(0,0,0,0.17)";
+              else $("#logo-drawer").style.borderBottom = "none";
+            }}
           >
             <Box
               height="100%"
@@ -373,9 +320,13 @@ function Drawer(props) {
             height="100%"
             onScroll={() => {
               let t = document.querySelector("#mobile-drawer-toolbar");
-              if (document.querySelector("#mobile-drawer").scrollTop > 0)
+              if (document.querySelector("#mobile-drawer").scrollTop > 0) {
                 t.style.borderColor = "rgba(0,0,0,0.12)";
-              else t.style.borderColor = "transparent";
+                t.style.boxShadow = "rgba(167, 79, 248, 0.15) 0px 8px 23px";
+              } else {
+                t.style.borderColor = "transparent";
+                t.style.boxShadow = "none";
+              }
             }}
           >
             <Toolbar
@@ -399,7 +350,6 @@ function Drawer(props) {
               </IconButton>
             </Toolbar>
             <Box
-              {...listItem.container}
               className={
                 window.location.pathname === "/"
                   ? "selected tab bordered"
@@ -409,19 +359,7 @@ function Drawer(props) {
                 history.push("/");
               }}
             >
-              <Box
-                {...listItem.item}
-                style={{
-                  alignItems: "center",
-                  cursor: "pointer",
-                  justifyContent: "center",
-                  display: "flex",
-                  transform: "translateX(-1.5px)",
-                  borderRadius: 7,
-                  backgroundColor: theme.palette.primary.main + "15",
-                  color: "#38108d",
-                }}
-              >
+              <Box className="tab-btn screen-btn">
                 <DashboardOutlined color="#38108d" />
               </Box>
               <Typography style={{ color: "#38108d", fontWeight: "bold" }}>
@@ -431,7 +369,6 @@ function Drawer(props) {
             {classes.slice(0, 5).map((item, index) => {
               return (
                 <Box
-                  {...listItem.container}
                   key={index}
                   className={
                     class_id && parseInt(class_id) === parseInt(item.id)
@@ -452,24 +389,11 @@ function Drawer(props) {
                 >
                   <Tooltip title={item.name} placement="right">
                     <Box
-                      {...listItem.item}
                       {...item.props}
+                      className="tab-btn"
                       style={{
-                        alignItems: "center",
-                        justifyContent: "center",
-                        display: "flex",
-                        transform: "translateX(-1.5px)",
-                        borderRadius: 7,
-                        ...(item.next_schedule.status === "ONGOING"
-                          ? {
-                              backgroundColor: theme.palette.primary.main,
-                              color: "#fff",
-                            }
-                          : {
-                              backgroundColor:
-                                theme.palette.primary.main + "15",
-                              color: "#38108d",
-                            }),
+                        backgroundColor: item.theme,
+                        marginRight: 7,
                       }}
                     >
                       <Typography variant="body1" component="h2">
@@ -504,7 +428,6 @@ function Drawer(props) {
                           ? "selected tab"
                           : "tab"
                       }
-                      {...listItem.container}
                       key={index}
                       onClick={() => {
                         history.push(
@@ -520,23 +443,11 @@ function Drawer(props) {
                     >
                       <Tooltip title={item.name} placement="right">
                         <Box
-                          {...listItem.item}
                           {...item.props}
+                          className="tab-btn"
                           style={{
-                            alignItems: "center",
-                            justifyContent: "center",
-                            display: "flex",
-                            transform: "translateX(-1.5px)",
-                            borderRadius: 7,
-                            ...(item.next_schedule.status === "ONGOING"
-                              ? {
-                                  backgroundColor: theme.palette.primary.main,
-                                }
-                              : {
-                                  backgroundColor:
-                                    theme.palette.primary.main + "15",
-                                  color: "#38108d",
-                                }),
+                            backgroundColor: item.theme,
+                            marginRight: 7,
                           }}
                         >
                           <Typography variant="body1" component="h2">
@@ -587,7 +498,6 @@ function Drawer(props) {
             )}
             <Divider />
             <Box
-              {...listItem.container}
               className={"tab"}
               onClick={() => {
                 window.open(
@@ -596,19 +506,7 @@ function Drawer(props) {
                 );
               }}
             >
-              <Box
-                {...listItem.item}
-                style={{
-                  alignItems: "center",
-                  cursor: "pointer",
-                  justifyContent: "center",
-                  display: "flex",
-                  transform: "translateX(-1.5px)",
-                  borderRadius: 7,
-                  backgroundColor: theme.palette.primary.main + "15",
-                  color: "#38108d",
-                }}
-              >
+              <Box className="tab-btn screen-btn">
                 <Icon fontSize="large" style={{ color: "#38108d" }}>
                   help_outline
                 </Icon>
@@ -644,21 +542,49 @@ const useStyles = makeStyles((theme) => ({
     right: 0,
   },
   root: {
-    "& .selected.tab": {
+    "& .tab .tab-btn": {
+      alignItems: "center",
+      justifyContent: "center",
+      display: "flex",
+      transform: "translateX(-1.5px)",
+      borderRadius: 7,
       position: "relative",
-      color: "#38108d!important",
-      "&:not(.bordered)>div": {
-        backgroundColor: theme.palette.secondary.main + "!important",
+      margin: theme.spacing(1),
+      width: 50,
+      height: 50,
+      [theme.breakpoints.down("md")]: {
+        marginRight: 2,
       },
-      "&.bordered::after": {
-        content: "''",
-        position: "absolute",
-        right: 0,
-        top: 0,
-        bottom: 0,
-        width: 6,
-        background: theme.palette.secondary.main,
-        borderRadius: "6px 0 0 6px",
+      "&:not(.screen-btn)": {
+        color: "#fff",
+        boxShadow: "0px 0px 11px rgba(0,0,0,0.1)",
+      },
+    },
+    "& .tab": {
+      display: "flex",
+      position: "relative",
+      justifyContent: "center",
+      borderColor: "primary.main",
+      [theme.breakpoints.down("md")]: {
+        justifyContent: "flex-start",
+        alignItems: "center",
+      },
+      "&.selected": {
+        position: "relative",
+        "&:not(.bordered)>div": {
+          backgroundColor: "#000!important",
+          opacity: 0.5,
+        },
+        "&.bordered::after": {
+          content: "''",
+          position: "absolute",
+          right: 0,
+          top: 0,
+          bottom: 0,
+          width: 6,
+          background: theme.palette.secondary.main,
+          borderRadius: "6px 0 0 6px",
+        },
       },
     },
     display: "flex",

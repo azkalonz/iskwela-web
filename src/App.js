@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import Login from "./screens/Login";
 import Class from "./containers/Class";
-import Quiz from "./containers/Quiz";
 import Home from "./screens/Home";
 import AnswerQuiz from "./screens/class/AnswerQuiz";
 
@@ -204,18 +203,18 @@ function App(props) {
         UserData.updateClass(c.id, c.details[c.id]);
       }
     });
-    socket.on("get quiz", (q) => {
-      let quizzes = [...store.getState().quizzes];
-      let quizIndex = quizzes.findIndex((qq) => q.id === qq.id);
-      if (quizIndex >= 0) {
-        quizzes.splice(quizIndex, 1, q);
+    socket.on("get questionnaires", (q) => {
+      let questionnaires = [...store.getState().questionnaires];
+      let qIndex = questionnaires.findIndex((qq) => q.id === qq.id);
+      if (qIndex >= 0) {
+        questionnaires.splice(qIndex, 1, q);
       } else {
-        quizzes.push(q);
+        questionnaires.push(q);
       }
-      console.log(quizzes);
+      console.log(questionnaires);
       store.dispatch({
-        type: "SET_QUIZZES",
-        quizzes,
+        type: "SET_QUESTIONNAIRES",
+        questionnaires,
       });
     });
     socket.on("get schedule details", (c) => {
@@ -253,11 +252,6 @@ function App(props) {
                   <Login setLoading={(l) => setLoading(l)} />
                 </Route>
                 <Route exact path="/answer/:quiz_id?" component={AnswerQuiz} />
-                <Route
-                  exact
-                  path="/quiz/:subject_id?/:quiz_id?"
-                  component={Quiz}
-                />
                 <Route exact path="/content-maker" component={ContentMaker} />
                 <Route exact path="/picker" component={GooglePicker} />
                 <Route

@@ -202,9 +202,9 @@ function Quizzes(props) {
   };
   useEffect(() => {
     _getMaterials();
-  }, [props.quizzes]);
+  }, [props.questionnaires]);
   const _getMaterials = () => {
-    setMaterials(props.quizzes);
+    setMaterials(props.questionnaires);
   };
 
   useEffect(
@@ -878,7 +878,7 @@ const useStyles = makeStyles((theme) => ({
 
 export default connect((states) => ({
   userInfo: states.userInfo,
-  quizzes: states.quizzes,
+  questionnaires: states.questionnaires,
   classes: states.classes,
   classDetails: states.classDetails,
   dataProgress: states.dataProgress,

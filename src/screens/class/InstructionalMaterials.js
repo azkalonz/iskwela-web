@@ -740,7 +740,7 @@ function InstructionalMaterials(props) {
               },
             }}
           >
-            <Box width={isMobile ? "49%" : 160}>
+            <Box flex={1}>
               <ScheduleSelector
                 onChange={(schedId) => setSelectedSched(schedId)}
                 schedule={selectedSched >= 0 ? selectedSched : -1}
@@ -748,15 +748,15 @@ function InstructionalMaterials(props) {
               />
             </Box>
             {!isMobile && String.fromCharCode(160)}
-            <Box width={isMobile ? "49%" : 160}>
-              {isTeacher && (
+            {isTeacher && (
+              <Box flex={1} style={{ marginLeft: 10 }}>
                 <StatusSelector
                   onChange={(statusId) => setSelectedStatus(statusId)}
                   status={selectedStatus ? selectedStatus : "all"}
                   match={props.match}
                 />
-              )}
-            </Box>
+              </Box>
+            )}
             {!isMobile && String.fromCharCode(160)}
           </Box>
           <SearchInput onChange={(e) => setSearch(e.toLowerCase())} />
@@ -815,6 +815,7 @@ function InstructionalMaterials(props) {
               justifyContent="space-between"
               width="90%"
               style={{ padding: "30px 0" }}
+              onClick={() => _handleFileOption("view", item)}
             >
               <Box width="100%" marginBottom={1}>
                 <Typography
@@ -848,10 +849,13 @@ function InstructionalMaterials(props) {
             </Box>
           )}
           rowRender={(item) => (
-            <Box width="100%" display="flex">
+            <Box
+              width="100%"
+              display="flex"
+              onClick={() => _handleFileOption("view", item)}
+            >
               <Box width="50%" overflow="hidden" maxWidth="50%">
                 <ListItemText
-                  onClick={() => _handleFileOption("view", item)}
                   primary={item.title}
                   secondary={
                     item.resource_link ? item.resource_link : item.uploaded_file

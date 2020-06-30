@@ -46,7 +46,7 @@ function AnswerQuiz(props) {
     setCurrentSlide(query.question ? parseInt(query.question) : 0);
   }, [query.question]);
   const getQuiz = () => {
-    let quiz = props.quizzes.find((q) => q.id === parseInt(quiz_id));
+    let quiz = props.questionnaires.find((q) => q.id === parseInt(quiz_id));
     quiz.slides = quiz.questions.map((q) => ({
       ...q,
       type: 1,
@@ -467,5 +467,5 @@ function CountDown(props) {
 }
 
 export default connect((states) => ({
-  quizzes: states.quizzes,
+  questionnaires: states.questionnaires,
 }))(AnswerQuiz);

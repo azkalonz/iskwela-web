@@ -14,11 +14,13 @@ import {
   Box,
   useTheme,
   useMediaQuery,
+  Snackbar,
 } from "@material-ui/core";
 import MuiAlert from "@material-ui/lab/Alert";
 import actions from "../components/redux/actions";
 import Api from "../api";
 import { useTranslation } from "react-i18next";
+import { styles } from "@material-ui/pickers/views/Calendar/Calendar";
 
 const queryString = require("query-string");
 function Alert(props) {
@@ -40,14 +42,11 @@ function Login(props) {
           alignItems="stretch"
         >
           {!isMobile && (
-            <Box
-              flex={1}
-              width="45%"
-              style={{
-                background: "url('/login-bg.png') no-repeat center ",
-                backgroundSize: "cover",
-              }}
-            ></Box>
+            <Box flex={1} width="45%" className={classes.loginLeftContent}>
+              <Box className="lamp" />
+              <Box className="media" />
+              <Box className="student" />
+            </Box>
           )}
           <Box
             flex={1}
@@ -55,12 +54,16 @@ function Login(props) {
             style={{
               background: !isMobile
                 ? "#f9f5fe"
-                : "radial-gradient(circle at top center,#7335fa,#1f094c)",
+                : "radial-gradient(circle at center 30%, rgb(115, 53, 250), rgb(31, 9, 76))",
             }}
             display="flex"
             alignItems="center"
             justifyContent="center"
+            className={isMobile ? classes.loginMobile : ""}
           >
+            <Box className="lamp" />
+            <Box className="media" />
+            <Box className="student" />
             <Box width={!isMobile ? "45%" : "80%"}>
               <LoginContainer setLoading={props.setLoading} />
             </Box>
@@ -92,31 +95,43 @@ function LoginContainer(props) {
         window.location = redirect_url ? redirect_url : "/";
         return;
       } else {
-        window.login_error = "Your username or password is incorrect. ";
+        window.login_error =
+          "Your username or password is incorrect. Please try again.";
       }
     } catch (e) {
-      window.login_error = "Your username or password is incorrect. ";
+      window.login_error =
+        "Your username or password is incorrect. Please try again.";
     }
     props.setLoading(false);
   };
   return (
     <React.Fragment>
       <Typography
-        variant="h5"
+        variant="h4"
         style={{
           fontWeight: "bold",
           color: !isMobile ? theme.palette.grey[800] : "#fff",
+          textAlign: isMobile ? "center" : "left",
+          zIndex: 2,
+          position: "relative",
         }}
       >
         Sign in to iSkwela
       </Typography>
       <br />
       {window.login_error && (
-        <Alert severity="error" style={{ margin: "30px 0" }}>
-          {window.login_error}
-          <br />
-          Please try again.
-        </Alert>
+        <Snackbar
+          open={true}
+          autoHideDuration={6000}
+          id="error"
+          onClose={() =>
+            (document.querySelector("#error").style.display = "none")
+          }
+        >
+          <Alert severity="error" style={{ margin: "30px 0" }}>
+            {window.login_error}
+          </Alert>
+        </Snackbar>
       )}
       <TextField
         variant="outlined"
@@ -172,6 +187,84 @@ function LoginContainer(props) {
 }
 
 const useStyles = makeStyles((theme) => ({
+  loginLeftContent: {
+    background:
+      "radial-gradient(circle at center 30%, rgb(115, 53, 250), rgb(31, 9, 76))",
+    position: "relative",
+    "& > div": {
+      position: "absolute",
+    },
+    "& .student": {
+      width: "70%",
+      height: "100%",
+      background: "url(/login/student.svg) no-repeat center",
+      marginTop: "15%",
+      backgroundSize: "100% auto",
+      right: "5%",
+      animation: `$myEffect 20s ease-in-out infinite`,
+      animationDirection: "alternate-reverse",
+    },
+    "& .media": {
+      width: "35%",
+      animation: `$myEffect 20s ease-in-out infinite`,
+      animationDirection: "alternate",
+      height: "100%",
+      background: "url(/login/media.svg) no-repeat center",
+      // backgroundPosition: "0 50%",
+      backgroundSize: "100% auto",
+      left: "15%",
+    },
+    "& .lamp": {
+      width: "100%",
+      height: "30%",
+      background: "url(/login/lamp.svg) no-repeat bottom center",
+      backgroundSize: "10% auto",
+      left: 0,
+      right: 0,
+      top: 0,
+    },
+  },
+  loginMobile: {
+    overflowX: "hidden",
+    position: "relative",
+    "& .student,& .media, & .lamp": {
+      position: "absolute",
+      pointerEvents: "none",
+      zIndex: 1,
+    },
+    "& .student": {
+      height: "100%",
+      width: 255,
+      minHeight: 515,
+      bottom: 0,
+      top: 0,
+      right: -50,
+      background: "url(/login/student.svg) no-repeat",
+      backgroundSize: "100% auto",
+      backgroundPosition: "0 95%",
+    },
+    "& .media": {
+      height: "100%",
+      width: 130,
+      minHeight: 515,
+      bottom: 0,
+      top: 0,
+      left: 0,
+      background: "url(/login/media.svg) no-repeat",
+      backgroundSize: "100% auto",
+      backgroundPosition: "0 70%",
+    },
+    "& .lamp": {
+      height: "35%",
+      top: 0,
+      left: 0,
+      right: 0,
+      background: "url(/login/lamp.svg) no-repeat",
+      backgroundPosition: "80% 100%",
+      backgroundSize: "50px auto",
+      // backgroundPosition: "0 70%",
+    },
+  },
   character: {
     [theme.breakpoints.down("sm")]: {
       right: -100,
@@ -191,16 +284,16 @@ const useStyles = makeStyles((theme) => ({
     position: "absolute",
     left: -70,
     top: 100,
-    animation: `$myEffect 10s linear infinite`,
     transformOrigin: "top",
+    animation: `$myEffect 10s linear infinite`,
     animationDirection: "alternate-reverse",
   },
   "@keyframes myEffect": {
     "0%": {
-      transform: "rotate(-15deg) translateX(40px) translateY(-20px)",
+      transform: "rotate(-7deg) translateX(40px) translateY(-20px)",
     },
     "100%": {
-      transform: "rotate(15deg) translateX(20px) translateY(10px)",
+      transform: "rotate(0) translateX(0) translateY(0)",
     },
   },
   clouds: {

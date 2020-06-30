@@ -661,6 +661,7 @@ function LessonPlan(props) {
           }}
           rowRenderMobile={(item) => (
             <Box
+              onClick={() => _handleFileOption("view", item)}
               display="flex"
               flexWrap="wrap"
               flexDirection="column"
@@ -700,10 +701,13 @@ function LessonPlan(props) {
             </Box>
           )}
           rowRender={(item) => (
-            <Box width="100%" display="flex">
+            <Box
+              width="100%"
+              display="flex"
+              onClick={() => _handleFileOption("view", item)}
+            >
               <Box width="50%" overflow="hidden" maxWidth="50%">
                 <ListItemText
-                  onClick={() => _handleFileOption("view", item)}
                   primary={item.title}
                   secondary={
                     item.resource_link ? item.resource_link : item.uploaded_file

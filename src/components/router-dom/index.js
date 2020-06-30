@@ -8,6 +8,7 @@ import Activity from "../../screens/class/Activity";
 import Attendance from "../../screens/class/Attendance";
 import LessonPlan from "../../screens/class/LessonPlan";
 import Quizzes from "../../screens/class/Quizzes";
+import Quiz from "../../containers/Quiz";
 import Students from "../../screens/class/Students";
 import Schedule from "../../screens/class/Schedule";
 import Scores from "../../screens/class/Scores";
@@ -32,12 +33,6 @@ export function makeLinkTo(path, options = {}) {
   );
 }
 export const rightPanelOptions = [
-  {
-    title: "Lesson Plan",
-    link: "lesson-plan",
-    icon: <BorderColorOutlinedIcon />,
-    screen: LessonPlan,
-  },
   {
     title: "Student Activity",
     icon: <AssignmentOutlinedIcon />,
@@ -74,22 +69,34 @@ export const rightPanelOptions = [
     ],
   },
   {
+    title: "Questionnaire",
+    link: "questionnaire",
+    icon: <EventNoteOutlinedIcon />,
+    screen: Quiz,
+  },
+  {
     title: "Instructional Materials",
     link: "instructional-materials",
     icon: <EventNoteOutlinedIcon />,
     screen: InstructionalMaterials,
   },
   {
-    title: "Schedule",
-    link: "schedule",
-    icon: <EventOutlinedIcon />,
-    screen: Schedule,
+    title: "Lesson Plan",
+    link: "lesson-plan",
+    icon: <BorderColorOutlinedIcon />,
+    screen: LessonPlan,
   },
   {
     title: "Attendance",
     link: "attendance",
     icon: <PeopleOutlinedIcon />,
     screen: Attendance,
+  },
+  {
+    title: "Schedule",
+    link: "schedule",
+    icon: <EventOutlinedIcon />,
+    screen: Schedule,
   },
   {
     title: "Students",

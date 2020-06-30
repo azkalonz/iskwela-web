@@ -66,12 +66,14 @@ function Scores(props) {
   const [search, setSearch] = useState("");
   const [currentStudent, setStudent] = useState();
   useEffect(() => {
-    if (props.quizzes && query.quiz_id) {
-      let q = props.quizzes.find((qq) => qq.id === parseInt(query.quiz_id));
+    if (props.questionnaires && query.quiz_id) {
+      let q = props.questionnaires.find(
+        (qq) => qq.id === parseInt(query.quiz_id)
+      );
       if (q) setQuiz(q);
       console.log(q);
     }
-  }, [props.quizzes]);
+  }, [props.questionnaires]);
   useEffect(() => {
     if (query.add_score) {
       setStudent(
@@ -258,6 +260,6 @@ function Scores(props) {
 }
 
 export default connect((states) => ({
-  quizzes: states.quizzes,
+  questionnaires: states.questionnaires,
   classDetails: states.classDetails,
 }))(Scores);

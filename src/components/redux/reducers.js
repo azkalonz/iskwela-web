@@ -37,11 +37,11 @@ const classDetails = (state = {}, payload) => {
   }
 };
 
-const quizzes = (state = [], payload) => {
+const questionnaires = (state = [], payload) => {
   switch (payload.type) {
-    case "SET_QUIZZES":
-      console.log(payload.quizzes);
-      return payload.quizzes;
+    case "SET_QUESTIONNAIRES":
+      console.log(payload.questionnaires);
+      return payload.questionnaires;
     default:
       return state;
   }
@@ -83,7 +83,7 @@ export default combineReducers({
   classes,
   route,
   dataProgress,
-  quizzes,
+  questionnaires,
   classDetails,
   theme,
   pics,

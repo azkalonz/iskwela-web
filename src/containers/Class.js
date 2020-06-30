@@ -187,7 +187,7 @@ function Class(props) {
       >
         <div
           className="wrapper"
-          style={{ ...(p.isChild ? { background: "#5719dc" } : {}) }}
+          style={{ ...(p.isChild ? { background: "rgba(0,0,0,0.2)" } : {}) }}
         >
           <Typography
             component="div"
@@ -218,15 +218,10 @@ function Class(props) {
               <ListItemText primary={p.title} />
               {p.children && p.children.filter((c) => !c.hidden).length ? (
                 <ListItemSecondaryAction>
-                  <IconButton id={"not-expanded-" + p.id}>
-                    <Icon style={{ color: "#fff" }}>navigate_next</Icon>
-                  </IconButton>
-                  <IconButton
-                    id={"is-expanded-" + p.id}
-                    style={{ display: "none" }}
-                  >
-                    <Icon style={{ color: "#fff" }}>expand_more</Icon>
-                  </IconButton>
+                  <Icon id={"not-expanded-" + p.id}>navigate_next</Icon>
+                  <Icon id={"is-expanded-" + p.id} style={{ display: "none" }}>
+                    expand_more
+                  </Icon>
                 </ListItemSecondaryAction>
               ) : null}
             </ListItem>
@@ -372,15 +367,21 @@ function Class(props) {
             <Box className={styles.panel} width="100vw">
               {CLASS !== undefined && props.classDetails[class_id] ? (
                 <React.Fragment>
-                  <Paper className="box-container">
-                    <Toolbar className={styles.toolbar}>
+                  <Paper
+                    className="box-container"
+                    style={{ background: props.classes[class_id].theme }}
+                  >
+                    <Toolbar
+                      className={styles.toolbar}
+                      style={{ background: props.classes[class_id].theme }}
+                    >
                       {isTablet && (
                         <IconButton
                           aria-label="Collapse Panel"
                           onClick={() => {
                             props.history.push("#menu");
                           }}
-                          style={{ marginLeft: -15 }}
+                          style={{ color: "#fff", marginLeft: -15 }}
                         >
                           <Icon>menu</Icon>
                         </IconButton>
@@ -396,7 +397,11 @@ function Class(props) {
                         placement="bottom-start"
                       >
                         <IconButton
-                          style={{ position: "absolute", right: 0 }}
+                          style={{
+                            position: "absolute",
+                            right: 0,
+                            color: "#fff",
+                          }}
                           aria-label="Collapse Panel"
                           onClick={() => setCollapsePanel(!collapsePanel)}
                         >
@@ -441,7 +446,11 @@ function Class(props) {
                       >
                         <Typography
                           variant="body2"
-                          style={{ fontSize: "0.8rem", marginLeft: 5 }}
+                          style={{
+                            fontSize: "0.8rem",
+                            marginLeft: 5,
+                            color: "rgba(255,255,255,0.75)",
+                          }}
                         >
                           {moment(
                             props.classDetails[class_id].schedules[schedule_id]
@@ -461,7 +470,11 @@ function Class(props) {
                       >
                         <Typography
                           variant="body2"
-                          style={{ fontSize: "0.75rem", marginLeft: 5 }}
+                          style={{
+                            fontSize: "0.75rem",
+                            marginLeft: 5,
+                            color: "rgba(255,255,255,0.75)",
+                          }}
                         >
                           {moment(
                             props.classDetails[class_id].schedules[schedule_id]
@@ -476,7 +489,10 @@ function Class(props) {
                       </Box>
                     </Box>
                   </Paper>
-                  <Paper className="box-container">
+                  <Paper
+                    className="box-container"
+                    style={{ background: props.classes[class_id].theme }}
+                  >
                     <Box
                       p={2.2}
                       className={[styles.centered, styles.start].join(" ")}
@@ -510,7 +526,10 @@ function Class(props) {
                         >
                           {CLASS.teacher.first_name} {CLASS.teacher.last_name}
                         </Typography>
-                        <Typography variant="body1">
+                        <Typography
+                          variant="body1"
+                          style={{ color: "rgba(255,255,255,0.75)" }}
+                        >
                           {CLASS.subject.name} Teacher
                         </Typography>
                       </Box>
@@ -578,7 +597,10 @@ function Class(props) {
                   </Paper>
                   <Paper
                     className="box-container"
-                    style={{ minHeight: "100%" }}
+                    style={{
+                      minHeight: "100%",
+                      background: props.classes[class_id].theme,
+                    }}
                   >
                     <List
                       component="nav"
@@ -599,7 +621,13 @@ function Class(props) {
                   </Paper>
                 </React.Fragment>
               ) : (
-                <Paper className="box-container" style={{ minHeight: "100vh" }}>
+                <Paper
+                  className="box-container"
+                  style={{
+                    minHeight: "100vh",
+                    background: props.classes[class_id].theme,
+                  }}
+                >
                   <Skeleton width="100%" height={170} />
                   <Box m={2}>
                     <Skeleton width="100%" height={20} />
@@ -617,30 +645,30 @@ function Class(props) {
             overflow="hidden auto"
             height="100vh"
             id="right-panel"
-            onScroll={(e) => {
-              const clamp = (v, min = 0, max = 1) =>
-                Math.min(max, Math.max(min, v));
-              function p5map(n, start1, stop1, start2, stop2) {
-                return (
-                  ((n - start1) / (stop1 - start1)) * (stop2 - start2) + start2
-                );
-              }
+            // onScroll={(e) => {
+            //   const clamp = (v, min = 0, max = 1) =>
+            //     Math.min(max, Math.max(min, v));
+            //   function p5map(n, start1, stop1, start2, stop2) {
+            //     return (
+            //       ((n - start1) / (stop1 - start1)) * (stop2 - start2) + start2
+            //     );
+            //   }
 
-              if ($("#activity-preview")[0]) {
-                let x = $("#activity-preview");
-                let offset = $("#video-conference-container");
-                offset = offset[0] ? offset[0].offsetHeight : 0;
-                let top = e.target.scrollTop - offset;
-                x.css(
-                  "opacity",
-                  clamp(
-                    p5map(top, 0, $("#activity-preview")[0].clientHeight, 1, 0),
-                    0,
-                    1
-                  )
-                );
-              }
-            }}
+            //   if ($("#activity-preview")[0]) {
+            //     let x = $("#activity-preview");
+            //     let offset = $("#video-conference-container");
+            //     offset = offset[0] ? offset[0].offsetHeight : 0;
+            //     let top = e.target.scrollTop - offset;
+            //     x.css(
+            //       "opacity",
+            //       clamp(
+            //         p5map(top, 0, $("#activity-preview")[0].clientHeight, 1, 0),
+            //         0,
+            //         1
+            //       )
+            //     );
+            //   }
+            // }}
           >
             {room_name &&
               CLASS &&
@@ -704,10 +732,6 @@ function Class(props) {
               display="flex"
               alignItems="center"
               height="86%"
-              m={isMobile ? 0 : 4}
-              style={{
-                marginTop: isMobile ? 0 : 12,
-              }}
               justifyContent="center"
             >
               {rightPanelLoading && (
@@ -763,12 +787,12 @@ function Class(props) {
 }
 const useStyles = makeStyles((theme) => ({
   endClass: {
-    background: theme.palette.error.main,
-    color: theme.palette.common.white,
+    color: "#000",
+    background: "#fff",
   },
   startClass: {
     color: "#000",
-    background: theme.palette.secondary.main,
+    background: "#fff",
   },
   panel: {
     [theme.breakpoints.down("sm")]: {
@@ -788,27 +812,31 @@ const useStyles = makeStyles((theme) => ({
     // boxShadow: "0 0 5px rgba(0,0,0,0.3)",
 
     "& .box-container": {
-      background: theme.palette.primary.main,
       color: "#fff",
       margin: theme.spacing(1),
       "&:first-of-type": {
         marginTop: 0,
       },
     },
-    "& .panel-option-container": {
-      transition: "all 0.2s ease-in-out",
-    },
     "& .panel-option": {
-      opacity: 0.6,
-      "& svg": {
-        color: "#fff",
+      "&.selected + div span, &.selected svg": {
+        color: "#fff!important",
+      },
+      "&, & + div span, & svg": {
+        color: "rgba(255,255,255,0.75)",
       },
       "&.selected": {
-        opacity: 1,
-        background: "#5e20e4",
+        color: "#fff!important",
+        background: "rgba(0,0,0,0.2)",
         "& svg": {
           color: theme.palette.secondary.main,
         },
+      },
+    },
+    "& .panel-option-container": {
+      transition: "all 0.2s ease-in-out",
+      "& .wrapper .wrapper .selected": {
+        background: "none",
       },
     },
   },
@@ -816,7 +844,6 @@ const useStyles = makeStyles((theme) => ({
     position: "sticky",
     top: 0,
     left: 0,
-    background: theme.palette.primary.main,
     right: 0,
     zIndex: 9,
   },

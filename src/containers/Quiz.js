@@ -66,13 +66,19 @@ const DialogTitle = withStyles(styles)((props) => {
 });
 
 function Quiz(props) {
-  const { subject_id, quiz_id } = props.match.params;
+  const { class_id, schedule_id, option_name } = props.match.params;
+  const query = require("query-string").parse(props.location.search);
   const [ID, setID] = useState(2);
   const [totalScore, setTotalScore] = useState(0);
   const history = useHistory();
   const [confirmed, setConfirmed] = useState();
   const [modified, setModified] = useState(false);
   const [viewableSlide, setViewableSlide] = useState([0, 1, 2, 3]);
+  const subject_id =
+    class_id &&
+    props.classDetails[class_id].subject &&
+    props.classDetails[class_id].subject.id;
+  const quiz_id = query.id ? parseInt(query.id) : null;
   const slideTemplate = {
     choices: [
       {
@@ -96,10 +102,10 @@ function Quiz(props) {
     score: 100,
   };
   const [quiz, setQuiz] = useState(
-    quiz_id && props.quizzes.find((q) => q.id === parseInt(quiz_id))
+    quiz_id && props.questionnaires.find((q) => q.id === parseInt(quiz_id))
       ? {
-          ...props.quizzes.find((q) => q.id === parseInt(quiz_id)),
-          slides: props.quizzes
+          ...props.questionnaires.find((q) => q.id === parseInt(quiz_id)),
+          slides: props.questionnaires
             .find((q) => q.id === parseInt(quiz_id))
             .questions.map((q) => ({
               ...q,
@@ -183,13 +189,21 @@ function Quiz(props) {
         choices: q.choices,
       }));
       items.subject_id = subject_id ? parseInt(subject_id) : null;
-      let res = await Api.post("/api/quiz/save", {
+      let res = await Api.post("/api/questionnaire/save", {
         body: items,
       });
       if (!quiz_id) {
-        history.push(makeLinkTo(["quiz", subject_id, res.id]));
+        history.push(
+          makeLinkTo([
+            "class",
+            class_id,
+            schedule_id,
+            option_name,
+            "?id=" + res.id,
+          ])
+        );
       }
-      socket.emit("new quiz", {
+      socket.emit("new questionnaires", {
         ...res,
         author: {
           id: props.userInfo.id,
@@ -602,6 +616,7 @@ TabPanel.propTypes = {
   value: PropTypes.any.isRequired,
 };
 export default connect((states) => ({
-  quizzes: states.quizzes,
+  questionnaires: states.questionnaires,
   userInfo: states.userInfo,
+  classDetails: states.classDetails,
 }))(Quiz);

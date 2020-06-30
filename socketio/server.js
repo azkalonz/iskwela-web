@@ -26,8 +26,8 @@ io.on("connection", (socket) => {
     socket.broadcast.emit("get quiz details", c);
   });
 
-  socket.on("new quiz", (quiz) => {
-    io.emit("get quiz", quiz);
+  socket.on("new questionnaires", (quiz) => {
+    io.emit("get questionnaires", quiz);
   });
 });
 

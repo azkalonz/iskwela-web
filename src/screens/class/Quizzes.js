@@ -80,6 +80,10 @@ import RefreshIcon from "@material-ui/icons/Refresh";
 import StudentRating from "../../components/StudentRating";
 import { useHistory } from "react-router-dom";
 import { Table as MTable } from "../../components/Table";
+import {
+  CreateDialog,
+  AttachQuestionnaireDialog,
+} from "../../components/dialogs";
 const queryString = require("query-string");
 function Alert(props) {
   return <MuiAlert elevation={6} variant="filled" {...props} />;
@@ -129,7 +133,7 @@ function Quizzes(props) {
   const [activities, setActivities] = useState();
   const [dragover, setDragover] = useState(false);
   const [search, setSearch] = useState("");
-  const [modals, setModals] = React.useState([false, false]);
+  const [modals, setModals] = React.useState({});
   const [file, setFile] = useState();
   const [fileViewerOpen, setfileViewerOpen] = useState(false);
   const isTeacher = props.userInfo.user_type === "t" ? true : false;
@@ -156,14 +160,10 @@ function Quizzes(props) {
     query.date && query.date !== -1 ? parseInt(query.date) : -1
   );
   const formTemplate = {
-    activity_type: 1,
     title: "",
-    description: "",
-    available_from: moment(new Date()).format("YYYY-MM-DD"),
-    available_to: moment(new Date()).format("YYYY-MM-DD"),
-    published: 0,
-    rating_type: "none",
-    class_id,
+    instruction: "",
+    duration: 60,
+    category_id: 1,
   };
   const [form, setForm] = useState(formTemplate);
   const cellheaders = [
@@ -176,7 +176,7 @@ function Quizzes(props) {
         _handleItemClick(file);
         return;
       case "edit":
-        handleClickOpen();
+        handleClickOpen("CREATE_DIALOG");
         setForm({
           ...file,
           rating_type: "none",
@@ -281,15 +281,16 @@ function Quizzes(props) {
     setPage(1);
   };
 
-  const handleClickOpen = () => {
-    setModals([true, modals[1]]);
+  const handleClickOpen = (dialog_id) => {
+    let m = { ...modals };
+    m[dialog_id] = true;
+    setModals(m);
   };
 
-  const handleClose = () => {
-    setModals([false, modals[1]]);
-    setHasFiles([hasFiles[0], false]);
-    window.contentMakerFile = null;
-    FileUpload.removeFiles("activity-materials");
+  const handleClose = (dialog_id) => {
+    let m = { ...modals };
+    m[dialog_id] = false;
+    setModals(m);
   };
   const _handleItemClick = (item) => {
     setCurrentActivity(
@@ -299,160 +300,7 @@ function Quizzes(props) {
     );
   };
   const _handleCreateActivity = async (params = {}, noupdate = false) => {
-    setErrors(null);
-    setSaving(true);
-    let err = [];
-    let res;
-    let newScheduleDetails;
-    let formData = new Form({
-      ...form,
-      subject_id: props.classDetails[class_id].subject.id,
-      schedule_id: selectedSched >= 0 ? selectedSched : classSched,
-      ...params,
-    });
-    if (formData.data.published && formData.data.id) {
-      try {
-        await Api.post("/api/class/activity/publish/" + formData.data.id, {});
-      } catch (e) {
-        setErrors(["Oops! Something when wrong. Please try again."]);
-      }
-    }
-    try {
-      res = await formData.send("/api/class/activity/save");
-    } catch (e) {
-      setErrors(["Oops! Something when wrong. Please try again."]);
-    }
-    if (res) {
-      if (!res.errors) {
-        let materialFiles = document.querySelector("#activity-material");
-        if (form.materials && Object.keys(newMaterial).length) {
-          await asyncForEach(form.materials, async (m) => {
-            if (m.uploaded_file) return;
-            await Api.post("/api/class/activity-material/save", {
-              body: {
-                ...(m.id ? { id: m.id } : {}),
-                url: m.resource_link,
-                title: m.title,
-                activity_id: res.id,
-              },
-            });
-          });
-        }
-        if (window.contentMakerFile) {
-          let body = new FormData();
-          body.append("file", window.contentMakerFile);
-          body.append("assignment_id", res.id);
-          body.append("title", window.contentMakerFile.name);
-          let a = await FileUpload.upload("/api/upload/activity/material", {
-            body,
-            onUploadProgress: (event, source) =>
-              store.dispatch({
-                type: "SET_PROGRESS",
-                id: option_name,
-                data: {
-                  title: window.contentMakerFile.name,
-                  loaded: event.loaded,
-                  total: event.total,
-                  onCancel: source,
-                },
-              }),
-          });
-          if (a.errors) {
-            for (let e in a.errors) {
-              err.push(a.errors[e][0]);
-            }
-          }
-        }
-        if (materialFiles.files.length) {
-          await asyncForEach(materialFiles.files, async (file) => {
-            let body = new FormData();
-            body.append("file", file);
-            body.append("assignment_id", res.id);
-            body.append("title", file.name);
-            let a;
-            try {
-              a = await FileUpload.upload("/api/upload/activity/material", {
-                body,
-                onUploadProgress: (event, source) =>
-                  store.dispatch({
-                    type: "SET_PROGRESS",
-                    id: option_name,
-                    data: {
-                      title: file.name,
-                      loaded: event.loaded,
-                      total: event.total,
-                      onCancel: source,
-                    },
-                  }),
-              });
-              if (a.errors) {
-                setErrors(["Oops! Something went wrong. Please try again."]);
-              }
-            } catch (e) {
-              setErrors(["Oops! Something went wrong. Please try again."]);
-            }
-          });
-          document.querySelector("#activity-material").value = "";
-        }
-        if (!noupdate) {
-          newScheduleDetails = await UserData.updateScheduleDetails(
-            class_id,
-            selectedSched >= 0 ? selectedSched : schedule_id
-          );
-          socket.emit("update schedule details", {
-            id: class_id,
-            details: newScheduleDetails,
-          });
-        }
-      } else {
-        for (let e in res.errors) {
-          err.push(res.errors[e][0]);
-        }
-        setErrors(err);
-      }
-    }
-    if (!errors && res && !err) {
-      setSuccess(true);
-      for (let i = 0; i < newScheduleDetails.activities.length; i++) {
-        if (newScheduleDetails.activities[i].id === res.id) {
-          setForm({
-            ...newScheduleDetails.activities[i],
-            schedule_id: newScheduleDetails.id,
-            activity_type: res.activity_type === "class activity" ? 1 : 2,
-            published: res.status === "unpublished" ? 0 : 1,
-            subject_id: props.classDetails[class_id].subject.id,
-            class_id,
-          });
-          FileUpload.removeFiles("activity-materials");
-          if (document.querySelector("#activity-material"))
-            document.querySelector("#activity-material").value = "";
-          setNewMaterial({});
-          window.contentMakerFile = null;
-          setSaving(false);
-        }
-      }
-    } else {
-      setSaving(false);
-    }
-    let newform;
-    try {
-      newform = props.classDetails[class_id].schedules[
-        schedule_id
-      ].activities.filter((a) => a.id === form.id)[0];
-      newform.activity_type =
-        newform.activity_type === "class activity" ? 1 : 2;
-    } catch (e) {
-      newform = props.classDetails[class_id].schedules[schedule_id].activities;
-      newform = newform[newform.length - 1];
-      if (newform)
-        newform.activity_type =
-          newform.activity_type === "class activity" ? 1 : 2;
-    }
-    setForm({
-      ...form,
-      ...(newform ? newform : {}),
-    });
-    setSavingId([]);
+    console.log(form);
   };
 
   const _handleUpdateActivityStatus = async (a, s) => {
@@ -999,7 +847,7 @@ function Quizzes(props) {
               style={{ order: isMobile ? 2 : 0, fontWeight: "bold" }}
               color="secondary"
               onClick={() => {
-                handleClickOpen();
+                handleClickOpen("CREATE_DIALOG");
                 setForm(formTemplate);
               }}
             >
@@ -1029,7 +877,7 @@ function Quizzes(props) {
                 },
               }}
             >
-              <Box width={isMobile ? "49%" : 160}>
+              <Box flex={1}>
                 <ScheduleSelector
                   onChange={(schedId) => setSelectedSched(schedId)}
                   schedule={selectedSched >= 0 ? selectedSched : -1}
@@ -1037,15 +885,15 @@ function Quizzes(props) {
                 />
               </Box>
               {!isMobile && String.fromCharCode(160)}
-              <Box width={isMobile ? "49%" : 160}>
-                {isTeacher && (
+              {isTeacher && (
+                <Box flex={1} style={{ marginLeft: 10 }}>
                   <StatusSelector
                     onChange={(statusId) => setSelectedStatus(statusId)}
                     status={selectedStatus ? selectedStatus : "all"}
                     match={props.match}
                   />
-                )}
-              </Box>
+                </Box>
+              )}
               {!isMobile && String.fromCharCode(160)}
             </Box>
             <SearchInput onChange={(e) => _handleSearch(e)} />
@@ -1500,24 +1348,18 @@ function Quizzes(props) {
           )}
         />
       )}
-      <Dialog
-        open={modals[0]}
-        TransitionComponent={Transition}
-        keepMounted
-        fullScreen={true}
-        onClose={handleClose}
-      >
-        <DialogTitle id="alert-dialog-slide-title" onClose={handleClose}>
-          {form.id ? "Edit Quiz" : "Create Quiz"}
-        </DialogTitle>
-        <DialogContent
-          style={{
-            display: "flex",
-            flexWrap: isMobile ? "wrap" : "nowrap",
-            ...(isMobile ? { padding: "8px 0" } : {}),
-          }}
-        >
-          <Box display="block" width={isMobile ? "100%" : "70%"} m={2}>
+      <AttachQuestionnaireDialog
+        open={modals.QUESTIONNAIRE ? modals.QUESTIONNAIRE : false}
+        title="Select Questionnaire"
+        onClose={() => handleClose("QUESTIONNAIRE")}
+        data={props.questionnaires}
+      />
+      <CreateDialog
+        title={form.id ? "Edit Quiz" : "Create Quiz"}
+        open={modals.CREATE_DIALOG ? modals.CREATE_DIALOG : false}
+        onClose={() => handleClose("CREATE_DIALOG")}
+        leftContent={
+          <React.Fragment>
             <TextField
               label="Title"
               variant="filled"
@@ -1547,84 +1389,40 @@ function Quizzes(props) {
                   <Select
                     label="Grading Cateogry"
                     padding={10}
-                    value={form.rating_type}
+                    value={form.category_id}
                     onChange={(e) => {
                       setForm({
                         ...form,
-                        rating_type: e.target.value,
+                        category_id: e.target.value,
                       });
                     }}
                     style={{ paddingTop: 17 }}
                   >
-                    <MenuItem value="score">Score</MenuItem>
-                    <MenuItem value="star">Star Rating</MenuItem>
-                    <MenuItem value="none">None</MenuItem>
+                    <MenuItem value={1}>Score</MenuItem>
+                    <MenuItem value={2}>Star Rating</MenuItem>
                   </Select>
                 </FormControl>
               </Box>
             </Box>
-            <MuiPickersUtilsProvider utils={MomentUtils}>
-              <Box
-                display="flex"
-                width="100%"
-                justifyContent="space-between"
-                alignItems="center"
-              >
-                <KeyboardDatePicker
-                  disableToolbar
-                  variant="inline"
-                  format="MMM DD, YYYY"
-                  style={{ width: "49%" }}
-                  margin="normal"
-                  label="From"
-                  value={moment(form.available_from).format("YYYY-MM-DD")}
-                  onChange={(date) =>
-                    setForm({
-                      ...form,
-                      available_from: moment(date).format("YYYY-MM-DD"),
-                    })
-                  }
-                  KeyboardButtonProps={{
-                    "aria-label": "change date",
-                  }}
-                />
-                <KeyboardDatePicker
-                  disableToolbar
-                  variant="inline"
-                  style={{ width: "49%" }}
-                  format="MMM DD, YYYY"
-                  margin="normal"
-                  label="To"
-                  value={moment(form.available_to).format("YYYY-MM-DD")}
-                  onChange={(date) =>
-                    setForm({
-                      ...form,
-                      available_to: moment(date).format("YYYY-MM-DD"),
-                    })
-                  }
-                  KeyboardButtonProps={{
-                    "aria-label": "change date",
-                  }}
-                />
-              </Box>
-            </MuiPickersUtilsProvider>
             <TextField
-              label="Introduction"
+              label="Instruction"
               variant="filled"
               rows={10}
               style={{ marginTop: 13 }}
-              value={form.description}
+              value={form.instruction}
               multiline={true}
               InputLabelProps={{
                 shrink: true,
               }}
               onChange={(e) =>
-                setForm({ ...form, description: e.target.value })
+                setForm({ ...form, instruction: e.target.value })
               }
               fullWidth
             />
-          </Box>
-          <Box flex={1} m={2} width={isMobile ? "100%" : "30%"}>
+          </React.Fragment>
+        }
+        rightContent={
+          <React.Fragment>
             <Box
               display="flex"
               justifyContent="space-between"
@@ -1649,38 +1447,12 @@ function Quizzes(props) {
                   }}
                   multiple
                 />
-                <PopupState variant="popover" popupId="publish-btn">
-                  {(popupState) => (
-                    <React.Fragment>
-                      <Button variant="outlined" {...bindTrigger(popupState)}>
-                        <AttachFileOutlinedIcon />
-                        Attach Material
-                      </Button>
-                      <Menu {...bindMenu(popupState)}>
-                        <MenuItem
-                          onClick={() => {
-                            document
-                              .querySelector("#activity-material")
-                              .click();
-                            popupState.close();
-                          }}
-                        >
-                          Questionnaire
-                        </MenuItem>
-                        <MenuItem
-                          onClick={() => {
-                            document
-                              .querySelector("#activity-material")
-                              .click();
-                            popupState.close();
-                          }}
-                        >
-                          Create Questionnaire
-                        </MenuItem>
-                      </Menu>
-                    </React.Fragment>
-                  )}
-                </PopupState>
+                <Button
+                  variant="outlined"
+                  onClick={() => handleClickOpen("QUESTIONNAIRE")}
+                >
+                  Add Questionnaire
+                </Button>
               </Box>
               <Box>
                 <div
@@ -1771,60 +1543,9 @@ function Quizzes(props) {
                 </div>
               </Box>
             </Box>
-            {hasFiles[1] && (
-              <Box style={{ marginTop: 7 }}>
-                <Box
-                  display="flex"
-                  justifyContent="space-between"
-                  width="100%"
-                  alignItems="center"
-                >
-                  <Typography variant="body1" color="textSecondary">
-                    Files ({FileUpload.getFiles("activity-materials").length})
-                  </Typography>
-                </Box>
-                <List dense={true}>
-                  {FileUpload.getFiles("activity-materials").map((f, i) => (
-                    <ListItem key={i}>
-                      <ListItemText primary={f.uploaded_file} />
-                    </ListItem>
-                  ))}
-                </List>
-              </Box>
-            )}
-            {!hasFiles[1] && !form.materials && (
-              <Typography color="textSecondary" variant="body1" align="center">
-                No attachments
-              </Typography>
-            )}
-            {form.materials && (
-              <Box style={{ marginTop: 7 }}>
-                <Typography variant="body1" color="textSecondary">
-                  Activity Materials ({form.materials.length})
-                </Typography>
-                <List dense={true}>
-                  {form.materials.map((f, i) => (
-                    <ListItem key={i}>
-                      <ListItemText primary={f.title} />
-                      <ListItemSecondaryAction>
-                        <IconButton
-                          edge="end"
-                          aria-label="delete"
-                          onClick={() => {
-                            if (!saving) _handleRemoveMaterial(f, i);
-                          }}
-                        >
-                          <CloseIcon />
-                        </IconButton>
-                      </ListItemSecondaryAction>
-                    </ListItem>
-                  ))}
-                </List>
-              </Box>
-            )}
-          </Box>
-        </DialogContent>
-      </Dialog>
+          </React.Fragment>
+        }
+      />
     </Box>
   );
 }
@@ -1868,6 +1589,7 @@ const useStyles = makeStyles((theme) => ({
 export default connect((state) => ({
   userInfo: state.userInfo,
   theme: state.theme,
+  questionnaires: state.questionnaires,
   pics: state.pics,
   dataProgress: state.dataProgress,
   classDetails: state.classDetails,
