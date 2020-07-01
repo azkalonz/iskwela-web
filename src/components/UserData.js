@@ -176,12 +176,8 @@ const UserData = {
       "/api/questionnaires?types[]=myQnrs&limit=100"
     );
     let allclasses = {};
-    const colors = ["#424a9a", "#67c6bc", "#a74ff8"];
-    let colorID = 0;
     await asyncForEach(data.classes, async (c) => {
-      if (colorID > 2) colorID = 0;
       allclasses[c.id] = c;
-      allclasses[c.id].theme = colors[colorID++];
       allclasses[c.id].teacher.pic = await this.getUserPic(c.teacher.id);
     });
     data.classDetails = {};

@@ -74,10 +74,6 @@ function Quiz(props) {
   const [confirmed, setConfirmed] = useState();
   const [modified, setModified] = useState(false);
   const [viewableSlide, setViewableSlide] = useState([0, 1, 2, 3]);
-  const subject_id =
-    class_id &&
-    props.classDetails[class_id].subject &&
-    props.classDetails[class_id].subject.id;
   const quiz_id = query.id ? parseInt(query.id) : null;
   const slideTemplate = {
     choices: [
@@ -188,7 +184,7 @@ function Quiz(props) {
         question: q.question,
         choices: q.choices,
       }));
-      items.subject_id = subject_id ? parseInt(subject_id) : null;
+      items.subject_id = props.classDetails[class_id].subject.id;
       let res = await Api.post("/api/questionnaire/save", {
         body: items,
       });
@@ -230,10 +226,16 @@ function Quiz(props) {
   return (
     <Box
       overflow="auto"
-      height="100vh"
       display="flex"
       flexDirection="column"
       alignItems="flex-start"
+      style={{
+        position: "absolute",
+        left: 0,
+        top: 50,
+        right: 0,
+        bottom: 0,
+      }}
     >
       <Dialog
         maxWidth="md"

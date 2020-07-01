@@ -21,6 +21,19 @@ const route = (state = { index: 0, title: "Class" }, payload) => {
 const classes = (state = [], payload) => {
   switch (payload.type) {
     case "SET_CLASSES":
+      const colors = [
+        "#424a9a",
+        "#67c6bc",
+        "#a74ff8",
+        "#9a425d",
+        "#1d8568",
+        "#e16b45",
+      ];
+      let colorID = 0;
+      Object.keys(payload.classes).forEach((k) => {
+        if (colorID > 5) colorID = 0;
+        payload.classes[k].theme = colors[colorID++];
+      });
       console.log("classes", payload.classes);
       return payload.classes;
     default:

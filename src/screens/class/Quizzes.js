@@ -300,7 +300,13 @@ function Quizzes(props) {
     );
   };
   const _handleCreateActivity = async (params = {}, noupdate = false) => {
-    console.log(form);
+    let res = await Api.post("/api/quiz/save?include=questionnaires", {
+      body: {
+        ...form,
+        subject_id: props.classDetails[class_id].subject.id,
+      },
+    });
+    console.log(res);
   };
 
   const _handleUpdateActivityStatus = async (a, s) => {
@@ -1047,9 +1053,9 @@ function Quizzes(props) {
                                   .indexOf(answersSearch) >= 0
                             ),
                           answerPage
-                        ).map((i) => {
+                        ).map((i, index) => {
                           return (
-                            <ListItem>
+                            <ListItem key={index}>
                               <ListItemAvatar>
                                 <Avatar
                                   src={i.student.pic}
@@ -1349,9 +1355,12 @@ function Quizzes(props) {
         />
       )}
       <AttachQuestionnaireDialog
+        selected={form.questionnaires}
         open={modals.QUESTIONNAIRE ? modals.QUESTIONNAIRE : false}
         title="Select Questionnaire"
         onClose={() => handleClose("QUESTIONNAIRE")}
+        onSelect={(s) => setForm({ ...form, questionnaires: s })}
+        match={props.match}
         data={props.questionnaires}
       />
       <CreateDialog
@@ -1380,6 +1389,7 @@ function Quizzes(props) {
                   InputLabelProps={{
                     shrink: true,
                   }}
+                  type="number"
                   fullWidth
                 />
               </Box>
@@ -1543,6 +1553,33 @@ function Quizzes(props) {
                 </div>
               </Box>
             </Box>
+            {form.questionnaires && (
+              <Box style={{ marginTop: 7 }}>
+                <List>
+                  {form.questionnaires.map((q, index) => (
+                    <ListItem key={index}>
+                      <ListItemText primary={q.title} secondary={q.intro} />
+                      <ListItemSecondaryAction>
+                        <IconButton
+                          onClick={() => {
+                            let s = [...form.questionnaires];
+                            s.splice(
+                              form.questionnaires.findIndex(
+                                (qq) => qq.id === q.id
+                              ),
+                              1
+                            );
+                            setForm({ ...form, questionnaires: s });
+                          }}
+                        >
+                          <Icon>close</Icon>
+                        </IconButton>
+                      </ListItemSecondaryAction>
+                    </ListItem>
+                  ))}
+                </List>
+              </Box>
+            )}
           </React.Fragment>
         }
       />

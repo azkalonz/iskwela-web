@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React, { useRef, useState } from "react";
 import {
   FormControl,
   InputLabel,
@@ -9,6 +9,7 @@ import {
   MenuItem,
   useTheme,
   useMediaQuery,
+  Icon,
 } from "@material-ui/core";
 import SearchIcon from "@material-ui/icons/Search";
 import moment from "moment";
@@ -124,6 +125,7 @@ export function SearchInput(props) {
   const isTablet = useMediaQuery(theme.breakpoints.down("md"));
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const searchRef = useRef();
+  const [val, setval] = useState();
   const quickSearch =
     props.quickSearch === undefined ? true : props.quickSearch;
   return (
@@ -143,14 +145,31 @@ export function SearchInput(props) {
       <InputBase
         style={{ width: "100%" }}
         placeholder="Search"
-        onKeyUp={(e) =>
-          !quickSearch
-            ? e.which === 13 && props.onChange(e.target.value)
-            : props.onChange(e.target.value)
-        }
+        onKeyUp={(e) => {
+          if (!quickSearch) {
+            if (e.which === 13) props.onChange(e.target.value);
+          } else {
+            props.onChange(e.target.value);
+          }
+          setval(e.target.value);
+        }}
         inputProps={{ "aria-label": "search activity" }}
         ref={searchRef}
       />
+      {val && (
+        <IconButton
+          type="submit"
+          aria-label="search"
+          style={{ padding: 0 }}
+          onClick={(e) => {
+            searchRef.current.querySelector("input").value = "";
+            props.onChange("");
+            setval("");
+          }}
+        >
+          <Icon>close</Icon>
+        </IconButton>
+      )}
       <IconButton
         type="submit"
         aria-label="search"

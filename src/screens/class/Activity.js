@@ -83,6 +83,7 @@ import StudentRating from "../../components/StudentRating";
 import { useHistory } from "react-router-dom";
 import { Table as MTable } from "../../components/Table";
 import { CreateDialog } from "../../components/dialogs";
+import { makeLinkTo } from "../../components/router-dom";
 const queryString = require("query-string");
 function Alert(props) {
   return <MuiAlert elevation={6} variant="filled" {...props} />;
@@ -242,6 +243,11 @@ function Activity(props) {
             ...newAct,
           });
       }
+      if (query.activity_id) {
+        setCurrentActivity(
+          allActivities.find((q) => q.id === parseInt(query.activity_id))
+        );
+      }
     } catch (e) {}
   };
   useEffect(() => {
@@ -317,6 +323,15 @@ function Activity(props) {
     FileUpload.removeFiles("activity-materials");
   };
   const _handleItemClick = (item) => {
+    props.history.push(
+      makeLinkTo([
+        "class",
+        class_id,
+        schedule_id,
+        option_name,
+        "?activity_id=" + item.id,
+      ])
+    );
     setCurrentActivity(
       currentActivity && parseInt(item.id) === parseInt(currentActivity.id)
         ? undefined
@@ -1103,7 +1118,19 @@ function Activity(props) {
                     }}
                   >
                     <Box>
-                      <IconButton onClick={() => setCurrentActivity(null)}>
+                      <IconButton
+                        onClick={() => {
+                          history.push(
+                            makeLinkTo([
+                              "class",
+                              class_id,
+                              schedule_id,
+                              option_name,
+                            ])
+                          );
+                          setCurrentActivity(null);
+                        }}
+                      >
                         <Icon>arrow_back</Icon>
                       </IconButton>
                     </Box>
@@ -1148,7 +1175,7 @@ function Activity(props) {
                       alignItems="flex-start"
                       flexWrap={isMobile ? "wrap" : "nowrap"}
                     >
-                      <Box width={isMobile ? "100%" : ""}>
+                      <Box width={isMobile ? "100%" : "auto"}>
                         <Typography
                           style={{ whiteSpace: "pre-wrap", fontWeight: "bold" }}
                           variant="body1"
@@ -1447,6 +1474,7 @@ function Activity(props) {
                                   cursor: "pointer",
                                 }}
                                 onClick={() =>
+                                  i.answer_media &&
                                   _handleOpenAnswer({
                                     id: i.id,
                                     name:

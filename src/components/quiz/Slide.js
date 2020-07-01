@@ -396,7 +396,7 @@ export function SlideRenderer(props) {
                   fullWidth
                 />
               </Box>
-              <Box p={2}>
+              {/* <Box p={2}>
                 <Typography variant="body1" color="textSecondary">
                   Duration
                 </Typography>
@@ -415,7 +415,7 @@ export function SlideRenderer(props) {
                     }))
                   }
                 />
-              </Box>
+              </Box> */}
             </DialogContent>
             <DialogActions>
               <Button

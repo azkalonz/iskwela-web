@@ -314,9 +314,9 @@ function Drawer(props) {
           id="mobile-drawer"
         >
           <Box
-            width="80vw"
-            minWidth={330}
-            maxWidth={330}
+            width={315}
+            minWidth={315}
+            maxWidth={315}
             height="100%"
             onScroll={() => {
               let t = document.querySelector("#mobile-drawer-toolbar");
@@ -551,6 +551,7 @@ const useStyles = makeStyles((theme) => ({
       position: "relative",
       margin: theme.spacing(1),
       width: 50,
+      minWidth: 50,
       height: 50,
       [theme.breakpoints.down("md")]: {
         marginRight: 2,

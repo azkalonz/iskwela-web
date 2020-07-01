@@ -645,6 +645,7 @@ function Class(props) {
             overflow="hidden auto"
             height="100vh"
             id="right-panel"
+            position="relative"
             // onScroll={(e) => {
             //   const clamp = (v, min = 0, max = 1) =>
             //     Math.min(max, Math.max(min, v));
@@ -787,12 +788,12 @@ function Class(props) {
 }
 const useStyles = makeStyles((theme) => ({
   endClass: {
-    color: "#000",
-    background: "#fff",
+    color: "#fff",
+    background: theme.palette.error.main,
   },
   startClass: {
     color: "#000",
-    background: "#fff",
+    background: theme.palette.secondary.main,
   },
   panel: {
     [theme.breakpoints.down("sm")]: {

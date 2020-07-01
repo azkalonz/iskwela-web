@@ -24,7 +24,7 @@ import { connect } from "react-redux";
 import { CheckBoxAction } from "./CheckBox";
 import moment from "moment";
 
-export function Table(props) {
+function Table(props) {
   const styles = useStyles();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
@@ -34,7 +34,7 @@ export function Table(props) {
   const [selectedItems, setSelectedItems] = useState({});
   const [sortType, setSortType] = useState({ order: "asc" });
   const [items, setItems] = useState([]);
-  const isTeacher = true;
+  const isTeacher = props.userInfo.user_type === "t";
   const page = props.pagination.page;
 
   useEffect(() => {
@@ -102,7 +102,8 @@ export function Table(props) {
     <React.Fragment>
       <Box width="100%" alignSelf="flex-start">
         <Box m={2}>
-          {!Object.keys(selectedItems).length && items.length ? (
+          {!Object.keys(selectedItems).length &&
+          props.filtered(items).length ? (
             <List
               style={{
                 padding: 0,
@@ -167,7 +168,7 @@ export function Table(props) {
                         alignItems="center"
                         justifyContent="space-between"
                       >
-                        {!props.noSelect ? (
+                        {!props.noSelect && isTeacher ? (
                           <Typography
                             style={{
                               fontWeight: "bold",
@@ -243,7 +244,9 @@ export function Table(props) {
                 </div>
               </ListItem>
             </List>
-          ) : Object.keys(selectedItems).length && !props.noSelect ? (
+          ) : Object.keys(selectedItems).length &&
+            !props.noSelect &&
+            isTeacher ? (
             <CheckBoxAction
               checked={
                 Object.keys(selectedItems).length ===
@@ -454,4 +457,7 @@ const useStyles = makeStyles((theme) => ({
     marginBottom: 7,
   },
 }));
-export default connect((states) => ({ userInfo: states.userInfo }))(Table);
+const ConnectedTable = connect((states) => ({ userInfo: states.userInfo }))(
+  Table
+);
+export { ConnectedTable as Table };
