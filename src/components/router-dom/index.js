@@ -17,10 +17,10 @@ import CreateOutlinedIcon from "@material-ui/icons/CreateOutlined";
 import PeopleOutlinedIcon from "@material-ui/icons/PeopleOutlined";
 import NoteAddOutlinedIcon from "@material-ui/icons/NoteAddOutlined";
 import AnswerQuiz from "../../screens/class/AnswerQuiz";
-export function makeLinkTo(path, options = {}) {
+export function makeLinkTo(path, options = {}, relative = false) {
   path = path.map((p) => (options[p] != null ? options[p] : p));
   return (
-    "/" +
+    (relative ? "" : "/") +
     path
       .filter(
         (i) =>

@@ -8,8 +8,10 @@ import {
   CircularProgress,
 } from "@material-ui/core";
 import { useHistory } from "react-router-dom";
+import { makeLinkTo } from "../router-dom";
 
 function Toolbar(props) {
+  const query = require("query-string").parse(window.location.search);
   const theme = useTheme();
   const history = useHistory();
   const [saving, setSaving] = useState(false);
@@ -28,9 +30,17 @@ function Toolbar(props) {
           <Icon>settings</Icon>
         </IconButton>
         <Button
-          onClick={() => history.push("#preview")}
+          onClick={() =>
+            history.push(
+              makeLinkTo(
+                [query.id ? "?id=" + query.id + "#preview" : "#"],
+                {},
+                true
+              )
+            )
+          }
           variant="contained"
-          disabled={!props.preview}
+          disabled={!query.id}
           style={{ marginRight: 13 }}
         >
           Preview

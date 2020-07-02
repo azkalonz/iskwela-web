@@ -64,7 +64,11 @@ function Login(props) {
             <Box className="lamp" />
             <Box className="media" />
             <Box className="student" />
-            <Box width={!isMobile ? "45%" : "80%"}>
+            <Box
+              width={!isMobile ? "45%" : "80%"}
+              maxWidth={435}
+              minWidth={290}
+            >
               <LoginContainer setLoading={props.setLoading} />
             </Box>
           </Box>
@@ -226,6 +230,7 @@ const useStyles = makeStyles((theme) => ({
   },
   loginMobile: {
     overflowX: "hidden",
+    overflowY: "auto",
     position: "relative",
     "& .student,& .media, & .lamp": {
       position: "absolute",

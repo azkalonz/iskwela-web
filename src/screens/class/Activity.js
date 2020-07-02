@@ -866,8 +866,9 @@ function Activity(props) {
     left = left > 0 ? left / 2 : 0;
     var contentMaker = window.open(
       "/content-maker",
-      "Content Maker",
-      "width=" + width + ",height=" + width + +",top=" + top + ",left=" + left
+      "_blank"
+      // "Content Maker",
+      // "width=" + width + ",height=" + width + +",top=" + top + ",left=" + left
     );
     contentMaker.onunload = () => {
       if (contentMaker.file) {

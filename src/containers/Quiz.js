@@ -68,6 +68,7 @@ const DialogTitle = withStyles(styles)((props) => {
 function Quiz(props) {
   const { class_id, schedule_id, option_name } = props.match.params;
   const query = require("query-string").parse(props.location.search);
+  const [action, setAction] = useState();
   const [ID, setID] = useState(2);
   const [totalScore, setTotalScore] = useState(0);
   const history = useHistory();
@@ -143,6 +144,10 @@ function Quiz(props) {
     setTotalScore(total);
   }, [quiz.slides]);
   useEffect(() => {
+    let { callback, to } = query;
+    if (callback && to) {
+      setAction({ callback, to });
+    }
     document
       .querySelector("#slide-container")
       .addEventListener("scroll", () => setViewableSlide(getViewableSlides()));
@@ -199,7 +204,7 @@ function Quiz(props) {
           ])
         );
       }
-      socket.emit("new questionnaires", {
+      let newQuiz = {
         ...res,
         author: {
           id: props.userInfo.id,
@@ -208,7 +213,16 @@ function Quiz(props) {
         },
         school_published: 1,
         school_published_date: null,
-      });
+      };
+      socket.emit("new questionnaires", newQuiz);
+      if (action) {
+        socket.emit(action.callback, {
+          to: action.to,
+          data: newQuiz,
+          callback: "ATTACH_QUESTIONNAIRE",
+        });
+        window.close();
+      }
       setModified(false);
       setQuiz(items);
       callback();
@@ -292,11 +306,15 @@ function Quiz(props) {
       )}
       <Dialog
         open={props.location.hash === "#preview"}
-        onClose={() => history.push("#")}
+        onClose={() => history.push(query.id && "?id=" + query.id)}
         fullScreen={true}
         TransitionComponent={Transition}
       >
-        <DialogTitle onClose={() => history.push("#")}>Preview</DialogTitle>
+        <DialogTitle
+          onClose={() => history.push(query.id && "?id=" + query.id)}
+        >
+          Preview
+        </DialogTitle>
         <DialogContent>
           <AnswerQuiz noPaging={true} fullHeight match={props.match} />
         </DialogContent>

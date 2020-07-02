@@ -28,6 +28,7 @@ import Pagination, { getPageItems } from "../Pagination";
 import { SearchInput } from "../Selectors";
 import { Link, useHistory } from "react-router-dom";
 import { makeLinkTo } from "../router-dom";
+import socket from "../../components/socket.io";
 
 function AttachQuestionnaireDialog(props) {
   const history = useHistory();
@@ -43,14 +44,26 @@ function AttachQuestionnaireDialog(props) {
   const getFilteredQuestionnaires = () =>
     props.questionnaires
       .filter(
-        (q) => JSON.stringify(q).toLowerCase().indexOf(filter.SEARCH) >= 0
+        (q) =>
+          JSON.stringify(q)
+            .toLowerCase()
+            .indexOf(filter.SEARCH.toLowerCase()) >= 0
       )
       .filter((q) =>
         filter.SUBJECT >= 0 ? q.subject_id === filter.SUBJECT : true
       );
-  React.useEffect(() => {
+  useEffect(() => {
     if (props.selected) setSelected(props.selected);
   }, [props.selected]);
+  useEffect(() => {
+    socket.on("get item", (details) => {
+      if (details.callback === "ATTACH_QUESTIONNAIRE") {
+        let s = [...selected, details.data];
+        setSelected(s);
+        props.onSelect(s);
+      }
+    });
+  }, []);
   const getPagination = () => (
     <Pagination
       page={page}
@@ -92,7 +105,10 @@ function AttachQuestionnaireDialog(props) {
             <Box width="100%" display="flex" flexWrap="wrap">
               <Box width={isMobile ? "100%" : "70%"}>
                 <SearchInput
-                  onChange={(s) => setFilter({ ...filter, SEARCH: s })}
+                  onChange={(s) => {
+                    setFilter({ ...filter, SEARCH: s });
+                    setPage(1);
+                  }}
                 />
               </Box>
               <Box
@@ -171,7 +187,7 @@ function AttachQuestionnaireDialog(props) {
           </React.Fragment>
         )}
       </DialogContent>
-      <DialogActions>
+      <DialogActions style={{ flexWrap: isMobile ? "wrap" : "nowrap" }}>
         {getFilteredQuestionnaires().length ? getPagination() : null}
         <Button variant="contained" color="secondary" onClick={handleClose}>
           Done

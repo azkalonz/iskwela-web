@@ -202,7 +202,6 @@ export function SlideRenderer(props) {
             }}
           >
             <SearchInput
-              quickSearch={false}
               style={{ width: "100%" }}
               onChange={(e) => {
                 searchMedia(e, 1);

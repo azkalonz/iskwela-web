@@ -90,7 +90,7 @@ function AnswerQuiz(props) {
       {class_id && schedule_id && (
         <IconButton
           onClick={() =>
-            props.history.push(
+            history.push(
               makeLinkTo(["class", class_id, schedule_id, "quizzes"])
             )
           }

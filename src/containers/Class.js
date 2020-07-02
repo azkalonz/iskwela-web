@@ -82,17 +82,18 @@ function ClassRightPanel(props) {
         onLoad={() => props.loading(false)}
         test={123}
       />
-      <IconButton
+      {/* <IconButton
         onClick={handleRefresh}
         style={{ position: "absolute", right: 10, bottom: 10 }}
       >
         <Icon>refresh</Icon>
-      </IconButton>
+      </IconButton> */}
     </Box>
   ) : null;
 }
 
 function Class(props) {
+  const query = require("query-string").parse(window.location.search);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const isTablet = useMediaQuery(theme.breakpoints.down("md"));
@@ -122,20 +123,27 @@ function Class(props) {
       _getClass();
     }
   }, [class_id, schedule_id, props.classDetails]);
-
-  const _getClass = async () => {
-    if (props.classDetails[class_id]) {
-      setCLASS(props.classDetails[class_id]);
-    } else {
-      await UserData.updateClassDetails(class_id, null, (d) => {
-        if (!schedule_id)
-          history.push(makeLinkTo(["class", class_id, d.id, "activity"]));
-      });
-      setCLASS(undefined);
+  useEffect(() => {
+    if (query.hidepanel) {
+      setCollapsePanel(false);
     }
-    setRightPanelLoading(false);
-    setLoading(false);
-    return;
+  }, []);
+  const _getClass = async () => {
+    try {
+      if (props.classDetails[class_id]) {
+        setCLASS(props.classDetails[class_id]);
+      } else {
+        await UserData.updateClassDetails(class_id, null, (d) => {
+          if (!schedule_id)
+            history.push(makeLinkTo(["class", class_id, d.id, "activity"]));
+        });
+        setCLASS(undefined);
+      }
+      setRightPanelLoading(false);
+      setLoading(false);
+    } catch (e) {
+      // HTTP request is cancelled
+    }
   };
 
   const panelOption = (p) => {

@@ -84,6 +84,8 @@ import {
   CreateDialog,
   AttachQuestionnaireDialog,
 } from "../../components/dialogs";
+import { makeLinkTo } from "../../components/router-dom";
+import AnswerQuiz from "./AnswerQuiz";
 const queryString = require("query-string");
 function Alert(props) {
   return <MuiAlert elevation={6} variant="filled" {...props} />;
@@ -1363,6 +1365,17 @@ function Quizzes(props) {
         match={props.match}
         data={props.questionnaires}
       />
+      <Dialog
+        open={props.location.hash === "#preview"}
+        onClose={() => history.push("#")}
+        fullScreen={true}
+        TransitionComponent={Transition}
+      >
+        <DialogTitle onClose={() => history.push("#")}>Preview</DialogTitle>
+        <DialogContent>
+          <AnswerQuiz noPaging={true} fullHeight match={props.match} />
+        </DialogContent>
+      </Dialog>
       <CreateDialog
         title={form.id ? "Edit Quiz" : "Create Quiz"}
         open={modals.CREATE_DIALOG ? modals.CREATE_DIALOG : false}
@@ -1457,12 +1470,68 @@ function Quizzes(props) {
                   }}
                   multiple
                 />
-                <Button
-                  variant="outlined"
-                  onClick={() => handleClickOpen("QUESTIONNAIRE")}
+                <div
+                  style={{
+                    position: "relative",
+                    display: "flex",
+                    alignItems: "center",
+                  }}
                 >
-                  Add Questionnaire
-                </Button>
+                  <Button
+                    variant="outlined"
+                    style={{
+                      borderRadius: "5px 0 0 5px",
+                      marginRight: 0,
+                      boxShadow: "none",
+                      position: "relative",
+                    }}
+                    onClick={() => handleClickOpen("QUESTIONNAIRE")}
+                    className={styles.wrapper}
+                    disabled={saving}
+                  >
+                    Add Questionnaire
+                  </Button>
+                  <PopupState variant="popover" popupId="publish-btn">
+                    {(popupState) => (
+                      <React.Fragment>
+                        <Button
+                          style={{
+                            width: 30,
+                            borderRadius: "0 5px 5px 0",
+                            marginLeft: 1,
+                            boxShadow: "none",
+                            minWidth: "auto",
+                            paddingLeft: 7,
+                            paddingRight: 7,
+                          }}
+                          disabled={saving}
+                          variant="outlined"
+                          {...bindTrigger(popupState)}
+                        >
+                          <ArrowDropDownIcon />
+                        </Button>
+                        <Menu {...bindMenu(popupState)}>
+                          <MenuItem
+                            onClick={() => {
+                              window.open(
+                                makeLinkTo([
+                                  "class",
+                                  class_id,
+                                  schedule_id,
+                                  "questionnaire?hidepanel=true&callback=send_item&to=" +
+                                    socket.id,
+                                ]),
+                                "_blank"
+                              );
+                            }}
+                          >
+                            Create
+                          </MenuItem>
+                        </Menu>
+                      </React.Fragment>
+                    )}
+                  </PopupState>
+                </div>
               </Box>
               <Box>
                 <div
@@ -1557,7 +1626,13 @@ function Quizzes(props) {
               <Box style={{ marginTop: 7 }}>
                 <List>
                   {form.questionnaires.map((q, index) => (
-                    <ListItem key={index}>
+                    <ListItem
+                      key={index}
+                      component={Button}
+                      variant="outlined"
+                      onClick={() => history.push("?id=" + q.id + "#preview")}
+                      style={{ paddingBottom: 7 }}
+                    >
                       <ListItemText primary={q.title} secondary={q.intro} />
                       <ListItemSecondaryAction>
                         <IconButton

@@ -12,6 +12,14 @@ Api.get = (endpoint, params = {}) =>
       headers: {
         Authorization: "Bearer " + Api.token,
       },
+      cancelToken: new axios.CancelToken(function executor(c) {
+        let url = window.location.pathname;
+        window.onclick = () => {
+          if (url !== window.location.pathname) {
+            c();
+          }
+        };
+      }),
       ...params.config,
     })
     .then((resp) => resp.data);

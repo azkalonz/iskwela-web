@@ -29,6 +29,12 @@ io.on("connection", (socket) => {
   socket.on("new questionnaires", (quiz) => {
     io.emit("get questionnaires", quiz);
   });
+
+  socket.on("send_item", (details) => {
+    if (details.to) {
+      io.to(details.to).emit("get item", details);
+    }
+  });
 });
 
 httpsServer.listen(3001);
