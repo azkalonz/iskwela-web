@@ -36,6 +36,9 @@ Api.post = (endpoint, params = {}) => {
         params.onUploadProgress
           ? params.onUploadProgress(progressEvent)
           : progressEvent,
+      cancelToken: new axios.CancelToken(function executor(c) {
+        if (params.cancelToken) params.cancelToken(c);
+      }),
       ...params.config,
     })
     .then((resp) => resp.data);

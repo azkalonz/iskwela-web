@@ -219,7 +219,7 @@ function Quiz(props) {
         socket.emit(action.callback, {
           to: action.to,
           data: newQuiz,
-          callback: "ATTACH_QUESTIONNAIRE",
+          type: "ATTACH_QUESTIONNAIRE",
         });
         window.close();
       }

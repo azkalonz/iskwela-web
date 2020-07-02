@@ -25,6 +25,7 @@ import {
   Snackbar,
   CircularProgress,
   Grow,
+  Icon,
 } from "@material-ui/core";
 import InsertDriveFileOutlinedIcon from "@material-ui/icons/InsertDriveFileOutlined";
 import MoreHorizOutlinedIcon from "@material-ui/icons/MoreHorizOutlined";
@@ -51,6 +52,7 @@ import socket from "../../components/socket.io";
 import store from "../../components/redux/store";
 import { Table as MTable } from "../../components/Table";
 import Progress from "../../components/Progress";
+import { GooglePicker } from "../../components/dialogs";
 
 const queryString = require("query-string");
 
@@ -66,7 +68,7 @@ function LessonPlan(props) {
   const [materials, setMaterials] = useState();
   const [search, setSearch] = useState("");
   const [sortType, setSortType] = useState("DESCENDING");
-  const [modals, setModals] = useState([false, false]);
+  const [modals, setModals] = useState({});
   const [anchorEl, setAnchorEl] = useState(null);
   const [addNewFileAnchor, setAddNewFileAnchor] = useState(null);
   const classSched = props.classSched;
@@ -101,9 +103,11 @@ function LessonPlan(props) {
       case "view":
         _handleOpenFile(file);
         return;
-      case "edit":
-        setForm({ title: file.title, url: file.resource_link, id: file.id });
-        setModals([true, modals[1]]);
+      case "open-lesson":
+        _markLesson(file, "not-done");
+        return;
+      case "close-lesson":
+        _markLesson(file, "done");
         return;
       case "download":
         _downloadFile(file);
@@ -173,10 +177,18 @@ function LessonPlan(props) {
   };
 
   const handleClickOpen = (event) => {
-    setAddNewFileAnchor(event.currentTarget);
+    if (event.currentTarget) setAddNewFileAnchor(event.currentTarget);
+    else {
+      let m = { ...modals };
+      m[event] = true;
+      setModals(m);
+    }
   };
 
-  const handleClose = () => {
+  const handleClose = (name) => {
+    let m = { ...modals };
+    m[name] = false;
+    setModals(m);
     setAddNewFileAnchor(null);
   };
 
@@ -249,7 +261,7 @@ function LessonPlan(props) {
         id: class_id,
         details: newScheduleDetails,
       });
-      setModals([false, modals[1]]);
+      handleClose("WEB_LINK");
     } else setErrors(err);
     setForm({});
     setSaving(false);
@@ -307,11 +319,39 @@ function LessonPlan(props) {
       });
       FileUpload.removeFiles("materials");
       setHasFiles(false);
-      setModals([modals[0], false]);
+      handleClose("MATERIALS");
     } else setErrors(err);
     setForm({});
     setSaving(false);
     setErrors(null);
+  };
+  const _markLesson = async (activity, mark) => {
+    let done = mark === "done" ? true : false;
+    setConfirmed({
+      title: (done ? "Close " : "Open ") + " Lesson Plan",
+      message:
+        "Are you sure to " + (done ? "Close" : "Open") + " this Lesson Plan?",
+      yes: async () => {
+        setErrors(null);
+        setSaving(true);
+        setConfirmed(null);
+        setSavingId([...savingId, activity.id]);
+        let res = await Api.post(
+          "/api/class/lesson-plan/mark-" + mark + "/" + activity.id
+        );
+        if (res) {
+          let newClassDetails = await UserData.updateClassDetails(class_id);
+          UserData.updateClass(class_id, newClassDetails[class_id]);
+          socket.emit(
+            "new class details",
+            JSON.stringify({ details: newClassDetails, id: class_id })
+          );
+        }
+
+        setSavingId([]);
+        setSaving(false);
+      },
+    });
   };
   const _handleRemoveMaterial = (activity) => {
     setConfirmed({
@@ -434,6 +474,22 @@ function LessonPlan(props) {
   };
   return (
     <Box width="100%" alignSelf="flex-start">
+      <GooglePicker
+        auth={(s) => (modals.OPEN_GDRIVE = s)}
+        form={form}
+        onSelect={({ url, name }) => {
+          if (url && name) {
+            let l = url;
+            l = l.replace(l.substr(l.indexOf("/view"), l.length), "/preview");
+            let newM = {
+              title: name,
+              resource_link: l,
+            };
+            setForm({ ...form, title: name, url: l });
+            handleClickOpen("WEB_LINK");
+          }
+        }}
+      />
       {props.dataProgress[option_name] && (
         <Progress id={option_name} data={props.dataProgress[option_name]} />
       )}
@@ -576,15 +632,23 @@ function LessonPlan(props) {
               anchorEl={addNewFileAnchor}
               keepMounted
               open={Boolean(addNewFileAnchor)}
-              onClose={handleClose}
+              onClose={() => handleClose()}
             >
-              <StyledMenuItem onClick={() => setModals([true, modals[1]])}>
+              <StyledMenuItem
+                onClick={() => modals.OPEN_GDRIVE && modals.OPEN_GDRIVE()}
+              >
+                <ListItemIcon>
+                  <Icon>storage</Icon>
+                </ListItemIcon>
+                <ListItemText primary="Google Drive" />
+              </StyledMenuItem>
+              <StyledMenuItem onClick={() => handleClickOpen("WEB_LINK")}>
                 <ListItemIcon>
                   <InsertLinkOutlinedIcon />
                 </ListItemIcon>
                 <ListItemText primary="Web Link" />
               </StyledMenuItem>
-              <StyledMenuItem onClick={() => setModals([modals[0], true])}>
+              <StyledMenuItem onClick={() => handleClickOpen("MATERIALS")}>
                 <ListItemIcon>
                   <CloudUploadOutlinedIcon />
                 </ListItemIcon>
@@ -651,6 +715,8 @@ function LessonPlan(props) {
             },
           ]}
           teacherOptions={[
+            { name: "Close Lesson", value: "close-lesson" },
+            { name: "Open Lesson", value: "open-lesson" },
             { name: "Download", value: "download" },
             { name: "Delete", value: "delete" },
           ]}
@@ -659,9 +725,9 @@ function LessonPlan(props) {
             onDelete: (s) => _handleRemoveMaterials(s),
             _handleFileOption: (opt, file) => _handleFileOption(opt, file),
           }}
-          rowRenderMobile={(item) => (
+          rowRenderMobile={(item, { disabled = false }) => (
             <Box
-              onClick={() => _handleFileOption("view", item)}
+              onClick={() => !disabled && _handleFileOption("view", item)}
               display="flex"
               flexWrap="wrap"
               flexDirection="column"
@@ -700,11 +766,11 @@ function LessonPlan(props) {
               </Box>
             </Box>
           )}
-          rowRender={(item) => (
+          rowRender={(item, { disabled = false }) => (
             <Box
               width="100%"
               display="flex"
-              onClick={() => _handleFileOption("view", item)}
+              onClick={() => !disabled && _handleFileOption("view", item)}
             >
               <Box width="50%" overflow="hidden" maxWidth="50%">
                 <ListItemText
@@ -734,11 +800,11 @@ function LessonPlan(props) {
         />
       )}
       <Dialog
-        open={modals[0]}
+        open={modals.WEB_LINK || false}
         keepMounted
         onClose={() => {
           setForm({});
-          setModals([!modals[0], modals[1]]);
+          handleClose("WEB_LINK");
         }}
         aria-labelledby="alert-dialog-slide-title"
         aria-describedby="alert-dialog-slide-description"
@@ -771,7 +837,7 @@ function LessonPlan(props) {
           <Button
             onClick={() => {
               setForm(null);
-              setModals([false, modals[1]]);
+              handleClose("WEB_LINK");
             }}
             variant="outlined"
             disabled={saving}
@@ -789,13 +855,13 @@ function LessonPlan(props) {
         </DialogActions>
       </Dialog>
       <Dialog
-        open={modals[1]}
+        open={modals.MATERIALS || false}
         keepMounted
         onClose={() => {
           FileUpload.removeFiles("materials");
           setHasFiles(false);
           setForm({});
-          setModals([modals[0], !modals[1]]);
+          handleClose("MATERIALS");
         }}
         aria-labelledby="alert-dialog-slide-title"
         aria-describedby="alert-dialog-slide-description"
@@ -854,7 +920,7 @@ function LessonPlan(props) {
                   FileUpload.removeFiles("materials");
                   setHasFiles(false);
                   setForm(null);
-                  setModals([modals[0], false]);
+                  handleClose("MATERIALS");
                 }
               }}
               disabled={saving ? true : false}

@@ -30,6 +30,7 @@ import SaveOutlinedIcon from "@material-ui/icons/SaveOutlined";
 import ChangeHistoryIcon from "@material-ui/icons/ChangeHistory";
 import BrushIcon from "@material-ui/icons/Brush";
 import EditIcon from "@material-ui/icons/Edit";
+import socket from "../socket.io";
 
 function ContentCreator(fabric, id, params = {}) {
   fabric.Object.prototype.transparentCorners = false;
@@ -467,6 +468,7 @@ const screen = {
 };
 function ContentMaker(props) {
   const theme = useTheme();
+  const query = require("query-string").parse(window.location.search);
   const [success, setSuccess] = useState();
   const [currentSelection, setCurrentSelection] = useState();
   const [color, setColor] = useState(theme.palette.primary.main);
@@ -632,17 +634,33 @@ function ContentMaker(props) {
     var blob = new Blob([ab], { type: mimeString });
     return blob;
   };
+  const blobToBase64 = (blob) => {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(blob);
+      reader.onloadend = function () {
+        resolve(reader.result);
+      };
+    });
+  };
   const handleSave = () => {
     setConfirmed({
       title: "Save Material",
       message: "Continue to uploading this material?",
-      yes: () => {
+      yes: async () => {
         let { canvas } = getCanvas();
         let url = canvas.toDataURL();
         let blob = dataURItoBlob(url);
-        let file = new File([blob], "Activity Material", { type: blob.type });
-        window.file = file;
-        window.close();
+        const b64 = await blobToBase64(blob);
+        const jsonString = JSON.stringify({ blob: b64 });
+        if (query.callback && query.to) {
+          socket.emit(query.callback, {
+            to: query.to,
+            data: jsonString,
+            type: "ATTACH_CONTENTCREATOR",
+          });
+          setTimeout(() => window.close(), 0);
+        }
       },
     });
   };

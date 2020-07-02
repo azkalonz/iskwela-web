@@ -37,11 +37,15 @@
       *::-webkit-scrollbar-thumb:hover {
         visibility: visible;
       }
-
       #file-viewer-container .MuiDialogContent-root {
         padding: 0;
       }
+      .picker-dialog,
+      .picker-dialog-bg {
+        z-index: 1300 !important;
+      }
     </style>
+    <script src="https://apis.google.com/js/client.js"></script>
   </head>
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>

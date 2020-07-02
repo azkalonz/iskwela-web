@@ -25,6 +25,7 @@ import {
   Snackbar,
   CircularProgress,
   Grow,
+  Icon,
 } from "@material-ui/core";
 import InsertDriveFileOutlinedIcon from "@material-ui/icons/InsertDriveFileOutlined";
 import MoreHorizOutlinedIcon from "@material-ui/icons/MoreHorizOutlined";
@@ -55,6 +56,7 @@ import {
 import { CheckBoxAction } from "../../components/CheckBox";
 import Progress from "../../components/Progress";
 import store from "../../components/redux/store";
+import { GooglePicker } from "../../components/dialogs";
 
 const queryString = require("query-string");
 function Alert(props) {
@@ -68,7 +70,7 @@ function InstructionalMaterials(props) {
   const { class_id, option_name, schedule_id } = props.match.params;
   const [materials, setMaterials] = useState();
   const [search, setSearch] = useState("");
-  const [modals, setModals] = useState([false, false]);
+  const [modals, setModals] = useState({});
   const [addNewFileAnchor, setAddNewFileAnchor] = useState(null);
   const classSched = props.classSched;
   const isTeacher = props.userInfo.user_type === "t" ? true : false;
@@ -105,9 +107,11 @@ function InstructionalMaterials(props) {
       case "view":
         _handleOpenFile(file);
         return;
-      case "edit":
-        setForm({ title: file.title, url: file.resource_link, id: file.id });
-        setModals([true, modals[1]]);
+      case "open-material":
+        _markMaterial(file, "not-done");
+        return;
+      case "close-material":
+        _markMaterial(file, "done");
         return;
       case "publish":
         updateMaterialStatus(file, "publish");
@@ -169,10 +173,20 @@ function InstructionalMaterials(props) {
   };
 
   const handleClickOpen = (event) => {
-    setAddNewFileAnchor(event.currentTarget);
+    if (event.currentTarget) setAddNewFileAnchor(event.currentTarget);
+    else {
+      let m = { ...modals };
+      m[event] = true;
+      setModals(m);
+    }
   };
 
-  const handleClose = () => {
+  const handleClose = (name) => {
+    if (name) {
+      let m = { ...modals };
+      m[name] = false;
+      setModals(m);
+    }
     setAddNewFileAnchor(null);
   };
 
@@ -243,7 +257,7 @@ function InstructionalMaterials(props) {
         details: newScheduleDetails,
       });
       setForm({});
-      setModals([false, modals[1]]);
+      handleClose("WEB_LINK");
       setSavingId([]);
       setSaving(false);
       setErrors(null);
@@ -268,7 +282,7 @@ function InstructionalMaterials(props) {
           details: newScheduleDetails,
         });
         setForm({});
-        setModals([false, modals[1]]);
+        handleClose("WEB_LINK");
       } else setErrors(err);
       setSavingId([]);
       setSaving(false);
@@ -332,7 +346,7 @@ function InstructionalMaterials(props) {
       setForm({});
       setHasFiles(false);
       FileUpload.removeFiles("materials");
-      setModals([modals[0], false]);
+      handleClose("MATERIALS");
     } else setErrors(["Oops! Something went wrong. Please try again."]);
     setSavingId([]);
     setSaving(false);
@@ -426,6 +440,36 @@ function InstructionalMaterials(props) {
         }
         setSavingId([]);
 
+        setSaving(false);
+      },
+    });
+  };
+  const _markMaterial = async (activity, mark) => {
+    let done = mark === "done" ? true : false;
+    setConfirmed({
+      title: (done ? "Close " : "Open ") + " Class Material",
+      message:
+        "Are you sure to " +
+        (done ? "Close" : "Open") +
+        " this Class Material?",
+      yes: async () => {
+        setErrors(null);
+        setSaving(true);
+        setConfirmed(null);
+        setSavingId([...savingId, activity.id]);
+        let res = await Api.post(
+          "/api/class/class-material/mark-" + mark + "/" + activity.id
+        );
+        if (res) {
+          let newClassDetails = await UserData.updateClassDetails(class_id);
+          UserData.updateClass(class_id, newClassDetails[class_id]);
+          socket.emit(
+            "new class details",
+            JSON.stringify({ details: newClassDetails, id: class_id })
+          );
+        }
+
+        setSavingId([]);
         setSaving(false);
       },
     });
@@ -558,6 +602,22 @@ function InstructionalMaterials(props) {
   };
   return (
     <Box width="100%" alignSelf="flex-start">
+      <GooglePicker
+        auth={(s) => (modals.OPEN_GDRIVE = s)}
+        form={form}
+        onSelect={({ url, name }) => {
+          if (url && name) {
+            let l = url;
+            l = l.replace(l.substr(l.indexOf("/view"), l.length), "/preview");
+            let newM = {
+              title: name,
+              resource_link: l,
+            };
+            setForm({ ...form, title: name, url: l });
+            handleClickOpen("WEB_LINK");
+          }
+        }}
+      />
       {props.dataProgress[option_name] && (
         <Progress id={option_name} data={props.dataProgress[option_name]} />
       )}
@@ -700,15 +760,23 @@ function InstructionalMaterials(props) {
               anchorEl={addNewFileAnchor}
               keepMounted
               open={Boolean(addNewFileAnchor)}
-              onClose={handleClose}
+              onClose={() => handleClose()}
             >
-              <StyledMenuItem onClick={() => setModals([true, modals[1]])}>
+              <StyledMenuItem
+                onClick={() => modals.OPEN_GDRIVE && modals.OPEN_GDRIVE()}
+              >
+                <ListItemIcon>
+                  <Icon>storage</Icon>
+                </ListItemIcon>
+                <ListItemText primary="Google Drive" />
+              </StyledMenuItem>
+              <StyledMenuItem onClick={() => handleClickOpen("WEB_LINK")}>
                 <ListItemIcon>
                   <InsertLinkOutlinedIcon />
                 </ListItemIcon>
                 <ListItemText primary="Web Link" />
               </StyledMenuItem>
-              <StyledMenuItem onClick={() => setModals([modals[0], true])}>
+              <StyledMenuItem onClick={() => handleClickOpen("MATERIALS")}>
                 <ListItemIcon>
                   <CloudUploadOutlinedIcon />
                 </ListItemIcon>
@@ -796,6 +864,8 @@ function InstructionalMaterials(props) {
             },
           ]}
           teacherOptions={[
+            { name: "Close Material", value: "close-material" },
+            { name: "Open Material", value: "open-material" },
             { name: "Download", value: "download" },
             { name: "Publish", value: "publish" },
             { name: "Unpublish", value: "unpublish" },
@@ -807,7 +877,7 @@ function InstructionalMaterials(props) {
             onUpdate: (a, s) => _handleUpdateMaterialsStatus(a, s),
             _handleFileOption: (opt, file) => _handleFileOption(opt, file),
           }}
-          rowRenderMobile={(item) => (
+          rowRenderMobile={(item, { disabled = false }) => (
             <Box
               display="flex"
               flexWrap="wrap"
@@ -815,7 +885,7 @@ function InstructionalMaterials(props) {
               justifyContent="space-between"
               width="90%"
               style={{ padding: "30px 0" }}
-              onClick={() => _handleFileOption("view", item)}
+              onClick={() => !disabled && _handleFileOption("view", item)}
             >
               <Box width="100%" marginBottom={1}>
                 <Typography
@@ -848,11 +918,11 @@ function InstructionalMaterials(props) {
               </Box>
             </Box>
           )}
-          rowRender={(item) => (
+          rowRender={(item, { disabled = false }) => (
             <Box
               width="100%"
               display="flex"
-              onClick={() => _handleFileOption("view", item)}
+              onClick={() => !disabled && _handleFileOption("view", item)}
             >
               <Box width="50%" overflow="hidden" maxWidth="50%">
                 <ListItemText
@@ -882,11 +952,11 @@ function InstructionalMaterials(props) {
         />
       )}
       <Dialog
-        open={modals[0]}
+        open={modals.WEB_LINK || false}
         keepMounted
         onClose={() => {
           setForm({});
-          setModals([!modals[0], modals[1]]);
+          handleClose("WEB_LINK");
         }}
         aria-labelledby="alert-dialog-slide-title"
         aria-describedby="alert-dialog-slide-description"
@@ -919,7 +989,7 @@ function InstructionalMaterials(props) {
           <Button
             onClick={() => {
               setForm({});
-              setModals([false, modals[1]]);
+              handleClose("WEB_LINK");
             }}
             variant="outlined"
             disabled={saving}
@@ -937,11 +1007,11 @@ function InstructionalMaterials(props) {
         </DialogActions>
       </Dialog>
       <Dialog
-        open={modals[1]}
+        open={modals.MATERIALS || false}
         keepMounted
         onClose={() => {
-          setModals([modals[0], !modals[1]]);
           setForm({});
+          handleClose("MATERIALS");
         }}
         aria-labelledby="alert-dialog-slide-title"
         aria-describedby="alert-dialog-slide-description"
@@ -1003,7 +1073,7 @@ function InstructionalMaterials(props) {
                   FileUpload.removeFiles("materials");
                   setHasFiles(false);
                   setForm({});
-                  setModals([modals[0], false]);
+                  handleClose("MATERIALS");
                 }
               }}
               disabled={saving ? true : false}

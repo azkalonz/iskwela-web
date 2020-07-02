@@ -67,6 +67,7 @@ function Table(props) {
     newitem[item.id] = item;
     setSelectedItems({ ...selectedItems, ...newitem });
   };
+  const isDisabled = (item) => (isTeacher ? false : item.done === "true");
   const _handleSort = (sortBy) => {
     if (sortType.order === "asc") {
       setItems(() => {
@@ -279,12 +280,13 @@ function Table(props) {
                 props.pagination.itemsPerPage || 10
               ).map((item, index) => (
                 <ListItem
+                  disabled={isDisabled(item)}
                   key={index}
                   className={styles.listItem}
                   style={{
                     boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
                     borderColor:
-                      item.status === "published"
+                      item.done !== "true"
                         ? theme.palette.success.main
                         : theme.palette.error.main,
                     backgroundColor: index % 2 ? "#f8f8f8" : "#fff",
@@ -306,8 +308,14 @@ function Table(props) {
                     </div>
                   )}
                   {!isMobile
-                    ? props.rowRender && props.rowRender(item)
-                    : props.rowRenderMobile && props.rowRenderMobile(item)}
+                    ? props.rowRender &&
+                      props.rowRender(item, {
+                        disabled: isDisabled(item),
+                      })
+                    : props.rowRenderMobile &&
+                      props.rowRenderMobile(item, {
+                        disabled: isDisabled(item),
+                      })}
                   <ListItemSecondaryAction
                     style={{ ...(isMobile ? { top: 30 } : {}) }}
                   >
@@ -319,6 +327,7 @@ function Table(props) {
                           return { ...anchorEl, ...a };
                         })
                       }
+                      disabled={isDisabled(item)}
                       color="primary"
                     >
                       <Icon>{isMobile ? "more_vert" : "more_horiz"}</Icon>

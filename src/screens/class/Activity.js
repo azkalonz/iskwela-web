@@ -82,7 +82,7 @@ import RefreshIcon from "@material-ui/icons/Refresh";
 import StudentRating from "../../components/StudentRating";
 import { useHistory } from "react-router-dom";
 import { Table as MTable } from "../../components/Table";
-import { CreateDialog } from "../../components/dialogs";
+import { CreateDialog, GooglePicker } from "../../components/dialogs";
 import { makeLinkTo } from "../../components/router-dom";
 const queryString = require("query-string");
 function Alert(props) {
@@ -128,12 +128,15 @@ function Activity(props) {
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const isTablet = useMediaQuery(theme.breakpoints.down("md"));
   const [saving, setSaving] = useState(false);
-  const [hasFiles, setHasFiles] = useState([false, false]);
+  const [filesToUpload, setFilesToUpload] = useState({
+    UPLOAD_ANSWER: false,
+    ACTIVITY_MATERIALS: false,
+  });
   const { class_id, option_name, schedule_id } = props.match.params;
   const [activities, setActivities] = useState();
   const [dragover, setDragover] = useState(false);
   const [search, setSearch] = useState("");
-  const [modals, setModals] = React.useState([false, false]);
+  const [modals, setModals] = React.useState({});
   const [file, setFile] = useState();
   const [fileViewerOpen, setfileViewerOpen] = useState(false);
   const isTeacher = props.userInfo.user_type === "t" ? true : false;
@@ -147,6 +150,7 @@ function Activity(props) {
   const [savingId, setSavingId] = useState([]);
   const [fileFullScreen, setFileFullScreen] = useState(true);
   const [answersSearch, setAnswersSearch] = useState("");
+  const [contentCreatorFile, setContentCreatorFile] = useState();
   const [selectedStatus, setSelectedStatus] = useState(
     isTeacher
       ? query.status && query.status !== "all"
@@ -181,7 +185,7 @@ function Activity(props) {
         _handleItemClick(file);
         return;
       case "edit":
-        handleClickOpen();
+        handleOpen("ACTIVITY");
         setForm({
           ...file,
           rating_type: "none",
@@ -191,6 +195,12 @@ function Activity(props) {
           id: file.id,
           class_id,
         });
+        return;
+      case "open-activity":
+        _markActivity(file, "not-done");
+        return;
+      case "close-activity":
+        _markActivity(file, "done");
         return;
       case "publish":
         _handleUpdateActivityStatus(file, 1);
@@ -312,15 +322,19 @@ function Activity(props) {
     setPage(1);
   };
 
-  const handleClickOpen = () => {
-    setModals([true, modals[1]]);
+  const handleOpen = (name) => {
+    let m = { ...modals };
+    m[name] = true;
+    setModals(m);
   };
 
-  const handleClose = () => {
-    setModals([false, modals[1]]);
-    setHasFiles([hasFiles[0], false]);
-    window.contentMakerFile = null;
-    FileUpload.removeFiles("activity-materials");
+  const handleClose = (name) => {
+    let m = { ...modals };
+    m[name] = false;
+    setModals(m);
+    if (name === "ACTIVITY") {
+      removeFiles("activity-materials", "#activity-material");
+    }
   };
   const _handleItemClick = (item) => {
     props.history.push(
@@ -362,139 +376,154 @@ function Activity(props) {
     } catch (e) {
       setErrors(["Oops! Something when wrong. Please try again."]);
     }
-    if (res) {
-      if (!res.errors) {
-        let materialFiles = document.querySelector("#activity-material");
-        if (form.materials && Object.keys(newMaterial).length) {
-          await asyncForEach(form.materials, async (m) => {
-            if (m.uploaded_file) return;
-            await Api.post("/api/class/activity-material/save", {
-              body: {
-                ...(m.id ? { id: m.id } : {}),
-                url: m.resource_link,
-                title: m.title,
-                activity_id: res.id,
+    if (res && !res.errors) {
+      let materialFiles = document.querySelector("#activity-material");
+      if (form.materials && newMaterial && Object.keys(newMaterial).length) {
+        await asyncForEach(form.materials, async (m) => {
+          if (m.uploaded_file) return;
+          await Api.post("/api/class/activity-material/save", {
+            body: {
+              ...(m.id ? { id: m.id } : {}),
+              url: m.resource_link,
+              title: m.title,
+              activity_id: res.id,
+            },
+          });
+        });
+      }
+      if (contentCreatorFile) {
+        let body = new FormData();
+        body.append("file", contentCreatorFile);
+        body.append("assignment_id", res.id);
+        body.append("title", "Activity Material");
+        let a = await FileUpload.upload("/api/upload/activity/material", {
+          body,
+          onUploadProgress: (event, source) =>
+            store.dispatch({
+              type: "SET_PROGRESS",
+              id: option_name,
+              data: {
+                title: "Activity Material",
+                loaded: event.loaded,
+                total: event.total,
+                onCancel: source,
               },
-            });
-          });
-        }
-        if (window.contentMakerFile) {
-          let body = new FormData();
-          body.append("file", window.contentMakerFile);
-          body.append("assignment_id", res.id);
-          body.append("title", window.contentMakerFile.name);
-          let a = await FileUpload.upload("/api/upload/activity/material", {
-            body,
-            onUploadProgress: (event, source) =>
-              store.dispatch({
-                type: "SET_PROGRESS",
-                id: option_name,
-                data: {
-                  title: window.contentMakerFile.name,
-                  loaded: event.loaded,
-                  total: event.total,
-                  onCancel: source,
-                },
-              }),
-          });
-          if (a.errors) {
-            for (let e in a.errors) {
-              err.push(a.errors[e][0]);
-            }
+            }),
+        });
+        if (a.errors) {
+          for (let e in a.errors) {
+            err.push(a.errors[e][0]);
           }
         }
-        if (materialFiles.files.length) {
-          await asyncForEach(materialFiles.files, async (file) => {
-            let body = new FormData();
-            body.append("file", file);
-            body.append("assignment_id", res.id);
-            body.append("title", file.name);
-            let a;
-            try {
-              a = await FileUpload.upload("/api/upload/activity/material", {
-                body,
-                onUploadProgress: (event, source) =>
-                  store.dispatch({
-                    type: "SET_PROGRESS",
-                    id: option_name,
-                    data: {
-                      title: file.name,
-                      loaded: event.loaded,
-                      total: event.total,
-                      onCancel: source,
-                    },
-                  }),
-              });
-              if (a.errors) {
-                setErrors(["Oops! Something went wrong. Please try again."]);
-              }
-            } catch (e) {
+      }
+      if (materialFiles.files.length) {
+        await asyncForEach(materialFiles.files, async (file) => {
+          let body = new FormData();
+          body.append("file", file);
+          body.append("assignment_id", res.id);
+          body.append("title", file.name);
+          let a;
+          try {
+            a = await FileUpload.upload("/api/upload/activity/material", {
+              body,
+              onUploadProgress: (event, source) =>
+                store.dispatch({
+                  type: "SET_PROGRESS",
+                  id: option_name,
+                  data: {
+                    title: file.name,
+                    loaded: event.loaded,
+                    total: event.total,
+                    onCancel: source,
+                  },
+                }),
+            });
+            if (a.errors) {
               setErrors(["Oops! Something went wrong. Please try again."]);
             }
-          });
-          document.querySelector("#activity-material").value = "";
-        }
-        if (!noupdate) {
-          newScheduleDetails = await UserData.updateScheduleDetails(
+          } catch (e) {
+            setErrors(["Oops! Something went wrong. Please try again."]);
+          }
+        });
+      }
+      if (!noupdate) {
+        newScheduleDetails = await UserData.updateScheduleDetails(
+          class_id,
+          selectedSched >= 0 ? selectedSched : schedule_id
+        );
+        socket.emit("update schedule details", {
+          id: class_id,
+          details: newScheduleDetails,
+        });
+      }
+    } else {
+      setErrors(["Oops! Something went wrong. Please try again."]);
+    }
+    let newform;
+    if (res && !errors) {
+      setSuccess(true);
+      try {
+        newform = props.classDetails[class_id].schedules[
+          schedule_id
+        ].activities.filter((a) => a.id === form.id)[0];
+        newform.activity_type =
+          newform.activity_type === "class activity" ? 1 : 2;
+      } catch (e) {
+        newform =
+          props.classDetails[class_id].schedules[schedule_id].activities;
+        newform = newform[newform.length - 1];
+        if (newform)
+          newform.activity_type =
+            newform.activity_type === "class activity" ? 1 : 2;
+      }
+      removeFiles("activity-materials");
+      setNewMaterial({});
+      setContentCreatorFile(null);
+      setSavingId([]);
+    }
+    setForm({
+      ...form,
+      ...(newform ? newform : {}),
+    });
+    setSaving(false);
+  };
+  const removeFiles = (id, inputID = null) => {
+    setFilesToUpload({});
+    FileUpload.removeFiles(id);
+    if (inputID && document.querySelector(inputID))
+      document.querySelector(inputID).value = "";
+  };
+  const _markActivity = async (activity, mark) => {
+    let done = mark === "done" ? true : false;
+    setConfirmed({
+      title: (done ? "Close " : "Open ") + " Activity",
+      message:
+        "Are you sure to " + (done ? "Close" : "Open") + " this activity?",
+      yes: async () => {
+        setErrors(null);
+        setSaving(true);
+        setConfirmed(null);
+        setSavingId([...savingId, activity.id]);
+        let res = await Api.post(
+          "/api/class/activity/mark-" + mark + "/" + activity.id
+        );
+        if (res) {
+          let newScheduleDetails = await UserData.updateScheduleDetails(
             class_id,
-            selectedSched >= 0 ? selectedSched : schedule_id
+            schedule_id
           );
           socket.emit("update schedule details", {
             id: class_id,
             details: newScheduleDetails,
           });
         }
-      } else {
-        for (let e in res.errors) {
-          err.push(res.errors[e][0]);
-        }
-        setErrors(err);
-      }
-    }
-    if (!errors && res && !err) {
-      setSuccess(true);
-      for (let i = 0; i < newScheduleDetails.activities.length; i++) {
-        if (newScheduleDetails.activities[i].id === res.id) {
-          setForm({
-            ...newScheduleDetails.activities[i],
-            schedule_id: newScheduleDetails.id,
-            activity_type: res.activity_type === "class activity" ? 1 : 2,
-            published: res.status === "unpublished" ? 0 : 1,
-            subject_id: props.classDetails[class_id].subject.id,
-            class_id,
-          });
-          FileUpload.removeFiles("activity-materials");
-          if (document.querySelector("#activity-material"))
-            document.querySelector("#activity-material").value = "";
-          setNewMaterial({});
-          window.contentMakerFile = null;
-          setSaving(false);
-        }
-      }
-    } else {
-      setSaving(false);
-    }
-    let newform;
-    try {
-      newform = props.classDetails[class_id].schedules[
-        schedule_id
-      ].activities.filter((a) => a.id === form.id)[0];
-      newform.activity_type =
-        newform.activity_type === "class activity" ? 1 : 2;
-    } catch (e) {
-      newform = props.classDetails[class_id].schedules[schedule_id].activities;
-      newform = newform[newform.length - 1];
-      if (newform)
-        newform.activity_type =
-          newform.activity_type === "class activity" ? 1 : 2;
-    }
-    setForm({
-      ...form,
-      ...(newform ? newform : {}),
-    });
-    setSavingId([]);
-  };
 
+        setSavingId([]);
+
+        setSaving(false);
+      },
+    });
+  };
   const _handleUpdateActivityStatus = async (a, s) => {
     let stat = s ? "Publish" : "Unpublish";
     setConfirmed({
@@ -822,61 +851,14 @@ function Activity(props) {
       setErrors(["Oops! Something went wrong. Please try again."]);
     } else {
       setSuccess(true);
-      FileUpload.removeFiles("answer");
-      setHasFiles([false, false]);
+      removeFiles("answers", "#activity-answer");
     }
-
     getAnswers();
     setSavingId([]);
     setSaving(false);
   };
-  const handleGooglePicker = () => {
-    let { width, height } = window.screen;
-    var top = height;
-    top = top > 0 ? top / 2 : 0;
-    var left = width;
-    left = left > 0 ? left / 2 : 0;
-    let picker = window.open(
-      "/picker",
-      "Google Drive Picker",
-      "width=" + width + ",height=" + width + +",top=" + top + ",left=" + left
-    );
-    picker.onload = () => {
-      picker.onunload = () => {
-        if (picker.file_url && picker.title) {
-          let l = picker.file_url;
-          l = l.replace(l.substr(l.indexOf("/view"), l.length), "/preview");
-          let newmaterial = {
-            title: picker.title,
-            resource_link: l,
-          };
-          let m = form.materials
-            ? [newmaterial, ...form.materials]
-            : [newmaterial];
-          setForm({ ...form, materials: m });
-        }
-      };
-    };
-  };
   const handleCreateContent = () => {
-    let { width, height } = window.screen;
-    var top = height;
-    top = top > 0 ? top / 2 : 0;
-    var left = width;
-    left = left > 0 ? left / 2 : 0;
-    var contentMaker = window.open(
-      "/content-maker",
-      "_blank"
-      // "Content Maker",
-      // "width=" + width + ",height=" + width + +",top=" + top + ",left=" + left
-    );
-    contentMaker.onunload = () => {
-      if (contentMaker.file) {
-        stageFiles("activity-materials", contentMaker.file);
-        window.contentMakerFile = contentMaker.file;
-        setHasFiles([hasFiles[0], true]);
-      }
-    };
+    window.open("/content-maker?callback=send_item&to=" + socket.id, "_blank");
   };
 
   const getFilteredActivities = (ac = activities) =>
@@ -892,14 +874,45 @@ function Activity(props) {
       .reverse();
 
   useEffect(() => {
+    socket.on("get item", async (details) => {
+      if (details.type === "ATTACH_CONTENTCREATOR") {
+        const parsed = JSON.parse(details.data);
+        const blob = await fetch(parsed.blob).then((res) => res.blob());
+        let file = new File([blob], "Activity Material", { type: blob.type });
+        setContentCreatorFile(file);
+        stageFiles("activity-materials", file);
+        console.log(file, contentCreatorFile);
+        setFilesToUpload({ ...filesToUpload, ACTIVITY_MATERIALS: true });
+      }
+    });
     if (document.querySelector("#activity-material") && !saving)
-      document.querySelector("#activity-material").value = "";
+      removeFiles("activity-materials");
   }, []);
   useEffect(() => {
     _getActivities();
   }, [props.classDetails]);
+  const addNewMaterial = (material) => {
+    let m = form.materials ? [material, ...form.materials] : [material];
+    setForm({ ...form, materials: m });
+    setNewMaterial(material);
+  };
   return (
     <Box width="100%" alignSelf="flex-start" height="100%">
+      <GooglePicker
+        auth={(s) => (modals.OPEN_GDRIVE = s)}
+        form={form}
+        onSelect={({ url, name }) => {
+          if (url && name) {
+            let l = url;
+            l = l.replace(l.substr(l.indexOf("/view"), l.length), "/preview");
+            let newM = {
+              title: name,
+              resource_link: l,
+            };
+            addNewMaterial(newM);
+          }
+        }}
+      />
       {props.dataProgress[option_name] && (
         <Progress id={option_name} data={props.dataProgress[option_name]} />
       )}
@@ -1040,7 +1053,7 @@ function Activity(props) {
               style={{ order: isMobile ? 2 : 0, fontWeight: "bold" }}
               color="secondary"
               onClick={() => {
-                handleClickOpen();
+                handleOpen("ACTIVITY");
                 setForm(formTemplate);
               }}
             >
@@ -1137,6 +1150,13 @@ function Activity(props) {
                     </Box>
                     {isTeacher && (
                       <Box>
+                        <IconButton
+                          onClick={() =>
+                            _handleFileOption("publish", currentActivity)
+                          }
+                        >
+                          <Icon>visibility</Icon>
+                        </IconButton>
                         <IconButton
                           onClick={() =>
                             _handleFileOption("publish", currentActivity)
@@ -1256,7 +1276,10 @@ function Activity(props) {
                             "answers",
                             e.dataTransfer.files,
                             (files) => {
-                              setHasFiles([true, hasFiles[1]]);
+                              setFilesToUpload({
+                                ...filesToUpload,
+                                UPLOAD_ANSWER: true,
+                              });
                             }
                           );
                           return false;
@@ -1281,11 +1304,15 @@ function Activity(props) {
                               "answers",
                               document.querySelector("#activity-answer").files
                             );
-                            setHasFiles([isfiles, hasFiles[1]]);
+                            setFilesToUpload({
+                              ...filesToUpload,
+                              UPLOAD_ANSWER: isfiles,
+                            });
+                            if (!isfiles) removeFiles("activity-answer");
                           }}
                         />
                         <Box className={styles.upload}>
-                          {!hasFiles[0] ? (
+                          {!filesToUpload.UPLOAD_ANSWER ? (
                             <div>
                               {!dragover ? (
                                 <div
@@ -1364,7 +1391,10 @@ function Activity(props) {
                                     onClick={() => {
                                       FileUpload.removeFiles("answers");
                                       setDragover(false);
-                                      setHasFiles([false, hasFiles[1]]);
+                                      setFilesToUpload({
+                                        ...filesToUpload,
+                                        UPLOAD_ANSWER: false,
+                                      });
                                     }}
                                   >
                                     Remove
@@ -1601,15 +1631,17 @@ function Activity(props) {
             },
           ]}
           teacherOptions={[
+            { name: "Close Activity", value: "close-activity" },
+            { name: "Open Activity", value: "open-activity" },
             { name: "Edit", value: "edit" },
             { name: "Publish", value: "publish" },
             { name: "Unpublish", value: "unpublish" },
             { name: "Delete", value: "delete" },
           ]}
           filtered={(a) => getFilteredActivities(a)}
-          rowRenderMobile={(item) => (
+          rowRenderMobile={(item, { disabled = false }) => (
             <Box
-              onClick={() => _handleFileOption("view", item)}
+              onClick={() => !disabled && _handleFileOption("view", item)}
               display="flex"
               flexWrap="wrap"
               width="90%"
@@ -1648,12 +1680,12 @@ function Activity(props) {
                     fontWeight: "bold",
                     fontSize: "0.9em",
                     color:
-                      item.status === "published"
+                      item.done !== "true"
                         ? theme.palette.success.main
                         : theme.palette.error.main,
                   }}
                 >
-                  {item.status === "published" ? "OPEN" : "CLOSED"}
+                  {item.done !== "true" ? "OPEN" : "CLOSED"}
                 </Typography>
               </Box>
               <Box width="100%">
@@ -1674,11 +1706,11 @@ function Activity(props) {
               </Box>
             </Box>
           )}
-          rowRender={(item) => (
+          rowRender={(item, { disabled = false }) => (
             <Box
               width="100%"
               display="flex"
-              onClick={() => _handleFileOption("view", item)}
+              onClick={() => !disabled && _handleFileOption("view", item)}
             >
               <Box flex={1} overflow="hidden" width="50%" maxWidth="50%">
                 <ListItemText
@@ -1706,12 +1738,12 @@ function Activity(props) {
                     fontWeight: "bold",
                     fontSize: "0.9em",
                     color:
-                      item.status === "published"
+                      item.done !== "true"
                         ? theme.palette.success.main
                         : theme.palette.error.main,
                   }}
                 >
-                  {item.status === "published" ? "OPEN" : "CLOSED"}
+                  {item.done !== "true" ? "OPEN" : "CLOSED"}
                 </Typography>
               </Box>
               <Box
@@ -1742,8 +1774,8 @@ function Activity(props) {
       )}
       <CreateDialog
         title={form.id ? "Edit Activity" : "Create Activity"}
-        open={modals[0]}
-        onClose={handleClose}
+        open={modals.ACTIVITY || false}
+        onClose={() => handleClose("ACTIVITY")}
         leftContent={
           <React.Fragment>
             <TextField
@@ -1862,7 +1894,11 @@ function Activity(props) {
                       "activity-materials",
                       document.querySelector("#activity-material").files
                     );
-                    setHasFiles([hasFiles[0], isfiles]);
+                    setFilesToUpload({
+                      ...filesToUpload,
+                      ACTIVITY_MATERIALS: isfiles,
+                    });
+                    if (!isfiles) removeFiles("activity-materials");
                   }}
                   multiple
                 />
@@ -1886,7 +1922,7 @@ function Activity(props) {
                         </MenuItem>
                         <MenuItem
                           onClick={() => {
-                            setModals([modals[0], true]);
+                            handleOpen("WEB_LINK");
                             popupState.close();
                           }}
                         >
@@ -1894,7 +1930,7 @@ function Activity(props) {
                         </MenuItem>
                         <MenuItem
                           onClick={() => {
-                            handleGooglePicker();
+                            if (modals.OPEN_GDRIVE) modals.OPEN_GDRIVE();
                             popupState.close();
                           }}
                         >
@@ -2002,7 +2038,7 @@ function Activity(props) {
                 </div>
               </Box>
             </Box>
-            {hasFiles[1] && (
+            {filesToUpload.ACTIVITY_MATERIALS && (
               <Box style={{ marginTop: 7 }}>
                 <Box
                   display="flex"
@@ -2023,7 +2059,7 @@ function Activity(props) {
                 </List>
               </Box>
             )}
-            {!hasFiles[1] && !form.materials && (
+            {!filesToUpload.ACTIVITY_MATERIALS && !form.materials && (
               <Typography color="textSecondary" variant="body1" align="center">
                 No attachments
               </Typography>
@@ -2035,7 +2071,13 @@ function Activity(props) {
                 </Typography>
                 <List dense={true}>
                   {form.materials.map((f, i) => (
-                    <ListItem key={i}>
+                    <ListItem
+                      key={i}
+                      onClick={() => {
+                        _handleOpenFile(f);
+                        setModals({ ...modals, ACTIVITY: false });
+                      }}
+                    >
                       <ListItemText primary={f.title} />
                       <ListItemSecondaryAction>
                         <IconButton
@@ -2058,11 +2100,11 @@ function Activity(props) {
       />
 
       <Dialog
-        open={modals[1]}
+        open={modals.WEB_LINK || false}
         keepMounted
         onClose={() => {
           setNewMaterial(null);
-          setModals([modals[0], false]);
+          handleClose("WEB_LINK");
         }}
       >
         <DialogTitle id="alert-dialog-slide-title">Web Link</DialogTitle>
@@ -2098,7 +2140,7 @@ function Activity(props) {
           <Button
             onClick={() => {
               setNewMaterial(null);
-              setModals([modals[0], false]);
+              handleClose("WEB_LINK");
             }}
             variant="outlined"
           >
@@ -2112,7 +2154,7 @@ function Activity(props) {
                 ? [newMaterial, ...form.materials]
                 : [newMaterial];
               setForm({ ...form, materials: m });
-              setModals([modals[0], false]);
+              handleClose("WEB_LINK");
             }}
           >
             Add Link
