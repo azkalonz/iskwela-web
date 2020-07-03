@@ -352,7 +352,17 @@ function Drawer(props) {
                 justifyContent: "space-between",
               }}
             >
-              <Box>iSkwela</Box>
+              <Box
+                display="flex"
+                alignItems="center"
+                style={{ pointerEvents: "none", userSelect: "none" }}
+              >
+                <img
+                  src="/logo/logo-full-colored.svg"
+                  width={120}
+                  alt="iSkwela"
+                />
+              </Box>
               <IconButton onClick={() => props.history.push("#")}>
                 <Icon color="primary">close</Icon>
               </IconButton>
