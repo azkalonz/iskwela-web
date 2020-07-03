@@ -1,62 +1,50 @@
-import React, { useState, useEffect } from "react";
 import {
-  List,
-  ListItem,
-  ListItemText,
-  ListItemIcon,
+  Box,
+  Button,
+  CircularProgress,
   Dialog,
   DialogActions,
   DialogContent,
-  useTheme,
-  useMediaQuery,
   DialogTitle,
-  Menu,
-  MenuItem,
-  Toolbar,
-  Checkbox,
-  withStyles,
-  Box,
-  Button,
-  TextField,
-  IconButton,
-  ListItemSecondaryAction,
-  makeStyles,
-  Typography,
-  Snackbar,
-  CircularProgress,
   Grow,
   Icon,
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemText,
+  makeStyles,
+  Menu,
+  MenuItem,
+  Snackbar,
+  TextField,
+  Typography,
+  useMediaQuery,
+  useTheme,
+  withStyles,
 } from "@material-ui/core";
-import InsertDriveFileOutlinedIcon from "@material-ui/icons/InsertDriveFileOutlined";
-import MoreHorizOutlinedIcon from "@material-ui/icons/MoreHorizOutlined";
-import ArrowDownwardOutlinedIcon from "@material-ui/icons/ArrowDownwardOutlined";
-import ArrowUpwardOutlinedIcon from "@material-ui/icons/ArrowUpwardOutlined";
 import AttachFileOutlinedIcon from "@material-ui/icons/AttachFileOutlined";
+import CloudUploadOutlinedIcon from "@material-ui/icons/CloudUploadOutlined";
 import ExpandMoreOutlinedIcon from "@material-ui/icons/ExpandMoreOutlined";
 import InsertLinkOutlinedIcon from "@material-ui/icons/InsertLinkOutlined";
-import CloudUploadOutlinedIcon from "@material-ui/icons/CloudUploadOutlined";
-import FileViewer from "../../components/FileViewer";
-import { connect } from "react-redux";
-import FileUpload, { stageFiles } from "../../components/FileUpload";
 import MuiAlert from "@material-ui/lab/Alert";
-import UserData, { asyncForEach } from "../../components/UserData";
-import Api from "../../api";
-import CloseIcon from "@material-ui/icons/Close";
-import FullscreenIcon from "@material-ui/icons/Fullscreen";
-import FullscreenExitIcon from "@material-ui/icons/FullscreenExit";
 import { saveAs } from "file-saver";
-import socket from "../../components/socket.io";
-import Pagination, { getPageItems } from "../../components/Pagination";
-import { Table as MTable } from "../../components/Table";
-import {
-  ScheduleSelector,
-  StatusSelector,
-  SearchInput,
-} from "../../components/Selectors";
-import { CheckBoxAction } from "../../components/CheckBox";
+import React, { useEffect, useState } from "react";
+import { connect } from "react-redux";
+import Api from "../../api";
+import { GooglePicker } from "../../components/dialogs";
+import FileUpload, { stageFiles } from "../../components/FileUpload";
+import FileViewer from "../../components/FileViewer";
+import Pagination from "../../components/Pagination";
 import Progress from "../../components/Progress";
 import store from "../../components/redux/store";
-import { GooglePicker } from "../../components/dialogs";
+import {
+  ScheduleSelector,
+  SearchInput,
+  StatusSelector,
+} from "../../components/Selectors";
+import socket from "../../components/socket.io";
+import { Table as MTable } from "../../components/Table";
+import UserData, { asyncForEach } from "../../components/UserData";
 
 const queryString = require("query-string");
 function Alert(props) {
@@ -76,7 +64,7 @@ function InstructionalMaterials(props) {
   const isTeacher = props.userInfo.user_type === "t" ? true : false;
   const styles = useStyles();
   const [file, setFile] = useState();
-  const [fileViewerOpen, setfileViewerOpen] = useState(false);
+  const [openFileViewer, setOpenFileViewer] = useState();
   const [form, setForm] = useState({});
   const [hasFiles, setHasFiles] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -84,7 +72,6 @@ function InstructionalMaterials(props) {
   const [confirmed, setConfirmed] = useState();
   const [saving, setSaving] = useState(false);
   const [savingId, setSavingId] = useState([]);
-  const [fileFullScreen, setFileFullScreen] = useState(true);
   const [selectedSched, setSelectedSched] = useState(
     query.date && query.date !== -1 ? parseInt(query.date) : -1
   );
@@ -155,9 +142,6 @@ function InstructionalMaterials(props) {
       ),
     [query.date]
   );
-  useEffect(() => {
-    if (!fileViewerOpen) setFile();
-  }, [fileViewerOpen]);
 
   const _downloadFile = async (file) => {
     setErrors(null);
@@ -191,33 +175,47 @@ function InstructionalMaterials(props) {
   };
 
   const _handleOpenFile = async (f) => {
-    setFile({
-      title: f.title,
-      error: false,
-    });
-    setfileViewerOpen(true);
+    const controller = new AbortController();
+    const signal = controller.signal;
     if (!f.uploaded_file) {
-      setFile({ ...file, title: f.title, url: f.resource_link, error: false });
-      return;
-    }
-    let res = await Api.postBlob(
-      "/api/download/class/material/" + f.id
-    ).then((resp) => (resp.ok ? resp.blob() : null));
-    if (res)
       setFile({
         ...file,
         title: f.title,
-        url: URL.createObjectURL(new File([res], f.title, { type: res.type })),
-        type: res.type,
+        url: f.resource_link,
         error: false,
       });
-    else {
-      setErrors(["Cannot open file."]);
+    } else {
       setFile({
-        ...file,
         title: f.title,
-        error: true,
+        error: false,
+        onCancel: () => controller.abort(),
       });
+      let res = await Api.postBlob("/api/download/activity/material/" + f.id, {
+        config: {
+          signal,
+        },
+      }).then((resp) => (resp.ok ? resp.blob() : null));
+      if (res)
+        setFile({
+          ...file,
+          title: f.title,
+          url: URL.createObjectURL(
+            new File([res], "activity-material-" + f.id, { type: res.type })
+          ),
+          error: false,
+          type: res.type,
+        });
+      else {
+        setErrors(["Cannot open file."]);
+        setFile({
+          ...file,
+          title: f.title,
+          error: true,
+        });
+      }
+    }
+    if (openFileViewer) {
+      openFileViewer();
     }
   };
 
@@ -621,63 +619,14 @@ function InstructionalMaterials(props) {
       {props.dataProgress[option_name] && (
         <Progress id={option_name} data={props.dataProgress[option_name]} />
       )}
-      <Dialog
-        open={fileViewerOpen}
-        keepMounted
-        id="file-viewer-container"
-        fullWidth
-        onClose={() => setfileViewerOpen(false)}
-        maxWidth="xl"
-        aria-labelledby="alert-dialog-slide-title"
-        aria-describedby="alert-dialog-slide-description"
-        fullScreen={fileFullScreen}
-      >
-        {file && (
-          <DialogContent style={{ height: "100vh" }}>
-            <Toolbar
-              style={{
-                position: "sticky",
-                zIndex: 10,
-                background: "#fff",
-                height: "6%",
-                top: 0,
-                right: 0,
-                left: 0,
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-              }}
-            >
-              <Typography
-                variant="body1"
-                color="textPrimary"
-                style={{ fontWeight: "bold" }}
-              >
-                {file.title}
-              </Typography>
-              <div>
-                <IconButton onClick={() => setFileFullScreen(!fileFullScreen)}>
-                  {fileFullScreen ? (
-                    <FullscreenExitIcon size={24} />
-                  ) : (
-                    <FullscreenIcon size={24} />
-                  )}
-                </IconButton>
-                <IconButton onClick={() => setfileViewerOpen(false)}>
-                  <CloseIcon size={24} />
-                </IconButton>
-              </div>
-            </Toolbar>
-            <FileViewer
-              url={file.url}
-              title={file.title}
-              type={file.type}
-              onClose={() => setfileViewerOpen(false)}
-              error={file.error}
-            />
-          </DialogContent>
-        )}
-      </Dialog>
+      {file && (
+        <FileViewer
+          file={file}
+          open={(openRef) => setOpenFileViewer(openRef)}
+          onClose={() => setFile(null)}
+          error={file.error}
+        />
+      )}
       <Dialog
         open={confirmed ? true : false}
         onClose={() => setConfirmed(null)}

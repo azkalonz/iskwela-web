@@ -1,96 +1,74 @@
-import React, { useState, useEffect } from "react";
+import MomentUtils from "@date-io/moment";
 import {
-  List,
-  ListItem,
-  ListItemText,
-  ListItemIcon,
-  Dialog,
-  CircularProgress,
-  DialogActions,
-  Input,
-  Menu,
-  MenuItem,
-  ExpansionPanel,
-  ExpansionPanelSummary,
-  ExpansionPanelDetails,
-  DialogContent,
-  DialogContentText,
-  Slide,
-  Snackbar,
-  Paper,
-  withStyles,
+  Avatar,
   Box,
   Button,
-  TextField,
-  IconButton,
-  useTheme,
-  Checkbox,
-  useMediaQuery,
-  ListItemSecondaryAction,
-  makeStyles,
-  Typography,
-  Link,
-  Toolbar,
-  ListItemAvatar,
-  Avatar,
-  ExpansionPanelActions,
-  Icon,
-  FormControl,
-  InputLabel,
-  Select,
   Chip,
+  CircularProgress,
+  Dialog,
+  DialogActions,
+  DialogContent,
   Divider,
+  Icon,
+  IconButton,
+  Link,
+  List,
+  ListItem,
+  ListItemSecondaryAction,
+  ListItemText,
+  makeStyles,
+  Menu,
+  MenuItem,
+  Paper,
+  Slide,
+  Snackbar,
+  TextField,
+  Toolbar,
+  Typography,
+  useMediaQuery,
+  useTheme,
+  withStyles,
 } from "@material-ui/core";
 import MuiDialogTitle from "@material-ui/core/DialogTitle";
-import MoreHorizOutlinedIcon from "@material-ui/icons/MoreHorizOutlined";
-import ArrowDownwardOutlinedIcon from "@material-ui/icons/ArrowDownwardOutlined";
-import ArrowUpwardOutlinedIcon from "@material-ui/icons/ArrowUpwardOutlined";
-import AttachFileOutlinedIcon from "@material-ui/icons/AttachFileOutlined";
-import FileViewer from "../../components/FileViewer";
-import moment from "moment";
-import LaunchIcon from "@material-ui/icons/Launch";
 import Grow from "@material-ui/core/Grow";
-import FileUpload, { stageFiles } from "../../components/FileUpload";
-import Form from "../../components/Form";
-import MomentUtils from "@date-io/moment";
-import CancelIcon from "@material-ui/icons/Cancel";
-import { connect } from "react-redux";
-import UserData, { asyncForEach } from "../../components/UserData";
 import ArrowDropDownIcon from "@material-ui/icons/ArrowDropDown";
+import AttachFileOutlinedIcon from "@material-ui/icons/AttachFileOutlined";
+import CloseIcon from "@material-ui/icons/Close";
+import RefreshIcon from "@material-ui/icons/Refresh";
+import MuiAlert from "@material-ui/lab/Alert";
 import {
-  MuiPickersUtilsProvider,
   KeyboardDatePicker,
+  MuiPickersUtilsProvider,
 } from "@material-ui/pickers";
 import $ from "jquery";
-import MuiAlert from "@material-ui/lab/Alert";
-import CloseIcon from "@material-ui/icons/Close";
-import FullscreenIcon from "@material-ui/icons/Fullscreen";
-import FullscreenExitIcon from "@material-ui/icons/FullscreenExit";
-import socket from "../../components/socket.io";
+import PopupState, { bindMenu, bindTrigger } from "material-ui-popup-state";
+import moment from "moment";
+import React, { useEffect, useState } from "react";
+import { connect } from "react-redux";
+import { useHistory } from "react-router-dom";
 import Api from "../../api";
+import { CreateDialog, GooglePicker } from "../../components/dialogs";
+import FileUpload, { stageFiles } from "../../components/FileUpload";
+import FileViewer from "../../components/FileViewer";
+import Form from "../../components/Form";
 import Pagination, { getPageItems } from "../../components/Pagination";
-import PopupState, { bindTrigger, bindMenu } from "material-ui-popup-state";
-import {
-  ScheduleSelector,
-  StatusSelector,
-  SearchInput,
-} from "../../components/Selectors";
-import { CheckBoxAction } from "../../components/CheckBox";
 import Progress from "../../components/Progress";
 import store from "../../components/redux/store";
-import RefreshIcon from "@material-ui/icons/Refresh";
-import StudentRating from "../../components/StudentRating";
-import { useHistory } from "react-router-dom";
-import { Table as MTable } from "../../components/Table";
-import { CreateDialog, GooglePicker } from "../../components/dialogs";
 import { makeLinkTo } from "../../components/router-dom";
+import {
+  ScheduleSelector,
+  SearchInput,
+  StatusSelector,
+} from "../../components/Selectors";
+import socket from "../../components/socket.io";
+import StudentRating from "../../components/StudentRating";
+import { Table as MTable } from "../../components/Table";
+import UserData, { asyncForEach } from "../../components/UserData";
 const queryString = require("query-string");
 function Alert(props) {
   return <MuiAlert elevation={6} variant="filled" {...props} />;
 }
-const Transition = React.forwardRef(function Transition(props, ref) {
-  return <Slide direction="up" ref={ref} {...props} />;
-});
+
 const styles = (theme) => ({
   root: {
     margin: 0,
@@ -126,7 +104,7 @@ function Activity(props) {
   const history = useHistory();
   const query = queryString.parse(window.location.search);
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
-  const isTablet = useMediaQuery(theme.breakpoints.down("md"));
+  const [openFileViewer, setOpenFileViewer] = useState();
   const [saving, setSaving] = useState(false);
   const [filesToUpload, setFilesToUpload] = useState({
     UPLOAD_ANSWER: false,
@@ -138,7 +116,6 @@ function Activity(props) {
   const [search, setSearch] = useState("");
   const [modals, setModals] = React.useState({});
   const [file, setFile] = useState();
-  const [fileViewerOpen, setfileViewerOpen] = useState(false);
   const isTeacher = props.userInfo.user_type === "t" ? true : false;
   const styles = useStyles();
   const classSched = props.classSched;
@@ -148,7 +125,6 @@ function Activity(props) {
   const [success, setSuccess] = useState(false);
   const [confirmed, setConfirmed] = useState(false);
   const [savingId, setSavingId] = useState([]);
-  const [fileFullScreen, setFileFullScreen] = useState(true);
   const [answersSearch, setAnswersSearch] = useState("");
   const [contentCreatorFile, setContentCreatorFile] = useState();
   const [selectedStatus, setSelectedStatus] = useState(
@@ -266,10 +242,6 @@ function Activity(props) {
       setCurrentActivity(null);
     }
   }, [props.classDetails[class_id]]);
-
-  useEffect(() => {
-    if (!fileViewerOpen) setFile();
-  }, [fileViewerOpen]);
   useEffect(() => {
     if (currentActivity) {
       if (!currentActivity.answers) getAnswers();
@@ -770,13 +742,20 @@ function Activity(props) {
     });
   };
   const _handleOpenAnswer = async (f) => {
+    const controller = new AbortController();
+    const signal = controller.signal;
     setFile({
       title: f.name,
+      onCancel: () => controller.abort(),
     });
-    setfileViewerOpen(true);
-    let res = await Api.postBlob(
-      "/api/download/activity/answer/" + f.id
-    ).then((resp) => (resp.ok ? resp.blob() : null));
+    if (openFileViewer) {
+      openFileViewer();
+    }
+    let res = await Api.postBlob("/api/download/activity/answer/" + f.id, {
+      config: {
+        signal,
+      },
+    }).then((resp) => (resp.ok ? resp.blob() : null));
     if (res)
       setFile({
         ...file,
@@ -789,11 +768,8 @@ function Activity(props) {
     else setErrors(["Cannot open file."]);
   };
   const _handleOpenFile = async (f) => {
-    setFile({
-      title: f.title,
-      error: false,
-    });
-    setfileViewerOpen(true);
+    const controller = new AbortController();
+    const signal = controller.signal;
     if (!f.uploaded_file) {
       setFile({
         ...file,
@@ -801,35 +777,44 @@ function Activity(props) {
         url: f.resource_link,
         error: false,
       });
-      return;
-    }
-    let res = await Api.postBlob(
-      "/api/download/activity/material/" + f.id
-    ).then((resp) => (resp.ok ? resp.blob() : null));
-    if (res)
+    } else {
       setFile({
-        ...file,
         title: f.title,
-        url: URL.createObjectURL(
-          new File([res], "activity-material-" + f.id, { type: res.type })
-        ),
         error: false,
-        type: res.type,
+        onCancel: () => controller.abort(),
       });
-    else {
-      setErrors(["Cannot open file."]);
-      setFile({
-        ...file,
-        title: f.title,
-        error: true,
-      });
+      let res = await Api.postBlob("/api/download/activity/material/" + f.id, {
+        config: {
+          signal,
+        },
+      }).then((resp) => (resp.ok ? resp.blob() : null));
+      if (res)
+        setFile({
+          ...file,
+          title: f.title,
+          url: URL.createObjectURL(
+            new File([res], "activity-material-" + f.id, { type: res.type })
+          ),
+          error: false,
+          type: res.type,
+        });
+      else {
+        setErrors(["Cannot open file."]);
+        setFile({
+          ...file,
+          title: f.title,
+          error: true,
+        });
+      }
+    }
+    if (openFileViewer) {
+      openFileViewer();
     }
   };
 
   const _handleAnswerUpload = async () => {
     setErrors(null);
     setSaving(true);
-    let err = [];
     let body = new FormData();
     body.append("file", FileUpload.files["answers"][0]);
     body.append("assignment_id", currentActivity.id);
@@ -984,61 +969,14 @@ function Activity(props) {
           Success
         </Alert>
       </Snackbar>
-      <Dialog
-        open={fileViewerOpen}
-        keepMounted
-        id="file-viewer-container"
-        fullWidth
-        onClose={() => setfileViewerOpen(false)}
-        maxWidth="xl"
-        fullScreen={fileFullScreen}
-      >
-        {file && (
-          <DialogContent style={{ height: "100vh" }}>
-            <Toolbar
-              style={{
-                position: "sticky",
-                zIndex: 10,
-                background: "#fff",
-                top: 0,
-                height: "6%",
-                right: 0,
-                left: 0,
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-              }}
-            >
-              <Typography
-                variant="body1"
-                color="textPrimary"
-                style={{ fontWeight: "bold" }}
-              >
-                {file.title}
-              </Typography>
-              <div>
-                <IconButton onClick={() => setFileFullScreen(!fileFullScreen)}>
-                  {fileFullScreen ? (
-                    <FullscreenExitIcon size={24} />
-                  ) : (
-                    <FullscreenIcon size={24} />
-                  )}
-                </IconButton>
-                <IconButton onClick={() => setfileViewerOpen(false)}>
-                  <CloseIcon size={24} />
-                </IconButton>
-              </div>
-            </Toolbar>
-            <FileViewer
-              url={file.url}
-              title={file.title}
-              type={file.type}
-              onClose={() => setfileViewerOpen(false)}
-              error={file.error}
-            />
-          </DialogContent>
-        )}
-      </Dialog>
+      {file && (
+        <FileViewer
+          file={file}
+          open={(openRef) => setOpenFileViewer(openRef)}
+          onClose={() => setFile(null)}
+          error={file.error}
+        />
+      )}
       {!currentActivity && (
         <Box
           m={2}
@@ -2119,6 +2057,7 @@ function Activity(props) {
               onChange={(e) => {
                 setNewMaterial({ ...newMaterial, title: e.target.value });
               }}
+              value={(newMaterial && newMaterial.title) || ""}
               fullWidth
             />
             <TextField
@@ -2129,6 +2068,7 @@ function Activity(props) {
                   resource_link: e.target.value,
                 });
               }}
+              value={(newMaterial && newMaterial.resource_link) || ""}
               InputLabelProps={{
                 shrink: true,
               }}
