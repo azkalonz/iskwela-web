@@ -68,15 +68,17 @@ function App(props) {
       },
       MuiCard: {
         root: {
-          width: 225,
-          position: "relative",
-          "& .media": {
-            height: 70,
-          },
-          "& .title-container": {
-            position: "absolute",
-            top: 10,
-            left: 10,
+          "&.class-card-tag": {
+            width: 225,
+            position: "relative",
+            "& .media": {
+              height: 70,
+            },
+            "& .title-container": {
+              position: "absolute",
+              top: 10,
+              left: 10,
+            },
           },
         },
       },

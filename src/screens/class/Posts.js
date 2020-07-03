@@ -170,6 +170,7 @@ function Comment(props) {
 }
 function StartADiscussion(props) {
   const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const [editorRef, setEditorRef] = useState();
   let classesAutocomplete = Object.keys(props.classes)
     .filter((k, i) => {
@@ -193,7 +194,6 @@ function StartADiscussion(props) {
         content: c.name,
       };
     });
-  classesAutocomplete = propsclasses;
   const [states, setStates] = useState({
     DISCUSSION: false,
   });
@@ -248,7 +248,10 @@ function StartADiscussion(props) {
                 </Box>
               </React.Fragment>
             ) : (
-              <Box width="100%" style={{ position: "relative" }}>
+              <Box
+                width="100%"
+                style={{ position: "relative", minHeight: isMobile ? 125 : 90 }}
+              >
                 <Editor
                   // focused={true}
                   label="Try @Student, :English, #HashTag"
