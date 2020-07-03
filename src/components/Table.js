@@ -247,27 +247,41 @@ function Table(props) {
             </List>
           ) : Object.keys(selectedItems).length &&
             !props.noSelect &&
-            isTeacher ? (
+            isTeacher &&
+            Object.keys(selectedItems).length ? (
             <CheckBoxAction
               checked={
                 Object.keys(selectedItems).length ===
-                props.filtered(items).length
+                getPageItems(
+                  props.filtered(items),
+                  page,
+                  props.pagination.itemsPerPage || 10
+                ).length
               }
               onSelect={() => _selectAll()}
               onDelete={
                 props.actions["onDelete"]
-                  ? () => props.actions["onDelete"](selectedItems)
+                  ? () =>
+                      props.actions["onDelete"](selectedItems, () =>
+                        setSelectedItems({})
+                      )
                   : null
               }
               onCancel={() => setSelectedItems({})}
               onUnpublish={
                 props.actions["onUpdate"]
-                  ? () => props.actions["onUpdate"](selectedItems, 0)
+                  ? () =>
+                      props.actions["onUpdate"](selectedItems, 0, () =>
+                        setSelectedItems({})
+                      )
                   : null
               }
               onPublish={
                 props.actions["onUpdate"]
-                  ? () => props.actions["onUpdate"](selectedItems, 1)
+                  ? () =>
+                      props.actions["onUpdate"](selectedItems, 1, () =>
+                        setSelectedItems({})
+                      )
                   : null
               }
             />

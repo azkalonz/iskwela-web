@@ -165,7 +165,7 @@ function Quizzes(props) {
     title: "",
     instruction: "",
     duration: 60,
-    category_id: 1,
+    category_id: props.gradingCategories[0] && props.gradingCategories[0].id,
   };
   const [form, setForm] = useState(formTemplate);
   const cellheaders = [
@@ -1402,6 +1402,10 @@ function Quizzes(props) {
                   InputLabelProps={{
                     shrink: true,
                   }}
+                  value={form.title}
+                  onChange={(e) =>
+                    setForm({ ...form, duration: parseInt(e.target.value) })
+                  }
                   type="number"
                   fullWidth
                 />
@@ -1421,8 +1425,9 @@ function Quizzes(props) {
                     }}
                     style={{ paddingTop: 17 }}
                   >
-                    <MenuItem value={1}>Score</MenuItem>
-                    <MenuItem value={2}>Star Rating</MenuItem>
+                    {props.gradingCategories.map((c) => (
+                      <MenuItem value={c.id}>{c.category}</MenuItem>
+                    ))}
                   </Select>
                 </FormControl>
               </Box>
@@ -1705,4 +1710,5 @@ export default connect((state) => ({
   pics: state.pics,
   dataProgress: state.dataProgress,
   classDetails: state.classDetails,
+  gradingCategories: state.gradingCategories,
 }))(Quizzes);

@@ -571,7 +571,7 @@ function Activity(props) {
       },
     });
   };
-  const _handleUpdateActivitiesStatus = (a, s) => {
+  const _handleUpdateActivitiesStatus = (a, s, callback = null) => {
     let stat = s ? "Publish" : "Unpublish";
     setConfirmed({
       title: stat + " " + Object.keys(a).length + " Activities",
@@ -618,14 +618,13 @@ function Activity(props) {
             details: newScheduleDetails,
           });
         }
-
+        callback && callback();
         setSavingId([]);
-
         setSaving(false);
       },
     });
   };
-  const _handleRemoveActivities = (activities) => {
+  const _handleRemoveActivities = (activities, callback = null) => {
     setConfirmed({
       title: "Remove " + Object.keys(activities).length + " Activities",
       message: "Are you sure to remove this activities?",
@@ -677,8 +676,8 @@ function Activity(props) {
         if (!errors) {
           setSuccess(true);
         }
+        callback && callback();
         setSavingId([]);
-
         setSaving(false);
       },
     });
@@ -1558,8 +1557,9 @@ function Activity(props) {
             onChangePage: (p) => setPage(p),
           }}
           actions={{
-            onDelete: (i) => _handleRemoveActivities(i),
-            onUpdate: (a, s) => _handleUpdateActivitiesStatus(a, s),
+            onDelete: (i, done = null) => _handleRemoveActivities(i, done),
+            onUpdate: (a, s, done = null) =>
+              _handleUpdateActivitiesStatus(a, s, done),
             _handleFileOption: (opt, file) => _handleFileOption(opt, file),
           }}
           options={[

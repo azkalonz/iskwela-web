@@ -394,7 +394,7 @@ function InstructionalMaterials(props) {
       },
     });
   };
-  const _handleUpdateMaterialsStatus = (a, s) => {
+  const _handleUpdateMaterialsStatus = (a, s, callback = null) => {
     let stat = s ? "Publish" : "Unpublish";
     setConfirmed({
       title: stat + " " + Object.keys(a).length + " Materials",
@@ -436,8 +436,8 @@ function InstructionalMaterials(props) {
             });
           }
         }
+        callback && callback();
         setSavingId([]);
-
         setSaving(false);
       },
     });
@@ -519,7 +519,7 @@ function InstructionalMaterials(props) {
       },
     });
   };
-  const _handleRemoveMaterials = (materials) => {
+  const _handleRemoveMaterials = (materials, callback = null) => {
     setConfirmed({
       title: "Remove " + Object.keys(materials).length + " materials",
       message: "Are you sure to remove this materials?",
@@ -572,8 +572,8 @@ function InstructionalMaterials(props) {
             });
           }
         }
+        callback && callback();
         setSavingId([]);
-
         setSaving(false);
       },
     });
@@ -822,8 +822,8 @@ function InstructionalMaterials(props) {
           ]}
           filtered={(a) => getFilteredMaterials(a)}
           actions={{
-            onDelete: (s) => _handleRemoveMaterials(s),
-            onUpdate: (a, s) => _handleUpdateMaterialsStatus(a, s),
+            onDelete: (s, done) => _handleRemoveMaterials(s, done),
+            onUpdate: (a, s, done) => _handleUpdateMaterialsStatus(a, s, done),
             _handleFileOption: (opt, file) => _handleFileOption(opt, file),
           }}
           rowRenderMobile={(item, { disabled = false }) => (

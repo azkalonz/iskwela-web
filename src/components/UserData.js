@@ -175,12 +175,19 @@ const UserData = {
     let questionnaires = await Api.get(
       "/api/questionnaires?types[]=myQnrs&limit=100"
     );
+    let gradingCategories = await Api.get(
+      "/api/schooladmin/school-grading-categories"
+    );
     let allclasses = {};
     await asyncForEach(data.classes, async (c) => {
       allclasses[c.id] = c;
       allclasses[c.id].teacher.pic = await this.getUserPic(c.teacher.id);
     });
     data.classDetails = {};
+    store.dispatch({
+      type: "SET_GRADING_CATEGORIES",
+      categories: gradingCategories,
+    });
     store.dispatch({
       type: "SET_QUESTIONNAIRES",
       questionnaires,

@@ -65,7 +65,7 @@ const DialogTitle = withStyles(styles)((props) => {
   );
 });
 
-function Quiz(props) {
+function CreateQuestionnaire(props) {
   const { class_id, schedule_id, option_name } = props.match.params;
   const query = require("query-string").parse(props.location.search);
   const [action, setAction] = useState();
@@ -639,4 +639,4 @@ export default connect((states) => ({
   questionnaires: states.questionnaires,
   userInfo: states.userInfo,
   classDetails: states.classDetails,
-}))(Quiz);
+}))(CreateQuestionnaire);

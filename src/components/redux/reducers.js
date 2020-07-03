@@ -69,6 +69,15 @@ const questionnaires = (state = [], payload) => {
   }
 };
 
+const gradingCategories = (state = [], payload) => {
+  switch (payload.type) {
+    case "SET_GRADING_CATEGORIES":
+      return payload.categories;
+    default:
+      return state;
+  }
+};
+
 const theme = (state = "light", payload) => {
   switch (payload.type) {
     case "SET_THEME":
@@ -109,4 +118,5 @@ export default combineReducers({
   classDetails,
   theme,
   pics,
+  gradingCategories,
 });

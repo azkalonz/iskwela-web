@@ -9,7 +9,8 @@ import Posts from "../../screens/class/Posts";
 import Attendance from "../../screens/class/Attendance";
 import LessonPlan from "../../screens/class/LessonPlan";
 import Quizzes from "../../screens/class/Quizzes";
-import Quiz from "../../containers/Quiz";
+import CreateQuestionnaire from "../../containers/CreateQuestionnaire";
+import Questionnaires from "../../screens/class/Questionnaires";
 import Students from "../../screens/class/Students";
 import Schedule from "../../screens/class/Schedule";
 import Scores from "../../screens/class/Scores";
@@ -78,9 +79,22 @@ export const rightPanelOptions = [
   },
   {
     title: "Questionnaire",
-    link: "questionnaire",
     icon: <EventNoteOutlinedIcon />,
-    screen: Quiz,
+    screen: CreateQuestionnaire,
+    children: [
+      {
+        title: "View Questionnaires",
+        screen: Questionnaires,
+        link: "view-questionnaire",
+        icon: null,
+      },
+      {
+        title: "Create Questionnaire",
+        screen: CreateQuestionnaire,
+        link: "questionnaire",
+        icon: null,
+      },
+    ],
   },
   {
     title: "Instructional Materials",
@@ -153,14 +167,35 @@ export const rightPanelOptionsStudents = [
   },
 ];
 export function getView(name) {
-  return rightPanelOptions
-    .concat(rightPanelOptionsStudents)
-    .filter((i) => i.link === name)[0].screen;
+  let screen;
+  rightPanelOptions.concat(rightPanelOptionsStudents).forEach((i) => {
+    if (screen) return;
+    if (i.link === name) screen = i.screen;
+    if (i.children)
+      i.children.forEach((c) => {
+        if (screen) return;
+        if (c.link === name) screen = c.screen;
+      });
+  });
+  return screen;
 }
 
 export function isValidOption(name) {
   if (!name) return;
-  return rightPanelOptions
-    .concat(rightPanelOptionsStudents)
-    .find((o) => o.link && o.link.toLowerCase() === name.toLowerCase());
+  let isvalid;
+  rightPanelOptions.concat(rightPanelOptionsStudents).forEach((o) => {
+    if (isvalid) return;
+    if (o.link) {
+      if (o.link.toLowerCase() === name.toLowerCase()) isvalid = o;
+    }
+    if (o.children) {
+      o.children.forEach((c) => {
+        if (isvalid) return;
+        if (c.link) {
+          if (c.link.toLowerCase() === name.toLowerCase()) isvalid = c;
+        }
+      });
+    }
+  });
+  return isvalid;
 }
