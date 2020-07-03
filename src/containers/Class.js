@@ -651,14 +651,26 @@ function Class(props) {
                 background: props.classes[class_id].theme,
               }}
             >
-              <Skeleton width="100%" height={170} />
-              <Box m={2}>
-                <Skeleton width="100%" height={20} />
-              </Box>
-              <Box m={2}>
-                <Skeleton circle={true} width={70} height={70} />
-                <Skeleton width={100} height={20} />
-              </Box>
+              {collapsePanel || isMobile ? (
+                <React.Fragment>
+                  <Skeleton width="100%" height={170} />
+                  <Box m={2}>
+                    <Skeleton width="100%" height={20} />
+                  </Box>
+                  <Box m={2}>
+                    <Skeleton circle={true} width={70} height={70} />
+                    <Skeleton width={100} height={20} />
+                  </Box>
+                </React.Fragment>
+              ) : (
+                <React.Fragment>
+                  {[1, 1, 1, 1, 1, 1].map(() => (
+                    <Box p={0.7}>
+                      <Skeleton width="100%" height={45} />
+                    </Box>
+                  ))}
+                </React.Fragment>
+              )}
             </Paper>
           )}
         </Box>
