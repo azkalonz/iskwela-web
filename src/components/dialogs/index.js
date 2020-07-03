@@ -1,34 +1,34 @@
-import React, { useEffect, useState } from "react";
 import {
-  Dialog,
-  DialogTitle as MuiDialogTitle,
-  Slide,
-  DialogContent,
-  withStyles,
-  Typography,
-  IconButton,
-  Icon,
   Box,
-  useTheme,
-  useMediaQuery,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  ListItem,
-  Paper,
-  ListItemText,
-  ListItemSecondaryAction,
   Button,
-  List,
+  Dialog,
   DialogActions,
+  DialogContent,
+  DialogTitle as MuiDialogTitle,
+  FormControl,
+  Icon,
+  IconButton,
+  InputLabel,
+  List,
+  ListItem,
+  ListItemSecondaryAction,
+  ListItemText,
+  MenuItem,
+  Paper,
+  Select,
+  Slide,
+  Typography,
+  useMediaQuery,
+  useTheme,
+  withStyles,
 } from "@material-ui/core";
+import React, { useEffect, useState } from "react";
 import { connect } from "react-redux";
-import Pagination, { getPageItems } from "../Pagination";
-import { SearchInput } from "../Selectors";
-import { Link, useHistory } from "react-router-dom";
-import { makeLinkTo } from "../router-dom";
+import { useHistory } from "react-router-dom";
 import socket from "../../components/socket.io";
+import Pagination, { getPageItems } from "../Pagination";
+import { makeLinkTo } from "../router-dom";
+import { SearchInput } from "../Selectors";
 
 function AttachQuestionnaireDialog(props) {
   const history = useHistory();
@@ -56,6 +56,7 @@ function AttachQuestionnaireDialog(props) {
     if (props.selected) setSelected(props.selected);
   }, [props.selected]);
   useEffect(() => {
+    socket.off("get item");
     socket.on("get item", (details) => {
       if (details.type === "ATTACH_QUESTIONNAIRE") {
         let s = [...selected, details.data];

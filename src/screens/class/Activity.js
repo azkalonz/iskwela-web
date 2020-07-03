@@ -858,23 +858,24 @@ function Activity(props) {
       .reverse();
 
   useEffect(() => {
-    socket.on("get item", async (details) => {
-      if (details.type === "ATTACH_CONTENTCREATOR") {
-        const parsed = JSON.parse(details.data);
-        const blob = await fetch(parsed.blob).then((res) => res.blob());
-        let file = new File([blob], "Activity Material", { type: blob.type });
-        setContentCreatorFile(file);
-        stageFiles("activity-materials", file);
-        console.log(file, contentCreatorFile);
-        setFilesToUpload({ ...filesToUpload, ACTIVITY_MATERIALS: true });
-      }
-    });
+    socket.on("get item", getItem);
     if (document.querySelector("#activity-material") && !saving)
       removeFiles("activity-materials");
   }, []);
   useEffect(() => {
     _getActivities();
   }, [props.classDetails]);
+  const getItem = async (details) => {
+    if (details.type === "ATTACH_CONTENTCREATOR") {
+      const parsed = JSON.parse(details.data);
+      const blob = await fetch(parsed.blob).then((res) => res.blob());
+      let file = new File([blob], "Activity Material", { type: blob.type });
+      setContentCreatorFile(file);
+      stageFiles("activity-materials", file);
+      console.log(file, contentCreatorFile);
+      setFilesToUpload({ ...filesToUpload, ACTIVITY_MATERIALS: true });
+    }
+  };
   const addNewMaterial = (material) => {
     let m = form.materials ? [material, ...form.materials] : [material];
     setForm({ ...form, materials: m });

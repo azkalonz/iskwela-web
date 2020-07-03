@@ -119,6 +119,7 @@ function Class(props) {
         setLoading(true);
         setRightPanelLoading(true);
         setCurrentID(class_id);
+        socket.off("get item");
       }
       _getClass();
     }
