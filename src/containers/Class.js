@@ -135,7 +135,7 @@ function Class(props) {
       } else {
         await UserData.updateClassDetails(class_id, null, (d) => {
           if (!schedule_id)
-            history.push(makeLinkTo(["class", class_id, d.id, "activity"]));
+            history.push(makeLinkTo(["class", class_id, d.id, "posts"]));
         });
         setCLASS(undefined);
       }

@@ -1,38 +1,31 @@
-import React, { useEffect, useState } from "react";
-import Login from "./screens/Login";
-import Class from "./containers/Class";
-import Home from "./screens/Home";
-import AnswerQuiz from "./screens/class/AnswerQuiz";
-
-import { BrowserRouter, Route, Switch, Redirect } from "react-router-dom";
 import {
-  createMuiTheme,
-  MuiThemeProvider,
-  CircularProgress,
   Box,
+  createMuiTheme,
   makeStyles,
-  Typography,
+  MuiThemeProvider,
 } from "@material-ui/core";
-import { StylesProvider } from "@material-ui/styles";
-import { SkeletonTheme } from "react-loading-skeleton";
-import Api from "./api";
-import store from "./components/redux/store";
 import CssBaseline from "@material-ui/core/CssBaseline";
-import UserData from "./components/UserData";
-import socket from "./components/socket.io";
-import GooglePicker from "./components/GooglePicker";
-import ContentMaker from "./components/content-creator";
+import { StylesProvider } from "@material-ui/styles";
+import React, { useEffect, useState } from "react";
+import { SkeletonTheme } from "react-loading-skeleton";
 import { connect } from "react-redux";
+import { BrowserRouter, Redirect, Route, Switch } from "react-router-dom";
+import Api from "./api";
+import ContentMaker from "./components/content-creator";
+import GooglePicker from "./components/GooglePicker";
+import store from "./components/redux/store";
+import socket from "./components/socket.io";
+import UserData from "./components/UserData";
+import Class from "./containers/Class";
+import AnswerQuiz from "./screens/class/AnswerQuiz";
+import Home from "./screens/Home";
+import Login from "./screens/Login";
+import Posts from "./screens/class/Posts";
 
 const primaryColor = "#7539ff";
 const secondaryColor = "#ffd000";
 
 function App(props) {
-  const useStyles = makeStyles((theme) => ({
-    root: {
-      background: props.theme === "dark" ? "#222222" : "#fff",
-    },
-  }));
   const [loading, setLoading] = useState(true);
   const skeletonCustomTheme = {
     color: "rgba(215, 215, 215, 0.4)",
@@ -70,6 +63,38 @@ function App(props) {
               opacity: 0.2,
               zIndex: -1,
             },
+          },
+        },
+      },
+      MuiCard: {
+        root: {
+          width: 225,
+          position: "relative",
+          "& .media": {
+            height: 70,
+          },
+          "& .title-container": {
+            position: "absolute",
+            top: 10,
+            left: 10,
+          },
+        },
+      },
+      MuiTooltip: {
+        tooltip: {
+          fontSize: "1em",
+          backgroundColor: "rgba(107, 43, 255, 0.72)",
+          position: "relative",
+        },
+        tooltipPlacementRight: {
+          "&::before": {
+            content: "''",
+            position: "absolute;",
+            top: 7,
+            left: -22,
+            transform: "scaleX(1.3) scaleY(0.5) skewY(-40deg)",
+            border: "10px solid transparent",
+            borderRightColor: "rgba(107, 43, 255, 0.72)",
           },
         },
       },
@@ -248,6 +273,7 @@ function App(props) {
             <BrowserRouter>
               <Switch>
                 <Route exact path="/" component={Home} />
+                <Route exact path="/post" component={Posts} />
                 <Route exact path="/login">
                   <Login setLoading={(l) => setLoading(l)} />
                 </Route>
@@ -274,8 +300,24 @@ function App(props) {
               justifyContent="center"
               flexDirection="column"
             >
-              <Box p={2}>
-                <img src="/login/loader.svg" width={200} />
+              <Box
+                p={2}
+                style={{ pointerEvents: "none", userSelect: "none" }}
+                display="flex"
+                flexDirection="column"
+                alignItems="center"
+              >
+                <Box
+                  style={{
+                    background:
+                      "url(/logo/logo-full-colored.svg) no-repeat left",
+                    marginBottom: -65,
+                    backgroundSize: 200,
+                    width: 50,
+                    height: 100,
+                  }}
+                />
+                <img src="/login/loader.svg" width={130} />
               </Box>
             </Box>
           )}
@@ -286,6 +328,7 @@ function App(props) {
 }
 
 const defaultTheme = createMuiTheme();
+
 let mode = window.localStorage["mode"] ? window.localStorage["mode"] : "light";
 mode = mode === "dark" || mode === "light" ? mode : "light";
 store.dispatch({

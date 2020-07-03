@@ -22,16 +22,25 @@ const classes = (state = [], payload) => {
   switch (payload.type) {
     case "SET_CLASSES":
       const colors = [
-        "#424a9a",
-        "#67c6bc",
-        "#a74ff8",
-        "#9a425d",
-        "#1d8568",
-        "#e16b45",
+        "#238468",
+        "#5B539D",
+        "#444B99",
+        "#008430",
+        "#E06B47",
+        "#4E2102",
+        "#CA54A0",
+        "#1650A5",
+        "#117F7F",
+        "#4B5320",
+        "#C26F2C",
+        "#A13668",
+        "#0E6352",
+        "#492885",
+        "#7539FF",
       ];
       let colorID = 0;
       Object.keys(payload.classes).forEach((k) => {
-        if (colorID > 5) colorID = 0;
+        if (colorID > colors.length - 1) colorID = 0;
         payload.classes[k].theme = colors[colorID++];
       });
       console.log("classes", payload.classes);

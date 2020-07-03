@@ -145,7 +145,7 @@ function Home(props) {
       "class",
       c.id,
       c.next_schedule.id,
-      "activity",
+      "posts",
       "video-conference",
     ]);
     return (
@@ -166,7 +166,7 @@ function Home(props) {
               onClick={() =>
                 history.push(
                   makeLinkTo(["class", c.id, c.next_schedule.id, "opt"], {
-                    opt: c.next_schedule.id ? "activity" : "",
+                    opt: c.next_schedule.id ? "posts" : "",
                   })
                 )
               }

@@ -55,7 +55,7 @@ function Drawer(props) {
     <React.Fragment>
       <Box>
         <Box
-          p={2}
+          p={1}
           id="logo-drawer"
           style={{
             position: "sticky",
@@ -74,7 +74,15 @@ function Drawer(props) {
               history.push("/");
             }}
           >
-            SH
+            <Box
+              style={{
+                width: "100%",
+                height: 50,
+                background: "url(/logo/logo-full-colored.svg) no-repeat",
+                backgroundSize: 200,
+                transform: "scale(0.8)",
+              }}
+            />
           </Typography>
         </Box>
         <div style={{ textAlign: "center" }} id="tabs-container">
@@ -113,7 +121,7 @@ function Drawer(props) {
                     makeLinkTo(
                       ["class", item.id, item.next_schedule.id, "opt"],
                       {
-                        opt: item.next_schedule.id ? "activity" : "",
+                        opt: item.next_schedule.id ? "posts" : "",
                       }
                     )
                   );
@@ -160,7 +168,7 @@ function Drawer(props) {
                         makeLinkTo(
                           ["class", item.id, item.next_schedule.id, "opt"],
                           {
-                            opt: item.next_schedule.id ? "activity" : "",
+                            opt: item.next_schedule.id ? "posts" : "",
                           }
                         )
                       );
@@ -380,7 +388,7 @@ function Drawer(props) {
                       makeLinkTo(
                         ["class", item.id, item.next_schedule.id, "opt"],
                         {
-                          opt: item.next_schedule.id ? "activity" : "",
+                          opt: item.next_schedule.id ? "posts" : "",
                         }
                       )
                     );
@@ -434,7 +442,7 @@ function Drawer(props) {
                           makeLinkTo(
                             ["class", item.id, item.next_schedule.id, "opt"],
                             {
-                              opt: item.next_schedule.id ? "activity" : "",
+                              opt: item.next_schedule.id ? "posts" : "",
                             }
                           )
                         );
@@ -573,7 +581,6 @@ const useStyles = makeStyles((theme) => ({
       "&.selected": {
         position: "relative",
         "&:not(.bordered)>div": {
-          backgroundColor: "#000!important",
           opacity: 0.5,
         },
         "&.bordered::after": {

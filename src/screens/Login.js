@@ -46,6 +46,7 @@ function Login(props) {
               <Box className="lamp" />
               <Box className="media" />
               <Box className="student" />
+              <Box className="logo" />
             </Box>
           )}
           <Box
@@ -110,6 +111,9 @@ function LoginContainer(props) {
   };
   return (
     <React.Fragment>
+      <Box width="100%" display="flex" justifyContent="center" marginBottom={2}>
+        {isMobile && <img src="/logo/logo-single.svg" width={60} />}
+      </Box>
       <Typography
         variant="h4"
         style={{
@@ -227,6 +231,14 @@ const useStyles = makeStyles((theme) => ({
       right: 0,
       top: 0,
     },
+    "& .logo": {
+      width: "20%",
+      height: "20%",
+      background: "url(/logo/logo-full.svg) no-repeat center",
+      backgroundSize: "100% auto",
+      left: "10%",
+      top: 0,
+    },
   },
   loginMobile: {
     overflowX: "hidden",
@@ -240,7 +252,7 @@ const useStyles = makeStyles((theme) => ({
     "& .student": {
       height: "100%",
       width: 255,
-      minHeight: 515,
+      minHeight: 630,
       bottom: 0,
       top: 0,
       right: -50,
@@ -251,7 +263,7 @@ const useStyles = makeStyles((theme) => ({
     "& .media": {
       height: "100%",
       width: 130,
-      minHeight: 515,
+      minHeight: 630,
       bottom: 0,
       top: 0,
       left: 0,
