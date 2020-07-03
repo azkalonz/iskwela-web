@@ -177,7 +177,7 @@ function Comment(props) {
 function StartADiscussion(props) {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
-  const [editorRef, setEditorRef] = useState();
+  const [editorRef, setEditorRef] = useState({});
   let classesAutocomplete = Object.keys(props.classes)
     .filter((k, i) => {
       let c = Object.keys(props.classes);
@@ -205,7 +205,7 @@ function StartADiscussion(props) {
   });
   const handlePost = () => {
     if (editorRef.current) {
-      editorRef.current.save();
+      editorRef.current.save && editorRef.current.save();
     } else {
       handleOpen("DISCUSSION");
     }
