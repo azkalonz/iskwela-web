@@ -67,14 +67,16 @@ function TagSomeone(props) {
   const theme = useTheme();
   const url = "http://google.com/" + props.decoratedText;
   const getTitle = () => {
-    let s = students.find(
-      (s) => s.username === props.decoratedText.replace("@", "")
-    );
+    let s = props.classes[
+      window.location.pathname.split("/").filter((q) => (q ? true : false))[1]
+    ].students.find((s) => s.username === props.decoratedText.replace("@", ""));
     return s.first_name + " " + s.last_name;
   };
   return (
     <React.Fragment>
-      {students.findIndex(
+      {props.classes[
+        window.location.pathname.split("/").filter((q) => (q ? true : false))[1]
+      ].students.findIndex(
         (s) => s.username === props.decoratedText.replace("@", "")
       ) >= 0 ? (
         <Tooltip title={getTitle()} placement="top">
@@ -88,6 +90,9 @@ function TagSomeone(props) {
     </React.Fragment>
   );
 }
+const ConnectedTagSomeone = connect((states) => ({
+  classes: states.classDetails,
+}))(TagSomeone);
 function HashTag(props) {
   const theme = useTheme();
   const url = "http://google.com/" + props.decoratedText;
@@ -127,7 +132,7 @@ function Editor(props) {
       ref={editorRef}
       decorators={[
         {
-          component: TagSomeone,
+          component: ConnectedTagSomeone,
           regex: /\@[\w]{2,}/g,
         },
         {
@@ -274,7 +279,7 @@ function StartADiscussion(props) {
                         atomicBlockName: "class",
                       },
                       {
-                        items: students.map((c) => ({
+                        items: props.class.students.map((c) => ({
                           keys: [
                             "students",
                             c.first_name,
@@ -357,7 +362,7 @@ function WriteAComment(props) {
           autocomplete={{
             strategies: [
               {
-                items: students.map((c) => ({
+                items: props.class.students.map((c) => ({
                   keys: [
                     "students",
                     c.first_name,
@@ -443,7 +448,7 @@ function Discussion(props) {
           <Comment value='{"blocks":[{"key":"dm726","text":"Hello @sjenelyn ","type":"unstyled","depth":0,"inlineStyleRanges":[],"entityRanges":[{"offset":6,"length":9,"key":0}],"data":{}}],"entityMap":{"0":{"type":"AC_ITEM","mutability":"IMMUTABLE","data":{}}}}' />
         </Box>
         <Box p={2}>
-          <WriteAComment user={props.userInfo || {}} />
+          <WriteAComment user={props.userInfo || {}} class={props.class} />
         </Box>
       </Box>
     </Paper>
@@ -481,7 +486,7 @@ function Posts(props) {
           alignItems="flex-start"
         >
           <Box width="100%">
-            <ConnectedStartADiscussion>
+            <ConnectedStartADiscussion class={props.classes[class_id]}>
               <IconButton>
                 <Icon>insert_photo</Icon>
               </IconButton>
@@ -533,186 +538,10 @@ const useStyles = makeStyles((theme) => ({
 }));
 export default connect((states) => ({
   userInfo: states.userInfo,
-  classes: states.classes,
+  classes: states.classDetails,
 }))(Posts);
 export { ConnectedStartADiscussion as StartADiscussion };
 
-const propsclasses = [
-  {
-    keys: ["class", "english 101", "ENGLISH 101", "English 101", "1"],
-    value: {
-      id: 1,
-      name: "English 101",
-      description: null,
-      room_number: "PCmcutuzVTDGtfWwWo2O05CO1pZz3qSA",
-      frequency: "DAILY",
-      date_from: null,
-      date_to: null,
-      time_from: "08:00:00",
-      time_to: "09:00:00",
-      next_schedule: {
-        id: 311,
-        from: "2020-07-03 08:00:00",
-        to: "2020-07-03 09:00:00",
-        status: "PENDING",
-      },
-      subject: { id: 1, name: "English" },
-      teacher: {
-        id: 1,
-        first_name: "Teacher",
-        last_name: "Jenelyn",
-        pic: "blob:http://localhost:3000/a9550f4f-8036-4742-850f-b58eaf890775",
-      },
-      theme: "#424a9a",
-    },
-    content: "English 101",
-  },
-  {
-    keys: ["class", "math 101", "MATH 101", "Math 101", "2"],
-    value: {
-      id: 2,
-      name: "Math 101",
-      description: null,
-      room_number: "plVOp71UJRPm5CrAsC4mMVGdpdOO0hn4",
-      frequency: "DAILY",
-      date_from: null,
-      date_to: null,
-      time_from: "09:00:00",
-      time_to: "10:00:00",
-      next_schedule: {
-        id: 512,
-        from: "2020-07-03 09:00:00",
-        to: "2020-07-03 10:00:00",
-        status: "PENDING",
-      },
-      subject: { id: 6, name: "Math" },
-      teacher: {
-        id: 1,
-        first_name: "Teacher",
-        last_name: "Jenelyn",
-        pic: "blob:http://localhost:3000/a9550f4f-8036-4742-850f-b58eaf890775",
-      },
-      theme: "#67c6bc",
-    },
-    content: "Math 101",
-  },
-  {
-    keys: ["class", "science 101", "SCIENCE 101", "Science 101", "3"],
-    value: {
-      id: 3,
-      name: "Science 101",
-      description: null,
-      room_number: "OkWhSfEqRPoC8aRo7ZfStwItdXaVN4LB",
-      frequency: "DAILY",
-      date_from: null,
-      date_to: null,
-      time_from: "10:00:00",
-      time_to: "11:00:00",
-      next_schedule: {
-        id: 713,
-        from: "2020-07-03 10:00:00",
-        to: "2020-07-03 11:00:00",
-        status: "PENDING",
-      },
-      subject: { id: 2, name: "Science" },
-      teacher: {
-        id: 1,
-        first_name: "Teacher",
-        last_name: "Jenelyn",
-        pic: "blob:http://localhost:3000/a9550f4f-8036-4742-850f-b58eaf890775",
-      },
-      theme: "#a74ff8",
-    },
-    content: "Science 101",
-  },
-  {
-    keys: ["class", "geography 101", "GEOGRAPHY 101", "Geography 101", "4"],
-    value: {
-      id: 4,
-      name: "Geography 101",
-      description: null,
-      room_number: "CnSmgwMrTj6UPzblcQEqG5FiyFf8jWj2",
-      frequency: "DAILY",
-      date_from: null,
-      date_to: null,
-      time_from: "11:00:00",
-      time_to: "12:00:00",
-      next_schedule: {
-        id: 914,
-        from: "2020-07-03 11:00:00",
-        to: "2020-07-03 12:00:00",
-        status: "PENDING",
-      },
-      subject: { id: 3, name: "Geography" },
-      teacher: {
-        id: 1,
-        first_name: "Teacher",
-        last_name: "Jenelyn",
-        pic: "blob:http://localhost:3000/a9550f4f-8036-4742-850f-b58eaf890775",
-      },
-      theme: "#9a425d",
-    },
-    content: "Geography 101",
-  },
-  {
-    keys: ["class", "p.e 101", "P.E 101", "P.E 101", "5"],
-    value: {
-      id: 5,
-      name: "P.E 101",
-      description: null,
-      room_number: "NbAbhYxgbNntcW4sJRaB6VBWgQZqOyFX",
-      frequency: "DAILY",
-      date_from: null,
-      date_to: null,
-      time_from: "12:00:00",
-      time_to: "13:00:00",
-      next_schedule: {
-        id: 1115,
-        from: "2020-07-03 12:00:00",
-        to: "2020-07-03 13:00:00",
-        status: "PENDING",
-      },
-      subject: { id: 4, name: "P.E" },
-      teacher: {
-        id: 1,
-        first_name: "Teacher",
-        last_name: "Jenelyn",
-        pic: "blob:http://localhost:3000/a9550f4f-8036-4742-850f-b58eaf890775",
-      },
-      theme: "#1d8568",
-    },
-    content: "P.E 101",
-  },
-  {
-    keys: ["class", "recess 101", "RECESS 101", "Recess 101", "6"],
-    value: {
-      id: 6,
-      name: "Recess 101",
-      description: null,
-      room_number: "H6JAKpNod2f0QUhWH8sSBefq2x1MsIVo",
-      frequency: "DAILY",
-      date_from: null,
-      date_to: null,
-      time_from: "13:00:00",
-      time_to: "14:00:00",
-      next_schedule: {
-        id: 1316,
-        from: "2020-07-03 13:00:00",
-        to: "2020-07-03 14:00:00",
-        status: "PENDING",
-      },
-      subject: { id: 5, name: "Recess" },
-      teacher: {
-        id: 1,
-        first_name: "Teacher",
-        last_name: "Jenelyn",
-        pic: "blob:http://localhost:3000/a9550f4f-8036-4742-850f-b58eaf890775",
-      },
-      theme: "#e16b45",
-    },
-    content: "Recess 101",
-  },
-];
 const toolbarcontrols = [
   "title",
   "bold",
@@ -731,370 +560,4 @@ const inlinetoolbarcontrols = [
   "underline",
   "strikethrough",
   "highlight",
-];
-
-const students = [
-  {
-    id: 11,
-    first_name: "Student",
-    last_name: "Jenelyn",
-    school_id: 1,
-    user_type: "s",
-    username: "sjenelyn",
-    email: null,
-    phone_number: 12345678,
-    status: 1,
-  },
-  {
-    id: 12,
-    first_name: "Student",
-    last_name: "Davy Jones",
-    school_id: 1,
-    user_type: "s",
-    username: "sdavyjones",
-    email: null,
-    phone_number: 12345679,
-    status: 1,
-  },
-  {
-    id: 13,
-    first_name: "Student",
-    last_name: "Grace",
-    school_id: 1,
-    user_type: "s",
-    username: "sgrace",
-    email: null,
-    phone_number: 12345680,
-    status: 1,
-  },
-  {
-    id: 14,
-    first_name: "Student",
-    last_name: "Jayson",
-    school_id: 1,
-    user_type: "s",
-    username: "sjayson",
-    email: null,
-    phone_number: 12345681,
-    status: 1,
-  },
-  {
-    id: 15,
-    first_name: "Student",
-    last_name: "Vhen Joseph",
-    school_id: 1,
-    user_type: "s",
-    username: "svhenjoseph",
-    email: null,
-    phone_number: 12345682,
-    status: 1,
-  },
-  {
-    id: 16,
-    first_name: "Student",
-    last_name: "Catherine",
-    school_id: 1,
-    user_type: "s",
-    username: "scatherine",
-    email: null,
-    phone_number: 12345683,
-    status: 1,
-  },
-  {
-    id: 17,
-    first_name: "Student",
-    last_name: "Dhame",
-    school_id: 1,
-    user_type: "s",
-    username: "sdhame",
-    email: null,
-    phone_number: 12345684,
-    status: 1,
-  },
-  {
-    id: 18,
-    first_name: "Student",
-    last_name: "Jacque",
-    school_id: 1,
-    user_type: "s",
-    username: "sjacque",
-    email: null,
-    phone_number: 12345685,
-    status: 1,
-  },
-  {
-    id: 19,
-    first_name: "Student",
-    last_name: "Tom",
-    school_id: 1,
-    user_type: "s",
-    username: "stom",
-    email: null,
-    phone_number: 12345686,
-    status: 1,
-  },
-  {
-    id: 20,
-    first_name: "Student",
-    last_name: "Mark",
-    school_id: 1,
-    user_type: "s",
-    username: "smark",
-    email: null,
-    phone_number: 12345687,
-    status: 1,
-  },
-  {
-    id: 51,
-    first_name: "Student",
-    last_name: "Jenelyn",
-    school_id: 1,
-    user_type: "s",
-    username: "sjenelyn2",
-    email: null,
-    phone_number: 12345678,
-    status: 1,
-  },
-  {
-    id: 52,
-    first_name: "Student",
-    last_name: "Davy Jones",
-    school_id: 1,
-    user_type: "s",
-    username: "sdavyjones2",
-    email: null,
-    phone_number: 12345679,
-    status: 1,
-  },
-  {
-    id: 53,
-    first_name: "Student",
-    last_name: "Grace",
-    school_id: 1,
-    user_type: "s",
-    username: "sgrace2",
-    email: null,
-    phone_number: 12345680,
-    status: 1,
-  },
-  {
-    id: 54,
-    first_name: "Student",
-    last_name: "Jayson",
-    school_id: 1,
-    user_type: "s",
-    username: "sjayson2",
-    email: null,
-    phone_number: 12345681,
-    status: 1,
-  },
-  {
-    id: 55,
-    first_name: "Student",
-    last_name: "Vhen Joseph",
-    school_id: 1,
-    user_type: "s",
-    username: "svhenjoseph2",
-    email: null,
-    phone_number: 12345682,
-    status: 1,
-  },
-  {
-    id: 56,
-    first_name: "Student",
-    last_name: "Catherine",
-    school_id: 1,
-    user_type: "s",
-    username: "scatherine2",
-    email: null,
-    phone_number: 12345683,
-    status: 1,
-  },
-  {
-    id: 57,
-    first_name: "Student",
-    last_name: "Dhame",
-    school_id: 1,
-    user_type: "s",
-    username: "sdhame2",
-    email: null,
-    phone_number: 12345684,
-    status: 1,
-  },
-  {
-    id: 58,
-    first_name: "Student",
-    last_name: "Jacque",
-    school_id: 1,
-    user_type: "s",
-    username: "sjacque2",
-    email: null,
-    phone_number: 12345685,
-    status: 1,
-  },
-  {
-    id: 59,
-    first_name: "Student",
-    last_name: "Tom",
-    school_id: 1,
-    user_type: "s",
-    username: "stom2",
-    email: null,
-    phone_number: 12345686,
-    status: 1,
-  },
-  {
-    id: 60,
-    first_name: "Student",
-    last_name: "Mark",
-    school_id: 1,
-    user_type: "s",
-    username: "smark2",
-    email: null,
-    phone_number: 12345687,
-    status: 1,
-  },
-  {
-    id: 71,
-    first_name: "Jayvilea",
-    last_name: "Siton",
-    school_id: 1,
-    user_type: "s",
-    username: "jsiton",
-    email: null,
-    phone_number: 12345688,
-    status: 1,
-  },
-  {
-    id: 72,
-    first_name: "Myrna",
-    last_name: "Epe",
-    school_id: 1,
-    user_type: "s",
-    username: "mepe",
-    email: null,
-    phone_number: 12345689,
-    status: 1,
-  },
-  {
-    id: 73,
-    first_name: "Niña Mae",
-    last_name: "Manto",
-    school_id: 1,
-    user_type: "s",
-    username: "nmmanto",
-    email: null,
-    phone_number: 12345690,
-    status: 1,
-  },
-  {
-    id: 74,
-    first_name: "Gina",
-    last_name: "Lacanaria",
-    school_id: 1,
-    user_type: "s",
-    username: "glacanaria",
-    email: null,
-    phone_number: 12345691,
-    status: 1,
-  },
-  {
-    id: 75,
-    first_name: "Donabella",
-    last_name: "Caballero",
-    school_id: 1,
-    user_type: "s",
-    username: "dcaballero",
-    email: null,
-    phone_number: 12345692,
-    status: 1,
-  },
-  {
-    id: 76,
-    first_name: "Dona Jill",
-    last_name: "Jabon",
-    school_id: 1,
-    user_type: "s",
-    username: "djjabon",
-    email: null,
-    phone_number: 12345693,
-    status: 1,
-  },
-  {
-    id: 77,
-    first_name: "Daniella",
-    last_name: "Pahugot",
-    school_id: 1,
-    user_type: "s",
-    username: "dpahugot",
-    email: null,
-    phone_number: 12345694,
-    status: 1,
-  },
-  {
-    id: 78,
-    first_name: "Sylvia",
-    last_name: "Batac",
-    school_id: 1,
-    user_type: "s",
-    username: "sbatac",
-    email: null,
-    phone_number: 12345695,
-    status: 1,
-  },
-  {
-    id: 79,
-    first_name: "Diane",
-    last_name: "Gadje",
-    school_id: 1,
-    user_type: "s",
-    username: "dgadje",
-    email: null,
-    phone_number: 12345696,
-    status: 1,
-  },
-  {
-    id: 80,
-    first_name: "Sheina",
-    last_name: "Yoo",
-    school_id: 1,
-    user_type: "s",
-    username: "syoo",
-    email: null,
-    phone_number: 12345697,
-    status: 1,
-  },
-  {
-    id: 81,
-    first_name: "Leo",
-    last_name: "Celes",
-    school_id: 1,
-    user_type: "s",
-    username: "lceles",
-    email: null,
-    phone_number: 12345698,
-    status: 1,
-  },
-  {
-    id: 82,
-    first_name: "Efren",
-    last_name: "Encarguez",
-    school_id: 1,
-    user_type: "s",
-    username: "eencarguez",
-    email: null,
-    phone_number: 12345699,
-    status: 1,
-  },
-  {
-    id: 83,
-    first_name: "Susan",
-    last_name: "Encarguez",
-    school_id: 1,
-    user_type: "s",
-    username: "sencarguez",
-    email: null,
-    phone_number: 12345700,
-    status: 1,
-  },
 ];
