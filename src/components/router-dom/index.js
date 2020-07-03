@@ -19,7 +19,9 @@ import CreateOutlinedIcon from "@material-ui/icons/CreateOutlined";
 import PeopleOutlinedIcon from "@material-ui/icons/PeopleOutlined";
 import NoteAddOutlinedIcon from "@material-ui/icons/NoteAddOutlined";
 import AnswerQuiz from "../../screens/class/AnswerQuiz";
+import MenuBookOutlinedIcon from "@material-ui/icons/MenuBookOutlined";
 import QuestionAnswerOutlinedIcon from "@material-ui/icons/QuestionAnswerOutlined";
+import DvrOutlinedIcon from "@material-ui/icons/DvrOutlined";
 export function makeLinkTo(path, options = {}, relative = false) {
   path = path.map((p) => (options[p] != null ? options[p] : p));
   return (
@@ -79,7 +81,7 @@ export const rightPanelOptions = [
   },
   {
     title: "Questionnaire",
-    icon: <EventNoteOutlinedIcon />,
+    icon: <DvrOutlinedIcon />,
     screen: CreateQuestionnaire,
     children: [
       {
@@ -99,7 +101,7 @@ export const rightPanelOptions = [
   {
     title: "Instructional Materials",
     link: "instructional-materials",
-    icon: <EventNoteOutlinedIcon />,
+    icon: <MenuBookOutlinedIcon />,
     screen: InstructionalMaterials,
   },
   {
@@ -156,7 +158,7 @@ export const rightPanelOptionsStudents = [
   {
     title: "Lesson Materials",
     link: "instructional-materials",
-    icon: <EventNoteOutlinedIcon />,
+    icon: <MenuBookOutlinedIcon />,
     screen: InstructionalMaterials,
   },
   {
