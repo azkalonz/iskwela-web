@@ -329,7 +329,7 @@ function StartADiscussion(props) {
 }
 const ConnectedStartADiscussion = connect((states) => ({
   userInfo: states.userInfo,
-  classes: states.classes,
+  classes: states.classDetails,
 }))(StartADiscussion);
 
 function WriteAComment(props) {
@@ -454,11 +454,6 @@ function Discussion(props) {
     </Paper>
   );
 }
-const ConnectedDiscussion = connect((states) => ({
-  userInfo: states.userInfo,
-  classes: states.classes,
-  pics: states.pics,
-}))(Discussion);
 function WhatsDue(props) {
   return (
     <Paper>
@@ -479,39 +474,45 @@ function Posts(props) {
   const isTablet = useMediaQuery(theme.breakpoints.down("md"));
   return (
     <React.Fragment>
-      <Box p={2}>
-        <Box
-          display="flex"
-          justifyContent="space-between"
-          alignItems="flex-start"
-        >
-          <Box width="100%">
-            <ConnectedStartADiscussion class={props.classes[class_id]}>
-              <IconButton>
-                <Icon>insert_photo</Icon>
-              </IconButton>
-            </ConnectedStartADiscussion>
-            {isTablet && (
-              <Box width="100%" style={{ marginTop: 13 }}>
+      {props.classes[class_id] && props.classes[class_id].students && (
+        <Box p={2}>
+          <Box
+            display="flex"
+            justifyContent="space-between"
+            alignItems="flex-start"
+          >
+            <Box width="100%">
+              <ConnectedStartADiscussion class={props.classes[class_id]}>
+                <IconButton>
+                  <Icon>insert_photo</Icon>
+                </IconButton>
+              </ConnectedStartADiscussion>
+              {isTablet && (
+                <Box width="100%" style={{ marginTop: 13 }}>
+                  <WhatsDue />
+                </Box>
+              )}
+              <Discussion
+                userInfo={props.userInfo}
+                pics={props.pics}
+                class={props.classes[class_id]}
+                value='{"blocks":[{"key":"c602k","text":"Submission of Activities","type":"header-two","depth":0,"inlineStyleRanges":[],"entityRanges":[],"data":{}},{"key":"4pbnh","text":"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.","type":"unstyled","depth":0,"inlineStyleRanges":[],"entityRanges":[],"data":{}},{"key":"df51u","text":"","type":"unstyled","depth":0,"inlineStyleRanges":[],"entityRanges":[],"data":{}},{"key":"6chnj","text":"Activities","type":"unstyled","depth":0,"inlineStyleRanges":[{"offset":0,"length":10,"style":"BOLD"}],"entityRanges":[],"data":{}},{"key":"7upst","text":"Activity # 1","type":"unordered-list-item","depth":0,"inlineStyleRanges":[],"entityRanges":[],"data":{}},{"key":"7luks","text":"Activity # 2","type":"unordered-list-item","depth":0,"inlineStyleRanges":[],"entityRanges":[],"data":{}},{"key":"emnbv","text":"Activity # 3","type":"unordered-list-item","depth":0,"inlineStyleRanges":[],"entityRanges":[],"data":{}},{"key":"esgh0","text":"","type":"unstyled","depth":0,"inlineStyleRanges":[],"entityRanges":[],"data":{}},{"key":"a6euv","text":" ","type":"atomic","depth":0,"inlineStyleRanges":[],"entityRanges":[{"offset":0,"length":1,"key":0}],"data":{}},{"key":"5f556","text":"","type":"unstyled","depth":0,"inlineStyleRanges":[],"entityRanges":[],"data":{}},{"key":"1tsfk","text":"@smark ","type":"unstyled","depth":0,"inlineStyleRanges":[],"entityRanges":[{"offset":0,"length":6,"key":1}],"data":{}}],"entityMap":{"0":{"type":"CLASS","mutability":"IMMUTABLE","data":{"value":{"id":1,"name":"English 101","description":null,"room_number":"PCmcutuzVTDGtfWwWo2O05CO1pZz3qSA","frequency":"DAILY","date_from":null,"date_to":null,"time_from":"08:00:00","time_to":"09:00:00","next_schedule":{"id":311,"from":"2020-07-03 08:00:00","to":"2020-07-03 09:00:00","status":"PENDING"},"subject":{"id":1,"name":"English"},"teacher":{"id":1,"first_name":"Teacher","last_name":"Jenelyn","pic":"blob:http://localhost:3000/a9550f4f-8036-4742-850f-b58eaf890775"},"theme":"#424a9a"}}},"1":{"type":"AC_ITEM","mutability":"IMMUTABLE","data":{}}}}'
+              />
+              <Discussion
+                userInfo={props.userInfo}
+                pics={props.pics}
+                class={props.classes[class_id]}
+                value='{"blocks":[{"key":"8dl04","text":"Editor Features","type":"unstyled","depth":0,"inlineStyleRanges":[],"entityRanges":[],"data":{}},{"key":"2if2v","text":"","type":"unstyled","depth":0,"inlineStyleRanges":[],"entityRanges":[],"data":{}},{"key":"emch8","text":"Tag user","type":"unstyled","depth":0,"inlineStyleRanges":[],"entityRanges":[],"data":{}},{"key":"34opk","text":"@sjenelyn @sgrace @svhenjoseph ","type":"unstyled","depth":0,"inlineStyleRanges":[],"entityRanges":[{"offset":0,"length":9,"key":0},{"offset":10,"length":7,"key":1},{"offset":18,"length":12,"key":2}],"data":{}},{"key":"2sfr","text":"@sdavyjones  ","type":"unstyled","depth":0,"inlineStyleRanges":[],"entityRanges":[{"offset":0,"length":11,"key":3}],"data":{}},{"key":"2lkes","text":"#HashTag","type":"unstyled","depth":0,"inlineStyleRanges":[],"entityRanges":[],"data":{}},{"key":"5lkgn","text":"http://link.com","type":"unstyled","depth":0,"inlineStyleRanges":[],"entityRanges":[],"data":{}},{"key":"9rpo9","text":"","type":"unstyled","depth":0,"inlineStyleRanges":[],"entityRanges":[],"data":{}},{"key":"52v8","text":"Custom element","type":"unstyled","depth":0,"inlineStyleRanges":[{"offset":0,"length":14,"style":"BOLD"}],"entityRanges":[],"data":{}},{"key":"6rkg9","text":"Class Schedule Card","type":"unstyled","depth":0,"inlineStyleRanges":[],"entityRanges":[],"data":{}},{"key":"d4e6d","text":"","type":"unstyled","depth":0,"inlineStyleRanges":[],"entityRanges":[],"data":{}},{"key":"6hba1","text":" ","type":"atomic","depth":0,"inlineStyleRanges":[],"entityRanges":[{"offset":0,"length":1,"key":4}],"data":{}},{"key":"ae22q","text":"","type":"unstyled","depth":0,"inlineStyleRanges":[],"entityRanges":[],"data":{}},{"key":"9ktnl","text":"","type":"unstyled","depth":0,"inlineStyleRanges":[],"entityRanges":[],"data":{}},{"key":"8a7f3","text":" ","type":"atomic","depth":0,"inlineStyleRanges":[],"entityRanges":[{"offset":0,"length":1,"key":5}],"data":{}},{"key":"9pijt","text":"","type":"unstyled","depth":0,"inlineStyleRanges":[],"entityRanges":[],"data":{}},{"key":"b45mr","text":"Title","type":"header-two","depth":0,"inlineStyleRanges":[],"entityRanges":[],"data":{}},{"key":"15hbp","text":"Bold","type":"unstyled","depth":0,"inlineStyleRanges":[{"offset":0,"length":4,"style":"BOLD"}],"entityRanges":[],"data":{}},{"key":"eupst","text":"Italic","type":"unstyled","depth":0,"inlineStyleRanges":[{"offset":0,"length":6,"style":"ITALIC"}],"entityRanges":[],"data":{}},{"key":"ibur","text":"Underlined","type":"unstyled","depth":0,"inlineStyleRanges":[{"offset":0,"length":10,"style":"UNDERLINE"}],"entityRanges":[],"data":{}},{"key":"54k6r","text":"Strike-through","type":"unstyled","depth":0,"inlineStyleRanges":[{"offset":0,"length":14,"style":"STRIKETHROUGH"}],"entityRanges":[],"data":{}},{"key":"aptaj","text":"Combination","type":"unstyled","depth":0,"inlineStyleRanges":[{"offset":0,"length":11,"style":"STRIKETHROUGH"},{"offset":0,"length":11,"style":"UNDERLINE"},{"offset":0,"length":11,"style":"ITALIC"},{"offset":0,"length":11,"style":"BOLD"}],"entityRanges":[],"data":{}},{"key":"9rdji","text":"Highlight Text","type":"unstyled","depth":0,"inlineStyleRanges":[{"offset":0,"length":14,"style":"HIGHLIGHT"}],"entityRanges":[],"data":{}},{"key":"8kt99","text":"Inline Toolbar","type":"unstyled","depth":0,"inlineStyleRanges":[],"entityRanges":[],"data":{}},{"key":"2ad3a","text":"Ordered List","type":"ordered-list-item","depth":0,"inlineStyleRanges":[],"entityRanges":[],"data":{}},{"key":"6j12l","text":"Unordered List","type":"unordered-list-item","depth":0,"inlineStyleRanges":[],"entityRanges":[],"data":{}},{"key":"baj0p","text":"A ","type":"blockquote","depth":0,"inlineStyleRanges":[],"entityRanges":[],"data":{}},{"key":"asn81","text":"Quote","type":"blockquote","depth":0,"inlineStyleRanges":[],"entityRanges":[],"data":{}}],"entityMap":{"0":{"type":"AC_ITEM","mutability":"IMMUTABLE","data":{}},"1":{"type":"AC_ITEM","mutability":"IMMUTABLE","data":{}},"2":{"type":"AC_ITEM","mutability":"IMMUTABLE","data":{}},"3":{"type":"AC_ITEM","mutability":"IMMUTABLE","data":{}},"4":{"type":"CLASS","mutability":"IMMUTABLE","data":{"value":{"id":1,"name":"English 101","description":null,"room_number":"PCmcutuzVTDGtfWwWo2O05CO1pZz3qSA","frequency":"DAILY","date_from":null,"date_to":null,"time_from":"08:00:00","time_to":"09:00:00","next_schedule":{"id":311,"from":"2020-07-03 08:00:00","to":"2020-07-03 09:00:00","status":"PENDING"},"subject":{"id":1,"name":"English"},"teacher":{"id":1,"first_name":"Teacher","last_name":"Jenelyn","pic":"blob:http://localhost:3000/a9550f4f-8036-4742-850f-b58eaf890775"},"theme":"#424a9a"}}},"5":{"type":"CLASS","mutability":"IMMUTABLE","data":{"value":{"id":3,"name":"Science 101","description":null,"room_number":"OkWhSfEqRPoC8aRo7ZfStwItdXaVN4LB","frequency":"DAILY","date_from":null,"date_to":null,"time_from":"10:00:00","time_to":"11:00:00","next_schedule":{"id":713,"from":"2020-07-03 10:00:00","to":"2020-07-03 11:00:00","status":"PENDING"},"subject":{"id":2,"name":"Science"},"teacher":{"id":1,"first_name":"Teacher","last_name":"Jenelyn","pic":"blob:http://localhost:3000/a9550f4f-8036-4742-850f-b58eaf890775"},"theme":"#a74ff8"}}}}}'
+              />
+            </Box>
+            {!isTablet && (
+              <Box minWidth={300} marginLeft={1} position="sticky" top={60}>
                 <WhatsDue />
               </Box>
             )}
-            <ConnectedDiscussion
-              class={props.classes[class_id]}
-              value='{"blocks":[{"key":"c602k","text":"Submission of Activities","type":"header-two","depth":0,"inlineStyleRanges":[],"entityRanges":[],"data":{}},{"key":"4pbnh","text":"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.","type":"unstyled","depth":0,"inlineStyleRanges":[],"entityRanges":[],"data":{}},{"key":"df51u","text":"","type":"unstyled","depth":0,"inlineStyleRanges":[],"entityRanges":[],"data":{}},{"key":"6chnj","text":"Activities","type":"unstyled","depth":0,"inlineStyleRanges":[{"offset":0,"length":10,"style":"BOLD"}],"entityRanges":[],"data":{}},{"key":"7upst","text":"Activity # 1","type":"unordered-list-item","depth":0,"inlineStyleRanges":[],"entityRanges":[],"data":{}},{"key":"7luks","text":"Activity # 2","type":"unordered-list-item","depth":0,"inlineStyleRanges":[],"entityRanges":[],"data":{}},{"key":"emnbv","text":"Activity # 3","type":"unordered-list-item","depth":0,"inlineStyleRanges":[],"entityRanges":[],"data":{}},{"key":"esgh0","text":"","type":"unstyled","depth":0,"inlineStyleRanges":[],"entityRanges":[],"data":{}},{"key":"a6euv","text":" ","type":"atomic","depth":0,"inlineStyleRanges":[],"entityRanges":[{"offset":0,"length":1,"key":0}],"data":{}},{"key":"5f556","text":"","type":"unstyled","depth":0,"inlineStyleRanges":[],"entityRanges":[],"data":{}},{"key":"1tsfk","text":"@smark ","type":"unstyled","depth":0,"inlineStyleRanges":[],"entityRanges":[{"offset":0,"length":6,"key":1}],"data":{}}],"entityMap":{"0":{"type":"CLASS","mutability":"IMMUTABLE","data":{"value":{"id":1,"name":"English 101","description":null,"room_number":"PCmcutuzVTDGtfWwWo2O05CO1pZz3qSA","frequency":"DAILY","date_from":null,"date_to":null,"time_from":"08:00:00","time_to":"09:00:00","next_schedule":{"id":311,"from":"2020-07-03 08:00:00","to":"2020-07-03 09:00:00","status":"PENDING"},"subject":{"id":1,"name":"English"},"teacher":{"id":1,"first_name":"Teacher","last_name":"Jenelyn","pic":"blob:http://localhost:3000/a9550f4f-8036-4742-850f-b58eaf890775"},"theme":"#424a9a"}}},"1":{"type":"AC_ITEM","mutability":"IMMUTABLE","data":{}}}}'
-            />
-            <ConnectedDiscussion
-              class={props.classes[class_id]}
-              value='{"blocks":[{"key":"8dl04","text":"Editor Features","type":"unstyled","depth":0,"inlineStyleRanges":[],"entityRanges":[],"data":{}},{"key":"2if2v","text":"","type":"unstyled","depth":0,"inlineStyleRanges":[],"entityRanges":[],"data":{}},{"key":"emch8","text":"Tag user","type":"unstyled","depth":0,"inlineStyleRanges":[],"entityRanges":[],"data":{}},{"key":"34opk","text":"@sjenelyn @sgrace @svhenjoseph ","type":"unstyled","depth":0,"inlineStyleRanges":[],"entityRanges":[{"offset":0,"length":9,"key":0},{"offset":10,"length":7,"key":1},{"offset":18,"length":12,"key":2}],"data":{}},{"key":"2sfr","text":"@sdavyjones  ","type":"unstyled","depth":0,"inlineStyleRanges":[],"entityRanges":[{"offset":0,"length":11,"key":3}],"data":{}},{"key":"2lkes","text":"#HashTag","type":"unstyled","depth":0,"inlineStyleRanges":[],"entityRanges":[],"data":{}},{"key":"5lkgn","text":"http://link.com","type":"unstyled","depth":0,"inlineStyleRanges":[],"entityRanges":[],"data":{}},{"key":"9rpo9","text":"","type":"unstyled","depth":0,"inlineStyleRanges":[],"entityRanges":[],"data":{}},{"key":"52v8","text":"Custom element","type":"unstyled","depth":0,"inlineStyleRanges":[{"offset":0,"length":14,"style":"BOLD"}],"entityRanges":[],"data":{}},{"key":"6rkg9","text":"Class Schedule Card","type":"unstyled","depth":0,"inlineStyleRanges":[],"entityRanges":[],"data":{}},{"key":"d4e6d","text":"","type":"unstyled","depth":0,"inlineStyleRanges":[],"entityRanges":[],"data":{}},{"key":"6hba1","text":" ","type":"atomic","depth":0,"inlineStyleRanges":[],"entityRanges":[{"offset":0,"length":1,"key":4}],"data":{}},{"key":"ae22q","text":"","type":"unstyled","depth":0,"inlineStyleRanges":[],"entityRanges":[],"data":{}},{"key":"9ktnl","text":"","type":"unstyled","depth":0,"inlineStyleRanges":[],"entityRanges":[],"data":{}},{"key":"8a7f3","text":" ","type":"atomic","depth":0,"inlineStyleRanges":[],"entityRanges":[{"offset":0,"length":1,"key":5}],"data":{}},{"key":"9pijt","text":"","type":"unstyled","depth":0,"inlineStyleRanges":[],"entityRanges":[],"data":{}},{"key":"b45mr","text":"Title","type":"header-two","depth":0,"inlineStyleRanges":[],"entityRanges":[],"data":{}},{"key":"15hbp","text":"Bold","type":"unstyled","depth":0,"inlineStyleRanges":[{"offset":0,"length":4,"style":"BOLD"}],"entityRanges":[],"data":{}},{"key":"eupst","text":"Italic","type":"unstyled","depth":0,"inlineStyleRanges":[{"offset":0,"length":6,"style":"ITALIC"}],"entityRanges":[],"data":{}},{"key":"ibur","text":"Underlined","type":"unstyled","depth":0,"inlineStyleRanges":[{"offset":0,"length":10,"style":"UNDERLINE"}],"entityRanges":[],"data":{}},{"key":"54k6r","text":"Strike-through","type":"unstyled","depth":0,"inlineStyleRanges":[{"offset":0,"length":14,"style":"STRIKETHROUGH"}],"entityRanges":[],"data":{}},{"key":"aptaj","text":"Combination","type":"unstyled","depth":0,"inlineStyleRanges":[{"offset":0,"length":11,"style":"STRIKETHROUGH"},{"offset":0,"length":11,"style":"UNDERLINE"},{"offset":0,"length":11,"style":"ITALIC"},{"offset":0,"length":11,"style":"BOLD"}],"entityRanges":[],"data":{}},{"key":"9rdji","text":"Highlight Text","type":"unstyled","depth":0,"inlineStyleRanges":[{"offset":0,"length":14,"style":"HIGHLIGHT"}],"entityRanges":[],"data":{}},{"key":"8kt99","text":"Inline Toolbar","type":"unstyled","depth":0,"inlineStyleRanges":[],"entityRanges":[],"data":{}},{"key":"2ad3a","text":"Ordered List","type":"ordered-list-item","depth":0,"inlineStyleRanges":[],"entityRanges":[],"data":{}},{"key":"6j12l","text":"Unordered List","type":"unordered-list-item","depth":0,"inlineStyleRanges":[],"entityRanges":[],"data":{}},{"key":"baj0p","text":"A ","type":"blockquote","depth":0,"inlineStyleRanges":[],"entityRanges":[],"data":{}},{"key":"asn81","text":"Quote","type":"blockquote","depth":0,"inlineStyleRanges":[],"entityRanges":[],"data":{}}],"entityMap":{"0":{"type":"AC_ITEM","mutability":"IMMUTABLE","data":{}},"1":{"type":"AC_ITEM","mutability":"IMMUTABLE","data":{}},"2":{"type":"AC_ITEM","mutability":"IMMUTABLE","data":{}},"3":{"type":"AC_ITEM","mutability":"IMMUTABLE","data":{}},"4":{"type":"CLASS","mutability":"IMMUTABLE","data":{"value":{"id":1,"name":"English 101","description":null,"room_number":"PCmcutuzVTDGtfWwWo2O05CO1pZz3qSA","frequency":"DAILY","date_from":null,"date_to":null,"time_from":"08:00:00","time_to":"09:00:00","next_schedule":{"id":311,"from":"2020-07-03 08:00:00","to":"2020-07-03 09:00:00","status":"PENDING"},"subject":{"id":1,"name":"English"},"teacher":{"id":1,"first_name":"Teacher","last_name":"Jenelyn","pic":"blob:http://localhost:3000/a9550f4f-8036-4742-850f-b58eaf890775"},"theme":"#424a9a"}}},"5":{"type":"CLASS","mutability":"IMMUTABLE","data":{"value":{"id":3,"name":"Science 101","description":null,"room_number":"OkWhSfEqRPoC8aRo7ZfStwItdXaVN4LB","frequency":"DAILY","date_from":null,"date_to":null,"time_from":"10:00:00","time_to":"11:00:00","next_schedule":{"id":713,"from":"2020-07-03 10:00:00","to":"2020-07-03 11:00:00","status":"PENDING"},"subject":{"id":2,"name":"Science"},"teacher":{"id":1,"first_name":"Teacher","last_name":"Jenelyn","pic":"blob:http://localhost:3000/a9550f4f-8036-4742-850f-b58eaf890775"},"theme":"#a74ff8"}}}}}'
-            />
           </Box>
-          {!isTablet && (
-            <Box minWidth={300} marginLeft={1} position="sticky" top={60}>
-              <WhatsDue />
-            </Box>
-          )}
         </Box>
-      </Box>
+      )}
     </React.Fragment>
   );
 }
