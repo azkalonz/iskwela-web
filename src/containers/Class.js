@@ -59,7 +59,6 @@ function setPanelIds(panel, i = 0) {
 }
 const rightPanelOptions = setPanelIds(teacherPanel);
 const rightPanelOptionsStudents = setPanelIds(studentPanel);
-console.log(rightPanelOptions);
 
 function ClassRightPanel(props) {
   const { option_name, class_id } = props.match.params;
@@ -221,7 +220,9 @@ function Class(props) {
                   : "panel-option"
               }
               button
-              style={{ ...(p.isChild ? { paddingLeft: 71 } : {}) }}
+              style={{
+                ...(p.isChild && !p.shrink ? { paddingLeft: 71 } : {}),
+              }}
             >
               {!p.isChild && <ListItemIcon>{p.icon}</ListItemIcon>}
               <ListItemText primary={p.title} />
@@ -254,7 +255,13 @@ function Class(props) {
           {p.children &&
             Object.keys(p.children)
               .filter((s) => !p.children[s].hidden)
-              .map((k, id) => panelOption({ ...p.children[k], isChild: true }))}
+              .map((k, id) =>
+                panelOption({
+                  ...p.children[k],
+                  isChild: true,
+                  ...(p.shrink ? { shrink: p.shrink } : {}),
+                })
+              )}
         </div>
       </div>
     );
@@ -356,25 +363,24 @@ function Class(props) {
       displayName: props.userInfo.first_name + " " + props.userInfo.last_name,
     };
   };
-
-  return (
-    <div>
-      <Drawer {...props}>
-        <Box
-          flexDirection="row"
-          alignContent="center"
-          display="flex"
-          minHeight="100vh"
-        >
-          <Slide
-            direction="right"
-            in={collapsePanel}
-            mountOnEnter
-            unmountOnExit
-            style={{ height: "100vh", overflow: "auto" }}
-          >
-            <Box className={styles.panel} width="100vw">
-              {CLASS !== undefined && props.classDetails[class_id] ? (
+  const RightPanel = (opts = {}) => {
+    return (
+      <Slide
+        direction="right"
+        in={opts.open || collapsePanel}
+        mountOnEnter
+        unmountOnExit
+        style={{
+          height: "100vh",
+          overflow: "auto",
+          transition: "all 0.3s ease-out!important",
+          width: opts.mini === true ? 75 : 330,
+        }}
+      >
+        <Box className={styles.panel} width="100vw">
+          {CLASS !== undefined && props.classDetails[class_id] ? (
+            <React.Fragment>
+              {!opts.mini && (
                 <React.Fragment>
                   <Paper
                     className="box-container"
@@ -604,51 +610,73 @@ function Class(props) {
                       </Box>
                     </Box>
                   </Paper>
-                  <Paper
-                    className="box-container"
-                    style={{
-                      minHeight: "100%",
-                      background: props.classes[class_id].theme,
-                    }}
-                  >
-                    <List
-                      component="nav"
-                      aria-labelledby="nested-list-subheader"
-                    >
-                      {isTeacher
-                        ? rightPanelOptions
-                            .filter((s) => !s.hidden)
-                            .map((r, id) =>
-                              panelOption({ ...r, isChild: false })
-                            )
-                        : rightPanelOptionsStudents
-                            .filter((s) => !s.hidden)
-                            .map((r, id) =>
-                              panelOption({ ...r, isChild: false })
-                            )}
-                    </List>
-                  </Paper>
                 </React.Fragment>
-              ) : (
-                <Paper
-                  className="box-container"
-                  style={{
-                    minHeight: "100vh",
-                    background: props.classes[class_id].theme,
-                  }}
-                >
-                  <Skeleton width="100%" height={170} />
-                  <Box m={2}>
-                    <Skeleton width="100%" height={20} />
-                  </Box>
-                  <Box m={2}>
-                    <Skeleton circle={true} width={70} height={70} />
-                    <Skeleton width={100} height={20} />
-                  </Box>
-                </Paper>
               )}
-            </Box>
-          </Slide>
+
+              <Paper
+                className="box-container"
+                style={{
+                  minHeight: "100%",
+                  background: props.classes[class_id].theme,
+                }}
+              >
+                <List component="nav" aria-labelledby="nested-list-subheader">
+                  {isTeacher
+                    ? rightPanelOptions
+                        .filter((s) => !s.hidden)
+                        .map((r, id) =>
+                          panelOption({
+                            ...r,
+                            isChild: false,
+                            ...(opts.mini ? { shrink: true } : {}),
+                          })
+                        )
+                    : rightPanelOptionsStudents
+                        .filter((s) => !s.hidden)
+                        .map((r, id) =>
+                          panelOption({
+                            ...r,
+                            isChild: false,
+                            ...(opts.mini ? { shrink: true } : {}),
+                          })
+                        )}
+                </List>
+              </Paper>
+            </React.Fragment>
+          ) : (
+            <Paper
+              className="box-container"
+              style={{
+                minHeight: "100vh",
+                background: props.classes[class_id].theme,
+              }}
+            >
+              <Skeleton width="100%" height={170} />
+              <Box m={2}>
+                <Skeleton width="100%" height={20} />
+              </Box>
+              <Box m={2}>
+                <Skeleton circle={true} width={70} height={70} />
+                <Skeleton width={100} height={20} />
+              </Box>
+            </Paper>
+          )}
+        </Box>
+      </Slide>
+    );
+  };
+  return (
+    <div>
+      <Drawer {...props}>
+        <Box
+          flexDirection="row"
+          alignContent="center"
+          display="flex"
+          minHeight="100vh"
+        >
+          {collapsePanel || isMobile
+            ? RightPanel()
+            : RightPanel({ mini: true, open: true })}
           <Box
             flex={1}
             overflow="hidden auto"
@@ -809,7 +837,6 @@ const useStyles = makeStyles((theme) => ({
       color: "#fff",
       zIndex: 20,
       position: "fixed",
-      width: "80vw",
       maxWidth: 330,
       minWidth: 330,
     },
