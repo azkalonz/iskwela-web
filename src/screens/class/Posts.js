@@ -332,7 +332,7 @@ function WriteAComment(props) {
   return (
     <Box width="100%" display="flex" alignItems="flex-start">
       <Box>
-        <Avatar src="/" alt="C" />
+        <Avatar src={props.user.pic_url} alt={props.user.first_name} />
       </Box>
       <Box
         width="100%"
@@ -443,7 +443,7 @@ function Discussion(props) {
           <Comment value='{"blocks":[{"key":"dm726","text":"Hello @sjenelyn ","type":"unstyled","depth":0,"inlineStyleRanges":[],"entityRanges":[{"offset":6,"length":9,"key":0}],"data":{}}],"entityMap":{"0":{"type":"AC_ITEM","mutability":"IMMUTABLE","data":{}}}}' />
         </Box>
         <Box p={2}>
-          <WriteAComment />
+          <WriteAComment user={props.userInfo || {}} />
         </Box>
       </Box>
     </Paper>
