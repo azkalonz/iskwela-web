@@ -153,6 +153,7 @@ function Home(props) {
         <div
           className={styles.root}
           style={{
+            flex: 1,
             marginBottom: Object.keys(c.next_schedule).length
               ? !c.next_schedule.nosched && message
                 ? 60
@@ -489,12 +490,7 @@ function Home(props) {
               )
             }
           />
-          <Box
-            m={2}
-            display="flex"
-            flexWrap="wrap"
-            justifyContent={itemsPerPage / 2}
-          >
+          <Box m={2} display="flex" flexWrap="wrap" justifyContent={"center"}>
             <Box
               width="100%"
               display={isMobile ? "block" : "flex"}
