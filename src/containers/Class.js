@@ -225,9 +225,15 @@ function Class(props) {
               }}
             >
               {!p.isChild && <ListItemIcon>{p.icon}</ListItemIcon>}
-              <ListItemText primary={p.title} />
+              <ListItemText
+                primary={!p.shrink ? p.title : p.title[0]}
+                primaryTypographyProps={{
+                  style: { fontWeight: !p.shrink ? 400 : "bold" },
+                }}
+                style={{ textAlign: !p.shrink ? "left" : "center" }}
+              />
               {p.children && p.children.filter((c) => !c.hidden).length ? (
-                <ListItemSecondaryAction>
+                <ListItemSecondaryAction style={{ opacity: !p.shrink ? 1 : 0 }}>
                   <Icon id={"not-expanded-" + p.id}>navigate_next</Icon>
                   <Icon id={"is-expanded-" + p.id} style={{ display: "none" }}>
                     expand_more
