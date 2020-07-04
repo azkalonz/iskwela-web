@@ -133,7 +133,7 @@ function Drawer(props) {
                     {...item.props}
                     className="tab-btn"
                     style={{
-                      backgroundColor: item.theme,
+                      backgroundColor: item.color,
                     }}
                   >
                     <Typography variant="body1" component="h2">
@@ -180,7 +180,7 @@ function Drawer(props) {
                         {...item.props}
                         className="tab-btn"
                         style={{
-                          backgroundColor: item.theme,
+                          backgroundColor: item.color,
                         }}
                       >
                         <Typography variant="body1" component="h2">
@@ -410,7 +410,7 @@ function Drawer(props) {
                       {...item.props}
                       className="tab-btn"
                       style={{
-                        backgroundColor: item.theme,
+                        backgroundColor: item.color,
                         marginRight: 7,
                       }}
                     >
@@ -464,7 +464,7 @@ function Drawer(props) {
                           {...item.props}
                           className="tab-btn"
                           style={{
-                            backgroundColor: item.theme,
+                            backgroundColor: item.color,
                             marginRight: 7,
                           }}
                         >

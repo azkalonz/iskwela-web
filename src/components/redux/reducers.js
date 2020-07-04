@@ -21,29 +21,36 @@ const route = (state = { index: 0, title: "Class" }, payload) => {
 const classes = (state = [], payload) => {
   switch (payload.type) {
     case "SET_CLASSES":
-      const colors = [
-        "#238468",
-        "#5B539D",
-        "#444B99",
-        "#008430",
-        "#E06B47",
-        "#4E2102",
-        "#CA54A0",
-        "#1650A5",
-        "#117F7F",
-        "#4B5320",
-        "#C26F2C",
-        "#A13668",
-        "#0E6352",
-        "#492885",
-        "#7539FF",
-      ];
-      let colorID = 0;
+      const images = {
+        math: "/class/mathematics.svg",
+        english: "/class/english.svg",
+        science: {
+          random: () =>
+            ["/class/science.svg", "/class/science2.svg"][
+              Math.floor(Math.random() * 2)
+            ],
+        },
+        history: "/class/history.svg",
+      };
       Object.keys(payload.classes).forEach((k) => {
-        if (colorID > colors.length - 1) colorID = 0;
-        payload.classes[k].theme = colors[colorID++];
+        let imageID = Object.keys(images).find(
+          (kk) =>
+            payload.classes[k] &&
+            payload.classes[k].subject.name
+              .toLowerCase()
+              .indexOf(kk.toLowerCase()) >= 0
+        );
+        if (imageID)
+          payload.classes[k].image =
+            typeof images[imageID] === "string"
+              ? images[imageID]
+              : images[imageID].random();
+        else {
+          let i = images[Object.keys(images)[Math.floor(Math.random() * 4)]];
+          i = typeof i === "string" ? i : i.random();
+          payload.classes[k].image = i;
+        }
       });
-      console.log("classes", payload.classes);
       return payload.classes;
     default:
       return state;

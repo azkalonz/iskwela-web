@@ -188,7 +188,7 @@ function LoginContainer(props) {
         onClick={_handleLogin}
         className={classes.submit}
       >
-        {t("common:login.signIn")}
+        Sign In
       </Button>
     </React.Fragment>
   );

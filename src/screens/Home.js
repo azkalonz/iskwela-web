@@ -159,9 +159,17 @@ function Home(props) {
                 ? 60
                 : 0
               : 0,
+            minWidth: 300,
           }}
         >
-          <Card style={{ position: "relative", zIndex: 2, borderRadius: 17 }}>
+          <Card
+            style={{
+              position: "relative",
+              zIndex: 2,
+              borderRadius: 17,
+              width: "100%",
+            }}
+          >
             <CardActionArea
               style={{ position: "relative" }}
               onClick={() =>
@@ -172,20 +180,32 @@ function Home(props) {
                 )
               }
             >
-              <div style={{ position: "relative", cursor: "pointer" }}>
-                <CardMedia
+              <div
+                style={{
+                  position: "relative",
+                  cursor: "pointer",
+                  width: "100%",
+                }}
+              >
+                <Box
                   className={styles.media}
-                  image="/bg.jpg"
-                  title={c.name}
+                  style={{
+                    background: `url(${c.image || "/bg.jpg"}) no-repeat`,
+                    ...(c.image.indexOf("english.svg") >= 0
+                      ? { backgroundPosition: "bottom" }
+                      : {
+                          backgroundPosition: "top",
+                        }),
+                  }}
                 />
-                <div className={styles.mediaOverlay} />
+                {/* <div className={styles.mediaOverlay} /> */}
               </div>
               <CardContent style={{ position: "absolute", top: 0, left: 0 }}>
                 <Typography
                   gutterBottom
                   variant="h5"
                   component="h2"
-                  color="primary"
+                  style={{ color: "#fff", fontWeight: "bold" }}
                 >
                   {c.name}
                 </Typography>
@@ -193,7 +213,7 @@ function Home(props) {
                   gutterBottom
                   variant="body2"
                   component="h3"
-                  style={{ color: "#222" }}
+                  style={{ color: "#fff" }}
                 >
                   {c.description}
                 </Typography>
@@ -295,7 +315,7 @@ function Home(props) {
     let cardPerPage = () => {
       if (props.location.hash === "#meeting") return;
       let m = document.querySelector("main").clientWidth;
-      let p = (Math.round(m / 300) - 1) * 2;
+      let p = (Math.round(m / 300) - 1) * 3;
       setItemsPerPage(p >= 8 ? p : 10);
     };
     cardPerPage();
@@ -572,8 +592,9 @@ const useStyles = makeStyles((theme) => ({
     background: theme.palette.error.main,
   },
   media: {
-    height: 120,
-    width: 300,
+    height: 150,
+    width: "100%",
+    backgroundSize: "cover!important",
   },
   mediaOverlay: {
     background: theme.palette.common.white,

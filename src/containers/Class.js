@@ -384,11 +384,11 @@ function Class(props) {
                 <React.Fragment>
                   <Paper
                     className="box-container"
-                    style={{ background: props.classes[class_id].theme }}
+                    style={{ background: props.classes[class_id].color }}
                   >
                     <Toolbar
                       className={styles.toolbar}
-                      style={{ background: props.classes[class_id].theme }}
+                      style={{ background: props.classes[class_id].color }}
                     >
                       {isTablet && (
                         <IconButton
@@ -506,7 +506,7 @@ function Class(props) {
                   </Paper>
                   <Paper
                     className="box-container"
-                    style={{ background: props.classes[class_id].theme }}
+                    style={{ background: props.classes[class_id].color }}
                   >
                     <Box
                       p={2.2}
@@ -617,7 +617,7 @@ function Class(props) {
                 className="box-container"
                 style={{
                   minHeight: "100%",
-                  background: props.classes[class_id].theme,
+                  background: props.classes[class_id].color,
                 }}
               >
                 <List component="nav" aria-labelledby="nested-list-subheader">
@@ -648,7 +648,7 @@ function Class(props) {
               className="box-container"
               style={{
                 minHeight: "100vh",
-                background: props.classes[class_id].theme,
+                background: props.classes[class_id].color,
               }}
             >
               {collapsePanel || isMobile ? (
@@ -783,6 +783,9 @@ function Class(props) {
               alignItems="center"
               height="86%"
               justifyContent="center"
+              style={{
+                margin: !isTablet ? "0 40px" : 0,
+              }}
             >
               {rightPanelLoading && (
                 <Box

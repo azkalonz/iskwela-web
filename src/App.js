@@ -34,7 +34,7 @@ function App(props) {
 
   const theme = createMuiTheme({
     typography: {
-      fontFamily: '"NotoSansJP-Black", Helvetica, Arial, serif',
+      fontFamily: "'Work Sans', sans-serif",
     },
     overrides: {
       MuiCssBaseline: {
