@@ -30,7 +30,7 @@ const classes = (state = [], payload) => {
               Math.floor(Math.random() * 2)
             ],
         },
-        history: "/class/history.svg",
+        geography: "/class/history.svg",
       };
       Object.keys(payload.classes).forEach((k) => {
         let imageID = Object.keys(images).find(

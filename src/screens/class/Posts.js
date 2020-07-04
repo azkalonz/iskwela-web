@@ -310,10 +310,14 @@ function StartADiscussion(props) {
               <Button
                 color="secondary"
                 variant="contained"
-                style={{ boxShadow: "none", marginLeft: 13 }}
+                style={{
+                  boxShadow: "none",
+                  marginLeft: 13,
+                  fontWeight: "bold",
+                }}
                 onClick={handlePost}
               >
-                Post
+                POST
               </Button>
             </Box>
           </Box>
