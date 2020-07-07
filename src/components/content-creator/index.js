@@ -30,6 +30,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { GooglePicker } from "../dialogs";
 import socket from "../socket.io";
 import moment from "moment";
+import Api from "../../api";
 
 const screen = {
   width: window.outerWidth,
@@ -1248,7 +1249,34 @@ function ContentMaker(props) {
                             }
                           },
                         },
-                        { title: "Upload Image", icon: "insert_photo" },
+                        {
+                          title: "Upload Image",
+                          icon: "insert_photo",
+                          onClick: () => {
+                            let c = document.querySelector("#upload-image");
+                            if (!c) {
+                              let x = document.createElement("input");
+                              x.setAttribute("type", "file");
+                              x.setAttribute("id", "upload-image");
+                              x.setAttribute(
+                                "accept",
+                                "image/x-png,image/gif,image/jpeg"
+                              );
+                              x.addEventListener("change", () => {
+                                if (c.files) {
+                                  if (URL.createObjectURL(c.files[0]))
+                                    window.creator.addImage(
+                                      URL.createObjectURL(c.files[0])
+                                    );
+                                }
+                              });
+                              x.style.display = "none";
+                              document.body.appendChild(x);
+                            }
+                            c = document.querySelector("#upload-image");
+                            c.click();
+                          },
+                        },
                         {
                           title: "Google Drive",
                           onClick: () => window.GPICKER && window.GPICKER(),

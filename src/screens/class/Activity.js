@@ -1733,7 +1733,7 @@ function Activity(props) {
                 alignItems="flex-end"
                 marginBottom={2}
               >
-                <Box width="49%" display="flex">
+                <Box width="69%" display="flex">
                   <KeyboardDatePicker
                     disableToolbar
                     variant="inline"
@@ -1753,6 +1753,7 @@ function Activity(props) {
                     }}
                     style={{
                       marginRight: theme.spacing(2),
+                      flex: 1,
                     }}
                   />
                   <KeyboardTimePicker
@@ -1763,6 +1764,7 @@ function Activity(props) {
                     KeyboardButtonProps={{
                       "aria-label": "change time",
                     }}
+                    style={{ flex: 1 }}
                     className="themed-input date"
                     onChange={(date) => {
                       setForm({
@@ -1781,7 +1783,7 @@ function Activity(props) {
                     setForm({ ...form, total_score: parseInt(e.target.value) })
                   }
                   type="number"
-                  style={{ width: "49%" }}
+                  style={{ width: "29%" }}
                 />
               </Box>
             </MuiPickersUtilsProvider>
