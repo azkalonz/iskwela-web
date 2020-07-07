@@ -152,7 +152,7 @@ function FV(props) {
         <Toolbar
           className={[
             styles.toolbar,
-            ...(fullscreen ? ["fullscreen"] : []),
+            ...(fullscreen && !isMobile ? ["fullscreen"] : []),
           ].join(" ")}
         >
           <Typography
