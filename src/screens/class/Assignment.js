@@ -724,6 +724,45 @@ function Assignment(props) {
               { name: "Delete", value: "delete" },
             ]}
             filtered={(a) => getFilteredITEMS(a)}
+            rowRenderMobile={(item, { disabled = false }) => (
+              <Box
+                onClick={() => !disabled && _handleFileOption("view", item)}
+                display="flex"
+                flexWrap="wrap"
+                width="90%"
+                flexDirection="column"
+                justifyContent="space-between"
+                style={{ padding: "30px 0" }}
+              >
+                <Box width="100%" marginBottom={1}>
+                  <Typography
+                    style={{
+                      fontWeight: "bold",
+                      color: "#38108d",
+                      fontSize: "1em",
+                    }}
+                  >
+                    TITLE
+                  </Typography>
+                  <Typography variant="body1">{item.title}</Typography>
+                  <Typography variant="body1" color="textSecondary">
+                    {item.instruction}
+                  </Typography>
+                </Box>
+                <Box width="100%">
+                  <Typography
+                    style={{
+                      fontWeight: "bold",
+                      color: "#38108d",
+                      fontSize: "1em",
+                    }}
+                  >
+                    DURATION
+                  </Typography>
+                  <Typography variant="body1">{item.duration} mins</Typography>
+                </Box>
+              </Box>
+            )}
             rowRender={(item) => (
               <React.Fragment>
                 <ListItemText
