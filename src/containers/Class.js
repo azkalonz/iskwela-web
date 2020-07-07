@@ -912,7 +912,6 @@ const useStyles = makeStyles((theme) => ({
     // boxShadow: "0 0 5px rgba(0,0,0,0.3)",
 
     "& .box-container": {
-      boxShadow: "0 2px 6px rgb(241, 230, 255)",
       borderRadius: 4,
       color: "#fff",
       margin: theme.spacing(1),
