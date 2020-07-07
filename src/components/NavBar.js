@@ -164,9 +164,13 @@ function NavBar(props) {
                     alt={props.userInfo.first_name}
                     src={props.userInfo.preferences.profile_picture}
                   />
-                  <Typography>
-                    {props.userInfo.first_name + " " + props.userInfo.last_name}
-                  </Typography>
+                  {!isMobile && (
+                    <Typography>
+                      {props.userInfo.first_name +
+                        " " +
+                        props.userInfo.last_name}
+                    </Typography>
+                  )}
                 </Button>
                 <IconButton style={{ paddingLeft: 0 }} onClick={handleMenu}>
                   <ArrowDropDownIcon />
