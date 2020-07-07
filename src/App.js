@@ -146,6 +146,13 @@ function App(props) {
       MuiPaper: {
         root: {
           ...(props.theme === "dark" ? { backgroundColor: "#111" } : {}),
+          [defaultTheme.breakpoints.down("sm")]: {
+            "&.box-container": {
+              boxShadow: "none",
+              border: "none",
+              borderRadius: 4,
+            },
+          },
           "&:not(.MuiCard-root):not(.MuiDialog-paper):not(.MuiAlert-root)": {
             boxShadow: "0 2px 4px rgb(241, 230, 255)!important",
             border: "1px solid rgb(233, 228, 239)",
