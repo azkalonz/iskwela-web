@@ -8,11 +8,15 @@ import {
   Toolbar,
   Typography,
   makeStyles,
+  useTheme,
+  useMediaQuery,
 } from "@material-ui/core";
 import LaunchIcon from "@material-ui/icons/Launch";
 import React, { useEffect, useState } from "react";
 
 function FV(props) {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const styles = useStyles();
   const [status, setStatus] = useState("");
   const [fullscreen, setFullscreen] = useState(false);
@@ -131,7 +135,9 @@ function FV(props) {
     if (typeof props.file.onCancel === "function") props.file.onCancel();
     if (typeof props.onClose === "function") props.onClose();
   };
-
+  useEffect(() => {
+    if (isMobile) setFullscreen(true);
+  }, [isMobile]);
   return (
     <Dialog
       open={status ? true : false}
