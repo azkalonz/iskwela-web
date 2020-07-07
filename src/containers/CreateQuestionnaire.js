@@ -227,8 +227,8 @@ function CreateQuestionnaire(props) {
       setQuiz(items);
       callback();
     } catch (e) {
+      callback(false);
       alert("Cannot save quiz. Please fill out the highlighted fields.");
-      callback();
     }
   };
   const handleCreateSlide = (items = null) => {
@@ -433,6 +433,7 @@ function CreateQuestionnaire(props) {
               {...props}
               slide={quiz.slides[currentSlide]}
               quiz={quiz}
+              onSave={(callback = null) => handleSave(quiz, callback)}
               onChange={(s, q = null) => {
                 setQuiz(() => {
                   let ss = [...quiz.slides];

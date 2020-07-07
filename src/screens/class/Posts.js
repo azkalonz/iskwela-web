@@ -273,8 +273,7 @@ function StartADiscussion(props) {
                   <Avatar
                     src={
                       (props.userInfo &&
-                        props.userInfo.preferences.length &&
-                        props.userInfo.preferences[0].profile_picture) ||
+                        props.userInfo.preferences.profile_picture) ||
                       "/"
                     }
                     alt="Picture"
@@ -380,10 +379,7 @@ function WriteAComment(props) {
     <Box width="100%" display="flex" alignItems="flex-start">
       <Box>
         <Avatar
-          src={
-            props.user.preferences.length &&
-            props.user.preferences[0].profile_picture
-          }
+          src={props.user.preferences.profile_picture}
           alt={props.user.first_name}
         />
       </Box>
@@ -447,7 +443,7 @@ function Discussion(props) {
         >
           <Box display="flex" alignItems="center">
             <Avatar
-              src={props.pics[props.class.teacher.id]}
+              src={props.class.teacher.profile_picture}
               alt="Profile pic"
             />
             <Box marginLeft={2}>

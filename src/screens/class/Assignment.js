@@ -147,6 +147,7 @@ function Assignment(props) {
     }
   };
   const _getITEMS = async () => {
+    props.onLoad(true);
     if (!classSched) return;
     try {
       let res;
@@ -175,6 +176,7 @@ function Assignment(props) {
         setITEMS([]);
       }
     } catch (e) {}
+    props.onLoad(false);
   };
   useEffect(() => {
     socket.off("delete items");
@@ -644,17 +646,6 @@ function Assignment(props) {
             </Box>
           </Grow>
         </React.Fragment>
-      )}
-      {!ITEMS && (
-        <Box
-          width="100%"
-          height="100%"
-          display="flex"
-          justifyContent="center"
-          alignItems="center"
-        >
-          <CircularProgress />
-        </Box>
       )}
       {ITEMS && props.location.hash !== "#start" && !currentItem && (
         <React.Fragment>

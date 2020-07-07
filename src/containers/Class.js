@@ -75,7 +75,7 @@ function ClassRightPanel(props) {
       <View
         {...props}
         refresh={handleRefresh}
-        onLoad={() => props.loading(false)}
+        onLoad={(load = false) => props.loading(load)}
         test={123}
       />
       {/* <IconButton
@@ -541,7 +541,7 @@ function Class(props) {
                         overflow="hidden"
                       >
                         <Avatar
-                          src={props.pics[CLASS.teacher.id]}
+                          src={CLASS.teacher.profile_picture}
                           alt={
                             CLASS.teacher.first_name +
                             " " +
@@ -843,6 +843,14 @@ function Class(props) {
                   alignItems="flex-start"
                   flexDirection="column"
                   p={2}
+                  style={{
+                    position: "absolute",
+                    left: 0,
+                    right: 0,
+                    top: 50,
+                    background: "#fff",
+                    zIndex: 1,
+                  }}
                   justifyContent="flex-start"
                   flexWrap="nowrap"
                 >

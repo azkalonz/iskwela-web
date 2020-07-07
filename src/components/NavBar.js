@@ -162,10 +162,7 @@ function NavBar(props) {
                   <Avatar
                     style={{ height: 25, width: 25, marginRight: 7 }}
                     alt={props.userInfo.first_name}
-                    src={
-                      props.userInfo.preferences.length &&
-                      props.userInfo.preferences[0].profile_picture
-                    }
+                    src={props.userInfo.preferences.profile_picture}
                   />
                   <Typography>
                     {props.userInfo.first_name + " " + props.userInfo.last_name}
@@ -481,12 +478,7 @@ const ProfilePicDialog = React.memo(function (props) {
             alt={props.userInfo.first_name}
             con
             id="preview"
-            src={
-              preview
-                ? preview
-                : props.userInfo.preferences.length &&
-                  props.userInfo.preferences[0].profile_picture
-            }
+            src={preview ? preview : props.userInfo.preferences.profile_picture}
             style={{
               width: isMobile ? "100%" : 500,
               height: isMobile ? "auto" : 500,

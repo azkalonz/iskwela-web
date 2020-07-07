@@ -37,7 +37,9 @@ function AnswerQuiz(props) {
     setCurrentSlide(query.question ? parseInt(query.question) : 0);
   }, [query.question]);
   const getQuiz = () => {
+    console.log(props.questionsSet);
     let quiz = props.questionsSet.find((q) => q.id === parseInt(quiz_id));
+    console.log(quiz);
     if (!quiz) return;
     quiz.slides = quiz.questions.map((q) => ({
       ...q,
@@ -147,7 +149,7 @@ function AnswerQuiz(props) {
         }
         overflow="auto"
       >
-        {quiz && props.quiz && (
+        {quiz && (
           <React.Fragment>
             <Box width="100%">
               {isMobile && (
@@ -160,7 +162,10 @@ function AnswerQuiz(props) {
                       <Typography variant="h5">
                         <CountDown
                           onTimesUp={() => setAvailable(false)}
-                          time={props.quiz.duration * 60000}
+                          time={
+                            (props.quiz && props.quiz.duration * 60000) ||
+                            60000 * 60
+                          }
                           started={new Date()}
                         />
                       </Typography>
@@ -352,7 +357,10 @@ function AnswerQuiz(props) {
                       <Typography variant="h5">
                         <CountDown
                           onTimesUp={() => setAvailable(false)}
-                          time={props.quiz.duration * 60000}
+                          time={
+                            (props.quiz && props.quiz.duration * 60000) ||
+                            60000 * 60
+                          }
                           started={new Date()}
                         />
                       </Typography>

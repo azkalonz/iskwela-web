@@ -269,7 +269,7 @@ function Home(props) {
                           height: "100%",
                           background: "#fff",
                         }}
-                        src={props.pics[c.teacher.id]}
+                        src={c.teacher.profile_picture}
                       />
                       {/* <img
                         src="https://source.unsplash.com/random/500x500"

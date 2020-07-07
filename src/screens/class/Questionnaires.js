@@ -115,6 +115,7 @@ function Questionnaires(props) {
   const [success, setSuccess] = useState(false);
   const [confirmed, setConfirmed] = useState(false);
   const [savingId, setSavingId] = useState([]);
+  const [questionnairePreview, setQuestionnairePreview] = useState();
   const [answersSearch, setAnswersSearch] = useState("");
   const [contentCreatorFile, setContentCreatorFile] = useState();
   const [selectedStatus, setSelectedStatus] = useState(
@@ -147,6 +148,7 @@ function Questionnaires(props) {
   const _handleFileOption = (option, file) => {
     switch (option) {
       case "view":
+        setQuestionnairePreview([file]);
         history.push(makeLinkTo(["?id=" + file.id + "#preview"], {}, true));
         return;
       case "edit":
@@ -454,7 +456,7 @@ function Questionnaires(props) {
   return (
     <Box width="100%" alignSelf="flex-start" height="100%">
       <Dialog
-        open={props.location.hash === "#preview"}
+        open={questionnairePreview && props.location.hash === "#preview"}
         onClose={() => history.push(query.id && "?id=" + query.id)}
         fullScreen={true}
       >
@@ -464,7 +466,12 @@ function Questionnaires(props) {
           Preview
         </DialogTitle>
         <DialogContent>
-          <AnswerQuiz noPaging={true} fullHeight match={props.match} />
+          <AnswerQuiz
+            questionsSet={questionnairePreview}
+            noPaging={true}
+            fullHeight
+            match={props.match}
+          />
         </DialogContent>
       </Dialog>
       {confirmed && (

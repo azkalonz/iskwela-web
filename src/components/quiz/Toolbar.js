@@ -26,9 +26,6 @@ function Toolbar(props) {
       }}
     >
       <div>
-        <IconButton onClick={() => history.push("#settings")}>
-          <Icon>settings</Icon>
-        </IconButton>
         <Button
           onClick={() =>
             history.push(
@@ -46,10 +43,7 @@ function Toolbar(props) {
           Preview
         </Button>
         <Button
-          onClick={() => {
-            setSaving(true);
-            props.onSave(() => setSaving(false));
-          }}
+          onClick={() => history.push("#settings")}
           variant="contained"
           style={{
             background:

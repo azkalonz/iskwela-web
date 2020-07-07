@@ -135,6 +135,7 @@ export function SlideRenderer(props) {
   const theme = useTheme();
   const history = useHistory();
   const [mediaResult, setMediaResult] = useState({});
+  const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState({});
   const [hasUpload, setHasUpload] = useState(false);
   useEffect(() => {
@@ -432,11 +433,33 @@ export function SlideRenderer(props) {
             </DialogContent>
             <DialogActions>
               <Button
-                onClick={() => history.push("#")}
+                onClick={() => {
+                  setSaving(true);
+                  props.onSave((success = true) => {
+                    setSaving(false);
+                    if (success) history.push("#");
+                  });
+                }}
                 color="primary"
                 variant="contained"
+                disabled={saving}
+                style={{ position: "relative" }}
               >
-                Done
+                {saving && (
+                  <Box
+                    position="absolute"
+                    left={0}
+                    right={0}
+                    top={0}
+                    bottom={0}
+                    display="flex"
+                    justifyContent="center"
+                    alignItems="center"
+                  >
+                    <CircularProgress size={18} />
+                  </Box>
+                )}
+                Save
               </Button>
             </DialogActions>
           </Dialog>
