@@ -148,7 +148,7 @@ function App(props) {
           ...(props.theme === "dark" ? { backgroundColor: "#111" } : {}),
           [defaultTheme.breakpoints.down("sm")]: {
             "&.box-container": {
-              boxShadow: "none",
+              boxShadow: "none!important",
               border: "none",
               borderRadius: 4,
             },
