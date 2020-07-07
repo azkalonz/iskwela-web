@@ -5,10 +5,13 @@ import EventNoteOutlinedIcon from "@material-ui/icons/EventNoteOutlined";
 import EventOutlinedIcon from "@material-ui/icons/EventOutlined";
 import FaceOutlinedIcon from "@material-ui/icons/FaceOutlined";
 import Activity from "../../screens/class/Activity";
+import Project from "../../screens/class/Project";
 import Posts from "../../screens/class/Posts";
 import Attendance from "../../screens/class/Attendance";
 import LessonPlan from "../../screens/class/LessonPlan";
 import Quizzes from "../../screens/class/Quizzes";
+import Periodical from "../../screens/class/Periodical";
+import Assignment from "../../screens/class/Assignment";
 import CreateQuestionnaire from "../../containers/CreateQuestionnaire";
 import Questionnaires from "../../screens/class/Questionnaires";
 import Students from "../../screens/class/Students";
@@ -40,48 +43,50 @@ export function makeLinkTo(path, options = {}, relative = false) {
 export const rightPanelOptions = [
   {
     title: "Posts",
-    icon: <QuestionAnswerOutlinedIcon />,
+    icon: "icon-feeds",
     screen: Posts,
     link: "posts",
   },
   {
-    title: "Student Activity",
-    icon: <AssignmentOutlinedIcon />,
+    title: "Student Activities",
+    icon: "icon-activities",
     screen: Activity,
     children: [
       {
-        title: "Seat Work",
+        title: "Seat Works",
         link: "activity",
-        icon: <AssignmentOutlinedIcon />,
+        icon: null,
         screen: Activity,
       },
       {
-        title: "Quiz",
+        title: "Projects",
+        link: "projects",
+        icon: null,
+        screen: Project,
+      },
+      {
+        title: "Quizzes",
         link: "quizzes",
-        icon: <NoteAddOutlinedIcon />,
-        children: [
-          {
-            title: "Quiz",
-            link: "quiz",
-            icon: null,
-            screen: AnswerQuiz,
-            hidden: true,
-          },
-          {
-            title: "Scores",
-            link: "scores",
-            icon: null,
-            screen: Scores,
-            hidden: true,
-          },
-        ],
+        icon: null,
         screen: Quizzes,
+      },
+      {
+        title: "Periodical Tests",
+        link: "periodical-tests",
+        icon: null,
+        screen: Periodical,
+      },
+      {
+        title: "Assignments",
+        link: "assignments",
+        icon: null,
+        screen: Assignment,
       },
     ],
   },
   {
-    title: "Questionnaire",
-    icon: <DvrOutlinedIcon />,
+    title: "Questionnaires",
+    icon: "icon-quiz",
     screen: CreateQuestionnaire,
     children: [
       {
@@ -101,70 +106,105 @@ export const rightPanelOptions = [
   {
     title: "Instructional Materials",
     link: "instructional-materials",
-    icon: <MenuBookOutlinedIcon />,
+    icon: "icon-instructional-materials",
     screen: InstructionalMaterials,
   },
   {
     title: "Lesson Plan",
     link: "lesson-plan",
-    icon: <BorderColorOutlinedIcon />,
+    icon: "icon-lesson-plan",
     screen: LessonPlan,
   },
   {
-    title: "Attendance",
+    title: "Attendance Reports",
     link: "attendance",
-    icon: <PeopleOutlinedIcon />,
+    icon: "icon-attendance",
     screen: Attendance,
   },
   {
-    title: "Schedule",
+    title: "Schedules",
     link: "schedule",
-    icon: <EventOutlinedIcon />,
+    icon: "icon-schedule",
     screen: Schedule,
   },
   {
     title: "Students",
     link: "students",
-    icon: <FaceOutlinedIcon />,
+    icon: "icon-students",
     screen: Students,
   },
 ];
 export const rightPanelOptionsStudents = [
   {
     title: "Posts",
-    icon: <QuestionAnswerOutlinedIcon />,
+    icon: "icon-feeds",
     screen: Posts,
     link: "posts",
   },
   {
-    title: "Seat Work",
-    link: "activity",
-    icon: <AssignmentOutlinedIcon />,
+    title: "Student Activities",
+    icon: "icon-activities",
     screen: Activity,
-  },
-  {
-    title: "Quizzes",
-    link: "quizzes",
-    icon: <NoteAddOutlinedIcon />,
-    screen: Quizzes,
-  },
-  {
-    title: "Quiz",
-    link: "quiz",
-    icon: null,
-    screen: AnswerQuiz,
-    hidden: true,
+    children: [
+      {
+        title: "Seat Works",
+        link: "activity",
+        icon: null,
+        screen: Activity,
+      },
+      {
+        title: "Projects",
+        link: "projects",
+        icon: null,
+        screen: Project,
+      },
+
+      {
+        title: "Quizzes",
+        link: "quizzes",
+        icon: null,
+        children: [
+          {
+            title: "Quizzes",
+            link: "quiz",
+            icon: null,
+            screen: AnswerQuiz,
+            hidden: true,
+          },
+          {
+            title: "Scores",
+            link: "scores",
+            icon: null,
+            screen: Scores,
+            hidden: true,
+          },
+        ],
+        screen: Quizzes,
+      },
+      {
+        title: "Periodical Tests",
+        link: "periodical-tests",
+        icon: null,
+        screen: Periodical,
+      },
+      {
+        title: "Assignments",
+        link: "assignments",
+        icon: null,
+        screen: Assignment,
+      },
+    ],
   },
   {
     title: "Lesson Materials",
     link: "instructional-materials",
-    icon: <MenuBookOutlinedIcon />,
+    icon: "icon-instructional-materials",
     screen: InstructionalMaterials,
   },
   {
-    title: "Schedule",
+    title: "Schedules",
     link: "schedule",
-    icon: <EventOutlinedIcon />,
+    icon: "icon-schedule",
     screen: Schedule,
   },
 ];

@@ -35,6 +35,14 @@ io.on("connection", (socket) => {
       io.to(details.to).emit("get item", details);
     }
   });
+
+  socket.on("delete items", (items) => {
+    socket.broadcast.emit("delete items", items);
+  });
+
+  socket.on("add items", (items) => {
+    socket.broadcast.emit("add items", items);
+  });
 });
 
 httpsServer.listen(3001);

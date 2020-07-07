@@ -40,6 +40,7 @@ import MuiAlert from "@material-ui/lab/Alert";
 import { SearchInput } from "../components/Selectors";
 import Pagination, { getPageItems } from "../components/Pagination";
 import Jitsi from "react-jitsi";
+
 function Alert(props) {
   return <MuiAlert elevation={6} variant="filled" {...props} />;
 }
@@ -301,6 +302,7 @@ function Home(props) {
                     styles.classStatus,
                     styles[c.next_schedule.status],
                   ].join(" ")}
+                  style={{ borderRadius: 13 }}
                 >
                   <Typography variant="body1">{message}</Typography>
                   {c.next_schedule.status === "ONGOING" && <VideocamIcon />}

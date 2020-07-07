@@ -20,33 +20,25 @@ import { connect } from "react-redux";
 function AnswerQuiz(props) {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
-  const { class_id, schedule_id } = props.match.params;
+  const { class_id, schedule_id, option_name } = props.match.params;
   const query = require("query-string").parse(window.location.search);
   const quiz_id = props.match.params.quiz_id || props.id || parseInt(query.id);
   const [quiz, setQuiz] = useState();
   const [isAvailable, setAvailable] = useState(true);
-  const [answers, setAnswers] = useState(
-    window.localStorage["answered-questions-" + quiz_id]
-      ? JSON.parse(window.localStorage["answered-questions-" + quiz_id])
-      : {}
-  );
-  const [currentSlide, setCurrentSlide] = useState(
-    query.question ? parseInt(query.question) : 0
-  );
-  const [flaggedQuestions, setFlagged] = useState(
-    window.localStorage["flagged-items"]
-      ? JSON.parse(window.localStorage["flagged-items"])
-      : []
-  );
+  const [answers, setAnswers] = useState({});
+  const [currentSlide, setCurrentSlide] = useState();
+  const [flaggedQuestions, setFlagged] = useState([]);
   const history = useHistory();
   useEffect(() => {
+    setCurrentSlide(0);
     if (quiz_id) getQuiz();
-  }, [quiz_id]);
+  }, [props.questionsSet, quiz_id]);
   useEffect(() => {
     setCurrentSlide(query.question ? parseInt(query.question) : 0);
   }, [query.question]);
   const getQuiz = () => {
-    let quiz = props.questionnaires.find((q) => q.id === parseInt(quiz_id));
+    let quiz = props.questionsSet.find((q) => q.id === parseInt(quiz_id));
+    if (!quiz) return;
     quiz.slides = quiz.questions.map((q) => ({
       ...q,
       type: 1,
@@ -56,8 +48,25 @@ function AnswerQuiz(props) {
       },
       score: q.weight,
     }));
+    if (!isNaN(parseInt(query.q))) {
+      setFlagged(
+        window.localStorage["flagged-items-" + quiz_id + "-" + query.q]
+          ? JSON.parse(
+              window.localStorage["flagged-items-" + quiz_id + "-" + query.q]
+            )
+          : []
+      );
+      setAnswers(
+        window.localStorage["answered-questions-" + quiz_id + "-" + query.q]
+          ? JSON.parse(
+              window.localStorage[
+                "answered-questions-" + quiz_id + "-" + query.q
+              ]
+            )
+          : {}
+      );
+    }
     setQuiz(quiz);
-    console.log("quiz", quiz);
   };
   const navigateSlide = (index) => {
     if (!isAvailable) return;
@@ -83,19 +92,49 @@ function AnswerQuiz(props) {
       navigateSlide(index + 1);
     }
     setFlagged(flags);
-    window.localStorage["flagged-items"] = JSON.stringify(flags);
+    window.localStorage[
+      "flagged-items-" + quiz_id + "-" + query.q
+    ] = JSON.stringify(flags);
   };
   return (
     <React.Fragment>
-      {class_id && schedule_id && (
+      {class_id &&
+      schedule_id &&
+      quiz &&
+      props.questionsSet &&
+      props.questionsSet[
+        props.questionsSet.findIndex((q) => quiz.id === q.id) - 1
+      ] ? (
         <IconButton
-          onClick={() =>
+          onClick={() => {
             history.push(
-              makeLinkTo(["class", class_id, schedule_id, "quizzes"])
-            )
-          }
+              makeLinkTo([
+                "class",
+                class_id,
+                schedule_id,
+                option_name,
+                "?id=" +
+                  props.questionsSet[
+                    props.questionsSet.findIndex((q) => quiz.id === q.id) - 1
+                  ].id,
+                "&q=" + query.q + "#start",
+              ])
+            );
+          }}
         >
-          <Icon>arrow_back</Icon>
+          <Icon color="primary">arrow_back</Icon>
+        </IconButton>
+      ) : (
+        <IconButton
+          onClick={() => {
+            history.push(
+              makeLinkTo(["class", class_id, schedule_id, option_name, "q"], {
+                q: query.q ? "?id=" + query.q : "",
+              })
+            );
+          }}
+        >
+          <Icon color="primary">arrow_back</Icon>
         </IconButton>
       )}
       <Box
@@ -108,7 +147,7 @@ function AnswerQuiz(props) {
         }
         overflow="auto"
       >
-        {quiz && (
+        {quiz && props.quiz && (
           <React.Fragment>
             <Box width="100%">
               {isMobile && (
@@ -121,7 +160,7 @@ function AnswerQuiz(props) {
                       <Typography variant="h5">
                         <CountDown
                           onTimesUp={() => setAvailable(false)}
-                          time={quiz.duration}
+                          time={props.quiz.duration * 60000}
                           started={new Date()}
                         />
                       </Typography>
@@ -165,110 +204,137 @@ function AnswerQuiz(props) {
                 )}
               <Box m={2}>
                 <Paper>
-                  <Paper>
-                    <Box p={2}>
-                      <Typography color="textSecondary">Question</Typography>
-                      <Box
-                        display="flex"
-                        alignItems="flex-start"
-                        justifyContent="space-between"
-                      >
-                        <Box>
-                          <Typography
-                            variant="h4"
-                            style={{ whiteSpace: "pre-wrap" }}
+                  <Box p={2}>
+                    <Typography color="textSecondary">Question</Typography>
+                    <Box
+                      display="flex"
+                      alignItems="flex-start"
+                      justifyContent="space-between"
+                    >
+                      <Box>
+                        <Typography
+                          variant="h4"
+                          style={{ whiteSpace: "pre-wrap" }}
+                        >
+                          {currentSlide + 1}.{" "}
+                          {quiz.slides[currentSlide].question}
+                        </Typography>
+                      </Box>
+                      <Box>
+                        <IconButton
+                          onClick={() => flag(currentSlide)}
+                          disabled={!isAvailable}
+                        >
+                          <Icon
+                            color={
+                              flaggedQuestions.indexOf(currentSlide) >= 0
+                                ? "error"
+                                : "disabled"
+                            }
                           >
-                            {currentSlide + 1}.{" "}
-                            {quiz.slides[currentSlide].question}
-                          </Typography>
-                        </Box>
-                        <Box>
-                          <IconButton
-                            onClick={() => flag(currentSlide)}
-                            disabled={!isAvailable}
-                          >
-                            <Icon
-                              color={
-                                flaggedQuestions.indexOf(currentSlide) >= 0
-                                  ? "error"
-                                  : "disabled"
-                              }
-                            >
-                              {flaggedQuestions.indexOf(currentSlide) >= 0
-                                ? "flag"
-                                : "outlined_flag"}
-                            </Icon>
-                          </IconButton>
-                        </Box>
+                            {flaggedQuestions.indexOf(currentSlide) >= 0
+                              ? "flag"
+                              : "outlined_flag"}
+                          </Icon>
+                        </IconButton>
                       </Box>
                     </Box>
-                    <Box
-                      m={2}
-                      display="flex"
-                      justifyContent="space-between"
-                      flexWrap="wrap"
-                    >
-                      <Choices
-                        onChooseAnwer={(a, combine = false) => {
-                          setAnswers(() => {
-                            let id = quiz.slides[currentSlide].id;
-                            let e = { ...answers };
-                            if (e[id] && e[id].indexOf(a) >= 0) {
-                              let x = e[id];
-                              x.splice(x.indexOf(a), 1);
-                              e[id] = x;
-                              if (!e[id].length || !a) delete e[id];
-                            } else {
-                              if (!combine) e[id] = [a];
-                              else if (combine) {
-                                if (e[id]) {
-                                  let aa = e[id];
-                                  e[id] = [...aa, a];
-                                } else e[id] = [a];
-                              }
+                  </Box>
+                  <Box
+                    m={2}
+                    display="flex"
+                    justifyContent="space-between"
+                    flexWrap="wrap"
+                  >
+                    <Choices
+                      onChooseAnwer={(a, combine = false) => {
+                        setAnswers(() => {
+                          let id = quiz.slides[currentSlide].id;
+                          let e = { ...answers };
+                          if (e[id] && e[id].indexOf(a) >= 0) {
+                            let x = e[id];
+                            x.splice(x.indexOf(a), 1);
+                            e[id] = x;
+                            if (!e[id].length || !a) delete e[id];
+                          } else {
+                            if (!combine) e[id] = [a];
+                            else if (combine) {
+                              if (e[id]) {
+                                let aa = e[id];
+                                e[id] = [...aa, a];
+                              } else e[id] = [a];
                             }
-                            if (!a) delete e[id];
-                            window.localStorage[
-                              "answered-questions-" + quiz_id
-                            ] = JSON.stringify(e);
-                            return e;
-                          });
-                        }}
-                        selected={
-                          answers[quiz.slides[currentSlide].id]
-                            ? answers[quiz.slides[currentSlide].id]
-                            : []
-                        }
-                        question={quiz.slides[currentSlide]}
-                      />
-                    </Box>
-                    <Box p={2} display="flex" justifyContent="space-between">
+                          }
+                          if (!a) delete e[id];
+                          window.localStorage[
+                            "answered-questions-" + quiz_id + "-" + query.q
+                          ] = JSON.stringify(e);
+                          return e;
+                        });
+                      }}
+                      selected={
+                        answers[quiz.slides[currentSlide].id]
+                          ? answers[quiz.slides[currentSlide].id]
+                          : []
+                      }
+                      question={quiz.slides[currentSlide]}
+                    />
+                  </Box>
+                  <Box p={2} display="flex" justifyContent="space-between">
+                    <Button
+                      variant="outlined"
+                      disabled={currentSlide <= 0 || !isAvailable}
+                      onClick={() => navigateSlide(currentSlide - 1)}
+                    >
+                      Previous Question
+                    </Button>
+                    {props.questionsSet &&
+                    props.questionsSet.findIndex((q) => quiz.id === q.id) >=
+                      props.questionsSet.length - 1 &&
+                    currentSlide === quiz.slides.length - 1 ? (
                       <Button
                         variant="outlined"
-                        disabled={currentSlide <= 0 || !isAvailable}
-                        onClick={() => navigateSlide(currentSlide - 1)}
+                        color="primary"
+                        onClick={() => navigateSlide(currentSlide + 1)}
                       >
-                        Previous Question
+                        Submit
                       </Button>
-                      {currentSlide === quiz.slides.length - 1 ||
-                      !isAvailable ? (
-                        <Button
-                          variant="outlined"
-                          color="primary"
-                          onClick={() => navigateSlide(currentSlide + 1)}
-                        >
-                          Submit
-                        </Button>
-                      ) : (
-                        <Button
-                          variant="outlined"
-                          onClick={() => navigateSlide(currentSlide + 1)}
-                        >
-                          Next Question
-                        </Button>
-                      )}
-                    </Box>
-                  </Paper>
+                    ) : props.questionsSet &&
+                      props.questionsSet.findIndex((q) => quiz.id === q.id) <
+                        props.questionsSet.length - 1 &&
+                      currentSlide === quiz.slides.length - 1 ? (
+                      <Button
+                        variant="outlined"
+                        color="primary"
+                        onClick={() => {
+                          history.push(
+                            makeLinkTo([
+                              "class",
+                              class_id,
+                              schedule_id,
+                              option_name,
+                              "?id=" +
+                                props.questionsSet[
+                                  props.questionsSet.findIndex(
+                                    (q) => quiz.id === q.id
+                                  ) + 1
+                                ].id,
+                              "&q=" + query.q + "#start",
+                            ])
+                          );
+                        }}
+                      >
+                        Next Stage
+                      </Button>
+                    ) : (
+                      <Button
+                        variant="outlined"
+                        onClick={() => navigateSlide(currentSlide + 1)}
+                      >
+                        Next Question
+                      </Button>
+                    )}
+                  </Box>
                 </Paper>
               </Box>
             </Box>
@@ -286,7 +352,7 @@ function AnswerQuiz(props) {
                       <Typography variant="h5">
                         <CountDown
                           onTimesUp={() => setAvailable(false)}
-                          time={quiz.duration}
+                          time={props.quiz.duration * 60000}
                           started={new Date()}
                         />
                       </Typography>
@@ -376,24 +442,31 @@ function Choices(props) {
   return (
     <React.Fragment>
       {type === 1 || type === 2 || type === 3 ? (
-        choices.map((c, i) => (
-          <Box width="44%" key={i} m={2}>
-            <Button
-              fullWidth
-              variant="outlined"
-              color={
-                props.selected
-                  ? props.selected.indexOf(c) >= 0
-                    ? "primary"
+        choices.map((c, i) => {
+          return (
+            <Box width="44%" key={i} m={2}>
+              <Button
+                fullWidth
+                variant={
+                  props.selected &&
+                  props.selected.find((q) => q.option === c.option)
+                    ? "contained"
+                    : "outlined"
+                }
+                color={
+                  props.selected
+                    ? props.selected.find((q) => q.option === c.option)
+                      ? "primary"
+                      : "default"
                     : "default"
-                  : "default"
-              }
-              onClick={() => props.onChooseAnwer(c)}
-            >
-              {c.option}
-            </Button>
-          </Box>
-        ))
+                }
+                onClick={() => props.onChooseAnwer(c)}
+              >
+                {c.option}
+              </Button>
+            </Box>
+          );
+        })
       ) : type === 4 ? (
         choices.map((c, i) => (
           <Box

@@ -88,7 +88,7 @@ const DialogTitle = withStyles(styles)((props) => {
   );
 });
 
-function Quizzes(props) {
+function Periodical(props) {
   const theme = useTheme();
   const history = useHistory();
   const query = queryString.parse(window.location.search);
@@ -152,13 +152,13 @@ function Quizzes(props) {
       let res;
       let published;
       if (isTeacher) {
-        res = await Api.get("/api/quizzes?include=questionnaires");
+        res = await Api.get("/api/periodicals?include=questionnaires");
         published = await Api.get(
-          "/api/quizzes?include=questionnaires&class_id=" + class_id
+          "/api/periodicals?include=questionnaires&class_id=" + class_id
         );
       } else {
         res = await Api.get(
-          "/api/quizzes?include=questionnaires&class_id=" + class_id
+          "/api/periodicals?include=questionnaires&class_id=" + class_id
         );
       }
       if (res) {
@@ -180,12 +180,12 @@ function Quizzes(props) {
     socket.off("delete items");
     socket.off("add items");
     socket.on("delete items", (data) => {
-      if (data.type === "QUIZ" && !isTeacher) {
+      if (data.type === "PERIODICAL" && !isTeacher) {
         if (ITEMS) setITEMS(ITEMS.filter((q) => data.items.indexOf(q.id) < 0));
       }
     });
     socket.on("add items", (data) => {
-      if (data.type === "QUIZ") {
+      if (data.type === "PERIODICAL") {
         if (ITEMS) setITEMS([...ITEMS, data.items]);
       }
     });
@@ -228,7 +228,7 @@ function Quizzes(props) {
     setSaving(true);
     setSavingId([id]);
     try {
-      await Api.post("/api/quiz/questionnaire/add", {
+      await Api.post("/api/periodical/questionnaire/add", {
         body: {
           id,
           questionnaires: questionnaires.map((q) => ({ id: q.id })),
@@ -247,7 +247,7 @@ function Quizzes(props) {
   ) => {
     setSaving(true);
     setSavingId([questionnaire_id]);
-    let res = await Api.post("/api/quiz/questionnaire/remove", {
+    let res = await Api.post("/api/periodical/questionnaire/remove", {
       body: {
         id,
         questionnaire_id,
@@ -260,7 +260,7 @@ function Quizzes(props) {
   const handleSave = async (params = {}, noupdate = false) => {
     setSaving(true);
     try {
-      let res = await Api.post("/api/quiz/save?include=questionnaires", {
+      let res = await Api.post("/api/periodical/save?include=questionnaires", {
         body: {
           ...form,
           subject_id: props.classDetails[class_id].subject.id,
@@ -279,7 +279,7 @@ function Quizzes(props) {
   const _handleUpdateStatus = async (a, s, confirmation = true) => {
     let stat = s ? "Publish" : "Unpublish";
     const update = async () => {
-      await Api.post("/api/quiz/" + (s ? "publish" : "unpublish"), {
+      await Api.post("/api/periodical/" + (s ? "publish" : "unpublish"), {
         body: {
           id: a.id,
           schedule_id,
@@ -288,12 +288,12 @@ function Quizzes(props) {
       });
       if (s) {
         socket.emit("add items", {
-          type: "QUIZ",
+          type: "PERIODICAL",
           items: { ...a, published: true },
         });
       } else {
         socket.emit("delete items", {
-          type: "QUIZ",
+          type: "PERIODICAL",
           items: [a.id],
         });
       }
@@ -302,8 +302,8 @@ function Quizzes(props) {
       await update();
     } else {
       setConfirmed({
-        title: stat + " Quiz",
-        message: "Are you sure to " + stat + " this Quiz?",
+        title: stat + " Test",
+        message: "Are you sure to " + stat + " this Test?",
         yes: async () => {
           setErrors(null);
           setSaving(true);
@@ -318,8 +318,8 @@ function Quizzes(props) {
   };
   const _handleDelete = (item) => {
     setConfirmed({
-      title: "Remove Quiz",
-      message: "Are you sure to remove this Quiz?",
+      title: "Remove Test",
+      message: "Are you sure to remove this Test?",
       yes: async () => {
         setErrors(null);
         setSaving(true);
@@ -328,7 +328,7 @@ function Quizzes(props) {
         let id = parseInt(item.id);
         let res;
         try {
-          res = await Api.delete("/api/quiz/delete/" + id);
+          res = await Api.delete("/api/periodical/delete/" + id);
         } catch (e) {
           setErrors(["Oops! Something went wrong. Please try again later."]);
           setSavingId([]);
@@ -338,7 +338,7 @@ function Quizzes(props) {
         if (res && !res.errors) {
           setITEMS(ITEMS.filter((q) => item.id !== q.id));
           socket.emit("delete items", {
-            type: "QUIZ",
+            type: "PERIODICAL",
             items: [item.id],
           });
           setSuccess(true);
@@ -353,8 +353,8 @@ function Quizzes(props) {
   const _handleMultiUpdate = (a, s, done) => {
     let stat = s ? "Publish" : "Unpublish";
     setConfirmed({
-      title: stat + " " + Object.keys(a).length + " Quiz",
-      message: "Are you sure to " + stat + " this Quiz?",
+      title: stat + " " + Object.keys(a).length + " Test",
+      message: "Are you sure to " + stat + " this Test?",
       yes: async () => {
         setErrors(null);
         setSaving(true);
@@ -383,7 +383,7 @@ function Quizzes(props) {
   const _handleMultiDelete = (items, done) => {
     setConfirmed({
       title: "Remove " + Object.keys(items).length + " Quiz?",
-      message: "Are you sure to remove this Quiz?",
+      message: "Are you sure to remove this Test?",
       yes: async () => {
         setErrors(null);
         setSaving(true);
@@ -397,7 +397,7 @@ function Quizzes(props) {
           let id = parseInt(i);
           let res;
           try {
-            res = await Api.delete("/api/quiz/delete/" + id);
+            res = await Api.delete("/api/periodical/delete/" + id);
           } catch (e) {
             setErrors(["Oops! Something went wrong. Please try again later "]);
             setSaving(false);
@@ -416,7 +416,7 @@ function Quizzes(props) {
             )
           );
           socket.emit("delete items", {
-            type: "QUIZ",
+            type: "PERIODICAL",
             items: Object.keys(items).map((id) => parseInt(id)),
           });
           done();
@@ -675,7 +675,7 @@ function Quizzes(props) {
                   setForm(formTemplate);
                 }}
               >
-                Add New Quiz
+                Add New Test
               </Button>
             )}
             <Box
@@ -704,7 +704,9 @@ function Quizzes(props) {
                   icon={search ? "search" : ""}
                   emptyTitle={search ? "Nothing Found" : false}
                   emptyMessage={
-                    search ? "Try a different keyword." : "There's no Quiz yet."
+                    search
+                      ? "Try a different keyword."
+                      : "There's no Periodical Test yet."
                   }
                   onChange={(p) => setPage(p)}
                   count={getFilteredITEMS().length}
@@ -1140,4 +1142,4 @@ export default connect((state) => ({
   dataProgress: state.dataProgress,
   classDetails: state.classDetails,
   gradingCategories: state.gradingCategories,
-}))(Quizzes);
+}))(Periodical);

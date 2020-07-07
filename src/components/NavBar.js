@@ -23,6 +23,7 @@ import {
   TextField,
   useTheme,
   useMediaQuery,
+  ButtonGroup,
 } from "@material-ui/core";
 import { connect } from "react-redux";
 import actions from "./redux/actions";
@@ -142,6 +143,7 @@ function NavBar(props) {
           <Typography
             variant="body1"
             color="textPrimary"
+            style={{ opacity: 0.65 }}
             className={classes.title}
             style={{ fontWeight: "bold" }}
             id="navbar-title"
@@ -151,26 +153,28 @@ function NavBar(props) {
           {props.right}
           {!props.right && (
             <div>
-              <IconButton
-                aria-label="account of current user"
-                aria-controls="menu-appbar"
-                aria-haspopup="true"
-                onClick={() => setChangeProfileDialog(true)}
-              >
-                <Avatar
-                  style={{ height: 25, width: 25 }}
-                  alt={props.userInfo.first_name}
-                  src={props.userInfo.pic_url}
-                />
-              </IconButton>
-              <IconButton
-                aria-label="account of current user"
-                aria-controls="menu-appbar"
-                aria-haspopup="true"
-                onClick={handleMenu}
-              >
-                <ArrowDropDownIcon />
-              </IconButton>
+              <ButtonGroup>
+                <Button
+                  style={{ textTransform: "none" }}
+                  onClick={() => setChangeProfileDialog(true)}
+                  variant="text"
+                >
+                  <Avatar
+                    style={{ height: 25, width: 25, marginRight: 7 }}
+                    alt={props.userInfo.first_name}
+                    src={
+                      props.userInfo.preferences.length &&
+                      props.userInfo.preferences[0].profile_picture
+                    }
+                  />
+                  <Typography>
+                    {props.userInfo.first_name + " " + props.userInfo.last_name}
+                  </Typography>
+                </Button>
+                <IconButton style={{ paddingLeft: 0 }} onClick={handleMenu}>
+                  <ArrowDropDownIcon />
+                </IconButton>
+              </ButtonGroup>
               <Menu
                 id="menu-appbar"
                 anchorEl={anchorEl}
@@ -477,7 +481,12 @@ const ProfilePicDialog = React.memo(function (props) {
             alt={props.userInfo.first_name}
             con
             id="preview"
-            src={preview ? preview : props.userInfo.pic_url}
+            src={
+              preview
+                ? preview
+                : props.userInfo.preferences.length &&
+                  props.userInfo.preferences[0].profile_picture
+            }
             style={{
               width: isMobile ? "100%" : 500,
               height: isMobile ? "auto" : 500,

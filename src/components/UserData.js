@@ -15,22 +15,6 @@ const UserData = {
       user: u,
     });
   },
-  getUserPic: async (id) => {
-    if (store.getState().pics[id]) return store.getState().pics[id];
-    let userpic = {};
-    let pic = await Api.postBlob("/api/download/user/profile-picture", {
-      body: { id },
-    }).then((resp) => (resp.ok ? resp.blob() : null));
-    if (pic) {
-      var picUrl = URL.createObjectURL(pic);
-      userpic[id] = picUrl;
-      store.dispatch({
-        type: "SET_PIC",
-        userpic,
-      });
-      return picUrl;
-    }
-  },
   updateScheduleDetails: async (class_id, schedule_id) => {
     let schedCopy = {
       ...store.getState().classDetails[class_id].schedules[schedule_id],
@@ -181,7 +165,7 @@ const UserData = {
     let allclasses = {};
     await asyncForEach(data.classes, async (c) => {
       allclasses[c.id] = c;
-      allclasses[c.id].teacher.pic = await this.getUserPic(c.teacher.id);
+      allclasses[c.id].teacher.pic = "/";
     });
     data.classDetails = {};
     store.dispatch({

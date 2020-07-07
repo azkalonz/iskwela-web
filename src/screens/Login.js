@@ -42,7 +42,7 @@ function Login(props) {
           alignItems="stretch"
         >
           {!isMobile && (
-            <Box flex={1} width="45%" className={classes.loginLeftContent}>
+            <Box flex={1} width="360" className={classes.loginLeftContent}>
               <Box className="lamp" />
               <Box className="media" />
               <Box className="student" />
@@ -65,11 +65,7 @@ function Login(props) {
             <Box className="lamp" />
             <Box className="media" />
             <Box className="student" />
-            <Box
-              width={!isMobile ? "45%" : "80%"}
-              maxWidth={435}
-              minWidth={290}
-            >
+            <Box width={!isMobile ? 360 : "80%"} maxWidth={435} minWidth={290}>
               <LoginContainer setLoading={props.setLoading} />
             </Box>
           </Box>
@@ -149,7 +145,7 @@ function LoginContainer(props) {
         }}
         margin="normal"
         fullWidth
-        className={!isMobile ? "no-legend" : "no-legend light"}
+        className={!isMobile ? "themed-input" : "themed-input light"}
         id="email"
         label="Username"
         name="email"
@@ -164,7 +160,7 @@ function LoginContainer(props) {
           if (event.keyCode == 13) _handleLogin(event);
         }}
         fullWidth
-        className={!isMobile ? "no-legend" : "no-legend light"}
+        className={!isMobile ? "themed-input" : "themed-input light"}
         name="password"
         label="Password"
         type="password"
@@ -184,7 +180,7 @@ function LoginContainer(props) {
         fullWidth
         variant="contained"
         color="secondary"
-        style={{ fontWeight: "bold", boxShadow: "none" }}
+        style={{ fontWeight: "bold", boxShadow: "none", height: 56 }}
         onClick={_handleLogin}
         className={classes.submit}
       >

@@ -80,7 +80,7 @@ function Drawer(props) {
                 height: 50,
                 background: "url(/logo/logo-full-colored.svg) no-repeat",
                 backgroundSize: 200,
-                transform: "scale(0.8)",
+                transform: "scale(0.7)",
               }}
             />
           </Typography>
@@ -104,7 +104,7 @@ function Drawer(props) {
                 transform: "translateX(-1.5px)",
               }}
             >
-              <DashboardOutlined color="#38108d" />
+              <DashboardOutlined style={{ color: "#38108d" }} />
             </Box>
           </Box>
           {classes.slice(0, 5).map((item, index) => {
@@ -155,7 +155,7 @@ function Drawer(props) {
           {more &&
             classes.slice(5, props.classes.length).map((item, index) => {
               return (
-                <Grow in={more}>
+                <Grow in={more} key={index}>
                   <Box
                     className={
                       class_id && parseInt(class_id) === parseInt(item.id)
@@ -230,7 +230,9 @@ function Drawer(props) {
             </React.Fragment>
           )}
           <Box m={2}>
-            <Divider />
+            <Divider
+              style={{ opacity: 0.14, backgroundColor: "rgb(55, 19, 138)" }}
+            />
           </Box>
           <Box
             className={
@@ -257,7 +259,7 @@ function Drawer(props) {
           </Box>
         </div>
       </Box>
-      <Box>
+      <Box textAlign="center">
         <Tooltip title="Help" placement="right">
           <IconButton
             onClick={() =>
@@ -267,7 +269,7 @@ function Drawer(props) {
               )
             }
           >
-            <Icon fontSize="large" style={{ color: "#38108d" }}>
+            <Icon fontSize="inherit" style={{ color: "#38108d" }}>
               help_outline
             </Icon>
           </IconButton>
@@ -411,7 +413,6 @@ function Drawer(props) {
                       className="tab-btn"
                       style={{
                         backgroundColor: item.color,
-                        marginRight: 7,
                       }}
                     >
                       <Typography variant="body1" component="h2">
@@ -465,7 +466,6 @@ function Drawer(props) {
                           className="tab-btn"
                           style={{
                             backgroundColor: item.color,
-                            marginRight: 7,
                           }}
                         >
                           <Typography variant="body1" component="h2">
@@ -514,7 +514,9 @@ function Drawer(props) {
                 )}
               </React.Fragment>
             )}
-            <Divider />
+            <Divider
+              style={{ opacity: 0.14, backgroundColor: "rgb(55, 19, 138)" }}
+            />
             <Box
               className={"tab"}
               onClick={() => {
@@ -572,18 +574,25 @@ const useStyles = makeStyles((theme) => ({
       minWidth: 50,
       height: 50,
       [theme.breakpoints.down("md")]: {
-        marginRight: 2,
+        marginRight: 16,
+        "&.screen-btn": {
+          borderRadius: 11,
+          background: "rgb(231, 223, 250)",
+          boxShadow: "0 2px 10px rgb(224, 224, 224)",
+          color: "rgb(55, 19, 138)!important",
+        },
       },
       "&:not(.screen-btn)": {
+        boxShadow: "0 2px 4px rgb(241, 230, 255)",
+        borderRadius: 6,
+        opacity: 0.86,
         color: "#fff",
-        boxShadow: "0px 0px 11px rgba(0,0,0,0.1)",
       },
     },
     "& .tab": {
       display: "flex",
       position: "relative",
       justifyContent: "center",
-      borderColor: "primary.main",
       [theme.breakpoints.down("md")]: {
         justifyContent: "flex-start",
         alignItems: "center",

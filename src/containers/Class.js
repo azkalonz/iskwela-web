@@ -1,50 +1,47 @@
-import React, { useEffect, useState } from "react";
-import Drawer from "../components/Drawer";
-import NavBar from "../components/NavBar";
-import { useHistory } from "react-router-dom";
 import {
+  Avatar,
+  Backdrop,
   Box,
-  makeStyles,
-  Icon,
-  Toolbar,
   Button,
   CircularProgress,
-  Tooltip,
-  useMediaQuery,
-  useTheme,
+  Divider,
+  Icon,
+  IconButton,
+  LinearProgress,
   List,
   ListItem,
-  Avatar,
   ListItemIcon,
-  Paper,
-  ListItemText,
-  IconButton,
-  Typography,
-  Slide,
-  Divider,
-  LinearProgress,
   ListItemSecondaryAction,
-  Backdrop,
+  ListItemText,
+  makeStyles,
+  Paper,
+  Slide,
+  Toolbar,
+  Tooltip,
+  Typography,
+  useMediaQuery,
+  useTheme,
 } from "@material-ui/core";
-import Skeleton from "react-loading-skeleton";
 import CreateOutlined from "@material-ui/icons/CreateOutlined";
 import VideocamOutlinedIcon from "@material-ui/icons/VideocamOutlined";
-import VideoConference from "../containers/VideoConference";
-import ArrowBackIosRoundedIcon from "@material-ui/icons/ArrowBackIosRounded";
-import ArrowForwardIosRoundedIcon from "@material-ui/icons/ArrowForwardIosRounded";
+import moment from "moment";
+import React, { useEffect, useState } from "react";
+import Skeleton from "react-loading-skeleton";
+import { connect } from "react-redux";
+import { useHistory } from "react-router-dom";
+import Api from "../api";
+import Drawer from "../components/Drawer";
+import NavBar from "../components/NavBar";
 import {
-  makeLinkTo,
-  rightPanelOptionsStudents as studentPanel,
-  rightPanelOptions as teacherPanel,
   getView,
   isValidOption,
+  makeLinkTo,
+  rightPanelOptions as teacherPanel,
+  rightPanelOptionsStudents as studentPanel,
 } from "../components/router-dom";
-import { connect } from "react-redux";
-import Api from "../api";
-import UserData from "../components/UserData";
-import $ from "jquery";
 import socket from "../components/socket.io";
-import moment from "moment";
+import UserData from "../components/UserData";
+import VideoConference from "../containers/VideoConference";
 
 function setPanelIds(panel, i = 0) {
   panel.forEach((p) => {
@@ -110,6 +107,14 @@ function Class(props) {
   useEffect(() => {
     if (isMobile) setCollapsePanel(false);
     else setCollapsePanel(true);
+    window.panelSlideTransition = setInterval(() => {
+      let s = document.querySelector("#panel-slide");
+      if (s) {
+        s.style.transition =
+          "width 225ms cubic-bezier(0, 0, 0.2, 1) 0ms,transform 225ms cubic-bezier(0, 0, 0.2, 1) 0ms";
+        window.clearInterval(window.panelSlideTransition);
+      }
+    }, 500);
   }, [isMobile]);
   useEffect(() => {
     if (class_id) {
@@ -224,7 +229,13 @@ function Class(props) {
                 ...(p.isChild && !p.shrink ? { paddingLeft: 71 } : {}),
               }}
             >
-              {!p.isChild && <ListItemIcon>{p.icon}</ListItemIcon>}
+              {!p.isChild && typeof p.icon === "string" ? (
+                <ListItemIcon>
+                  <span className={"panel-icon " + p.icon}></span>
+                </ListItemIcon>
+              ) : (
+                p.icon
+              )}
               <ListItemText
                 primary={!p.shrink ? p.title : p.title[0]}
                 primaryTypographyProps={{
@@ -372,14 +383,12 @@ function Class(props) {
   const RightPanel = (opts = {}) => {
     return (
       <Slide
+        id="panel-slide"
         direction="right"
         in={opts.open || collapsePanel}
-        mountOnEnter
-        unmountOnExit
         style={{
           height: "100vh",
           overflow: "auto",
-          transition: "all 0.3s ease-out!important",
           width: opts.mini === true ? 75 : 330,
         }}
       >
@@ -426,21 +435,26 @@ function Class(props) {
                           aria-label="Collapse Panel"
                           onClick={() => setCollapsePanel(!collapsePanel)}
                         >
-                          <ArrowBackIosRoundedIcon />
+                          <span className="icon-menu-close"></span>
                         </IconButton>
                       </Tooltip>
                     </Toolbar>
                     <Box
                       width="100%"
-                      height={140}
+                      height={219}
                       position="relative"
                       overflow="hidden"
                     >
-                      <img
-                        alt="Class Wallpaper"
-                        src="https://www.iskwela.net/img/on-iskwela.svg"
-                        width="100%"
-                        height="100%"
+                      <Box
+                        style={{
+                          background: `url(${
+                            props.classes[class_id].image ||
+                            "https://www.iskwela.net/img/on-iskwela.svg"
+                          }) no-repeat right top`,
+                          backgroundSize: "cover",
+                          width: "100%",
+                          height: "100%",
+                        }}
                       />
                       {isTeacher && (
                         <Tooltip
@@ -556,9 +570,10 @@ function Class(props) {
                       </Box>
                     </Box>
                     <Box
-                      p={2}
+                      p={4}
                       className={styles.centered}
                       style={{ paddingTop: 0 }}
+                      paddingBottom={2}
                     >
                       <Box flex={1} style={{ width: "100%", margin: "0 13px" }}>
                         <div className={styles.wrapper}>
@@ -592,10 +607,21 @@ function Class(props) {
                             }
                             onClick={() => _handleJoinClass()}
                           >
-                            <VideocamOutlinedIcon
-                              color="inherit"
-                              style={{ marginRight: 8 }}
-                            />
+                            <span
+                              className={
+                                props.classDetails[class_id].schedules[
+                                  schedule_id
+                                ].status === "ONGOING"
+                                  ? "icon-stop-conference"
+                                  : "icon-start-conference"
+                              }
+                              style={{
+                                marginRight: 8,
+                                color: "inherit",
+                                fontSize: "2em",
+                              }}
+                            ></span>
+
                             {isTeacher
                               ? props.classDetails[class_id].schedules[
                                   schedule_id
@@ -626,6 +652,20 @@ function Class(props) {
                   background: props.classes[class_id].color,
                 }}
               >
+                {opts.mini && !collapsePanel && (
+                  <Tooltip title="Hide class panel" placement="bottom-start">
+                    <IconButton
+                      style={{
+                        width: "100%",
+                        color: "#fff",
+                      }}
+                      aria-label="Collapse Panel"
+                      onClick={() => setCollapsePanel(!collapsePanel)}
+                    >
+                      <span className="icon-menu-open"></span>
+                    </IconButton>
+                  </Tooltip>
+                )}
                 <List component="nav" aria-labelledby="nested-list-subheader">
                   {isTeacher
                     ? rightPanelOptions
@@ -738,7 +778,7 @@ function Class(props) {
                     if (isTeacher) updateClass(e);
                   }}
                   left={
-                    !collapsePanel ? (
+                    !collapsePanel && !isMobile ? (
                       <Tooltip
                         title="Show class panel"
                         placement="bottom-start"
@@ -747,7 +787,7 @@ function Class(props) {
                           aria-label="Collapse Panel"
                           onClick={() => setCollapsePanel(!collapsePanel)}
                         >
-                          <ArrowForwardIosRoundedIcon />
+                          <span className="icon-menu-open"></span>
                         </IconButton>
                       </Tooltip>
                     ) : null
@@ -771,13 +811,15 @@ function Class(props) {
                     )
               }
               left={
-                !collapsePanel ? (
+                !collapsePanel && isMobile ? (
                   <Tooltip title="Show class panel" placement="bottom-start">
                     <IconButton
                       aria-label="Collapse Panel"
                       onClick={() => setCollapsePanel(!collapsePanel)}
+                      color="primary"
+                      style={{ marginRight: 13 }}
                     >
-                      <ArrowForwardIosRoundedIcon />
+                      <span className="icon-menu-open"></span>
                     </IconButton>
                   </Tooltip>
                 ) : null
@@ -870,6 +912,8 @@ const useStyles = makeStyles((theme) => ({
     // boxShadow: "0 0 5px rgba(0,0,0,0.3)",
 
     "& .box-container": {
+      boxShadow: "0 2px 6px rgb(241, 230, 255)",
+      borderRadius: 4,
       color: "#fff",
       margin: theme.spacing(1),
       "&:first-of-type": {
@@ -877,6 +921,10 @@ const useStyles = makeStyles((theme) => ({
       },
     },
     "& .panel-option": {
+      "& .panel-icon": {
+        color: "rgba(255,255,255,0.75)",
+        fontSize: "1.5em",
+      },
       "&.selected + div span, &.selected svg": {
         color: "#fff!important",
       },
@@ -884,10 +932,9 @@ const useStyles = makeStyles((theme) => ({
         color: "rgba(255,255,255,0.75)",
       },
       "&.selected": {
-        color: "#fff!important",
         background: "rgba(0,0,0,0.2)",
-        "& svg": {
-          color: theme.palette.secondary.main,
+        "&, & .panel-icon": {
+          color: "#fff!important",
         },
       },
     },

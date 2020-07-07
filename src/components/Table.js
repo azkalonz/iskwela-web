@@ -209,8 +209,9 @@ function Table(props) {
                       </Box>
                     )}
                     {!isMobile &&
-                      props.headers.map((c) => (
+                      props.headers.map((c, index) => (
                         <Box
+                          key={index}
                           display="flex"
                           width={c.width ? c.width : "auto"}
                           maxWidth={c.width ? c.width : "auto"}

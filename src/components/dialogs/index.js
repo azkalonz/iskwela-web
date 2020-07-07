@@ -43,6 +43,7 @@ function AttachQuestionnaireDialog(props) {
   const [page, setPage] = useState(1);
   const getFilteredQuestionnaires = () =>
     props.questionnaires
+      .filter((q) => selected.findIndex((qq) => qq.id === q.id) < 0)
       .filter(
         (q) =>
           JSON.stringify(q)
@@ -171,7 +172,7 @@ function AttachQuestionnaireDialog(props) {
                         variant="contained"
                         color={
                           selected.findIndex((qq) => qq.id === q.id) >= 0
-                            ? theme.palette.error.main
+                            ? "default"
                             : "primary"
                         }
                       >
@@ -295,26 +296,34 @@ export function GooglePicker(props) {
     function pickerCallback(data) {
       var url;
       var name;
+      var thumb;
+      var type;
       if (
         data[window.google.picker.Response.ACTION] ===
         window.google.picker.Action.PICKED
       ) {
         var doc = data[window.google.picker.Response.DOCUMENTS][0];
         url = doc[window.google.picker.Document.URL];
+        thumb = doc[window.google.picker.Document.THUMBNAILS];
         name = doc[window.google.picker.Document.NAME];
+        type = doc[window.google.picker.Document.TYPE];
       }
       if (url && name) {
-        props.onSelect({
-          url,
-          name,
-        });
+        if (props.type ? props.type === type : true)
+          props.onSelect({
+            url,
+            name,
+            thumb,
+          });
       }
     }
     function createPicker() {
       if (pickerApiLoaded && oauthToken) {
-        var view = new window.google.picker.View(
-          window.google.picker.ViewId.DOCS
-        );
+        var view = new window.google.picker.DocsView()
+          .setParent("root")
+          .setIncludeFolders(true)
+          .setEnableDrives(true)
+          .setMode(window.google.picker.DocsViewMode.GRID);
         var picker = new window.google.picker.PickerBuilder()
           .enableFeature(window.google.picker.Feature.SUPPORT_DRIVES)
           .enableFeature(window.google.picker.Feature.SUPPORT_TEAM_DRIVES)

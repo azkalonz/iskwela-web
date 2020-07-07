@@ -1,56 +1,56 @@
-import React, { useEffect, useState } from "react";
-// import ContentCreator from "./contentCreator";
-import $ from "jquery";
 import {
-  Toolbar,
+  Box,
+  Button,
+  Grow,
+  Icon,
   IconButton,
-  AppBar,
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemText,
+  makeStyles,
+  Slider,
+  TextField,
+  Toolbar,
   Tooltip,
-  Paper,
-  Input,
   Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
-  Box,
-  Slider,
-  Snackbar,
-  useTheme,
   Typography,
-  Button,
-  Grow,
+  useTheme,
+  ButtonGroup,
+  Divider,
 } from "@material-ui/core";
 import MuiAlert from "@material-ui/lab/Alert";
-import CheckBoxOutlineBlankOutlinedIcon from "@material-ui/icons/CheckBoxOutlineBlankOutlined";
-import FiberManualRecordOutlinedIcon from "@material-ui/icons/FiberManualRecordOutlined";
-import ImageOutlinedIcon from "@material-ui/icons/ImageOutlined";
-import TextFormatOutlinedIcon from "@material-ui/icons/TextFormatOutlined";
+// import ContentCreator from "./contentCreator";
+import $ from "jquery";
 import ColorPicker from "material-ui-color-picker";
-import SaveOutlinedIcon from "@material-ui/icons/SaveOutlined";
-import ChangeHistoryIcon from "@material-ui/icons/ChangeHistory";
-import BrushIcon from "@material-ui/icons/Brush";
-import EditIcon from "@material-ui/icons/Edit";
+import React, { useEffect, useRef, useState } from "react";
+import { GooglePicker } from "../dialogs";
 import socket from "../socket.io";
+import moment from "moment";
 
+const screen = {
+  width: window.outerWidth,
+  height: window.outerHeight,
+};
+const config = {
+  width: 720,
+  height: 900,
+  padding: 30,
+  background: "#fff",
+};
 function ContentCreator(fabric, id, params = {}) {
   fabric.Object.prototype.transparentCorners = false;
   this.canvas = new fabric.Canvas(id, {
-    isDrawingMode: true,
-    backgroundColor: "#fff",
-    width: 1000,
-    height: 1000,
+    isDrawingMode: false,
+    backgroundColor: config.background,
+    width: config.width,
+    height: config.height,
   });
+  this.canvas._historyInit();
   this.fabric = fabric;
-  this.params = params;
-  this.history = {
-    list: [],
-    state: [],
-    index: 0,
-    index2: 0,
-    action: false,
-    refresh: true,
-    current: null,
-  };
   this.circ = (radius, left, top, fill) =>
     new this.fabric.Circle({
       radius,
@@ -60,102 +60,13 @@ function ContentCreator(fabric, id, params = {}) {
       fill,
       cornerColor: "blue",
     });
-  this.text = (left, top, body) =>
+  this.text = (left, top, body, style) =>
     new this.fabric.IText(body, {
       left,
       top,
       cornerColor: "blue",
+      ...(style ? style : {}),
     });
-  this.poly = (left, top, fill, points) =>
-    new this.fabric.Polygon(points, {
-      left,
-      top,
-      fill,
-      strokeWidth: 0,
-      objectCaching: false,
-      transparentCorners: false,
-      cornerColor: "blue",
-    });
-
-  this.polygonPositionHandler = function (dim, finalMatrix, fabricObject) {
-    var x = fabricObject.points[this.pointIndex].x - fabricObject.pathOffset.x,
-      y = fabricObject.points[this.pointIndex].y - fabricObject.pathOffset.y;
-    return fabric.util.transformPoint(
-      { x: x, y: y },
-      fabricObject.calcTransformMatrix()
-    );
-  };
-  this.actionHandler = (eventData, transform, x, y) => {
-    var polygon = transform.target,
-      currentControl = polygon.controls[polygon.__corner],
-      mouseLocalPosition = polygon.toLocalPoint(
-        new this.fabric.Point(x, y),
-        "center",
-        "center"
-      ),
-      size = polygon._getTransformedDimensions(0, 0),
-      finalPointPosition = {
-        x:
-          (mouseLocalPosition.x * polygon.width) / size.x +
-          polygon.pathOffset.x,
-        y:
-          (mouseLocalPosition.y * polygon.height) / size.y +
-          polygon.pathOffset.y,
-      };
-    polygon.points[currentControl.pointIndex] = finalPointPosition;
-    return true;
-  };
-  this.anchorWrapper = function (anchorIndex, fn) {
-    return function (eventData, transform, x, y) {
-      var fabricObject = transform.target,
-        absolutePoint = fabric.util.transformPoint(
-          {
-            x: fabricObject.points[anchorIndex].x - fabricObject.pathOffset.x,
-            y: fabricObject.points[anchorIndex].y - fabricObject.pathOffset.y,
-          },
-          fabricObject.calcTransformMatrix()
-        );
-      var actionPerformed = fn(eventData, transform, x, y);
-      var newDim = fabricObject._setPositionDimensions({});
-      var newX =
-          (fabricObject.points[anchorIndex].x - fabricObject.pathOffset.x) /
-          fabricObject.width,
-        newY =
-          (fabricObject.points[anchorIndex].y - fabricObject.pathOffset.y) /
-          fabricObject.height;
-      fabricObject.setPositionByOrigin(absolutePoint, newX + 0.5, newY + 0.5);
-      return actionPerformed;
-    };
-  };
-
-  this.editPolygon = () => {
-    let poly = this.canvas.getActiveObject();
-    if (!poly) return;
-    if (!poly.isType("polygon")) return;
-    this.canvas.setActiveObject(poly);
-    poly.edit = !poly.edit;
-    if (poly.edit) {
-      var lastControl = poly.points.length - 1;
-      poly.cornerStyle = "circle";
-      poly.controls = poly.points.reduce((acc, point, index) => {
-        acc["p" + index] = new this.fabric.Control({
-          positionHandler: this.polygonPositionHandler,
-          actionHandler: this.anchorWrapper(
-            index > 0 ? index - 1 : lastControl,
-            this.actionHandler
-          ),
-          actionName: "modifyPoligon",
-          pointIndex: index,
-        });
-        return acc;
-      }, {});
-    } else {
-      poly.cornerStyle = "rect";
-      poly.controls = this.fabric.Object.prototype.controls;
-    }
-    poly.hasBorders = !poly.edit;
-    this.canvas.requestRenderAll();
-  };
   this.rect = (left, top, width, height, fill) =>
     new this.fabric.Rect({
       left,
@@ -166,71 +77,8 @@ function ContentCreator(fabric, id, params = {}) {
       height,
     });
 
-  this.canvas.on("object:added", (e) => {
-    var object = e.target;
-
-    if (this.history.action === true) {
-      this.history.state = [this.history.state[this.history.index2]];
-      this.history.list = [this.history.list[this.history.index2]];
-
-      this.history.action = false;
-      this.history.index = 1;
-    }
-    object.saveState();
-    this.history.state[this.history.index] = JSON.stringify(
-      object._stateProperties
-    );
-    this.history.list[this.history.index] = object;
-    this.history.index++;
-    this.history.index2 = this.history.index - 1;
-    this.history.refresh = true;
-    params.onModified && params.onModified();
-  });
-  this.canvas.on("mouse:dblclick", (e) => {
-    let object = e.target;
-    if (object) {
-      if (object.isType("polygon")) this.editPolygon();
-    }
-  });
-  this.canvas.on("selection:updated", (o) => {
-    this.currentSelection = o.target;
-    this.params.onSelectionUpdated && this.params.onSelectionUpdated(o.target);
-  });
-  this.canvas.on("selection:created", (o) => {
-    this.currentSelection = o.target;
-    this.params.onSelectionCreated && this.params.onSelectionCreated(o.target);
-  });
-  this.canvas.on("selection:cleared", (o) => {
-    this.currentSelection = o.target;
-    this.isEditingPolygon = false;
-    this.params.onSelectionCleared && this.params.onSelectionCleared();
-  });
-  this.canvas.on("object:modified", (e) => {
-    var object = e.target;
-    this.canvas.bringToFront(object);
-
-    if (this.history.action === true) {
-      this.history.state = [this.history.state[this.history.index2]];
-      this.history.list = [this.history.list[this.history.index2]];
-
-      this.history.action = false;
-      this.history.index = 1;
-    }
-
-    object.saveState();
-
-    this.history.state[this.history.index] = JSON.stringify(
-      object._stateProperties
-    );
-    this.history.list[this.history.index] = object;
-    this.history.index++;
-    this.history.index2 = this.history.index - 1;
-
-    this.history.refresh = true;
-    params.onModified && params.onModified();
-    this.save();
-  });
   this.paste = () => {
+    if (!this._clipboard) return;
     this._clipboard.clone((clonedObj) => {
       this.canvas.discardActiveObject();
       clonedObj.set({
@@ -251,7 +99,18 @@ function ContentCreator(fabric, id, params = {}) {
       this.canvas.requestRenderAll();
     });
   };
+  this.poly = (left, top, fill, points) =>
+    new this.fabric.Polygon(points, {
+      left,
+      top,
+      fill,
+      strokeWidth: 0,
+      objectCaching: false,
+      transparentCorners: false,
+      cornerColor: "blue",
+    });
   this.copy = () => {
+    if (!this.canvas.getActiveObject()) return;
     this.canvas.getActiveObject().clone((cloned) => {
       this._clipboard = cloned;
     });
@@ -304,47 +163,6 @@ function ContentCreator(fabric, id, params = {}) {
     this.canvas.getActiveObject().set("strokeWidth", width);
     this.canvas.renderAll();
   };
-  this.undo = () => {
-    try {
-      if (this.history.index <= 0) {
-        this.history.index = 0;
-        return;
-      }
-
-      if (this.history.refresh === true) {
-        this.history.index--;
-        this.history.refresh = false;
-      }
-
-      this.history.index2 = this.history.index - 1;
-      this.history.current = this.history.list[this.history.index2];
-      this.history.current.setOptions(
-        JSON.parse(this.history.state[this.history.index2])
-      );
-
-      this.history.index--;
-      this.history.current.setCoords();
-      this.canvas.renderAll();
-      this.history.action = true;
-    } catch (e) {}
-  };
-
-  this.redo = () => {
-    this.history.action = true;
-    if (this.history.index >= this.history.state.length - 1) {
-      return;
-    }
-
-    this.history.index2 = this.history.index + 1;
-    this.history.current = this.history.list[this.history.index2];
-    this.history.current.setOptions(
-      JSON.parse(this.history.state[this.history.index2])
-    );
-
-    this.history.index++;
-    this.history.current.setCoords();
-    this.canvas.renderAll();
-  };
   document.body.addEventListener(
     "keydown",
     (e) => {
@@ -358,9 +176,9 @@ function ContentCreator(fabric, id, params = {}) {
       } else if (key === 46) {
         this.remove();
       } else if (key === 90 && ctrl) {
-        this.undo();
+        this.canvas.undo();
       } else if (key === 89 && ctrl) {
-        this.redo();
+        this.canvas.redo();
       } else if (key === 83 && ctrl) {
         this.save();
       } else if (key === 88 && ctrl) {
@@ -428,7 +246,6 @@ function ContentCreator(fabric, id, params = {}) {
 
       return patternCanvas;
     };
-
     this.diamondPatternBrush = new this.fabric.PatternBrush(this.canvas);
     this.diamondPatternBrush.getPatternSrc = function () {
       var squareWidth = 10,
@@ -453,7 +270,7 @@ function ContentCreator(fabric, id, params = {}) {
     };
 
     var img = new Image();
-    img.src = "/content-maker/3.jpg";
+    img.src = "/content-maker/pattern.jpg";
 
     this.texturePatternBrush = new this.fabric.PatternBrush(this.canvas);
     this.texturePatternBrush.source = img;
@@ -462,24 +279,244 @@ function ContentCreator(fabric, id, params = {}) {
 function Alert(props) {
   return <MuiAlert elevation={6} variant="filled" {...props} />;
 }
-const screen = {
-  width: window.outerWidth,
-  height: window.outerHeight,
+const dataURItoBlob = (dataURI) => {
+  var byteString = atob(dataURI.split(",")[1]);
+  var mimeString = dataURI.split(",")[0].split(":")[1].split(";")[0];
+  var ab = new ArrayBuffer(byteString.length);
+  var ia = new Uint8Array(ab);
+  for (var i = 0; i < byteString.length; i++) {
+    ia[i] = byteString.charCodeAt(i);
+  }
+  var blob = new Blob([ab], { type: mimeString });
+  return blob;
 };
+const zoomStart = (e) => {
+  let cont = document.querySelector(".canvas-container");
+  let z = cont.getAttribute("data-zoom");
+  if (!z) {
+    z = 1;
+    cont.setAttribute("data-zoom", 1);
+  } else z = parseFloat(z) + window.zoomScale;
+  cont.style.transform = `scale(${z})`;
+  cont.style.transformOrigin = `${e.clientX - 325}px ${e.clientY}px`;
+  cont.setAttribute("data-zoom", z);
+};
+const zoomArea = () => {
+  let cont = document.querySelector("#right-panel");
+  if (!document.querySelector("#zoom-area")) {
+    let x = document.createElement("div");
+    let i = document.createElement("img");
+    x.appendChild(i);
+    x.setAttribute("id", "zoom-area");
+    x.style.position = "absolute";
+    x.style.left = 0;
+    x.style.zIndex = 99;
+    x.style.overflow = "hidden";
+    x.style.top = 0;
+    x.style.bottom = 0;
+    x.style.right = 0;
+    x.style.cursor = window.zoomScale >= 0 ? "zoom-in" : "zoom-out";
+    cont.appendChild(x);
+    x.removeEventListener("mousedown", zoomStart);
+    x.addEventListener("mousedown", zoomStart);
+  } else {
+    let c = document.querySelector("#zoom-area");
+    c.style.display = "block";
+    c.style.cursor = window.zoomScale >= 0 ? "zoom-in" : "zoom-out";
+  }
+};
+const zoomStop = (reset = false) => {
+  let c = document.querySelector("#zoom-area");
+  if (reset)
+    document.querySelector(".canvas-container").style.transform = "none";
+  if (!c) return;
+  c.style.display = "none";
+};
+const zoom = (scale, relative = false) => {
+  if (!relative) {
+    window.zoomScale = scale;
+    zoomArea();
+  } else {
+    let cont = document.querySelector(".canvas-container");
+    cont.style.transform = `scale(${scale})`;
+  }
+};
+const scaleContainer = () => {
+  let rpanelToolbar = document.querySelector("#right-panel-toolbar");
+  let screen =
+    window.innerHeight - rpanelToolbar.clientHeight - (config.padding || 0);
+  let scale = screen / document.querySelector("#content-maker").clientHeight;
+  let rpanel = document.querySelector("#right-panel");
+  if (scale < 1) {
+    document.querySelector(
+      "#content-maker-container"
+    ).style.transform = `scale(${scale})`;
+    document.querySelector("#content-maker-container").style.transformOrigin =
+      "center top";
+    document.querySelector(".canvas-container").style.height = "auto";
+    rpanel.style.width = screen + "px";
+    rpanel.style.height =
+      window.innerHeight - rpanelToolbar.clientHeight + "px";
+  }
+};
+const resizeDomEl = (e) => {
+  if (!window.resizing) return;
+  let el = window.resizing.el.parentElement;
+  let orientation =
+    window.resizing.orientation === "vertical" ? "width" : "height";
+  let size =
+    el[
+      window.resizing.orientation === "vertical"
+        ? "clientWidth"
+        : "clientHeight"
+    ];
+  let max;
+  let initialSize = el.getAttribute("data-initial-size");
+  if (!window.resizing.maxSize) max = parseInt(initialSize);
+  else max = window.resizing.maxSize;
+  if (size > max) {
+    el.style[orientation] = max + "px";
+    window.resizing.done();
+  } else if (window.resizing.minSize && size < window.resizing.minSize) {
+    el.style[orientation] = window.resizing.minSize + 2 + "px";
+    window.resizing.done();
+  } else {
+    el.style[orientation] =
+      e[window.resizing.orientation === "vertical" ? "clientX" : "clientY"] +
+      "px";
+    window.resizing.el.classList.add("resizing");
+    window.resizing.callback && window.resizing.callback();
+  }
+};
+function ResizeLine(props) {
+  const resizeRef = useRef();
+  const styles = useStyles();
+
+  const done = () => {
+    window.resizing && window.resizing.el.classList.remove("resizing");
+    window.resizing = null;
+    document.querySelector("body").style.userSelect = "initial";
+    props.done();
+  };
+  const start = () => {
+    document.querySelector("body").style.userSelect = "none";
+    window.resizing = {
+      el: resizeRef.current,
+      orientation: props.orientation,
+      maxSize: props.maxSize,
+      minSize: props.minSize,
+      done,
+      callback: props.onResize,
+    };
+    window.addEventListener("mousemove", resizeDomEl);
+    window.addEventListener("mouseup", done);
+  };
+  const stop = () => {
+    window.resizing = null;
+    window.removeEventListener("mousemove", resizeDomEl);
+    window.removeEventListener("mouseup", done);
+  };
+  useEffect(() => {
+    if (props.resizing) start();
+    else stop();
+  }, [props.resizing]);
+  return (
+    <Box
+      onMouseDown={() => {
+        if (!resizeRef.current.parentElement.getAttribute("data-initial-size"))
+          resizeRef.current.parentElement.setAttribute(
+            "data-initial-size",
+            resizeRef.current.parentElement[
+              props.orientation === "vertical" ? "clientWidth" : "clientHeight"
+            ]
+          );
+        props.ready();
+      }}
+      onDoubleClick={() => {
+        let isVertical = props.orientation === "vertical" ? true : false;
+        let el = resizeRef.current.parentElement;
+        let offset = 2;
+        el.style[isVertical ? "width" : "height"] =
+          (el[isVertical ? "clientWidth" : "clientHeight"] >
+          props.minSize + offset
+            ? props.minSize + offset
+            : el.getAttribute("data-initial-size")) + "px";
+        scaleContainer();
+      }}
+      className={styles.resizeline}
+      ref={resizeRef}
+      style={{
+        position: "relative",
+        zIndex: 10,
+        cursor: (props.orientation === "vertical" ? "ew" : "ns") + "-resize",
+        ...props.style,
+      }}
+    ></Box>
+  );
+}
+function CircleColorPicker(props) {
+  const [color, setColor] = useState();
+  const btnRef = useRef();
+  const [isVisible, setIsVisible] = useState(false);
+  return (
+    <Box position="relative">
+      <Button
+        ref={btnRef}
+        onClick={() => {
+          if (btnRef.current) {
+            btnRef.current.nextElementSibling.querySelector(
+              "input"
+            ).style.display = "none";
+            btnRef.current.nextElementSibling.click();
+          }
+          setIsVisible(!isVisible);
+        }}
+        style={{
+          background: color || "#fff",
+          width: 30,
+          minWidth: 30,
+          height: 30,
+          border: "1px solid rgba(0,0,0,0.17)",
+        }}
+      ></Button>
+      <ColorPicker
+        name="color"
+        style={{
+          display: isVisible ? "block" : "none",
+          position: "absolute",
+          top: 50,
+          left: 0,
+        }}
+        value={props.value || color || "#fff"}
+        onChange={(color) => {
+          setColor(color);
+          props.onChange && props.onChange(color);
+        }}
+      />
+    </Box>
+  );
+}
 function ContentMaker(props) {
   const theme = useTheme();
   const query = require("query-string").parse(window.location.search);
-  const [success, setSuccess] = useState();
-  const [currentSelection, setCurrentSelection] = useState();
-  const [color, setColor] = useState(theme.palette.primary.main);
-  const [borderColor, setBorderColor] = useState("#222");
-  const [canvasColor, setCanvasColor] = useState("#777");
-  const [layers, setLayers] = useState();
-  const [errors, setErrors] = useState();
+  const styles = useStyles();
+  const [canvasConfig, setCanvasConfig] = useState({
+    title: (
+      "Activity Material " + moment(new Date()).format("MMM DD, YYYY")
+    ).replace(" ", "-"),
+  });
+  const [isResizing, setIsResizing] = useState({});
   const [confirmed, setConfirmed] = useState();
-  const [modals, setModals] = useState([]);
-  const [selectBrush, setSelectBrush] = useState(false);
+  const [toolSet, setToolSet] = useState([]);
   const brushes = [
+    {
+      id: "Pencil",
+      name: "Pencil",
+    },
+    {
+      id: "Circle",
+      name: "Circle Brush",
+    },
     {
       id: "diamondPatternBrush",
       name: "Diamond",
@@ -490,15 +527,15 @@ function ContentMaker(props) {
     },
     {
       id: "squarePatternBrush",
-      name: "Diamond",
+      name: "Square Pattern",
     },
     {
       id: "hLinePatternBrush",
-      name: "Diamond",
+      name: "Horizontal Pattern",
     },
     {
       id: "vLinePatternBrush",
-      name: "Diamond",
+      name: "Vertical Pattern",
     },
     {
       id: "Spray",
@@ -521,6 +558,9 @@ function ContentMaker(props) {
   ];
   useEffect(() => {
     setUp();
+    window.onresize = () => {
+      scaleContainer();
+    };
   }, []);
   const addScript = async (src, loc) => {
     let s = $(`<script src="${src}"></script>`);
@@ -536,26 +576,187 @@ function ContentMaker(props) {
       canvas.freeDrawingBrush = creator[id];
     } else if (fabric[id + "Brush"]) {
       canvas.freeDrawingBrush = new fabric[id + "Brush"](canvas);
+    } else {
+      // canvas.freeDrawingBrush = ;
     }
     if (canvas.freeDrawingBrush) {
-      canvas.freeDrawingBrush.color = "red";
       canvas.freeDrawingBrush.width = 30;
-      canvas.freeDrawingBrush.shadow = new fabric.Shadow({
-        blur: 5,
-        offsetX: 0,
-        offsetY: 0,
-        affectStroke: true,
-        color: "blue",
-      });
     }
+  };
+  const changeBrushStyle = (styles, addTo = null, fallback) => {
+    let { canvas } = getCanvas();
+    Object.keys(styles).forEach((s) => {
+      if (canvas.freeDrawingBrush) {
+        if (!addTo) canvas.freeDrawingBrush[s] = styles[s];
+        else {
+          if (canvas.freeDrawingBrush[addTo]) {
+            canvas.freeDrawingBrush[addTo][s] = styles[s];
+          } else {
+            canvas.freeDrawingBrush[addTo] = fallback;
+          }
+        }
+      }
+    });
   };
   const setUp = async () => {
     await addScript("/fabric.min.js", $("head"));
     $("body").css("overflow", "auto");
+
+    /**
+     * Override the initialize function for the _historyInit();
+     */
+    window.fabric.Canvas.prototype.initialize = (function (originalFn) {
+      return function (...args) {
+        originalFn.call(this, ...args);
+        this._historyInit();
+        return this;
+      };
+    })(window.fabric.Canvas.prototype.initialize);
+
+    /**
+     * Override the dispose function for the _historyDispose();
+     */
+    window.fabric.Canvas.prototype.dispose = (function (originalFn) {
+      return function (...args) {
+        originalFn.call(this, ...args);
+        this._historyDispose();
+        return this;
+      };
+    })(window.fabric.Canvas.prototype.dispose);
+
+    /**
+     * Returns current state of the string of the canvas
+     */
+    window.fabric.Canvas.prototype._historyNext = function () {
+      return JSON.stringify(this.toDatalessJSON(this.extraProps));
+    };
+
+    /**
+     * Returns an object with fabricjs event mappings
+     */
+    window.fabric.Canvas.prototype._historyEvents = function () {
+      return {
+        "object:added": this._historySaveAction,
+        "object:removed": this._historySaveAction,
+        "object:modified": this._historySaveAction,
+        "object:skewing": this._historySaveAction,
+      };
+    };
+
+    /**
+     * Initialization of the plugin
+     */
+    window.fabric.Canvas.prototype._historyInit = function () {
+      this.historyUndo = [];
+      this.historyRedo = [];
+      this.extraProps = ["selectable"];
+      this.historyNextState = this._historyNext();
+
+      this.on(this._historyEvents());
+    };
+
+    /**
+     * Remove the custom event listeners
+     */
+    window.fabric.Canvas.prototype._historyDispose = function () {
+      this.off(this._historyEvents());
+    };
+
+    /**
+     * It pushes the state of the canvas into history stack
+     */
+    window.fabric.Canvas.prototype._historySaveAction = function () {
+      if (this.historyProcessing) return;
+
+      const json = this.historyNextState;
+      this.historyUndo.push(json);
+      this.historyNextState = this._historyNext();
+      this.fire("history:append", { json: json });
+    };
+
+    /**
+     * Undo to latest history.
+     * Pop the latest state of the history. Re-render.
+     * Also, pushes into redo history.
+     */
+    window.fabric.Canvas.prototype.undo = function (callback) {
+      // The undo process will render the new states of the objects
+      // Therefore, object:added and object:modified events will triggered again
+      // To ignore those events, we are setting a flag.
+      this.historyProcessing = true;
+
+      const history = this.historyUndo.pop();
+      if (history) {
+        // Push the current state to the redo history
+        this.historyRedo.push(this._historyNext());
+        this.historyNextState = history;
+        this._loadHistory(history, "history:undo", callback);
+      } else {
+        this.historyProcessing = false;
+      }
+    };
+
+    /**
+     * Redo to latest undo history.
+     */
+    window.fabric.Canvas.prototype.redo = function (callback) {
+      // The undo process will render the new states of the objects
+      // Therefore, object:added and object:modified events will triggered again
+      // To ignore those events, we are setting a flag.
+      this.historyProcessing = true;
+      const history = this.historyRedo.pop();
+      if (history) {
+        // Every redo action is actually a new action to the undo history
+        this.historyUndo.push(this._historyNext());
+        this.historyNextState = history;
+        this._loadHistory(history, "history:redo", callback);
+      } else {
+        this.historyProcessing = false;
+      }
+    };
+
+    window.fabric.Canvas.prototype._loadHistory = function (
+      history,
+      event,
+      callback
+    ) {
+      var that = this;
+
+      this.loadFromJSON(history, function () {
+        that.renderAll();
+        that.fire(event);
+        that.historyProcessing = false;
+
+        if (callback && typeof callback === "function") callback();
+      });
+    };
+
+    /**
+     * Clear undo and redo history stacks
+     */
+    window.fabric.Canvas.prototype.clearHistory = function () {
+      this.historyUndo = [];
+      this.historyRedo = [];
+      this.fire("history:clear");
+    };
+
+    /**
+     * Off the history
+     */
+    window.fabric.Canvas.prototype.offHistory = function () {
+      this.historyProcessing = true;
+    };
+
+    /**
+     * On the history
+     */
+    window.fabric.Canvas.prototype.onHistory = function () {
+      this.historyProcessing = false;
+
+      this._historySaveAction();
+    };
+
     const creator = new ContentCreator(window.fabric, "content-maker", {
-      onSelectionCreated: (object) => setCurrentSelection(object),
-      onSelectionUpdated: (object) => setCurrentSelection(object),
-      onSelectionCleared: () => setCurrentSelection(null),
       onModified: () => getLayers(),
     });
     const { canvas } = creator;
@@ -565,33 +766,26 @@ function ContentMaker(props) {
       await canvas.loadFromJSON(
         JSON.parse(window.localStorage["content-creator"]),
         function () {
-          canvas.setWidth(savedState.width || 1000);
-          canvas.setHeight(savedState.height || 1000);
+          canvas.setWidth(savedState.width || config.width);
+          canvas.setHeight(savedState.height || config.height);
           canvas.preserveObjectStacking = true;
           canvas.renderAll();
         }
       );
     } else {
-      canvas.setWidth(1000);
-      canvas.setHeight(1000);
+      canvas.setWidth(config.width);
+      canvas.setHeight(config.height);
     }
     $("#canvas-width").val(canvas.width);
     $("#canvas-height").val(canvas.height);
-    setTimeout(() => getLayers(), 500);
+    scaleContainer();
   };
   const getLayers = () => {
     const { canvas } = getCanvas();
-    setLayers(
-      canvas.getObjects().map((object, index) => ({
-        ...object,
-        id: "item-" + index,
-        object_id: object.id,
-      }))
-    );
   };
   const addRect = (w = 200, h = 200) => {
     let { canvas, creator, width, top } = getCanvas();
-    let rec = creator.rect(width / 2 - w / 2, top - h / 2, w, h, color);
+    let rec = creator.rect(width / 2 - w / 2, top - h / 2, w, h, "blue");
     canvas.add(rec);
   };
 
@@ -610,30 +804,19 @@ function ContentMaker(props) {
   };
   const addCircle = (r = 100) => {
     let { canvas, creator, width, top } = getCanvas();
-    let circle = creator.circ(r, width / 2 - r, top - r, color);
+    let circle = creator.circ(r, width / 2 - r, top - r, "blue");
     canvas.add(circle);
   };
   const addImage = (url) => {
     let { creator } = getCanvas();
-    creator.addImage(url, (e) => setErrors(e));
   };
 
-  const addText = (message) => {
+  const addText = (message, style = null) => {
     let { canvas, creator, width, top } = getCanvas();
-    let text = creator.text(width / 2, top / 2, message);
+    let text = creator.text(width / 2, top / 2, message, style);
     canvas.add(text);
   };
-  const dataURItoBlob = (dataURI) => {
-    var byteString = atob(dataURI.split(",")[1]);
-    var mimeString = dataURI.split(",")[0].split(":")[1].split(";")[0];
-    var ab = new ArrayBuffer(byteString.length);
-    var ia = new Uint8Array(ab);
-    for (var i = 0; i < byteString.length; i++) {
-      ia[i] = byteString.charCodeAt(i);
-    }
-    var blob = new Blob([ab], { type: mimeString });
-    return blob;
-  };
+
   const blobToBase64 = (blob) => {
     return new Promise((resolve) => {
       const reader = new FileReader();
@@ -656,7 +839,10 @@ function ContentMaker(props) {
         if (query.callback && query.to) {
           socket.emit(query.callback, {
             to: query.to,
-            data: jsonString,
+            data: {
+              b64: jsonString,
+              title: canvasConfig.title,
+            },
             type: "ATTACH_CONTENTCREATOR",
           });
           setTimeout(() => window.close(), 0);
@@ -666,59 +852,25 @@ function ContentMaker(props) {
   };
   const triangle = () => {
     let { canvas, creator, width, top } = getCanvas();
-    let poly = creator.poly(
-      width / 2 - 100,
-      top - 100,
-      theme.palette.primary.main,
-      [
-        {
-          x: width / 2,
-          y: 0,
-        },
-        {
-          x: width / 2 - 100,
-          y: 200,
-        },
-        {
-          x: width / 2 + 100,
-          y: 200,
-        },
-      ]
-    );
+    let poly = creator.poly(width / 2 - 100, top - 100, "blue", [
+      {
+        x: width / 2,
+        y: 0,
+      },
+      {
+        x: width / 2 - 100,
+        y: 200,
+      },
+      {
+        x: width / 2 + 100,
+        y: 200,
+      },
+    ]);
     canvas.add(poly);
     canvas.renderAll();
   };
   return (
-    <div
-      style={{
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        flexWrap: "wrap",
-        marginTop: 100,
-      }}
-    >
-      <Dialog
-        fullWidth
-        maxWidth="lg"
-        open={modals.indexOf("image") >= 0}
-        onClose={() => setModals([])}
-      >
-        <DialogTitle>Import Image</DialogTitle>
-        <DialogContent>
-          {images.map((i, ii) => (
-            <Button
-              key={ii}
-              onClick={() => {
-                addImage(i.link);
-                setModals([]);
-              }}
-            >
-              <img alt={"Image " + i} src={i.link} width="100" height="100" />
-            </Button>
-          ))}
-        </DialogContent>
-      </Dialog>
+    <React.Fragment>
       <Dialog open={confirmed} onClose={() => setConfirmed(null)}>
         <DialogTitle>{confirmed && confirmed.title}</DialogTitle>
         <DialogContent>{confirmed && confirmed.message}</DialogContent>
@@ -740,246 +892,513 @@ function ContentMaker(props) {
           </Button>
         </DialogActions>
       </Dialog>
-      <Snackbar
-        open={success}
-        autoHideDuration={6000}
-        onClose={() => setSuccess(false)}
-      >
-        <Alert severity="success" onClose={() => setSuccess(false)}>
-          Saved
-        </Alert>
-      </Snackbar>
-      {errors &&
-        errors.map((e, i) => (
-          <Snackbar
-            key={i}
-            open={true}
-            autoHideDuration={6000}
-            onClose={() => setErrors(null)}
-          >
-            <Alert severity="error" onClose={() => setErrors(null)}>
-              {e}
-            </Alert>
-          </Snackbar>
-        ))}
-      <AppBar position="fixed">
-        <Paper>
-          <Toolbar
-            style={{
-              justifyContent: "space-between",
-              display: "flex",
-              alignItems: "center",
-            }}
-          >
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-              }}
-            >
-              <Tooltip title="Save" placement="bottom">
-                <IconButton onClick={() => handleSave()}>
-                  <SaveOutlinedIcon />
-                </IconButton>
-              </Tooltip>
-              <Tooltip title="Rectangle" placement="bottom">
-                <IconButton onClick={() => addRect()}>
-                  <CheckBoxOutlineBlankOutlinedIcon />
-                </IconButton>
-              </Tooltip>
-              <Tooltip title="Circle" placement="bottom">
-                <IconButton onClick={() => addCircle()}>
-                  <FiberManualRecordOutlinedIcon />
-                </IconButton>
-              </Tooltip>
-              <Tooltip title="Triangle" placement="bottom">
-                <IconButton onClick={() => triangle()}>
-                  <ChangeHistoryIcon />
-                </IconButton>
-              </Tooltip>
-              <Tooltip title="Drawing Mode" placement="bottom">
-                <IconButton
-                  color={
-                    window.creator && window.creator.canvas.isDrawingMode
-                      ? "primary"
-                      : "default"
-                  }
-                  onClick={() => {
-                    let { canvas } = getCanvas();
-                    canvas.isDrawingMode = !canvas.isDrawingMode;
+      <GooglePicker
+        type="photo"
+        auth={(s) => (window.GPICKER = s)}
+        onSelect={({ thumb }) => {
+          console.log(thumb);
+          if (thumb) {
+            console.log(thumb);
+          }
+        }}
+      />
+      <div className={styles.root}>
+        <Box id="toolbar-container">
+          <CreatorToolbar
+            onShowTools={(tool) => setToolSet(tool)}
+            defaultControl={
+              <Box p={2} width={325} display="flex" flexWrap="wrap">
+                <TextField
+                  fullWidth
+                  variant="outlined"
+                  label="File Title"
+                  margin="dense"
+                  defaultValue={canvasConfig.title}
+                  className="themed-input"
+                  onChange={(e) => {
+                    setCanvasConfig({ ...canvasConfig, title: e.target.value });
                   }}
-                >
-                  <EditIcon />
-                </IconButton>
-              </Tooltip>
-              <Tooltip title="Brush" placement="bottom">
-                <IconButton onClick={() => setSelectBrush(!selectBrush)}>
-                  <BrushIcon />
-                </IconButton>
-              </Tooltip>
-              {selectBrush &&
-                brushes.map((i, ii) => (
-                  <Grow in={true} key={ii}>
-                    <Button onClick={() => changeBrush(i.id)}>{i.name}</Button>
-                  </Grow>
-                ))}
-              {selectBrush && (
-                <div style={{ width: 100 }}>
-                  <Tooltip title="Brush Width" placement="bottom">
+                />
+                <Box display="flex" fullWidth>
+                  <TextField
+                    variant="outlined"
+                    type="number"
+                    label="Width"
+                    className="themed-input"
+                    style={{ marginRight: 5 }}
+                    margin="dense"
+                    value={canvasConfig.width || config.width}
+                    onChange={(e) => {
+                      let size = parseFloat(e.target.value);
+                      if (!size) return;
+                      setCanvasConfig({ ...canvasConfig, width: size });
+                      window.creator.canvas.setWidth(size);
+                      scaleContainer();
+                    }}
+                  />
+                  <TextField
+                    variant="outlined"
+                    style={{ marginLeft: 5 }}
+                    margin="dense"
+                    type="number"
+                    label="Height"
+                    className="themed-input"
+                    onChange={(e) => {
+                      let size = parseFloat(e.target.value);
+                      if (!size) return;
+                      setCanvasConfig({ ...canvasConfig, height: size });
+                      window.creator.canvas.setHeight(size);
+                      scaleContainer();
+                    }}
+                    value={canvasConfig.height || config.height}
+                  />
+                </Box>
+                <Box marginTop={2}>
+                  <Typography>Background Color</Typography>
+                  <CircleColorPicker
+                    value={canvasConfig.background || "#fff"}
+                    onChange={(color) => {
+                      setCanvasConfig({ ...canvasConfig, background: color });
+                      window.creator.canvas
+                        .setBackgroundColor(color)
+                        .renderAll();
+                    }}
+                  />
+                </Box>
+              </Box>
+            }
+            actions={{
+              save: () => handleSave(),
+              toggleDrawing: () => {
+                let { canvas } = getCanvas();
+                canvas.isDrawingMode = !canvas.isDrawingMode;
+              },
+              closeDrawing: () => {
+                let { canvas } = getCanvas();
+                canvas.isDrawingMode = false;
+              },
+            }}
+            tools={{
+              stroke_color: {
+                title: "Border",
+                component: (
+                  <CircleColorPicker
+                    onChange={(color) => {
+                      window.creator.changeBorderColor(color);
+                    }}
+                  />
+                ),
+              },
+              shape_color: {
+                title: "Shape",
+                component: (
+                  <CircleColorPicker
+                    onChange={(color) => {
+                      window.creator.changeColor(color);
+                    }}
+                  />
+                ),
+              },
+              brush_color: {
+                title: "Brush",
+                component: (
+                  <CircleColorPicker
+                    onChange={(color) => {
+                      changeBrushStyle({
+                        color,
+                      });
+                    }}
+                  />
+                ),
+              },
+              stroke_width: {
+                title: "Stroke",
+                component: (
+                  <TextField
+                    onChange={(e) => {
+                      window.creator.changeBorderWidth(
+                        parseInt(e.target.value)
+                      );
+                    }}
+                    defaultValue="1"
+                    variant="filled"
+                    type="number"
+                    style={{
+                      width: 40,
+                      height: 30,
+                      border: "1px solid rgba(0,0,0,0.17)",
+                    }}
+                    inputProps={{
+                      min: 0,
+                      style: {
+                        height: 30,
+                        padding: "0 5px",
+                      },
+                    }}
+                  />
+                ),
+              },
+              brush_shadow: {
+                title: "Shadow",
+                component: (
+                  <CircleColorPicker
+                    onChange={(color) => {
+                      changeBrushStyle(
+                        {
+                          affectStroke: true,
+                          color,
+                        },
+                        "shadow",
+                        new window.creator.fabric.Shadow({
+                          affectStroke: true,
+                          color,
+                        })
+                      );
+                    }}
+                  />
+                ),
+              },
+              brush_shadow_blur: {
+                title: "Shadow Blur",
+                component: (
+                  <TextField
+                    onChange={(e) => {
+                      changeBrushStyle(
+                        {
+                          blur: parseInt(e.target.value),
+                        },
+                        "shadow",
+                        new window.creator.fabric.Shadow({
+                          blur: parseInt(e.target.value),
+                        })
+                      );
+                    }}
+                    defaultValue="0"
+                    variant="filled"
+                    type="number"
+                    style={{
+                      width: 50,
+                      height: 30,
+                      border: "1px solid rgba(0,0,0,0.17)",
+                    }}
+                    inputProps={{
+                      min: 0,
+                      style: {
+                        height: 30,
+                        padding: "0 5px",
+                      },
+                    }}
+                  />
+                ),
+              },
+              brush_size: {
+                title: "Size",
+                component: (
+                  <TextField
+                    onChange={(e) => {
+                      changeBrushStyle({
+                        width: parseInt(e.target.value),
+                      });
+                    }}
+                    defaultValue="30"
+                    variant="filled"
+                    type="number"
+                    style={{
+                      width: 50,
+                      height: 30,
+                      border: "1px solid rgba(0,0,0,0.17)",
+                    }}
+                    inputProps={{
+                      min: 0,
+                      style: {
+                        height: 30,
+                        padding: "0 5px",
+                      },
+                    }}
+                  />
+                ),
+              },
+            }}
+            controls={[
+              {
+                title: "Save",
+                action: "save",
+                icon: "save",
+              },
+              {
+                title: "Select",
+                icon: "highlight_alt",
+                action: "closeDrawing",
+              },
+              {
+                title: "Shape",
+                icon: "crop_square",
+                type: "atomic",
+                tools: ["stroke_color", "stroke_width", "shape_color"],
+                atomicComponent: (
+                  <React.Fragment>
+                    <List>
+                      {[
+                        {
+                          title: "Square",
+                          icon: "crop_square",
+                          onClick: addRect,
+                        },
+                        { title: "Circle", icon: "lens", onClick: addCircle },
+                        {
+                          title: "Triangle",
+                          icon: "change_history",
+                          onClick: triangle,
+                        },
+                      ].map((c) => (
+                        <ListItem onClick={() => c.onClick()}>
+                          <ListItemIcon>
+                            <Icon>{c.icon}</Icon>
+                          </ListItemIcon>
+                          <ListItemText primary={c.title} />
+                        </ListItem>
+                      ))}
+                    </List>
+                  </React.Fragment>
+                ),
+              },
+              {
+                title: "Select Brush",
+                type: "atomic",
+                action: "toggleDrawing",
+                tools: [
+                  "brush_color",
+                  "brush_size",
+                  "brush_shadow",
+                  "brush_shadow_blur",
+                ],
+                atomicComponent: (
+                  <React.Fragment>
+                    <List>
+                      {brushes.map((i, ii) => (
+                        <ListItem
+                          key={ii}
+                          onClick={() => {
+                            changeBrush(i.id, {
+                              color: "black",
+                            });
+                            setCanvasConfig({
+                              ...canvasConfig,
+                              brushIndex: ii,
+                            });
+                          }}
+                          style={{
+                            background:
+                              canvasConfig.brushIndex >= 0 &&
+                              canvasConfig.brushIndex === ii
+                                ? "rgba(0,0,0,0.16)"
+                                : "",
+                          }}
+                        >
+                          <ListItemText primary={i.name} />
+                        </ListItem>
+                      ))}
+                    </List>
+                  </React.Fragment>
+                ),
+                icon: "brush",
+                onClose: (c) => c.actions.closeDrawing(),
+              },
+              {
+                title: "Text",
+                icon: "text_fields",
+                type: "atomic",
+                atomicComponent: (closeControl) => (
+                  <Box p={2}>
+                    <List style={{ maxWidth: 325 }}>
+                      {textStyles.map((s, index) => (
+                        <ListItem
+                          key={index}
+                          onClick={() => addText("Text", s.style)}
+                        >
+                          <ListItemText
+                            primary="Lorem ipsum dolor sit amet, consectetur..."
+                            primaryTypographyProps={{
+                              style: {
+                                ...(s.style ? s.style : {}),
+                              },
+                            }}
+                          />
+                        </ListItem>
+                      ))}
+                    </List>
+                  </Box>
+                ),
+              },
+              {
+                title: "Image",
+                icon: "insert_photo",
+                type: "atomic",
+                atomicComponent: (closeControl) => (
+                  <Box p={2}>
+                    <List>
+                      {[
+                        {
+                          title: "Insert URL",
+                          icon: "link",
+                          onClick: () => {
+                            let url = prompt("Enter URL");
+                            if (url) {
+                              window.creator.addImage(url);
+                            }
+                          },
+                        },
+                        { title: "Upload Image", icon: "insert_photo" },
+                        {
+                          title: "Google Drive",
+                          onClick: () => window.GPICKER && window.GPICKER(),
+                          icon: "storage",
+                        },
+                      ].map((c) => (
+                        <ListItem onClick={c.onClick}>
+                          <ListItemIcon>
+                            <Icon>{c.icon}</Icon>
+                          </ListItemIcon>
+                          <ListItemText primary={c.title} />
+                        </ListItem>
+                      ))}
+                    </List>
+                  </Box>
+                ),
+              },
+              {
+                title: "Zoom",
+                icon: "zoom_in",
+                type: "atomic",
+                atomicComponent: (closeControl) => (
+                  <Box p={2}>
+                    <List>
+                      {[
+                        {
+                          title: "Zoom In",
+                          icon: "zoom_in",
+                          onClick: () => zoom(0.1),
+                        },
+                        {
+                          title: "Zoom Out",
+                          icon: "zoom_out",
+                          onClick: () => zoom(-0.1),
+                        },
+                      ].map((c) => (
+                        <ListItem onClick={() => c.onClick()}>
+                          <ListItemIcon>
+                            <Icon>{c.icon}</Icon>
+                          </ListItemIcon>
+                          <ListItemText primary={c.title} />
+                        </ListItem>
+                      ))}
+                    </List>
                     <Slider
                       onChange={(e, val) => {
-                        let { canvas } = getCanvas();
-                        canvas.freeDrawingBrush.width = val;
+                        zoom(parseFloat(val), true);
                       }}
+                      min={0.1}
+                      max={2}
+                      step={0.1}
                       defaultValue={1}
-                      id="brush-size"
                     />
-                  </Tooltip>
-                </div>
-              )}
-              {!selectBrush && (
-                <Grow in={true}>
-                  <div style={{ display: "flex", alignItems: "center" }}>
-                    <Tooltip title="Image" placement="bottom">
-                      <IconButton>
-                        <ImageOutlinedIcon
-                          onClick={() => setModals([...modals, "image"])}
-                        />
-                      </IconButton>
-                    </Tooltip>
-                    <Tooltip title="Text" placement="bottom">
-                      <IconButton onClick={() => addText("Some text")}>
-                        <TextFormatOutlinedIcon />
-                      </IconButton>
-                    </Tooltip>
-
-                    <Tooltip title="Shape Color" placement="bottom">
-                      <IconButton onClick={() => $("#color-picker").click()}>
-                        <Box
-                          width={30}
-                          height={30}
-                          borderRadius="50%"
-                          style={{
-                            background: color
-                              ? color
-                              : theme.palette.primary.main,
-                          }}
-                        />
-                      </IconButton>
-                    </Tooltip>
-                    <ColorPicker
-                      name="color"
-                      id="color-picker"
-                      style={{ display: "none" }}
-                      defaultValue={theme.palette.primary.main}
-                      value={color ? color : theme.palette.primary.main}
-                      onChange={(color) => {
-                        window.creator.changeColor(color);
-                        setColor(color);
-                      }}
-                    />
-                    <Tooltip title="Canvas Color" placement="bottom">
-                      <IconButton onClick={() => $("#canvas-color").click()}>
-                        <Box
-                          width={30}
-                          height={30}
-                          borderRadius="50%"
-                          style={{
-                            background: canvasColor,
-                          }}
-                        />
-                      </IconButton>
-                    </Tooltip>
-                    <ColorPicker
-                      name="color"
-                      id="canvas-color"
-                      style={{ display: "none" }}
-                      defaultValue={canvasColor}
-                      value={canvasColor}
-                      onChange={(color) => {
-                        window.creator.canvas
-                          .setBackgroundColor(color)
-                          .requestRenderAll();
-                        setCanvasColor(color);
-                      }}
-                    />
-                    <Tooltip title="Border Color" placement="bottom">
-                      <IconButton
-                        onClick={() => $("#border-color-picker").click()}
+                    <Button onClick={() => zoomStop(true)} variant="contained">
+                      Reset
+                    </Button>
+                  </Box>
+                ),
+                onClose: () => zoomStop(),
+              },
+            ]}
+          />
+        </Box>
+        <Box flex={1} position="relative" zIndex={4}>
+          <Box position="relative">
+            <Toolbar
+              id="right-panel-toolbar"
+              style={{ background: "#fff", height: 51 }}
+            >
+              <Box
+                marginRight={1}
+                height="100%"
+                display="flex"
+                alignItems="center"
+              >
+                <ButtonGroup variant="outlined" color="primary">
+                  <Button onClick={() => window.creator.canvas.undo()}>
+                    <Icon>undo</Icon>
+                  </Button>
+                  <Button onClick={() => window.creator.canvas.redo()}>
+                    <Icon>redo</Icon>
+                  </Button>
+                </ButtonGroup>
+                <Divider orientation="vertical" style={{ marginLeft: 13 }} />
+              </Box>
+              <Box
+                marginRight={1}
+                height="100%"
+                display="flex"
+                alignItems="center"
+              >
+                {toolSet && toolSet.length ? (
+                  <React.Fragment>
+                    {toolSet.map((t, index) => (
+                      <Box
+                        key={index}
+                        display="flex"
+                        alignItems="center"
+                        zIndex={11}
+                        marginRight={1}
                       >
-                        <Box
-                          width={30}
-                          height={30}
-                          borderRadius="50%"
-                          style={{
-                            background: borderColor
-                              ? borderColor
-                              : theme.palette.primary.main,
-                          }}
-                        />
-                      </IconButton>
-                    </Tooltip>
-                    <ColorPicker
-                      name="color"
-                      id="border-color-picker"
-                      style={{ display: "none" }}
-                      defaultValue={theme.palette.primary.main}
-                      value={
-                        borderColor ? borderColor : theme.palette.primary.main
-                      }
-                      onChange={(color) => {
-                        window.creator.changeBorderColor(color);
-                        setBorderColor(color);
-                      }}
+                        <Typography style={{ marginRight: 7 }}>
+                          {t.title}
+                        </Typography>
+                        {t.component}
+                      </Box>
+                    ))}
+                    <Divider
+                      orientation="vertical"
+                      style={{ marginLeft: 13 }}
                     />
-                    <div style={{ width: 100 }}>
-                      <Tooltip title="Stroke Width" placement="bottom">
-                        <Slider
-                          onChange={(e, val) => {
-                            window.creator.changeBorderWidth(val);
-                          }}
-                          defaultValue={1}
-                        />
-                      </Tooltip>
-                    </div>
-                  </div>
-                </Grow>
-              )}
-            </div>
-
-            <div style={{ display: "flex", alignItems: "center" }}>
-              <Typography variant="body1" color="textSecondary">
-                Canvas Size
-              </Typography>
-              <Input
-                style={{ width: 80 }}
-                type="number"
-                color="primary"
-                label="Width"
-                id="canvas-width"
-                onChange={(e) => {
-                  window.creator.canvas.setHeight(parseFloat(e.target.value));
-                }}
-              />
-              &times;
-              <Input
-                style={{ width: 80 }}
-                type="number"
-                color="primary"
-                label="Height"
-                id="canvas-height"
-                onChange={(e) => {
-                  window.creator.canvas.setWidth(parseFloat(e.target.value));
-                }}
-              />
-            </div>
-          </Toolbar>
-        </Paper>
-      </AppBar>
-      <canvas id="content-maker"></canvas>
-
-      <div
+                  </React.Fragment>
+                ) : null}
+              </Box>
+            </Toolbar>
+            <ResizeLine
+              orientation="horizontal"
+              minSize={6}
+              resizing={isResizing.TOOLBAR || false}
+              ready={() =>
+                setIsResizing({ ...isResizing, ...{ TOOLBAR: true } })
+              }
+              done={() =>
+                setIsResizing({ ...isResizing, ...{ TOOLBAR: false } })
+              }
+              onResize={() => scaleContainer()}
+              style={{
+                position: "absolute",
+                borderBottom: "1px solid rgba(0,0,0,0.17)",
+                height: 4,
+                width: "100%",
+                right: 0,
+                left: 0,
+                bottom: 0,
+              }}
+            />
+          </Box>
+          <Box flex={1} id="right-panel" overflow="auto" height="100%">
+            <Box
+              maxWidth="100%"
+              id="content-maker-container"
+              style={{
+                transformOrigin: "top left",
+              }}
+            >
+              <canvas id="content-maker"></canvas>
+            </Box>
+          </Box>
+        </Box>
+        {/* <div
         style={{
           position: "fixed",
           padding: 13,
@@ -1030,9 +1449,197 @@ function ContentMaker(props) {
               </Button>
             </div>
           ))}
+      </div> */}
       </div>
-    </div>
+    </React.Fragment>
+  );
+}
+function CreatorToolbar(props) {
+  const [isResizing, setIsResizing] = useState({});
+  const [modals, setModals] = useState(props.controls.map((c) => false));
+  const styles = useStyles();
+  const toggleAtomic = (c, index, callback = null) => {
+    let m = modals.map((cc, i) => (i !== index ? false : !cc));
+    setModals(m);
+    props.actions[c.action] && props.actions[c.action]();
+    modals.forEach((m, i) => {
+      if (m) {
+        props.controls[i].onClose &&
+          props.controls[i].onClose({
+            actions: props.actions,
+            controls: props.controls,
+          });
+      }
+    });
+    callback && callback(c);
+    c.tools && props.onShowTools
+      ? props.onShowTools(
+          c.tools.map((t) => props.tools[t] || null).filter((t) => t !== null)
+        )
+      : props.onShowTools([]);
+    setTimeout(scaleContainer, 0);
+  };
+
+  return (
+    <Box id="toolbar" display="flex" height="100%" position="relative">
+      <Box
+        style={{
+          height: "100%",
+          background: "#fff",
+        }}
+      >
+        <div
+          style={{
+            position: "relative",
+            alignItems: "center",
+            justifyContent: "space-between",
+            borderRight: "1px solid rgba(0,0,0,0.17)",
+            height: "100%",
+          }}
+        >
+          {props.controls.map((c, index) => (
+            <React.Fragment>
+              <Box>
+                <Tooltip title={c.title} placement="right">
+                  <IconButton
+                    onClick={() => toggleAtomic(c, index)}
+                    {...(c.props || {})}
+                  >
+                    {typeof c.icon === "string" ? (
+                      <Icon color={modals[index] ? "primary" : "default"}>
+                        {c.icon}
+                      </Icon>
+                    ) : (
+                      c.icon
+                    )}
+                  </IconButton>
+                </Tooltip>
+              </Box>
+              {/* <Backdrop
+              onClick={() => toggleAtomic(c, index, c.onClose)}
+              open={modals[index]}
+              style={{ zIndex: 10, opacity: 0 }}
+            /> */}
+            </React.Fragment>
+          ))}
+        </div>
+      </Box>
+      <Box
+        className={styles.atomicComponent}
+        style={{
+          minWidth: Object.keys(modals).find((m, i) =>
+            modals[m] ? props.controls[i].type === "atomic" : false
+          )
+            ? 325
+            : 0,
+        }}
+      >
+        {props.controls.map((c, index) => (
+          <React.Fragment>
+            {modals[index] && (
+              <Grow in={true}>
+                <Box className="control">
+                  {typeof c.atomicComponent !== "function"
+                    ? c.atomicComponent
+                    : c.atomicComponent(() =>
+                        toggleAtomic(c, index, c.onClose)
+                      )}
+                </Box>
+              </Grow>
+            )}
+          </React.Fragment>
+        ))}
+        {props.defaultControl &&
+        (!Object.keys(modals).find((q) => (modals[q] ? q : null)) ||
+          !props.controls[
+            Object.keys(modals).find((q) => (modals[q] ? q : null))
+          ].atomicComponent)
+          ? props.defaultControl
+          : null}
+      </Box>
+      <ResizeLine
+        minSize={48}
+        maxSize={500}
+        orientation="vertical"
+        resizing={isResizing.CONTROLS || false}
+        ready={() => setIsResizing({ ...isResizing, ...{ CONTROLS: true } })}
+        done={() => setIsResizing({ ...isResizing, ...{ CONTROLS: false } })}
+        onResize={() => scaleContainer()}
+        style={{
+          position: "absolute",
+          borderRight: "1px solid rgba(0,0,0,0.17)",
+          height: "100%",
+          width: 3,
+          right: 0,
+        }}
+      />
+    </Box>
   );
 }
 
+const useStyles = makeStyles((theme) => ({
+  resizeline: {
+    transition: "all 0.3s ease-out",
+    "&.resizing, &:hover": {
+      background: theme.palette.info.main,
+    },
+  },
+  root: {
+    overflow: "hidden",
+    height: "100vh",
+    display: "flex",
+    "& #content-maker-container": {},
+    "& #right-panel": {
+      position: "relative",
+      minWidth: "100%",
+      background: theme.palette.grey[200],
+      display: "flex",
+      justifyContent: "center",
+    },
+    "& .canvas-container": {
+      margin: config.padding / 2,
+    },
+    "& #content-maker": {
+      boxShadow: "0 0 102px rgba(0,0,0,0.2), 0 11px 55.5px rgba(0,0,0,0.06)",
+    },
+  },
+  atomicComponent: {
+    background: "#fff",
+    width: "100%",
+  },
+}));
+const textStyles = [
+  {
+    style: {
+      fontFamily: "Impact",
+      fontWeight: "bold",
+      fontSize: 30,
+    },
+  },
+  {
+    style: {
+      fontFamily: "Arial",
+      fontWeight: "bold",
+      fontSize: 30,
+    },
+  },
+  {
+    style: {
+      fontFamily: "Arial",
+      fontSize: 26,
+    },
+  },
+  {
+    style: {
+      fontFamily: "Arial",
+      fontSize: 20,
+    },
+  },
+  {
+    style: {
+      fontFamily: "Arial",
+      fontSize: 16,
+    },
+  },
+];
 export default ContentMaker;

@@ -161,13 +161,27 @@ export function SlideRenderer(props) {
       setMediaResult({ ...r, search: s, page: p });
     }
   };
-  const handleSelectMedia = () => {
+  const handleSelectMedia = async () => {
+    let uploadedFile;
+    if (hasUpload) {
+      let body = new FormData();
+      body.append("file", document.querySelector("#upload-file").files[0]);
+      uploadedFile = await Api.post("/api/public/upload", {
+        body,
+      });
+    }
     let r = {
       ...slide,
       media: {
-        thumb: !hasUpload ? mediaResult.selected.previewURL : hasUpload,
-        large: !hasUpload ? mediaResult.selected.largeImageURL : hasUpload,
-        web: !hasUpload ? mediaResult.selected.webformatURL : hasUpload,
+        thumb: !uploadedFile
+          ? mediaResult.selected.previewURL
+          : uploadedFile.url,
+        large: !uploadedFile
+          ? mediaResult.selected.largeImageURL
+          : uploadedFile.url,
+        web: !uploadedFile
+          ? mediaResult.selected.webformatURL
+          : uploadedFile.url,
       },
     };
     setSlide(r);

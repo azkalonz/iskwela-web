@@ -20,6 +20,9 @@ import {
   Divider,
   makeStyles,
   useMediaQuery,
+  ListItem,
+  ListItemAvatar,
+  ListItemText,
 } from "@material-ui/core";
 import { connect } from "react-redux";
 import MUIRichTextEditor from "mui-rte";
@@ -63,6 +66,17 @@ function ClassCard(props) {
     </Card>
   );
 }
+function TagItem(props) {
+  return (
+    <React.Fragment>
+      <Avatar src="/" alt={props.user.first_name} style={{ marginRight: 10 }} />
+      <ListItemText
+        primary={props.user.first_name + " " + props.user.last_name}
+        secondary={"@" + props.user.username}
+      />
+    </React.Fragment>
+  );
+}
 function TagSomeone(props) {
   const theme = useTheme();
   const url = "http://google.com/" + props.decoratedText;
@@ -79,9 +93,22 @@ function TagSomeone(props) {
       ].students.findIndex(
         (s) => s.username === props.decoratedText.replace("@", "")
       ) >= 0 ? (
-        <Tooltip title={getTitle()} placement="top">
-          <a style={{ color: theme.palette.primary.main, fontWeight: "bold" }}>
-            {props.children}
+        <Tooltip title={props.decoratedText} placement="top">
+          <a
+            style={{
+              textDecoration: "none",
+              color: theme.palette.primary.main,
+              fontWeight: "bold",
+            }}
+            href={"#" + props.decoratedText}
+          >
+            {React.Children.map(props.children, (child) => (
+              <React.Fragment>
+                {React.cloneElement(child, {
+                  text: getTitle(),
+                })}
+              </React.Fragment>
+            ))}
           </a>
         </Tooltip>
       ) : (
@@ -98,7 +125,10 @@ function HashTag(props) {
   const url = "http://google.com/" + props.decoratedText;
   return (
     <React.Fragment>
-      <a href={url} style={{ color: theme.palette.info.main }}>
+      <a
+        href={url}
+        style={{ textDecoration: "none", color: theme.palette.info.main }}
+      >
         {props.children}
       </a>
     </React.Fragment>
@@ -108,7 +138,10 @@ function LinkTag(props) {
   const theme = useTheme();
   return (
     <React.Fragment>
-      <a href={props.decoratedText} style={{ color: theme.palette.info.main }}>
+      <a
+        href={props.decoratedText}
+        style={{ textDecoration: "none", color: theme.palette.info.main }}
+      >
         {props.children}
       </a>
     </React.Fragment>
@@ -163,8 +196,7 @@ function Comment(props) {
       <Box
         width="100%"
         marginLeft={1}
-        style={{ borderRadius: 7 }}
-        bgcolor="grey.100"
+        style={{ borderRadius: 6, background: "rgb(249, 245, 254)" }}
       >
         <Box p={1}>
           <Typography style={{ fontWeight: "bold" }}>Yi Hanying</Typography>
@@ -239,7 +271,12 @@ function StartADiscussion(props) {
               <React.Fragment>
                 <Box style={{ marginRight: 13 }}>
                   <Avatar
-                    src={(props.userInfo && props.userInfo.pic_url) || "/"}
+                    src={
+                      (props.userInfo &&
+                        props.userInfo.preferences.length &&
+                        props.userInfo.preferences[0].profile_picture) ||
+                      "/"
+                    }
                     alt="Picture"
                   />
                 </Box>
@@ -250,11 +287,12 @@ function StartADiscussion(props) {
                 >
                   <TextField
                     variant="outlined"
+                    className="themed-input no-margin"
                     type="text"
-                    multiline
                     placeholder="Start a discussion"
                     fullWidth
                     style={{ pointerEvents: "none" }}
+                    inputProps={{ styles: { padding: 13 } }}
                   />
                 </Box>
               </React.Fragment>
@@ -289,7 +327,7 @@ function StartADiscussion(props) {
                             c.username,
                           ],
                           value: "@" + c.username,
-                          content: c.first_name + " " + c.last_name,
+                          content: <TagItem user={c} />,
                         })),
                         triggerChar: "@",
                       },
@@ -341,18 +379,23 @@ function WriteAComment(props) {
   return (
     <Box width="100%" display="flex" alignItems="flex-start">
       <Box>
-        <Avatar src={props.user.pic_url} alt={props.user.first_name} />
+        <Avatar
+          src={
+            props.user.preferences.length &&
+            props.user.preferences[0].profile_picture
+          }
+          alt={props.user.first_name}
+        />
       </Box>
       <Box
         width="100%"
         marginLeft={1}
         style={{
-          borderRadius: 7,
+          borderRadius: 6,
           minHeight: 42,
           paddingLeft: theme.spacing(2),
-          background: theme.palette.primary.main + "1a",
-          border: "1px solid grey",
         }}
+        className="nonMui-themed-input"
       >
         <Editor
           toolbar={false}
@@ -376,7 +419,7 @@ function WriteAComment(props) {
                     c.username,
                   ],
                   value: "@" + c.username,
-                  content: c.first_name + " " + c.last_name,
+                  content: <TagItem user={c} />,
                 })),
                 triggerChar: "@",
               },
@@ -400,19 +443,22 @@ function Discussion(props) {
           justifyContent="space-between"
           alignItems="center"
           p={2}
+          paddingBottom={0}
         >
-          <Box display="flex" alignItems="flex-start">
+          <Box display="flex" alignItems="center">
             <Avatar
               src={props.pics[props.class.teacher.id]}
               alt="Profile pic"
             />
-            <Box marginLeft={1}>
+            <Box marginLeft={2}>
               <Typography style={{ fontWeight: "bold" }}>
                 {props.class.teacher.first_name +
                   " " +
                   props.class.teacher.last_name}
               </Typography>
-              <Typography color="textSecondary">1 hour ago</Typography>
+              <Typography color="textSecondary" style={{ marginTop: -6 }}>
+                1 hour ago
+              </Typography>
             </Box>
           </Box>
           <Box>
@@ -424,10 +470,12 @@ function Discussion(props) {
         <Box
           width="100%"
           p={2}
-          className={[
-            styles.discussionPost,
-            expanded ? "expanded" : "not-expanded",
-          ].join(" ")}
+          paddingTop={0}
+          style={{ opacity: 0.8 }}
+          // className={[
+          //   styles.discussionPost,
+          //   expanded ? "expanded" : "not-expanded",
+          // ].join(" ")}
         >
           <Editor
             toolbar={false}
@@ -435,13 +483,13 @@ function Discussion(props) {
             readOnly={true}
             value={props.value}
           />
-          {!expanded && (
+          {/* {!expanded && (
             <Box className="show-more">
               <Button onClick={() => setExpanded(true)} fullWidth>
                 <Icon>expand_more</Icon>
               </Button>
             </Box>
-          )}
+          )} */}
         </Box>
         <Divider />
         <Box p={2}>
@@ -488,7 +536,7 @@ function Posts(props) {
             <Box width="100%">
               <ConnectedStartADiscussion class={props.classes[class_id]}>
                 <IconButton>
-                  <Icon>insert_photo</Icon>
+                  <Icon color="primary">insert_photo_outline</Icon>
                 </IconButton>
               </ConnectedStartADiscussion>
               {isTablet && (
@@ -510,7 +558,7 @@ function Posts(props) {
               />
             </Box>
             {!isTablet && (
-              <Box minWidth={300} marginLeft={1} position="sticky" top={60}>
+              <Box minWidth={350} marginLeft={3} position="sticky" top={60}>
                 <WhatsDue />
               </Box>
             )}

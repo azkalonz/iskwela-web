@@ -693,6 +693,12 @@ function Questionnaires(props) {
                   secondaryTypographyProps={{
                     style: {
                       width: isMobile ? "80%" : "100%",
+                      whiteSpace: "pre-wrap",
+                    },
+                  }}
+                  primaryTypographyProps={{
+                    style: {
+                      whiteSpace: "pre-wrap",
                     },
                   }}
                   secondary={item.intro}

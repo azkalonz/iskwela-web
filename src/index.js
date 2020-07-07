@@ -1,6 +1,7 @@
 import React from "react";
 import ReactDOM from "react-dom";
 import "./index.css";
+import "./iskwela-icons.css";
 import App from "./App";
 import * as serviceWorker from "./serviceWorker";
 import { I18nextProvider } from "react-i18next";
@@ -10,7 +11,7 @@ import { initReactI18next } from "react-i18next";
 import { Provider } from "react-redux";
 import store from "./components/redux/store";
 
-const _DEV = false;
+const _DEV = true;
 
 i18next.use(initReactI18next).init({
   resources: {

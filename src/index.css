@@ -1,13 +1,49 @@
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
+    "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
     sans-serif;
   -webkit-font-smoothing: antialiased;
+  margin: 0;
+  overflow: hidden;
   -moz-osx-font-smoothing: grayscale;
 }
 
 code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+  font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
     monospace;
+}
+#slide-container {
+  scroll-behavior: smooth;
+}
+
+*::-webkit-scrollbar {
+  width: 0;
+  background-color: rgba("255,255,255,0");
+}
+*::-webkit-scrollbar-thumb {
+  border-radius: 0px;
+  visibility: hidden;
+  background-color: rgba(0, 0, 0, 0.07);
+  border-radius: 23px;
+}
+*:hover::-webkit-scrollbar-thumb {
+  visibility: visible;
+}
+*::-webkit-scrollbar-thumb:hover {
+  visibility: visible;
+}
+#file-viewer-container .MuiDialogContent-root {
+  padding: 0;
+}
+.picker-dialog,
+.picker-dialog-bg {
+  z-index: 1300 !important;
+}
+#mui-rte-container {
+  margin-top: 0;
+}
+.nonMui-themed-input {
+  border: 1px solid #e9e4ef;
+  background-color: #eee6ff !important;
 }

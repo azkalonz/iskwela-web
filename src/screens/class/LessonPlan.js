@@ -191,7 +191,7 @@ function LessonPlan(props) {
         error: false,
         onCancel: () => controller.abort(),
       });
-      let res = await Api.postBlob("/api/download/activity/material/" + f.id, {
+      let res = await Api.postBlob("/api/download/class/lesson-plan/" + f.id, {
         config: {
           signal,
         },
@@ -284,6 +284,7 @@ function LessonPlan(props) {
       body.append("file", file);
       body.append("schedule_id", schedule_id);
       body.append("title", form.title);
+      console.log("file", file);
       let res = await FileUpload.upload("/api/upload/class/lesson-plan", {
         body,
         onUploadProgress: (event, source) =>
@@ -726,6 +727,17 @@ function LessonPlan(props) {
                   secondary={
                     item.resource_link ? item.resource_link : item.uploaded_file
                   }
+                  secondaryTypographyProps={{
+                    style: {
+                      width: isMobile ? "80%" : "100%",
+                      whiteSpace: "pre-wrap",
+                    },
+                  }}
+                  primaryTypographyProps={{
+                    style: {
+                      whiteSpace: "pre-wrap",
+                    },
+                  }}
                 />
               </Box>
               <Box

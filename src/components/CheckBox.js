@@ -51,7 +51,7 @@ function CheckBoxAction(props) {
             <Grow in={true}>
               <Tooltip title="Unpublish" placement="bottom">
                 <IconButton onClick={props.onUnpublish}>
-                  <VisibilityOffOutlinedIcon />
+                  <span className="icon-unpublish"></span>
                 </IconButton>
               </Tooltip>
             </Grow>
@@ -60,7 +60,7 @@ function CheckBoxAction(props) {
             <Grow in={true}>
               <Tooltip title="Publish" placement="bottom">
                 <IconButton onClick={props.onPublish}>
-                  <VisibilityOutlinedIcon />
+                  <span className="icon-publish"></span>
                 </IconButton>
               </Tooltip>
             </Grow>

@@ -23,7 +23,7 @@ import Login from "./screens/Login";
 import Posts from "./screens/class/Posts";
 
 const primaryColor = "#7539ff";
-const secondaryColor = "#ffd000";
+const secondaryColor = "#FFD026";
 
 function App(props) {
   const [loading, setLoading] = useState(true);
@@ -103,7 +103,9 @@ function App(props) {
       MuiAppBar: {
         root: {
           background: "#fff!important",
-          boxShadow: "0 -4px 17px rgba(143, 45, 253,0.2)!important",
+          boxShadow: "0 2px 6px rgb(241, 230, 255)!important",
+          border: "1px solid rgb(233, 228, 239)",
+          borderRadius: 0,
           "& > div": {
             border: "none",
           },
@@ -125,13 +127,14 @@ function App(props) {
       MuiOutlinedInput: {
         root: {
           paddingLeft: 10,
-          backgroundColor: "#efe7ff!important",
+          border: "1px solid #E9E4EF",
+          backgroundColor: "#EEE6FF!important",
           borderRadius: 4,
           "&:hover": {
-            backgroundColor: "#efe7ff!important",
+            backgroundColor: "#EEE6FF!important",
           },
           "&:focus": {
-            backgroundColor: "#efe7ff!important",
+            backgroundColor: "#EEE6FF!important",
           },
         },
       },
@@ -143,6 +146,11 @@ function App(props) {
       MuiPaper: {
         root: {
           ...(props.theme === "dark" ? { backgroundColor: "#111" } : {}),
+          "&:not(.MuiCard-root):not(.MuiDialog-paper):not(.MuiAlert-root)": {
+            boxShadow: "0 2px 4px rgb(241, 230, 255)!important",
+            border: "1px solid rgb(233, 228, 239)",
+            borderRadius: 4,
+          },
         },
       },
       MuiToolbar: {
@@ -167,6 +175,9 @@ function App(props) {
         },
       },
       MuiButton: {
+        contained: {
+          boxShadow: "0 1px 10px 0 rgba(83, 28, 209, 0.34)",
+        },
         root: {
           [defaultTheme.breakpoints.down("sm")]: {
             width: "100%",
@@ -176,23 +187,62 @@ function App(props) {
           },
         },
       },
-
+      MuiInputLabel: {
+        animated: {
+          transition:
+            "color 200ms cubic-bezier(0.0, 0, 0.2, 1) 0ms,transform 100ms cubic-bezier(0.0, 0, 0.2, 1) 0ms",
+        },
+        outlined: {
+          "&.MuiInputLabel-shrink": {
+            transform: "translate(0px, -20px) scale(0.9)",
+            fontWeight: "bold",
+            color: defaultTheme.palette.grey[800],
+          },
+        },
+        root: {
+          color: "#424242",
+        },
+      },
+      MuiFormControl: {
+        root: {
+          "& fieldset": {
+            display: "none",
+          },
+          "&.themed-input.select > div": {
+            paddingTop: "9px!important",
+            padding: 9,
+          },
+        },
+      },
       MuiTextField: {
         root: {
-          "&.no-legend": {
-            border: "1px solid #c9b8eb",
+          "&.themed-input": {
             borderRadius: 4,
-            marginTop: defaultTheme.spacing(4),
-            "& fieldset": {
-              display: "none",
-            },
-            "& .MuiInputLabel-outlined.MuiInputLabel-shrink": {
+            "& .MuiInputLabel-shrink": {
               transform: "translate(0px, -20px) scale(0.9)",
               fontWeight: "bold",
               color: defaultTheme.palette.grey[800],
             },
-            "&.light .MuiInputLabel-outlined.MuiInputLabel-shrink": {
+            "&:not(.no-margin)": {
+              marginTop: defaultTheme.spacing(4),
+            },
+            "& fieldset": {
+              display: "none",
+            },
+            "&.light .MuiInputLabel-shrink": {
               color: "#fff",
+            },
+            "&.date": {
+              margin: 0,
+              "& > div": {
+                margin: 0,
+                padding: 8,
+                height: 56,
+                backgroundColor: "#EEE6FF!important",
+                "&::before,&::after": {
+                  display: "none",
+                },
+              },
             },
           },
         },

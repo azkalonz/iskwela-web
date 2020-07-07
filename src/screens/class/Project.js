@@ -100,7 +100,7 @@ const DialogTitle = withStyles(styles)((props) => {
   );
 });
 
-function Activity(props) {
+function Project(props) {
   const theme = useTheme();
   const history = useHistory();
   const query = queryString.parse(window.location.search);
@@ -2180,4 +2180,4 @@ export default connect((state) => ({
   pics: state.pics,
   dataProgress: state.dataProgress,
   classDetails: state.classDetails,
-}))(Activity);
+}))(Project);
