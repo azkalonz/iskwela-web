@@ -152,7 +152,7 @@ function Activity(props) {
   const cellheaders = [
     { id: "title", title: "Title", width: "50%" },
     { id: "status", title: "Status", align: "center", width: "15%" },
-    { id: "available_from", title: "Date", align: "flex-end", width: "35%" },
+    { id: "due_date", title: "Date", align: "flex-end", width: "35%" },
   ];
   const _handleFileOption = (option, file) => {
     switch (option) {
@@ -1147,9 +1147,7 @@ function Activity(props) {
                         alignItems="center"
                         style={{ whiteSpace: "nowrap" }}
                       >
-                        {moment(currentActivity.available_from).format("LL")}
-                        <Icon>arrow_right_alt</Icon>
-                        {moment(currentActivity.available_to).format("LL")}
+                        {moment(currentActivity.due_date).format("LL hh:mm A")}
                       </Box>
                     </Box>
                     <Box p={2}>
@@ -1638,9 +1636,7 @@ function Activity(props) {
                   DATE
                 </Typography>
                 <Box display="flex" alignItems="center">
-                  {moment(item.available_from).format("LL")}
-                  <Icon>arrow_right_alt</Icon>
-                  {moment(item.available_to).format("LL")}
+                  {moment(item.due_date).format("LL hh:mm A")}
                 </Box>
               </Box>
             </Box>
@@ -1708,9 +1704,7 @@ function Activity(props) {
                     textAlign: "right",
                   }}
                 >
-                  {moment(item.available_from).format("LL")}
-                  <Icon>arrow_right_alt</Icon>
-                  {moment(item.available_to).format("LL")}
+                  {moment(item.due_date).format("LL hh:mm A")}
                 </Typography>
               </Box>
             </Box>
