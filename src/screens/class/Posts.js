@@ -804,9 +804,10 @@ function Posts(props) {
                   emptyTitle="There are no posts in this Class yet."
                   emptyMessage={
                     <Button
-                      onClick={() =>
-                        document.querySelector("#start-a-discussion").click()
-                      }
+                      onClick={() => {
+                        document.querySelector("#right-panel").scrollTop = 0;
+                        document.querySelector("#start-a-discussion").click();
+                      }}
                     >
                       Start a Discussion
                     </Button>
