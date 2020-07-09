@@ -21,6 +21,7 @@ import {
   useTheme,
   ButtonGroup,
   Divider,
+  CircularProgress,
 } from "@material-ui/core";
 import MuiAlert from "@material-ui/lab/Alert";
 // import ContentCreator from "./contentCreator";
@@ -39,6 +40,8 @@ const screen = {
 const config = {
   width: 720,
   height: 900,
+  maxWidth: 1500,
+  maxHeight: 1500,
   padding: 30,
   background: "#fff",
 };
@@ -506,6 +509,7 @@ function ContentMaker(props) {
       "Activity Material " + moment(new Date()).format("MMM DD, YYYY")
     ).replace(" ", "-"),
   });
+  const [saving, setSaving] = useState(false);
   const [isResizing, setIsResizing] = useState({});
   const [confirmed, setConfirmed] = useState();
   const [toolSet, setToolSet] = useState([]);
@@ -832,21 +836,45 @@ function ContentMaker(props) {
       title: "Save Material",
       message: "Continue to uploading this material?",
       yes: async () => {
+        setSaving(true);
         let { canvas } = getCanvas();
         let url = canvas.toDataURL();
         let blob = dataURItoBlob(url);
         const b64 = await blobToBase64(blob);
         const jsonString = JSON.stringify({ blob: b64 });
         if (query.callback && query.to) {
-          socket.emit(query.callback, {
-            to: query.to,
-            data: {
-              b64: jsonString,
-              title: canvasConfig.title,
-            },
-            type: "ATTACH_CONTENTCREATOR",
-          });
-          setTimeout(() => window.close(), 0);
+          if (!query.upload) {
+            socket.emit(query.callback, {
+              to: query.to,
+              data: {
+                b64: jsonString,
+                title: canvasConfig.title,
+              },
+              type: query.origin || "ATTACH_CONTENTCREATOR",
+            });
+            setSaving(false);
+            setTimeout(() => window.close(), 0);
+          } else {
+            let file = new File([blob], canvasConfig.title, {
+              type: blob.type,
+            });
+            let body = new FormData();
+            body.append("file", file);
+            let uploadedFile = await Api.post("/api/public/upload", { body });
+            if (uploadedFile) {
+              socket.emit(query.callback, {
+                to: query.to,
+                data: {
+                  b64: jsonString,
+                  title: canvasConfig.title,
+                  url: uploadedFile.url,
+                },
+                type: query.origin || "ATTACH_CONTENTCREATOR",
+              });
+            }
+            setSaving(false);
+            setTimeout(() => window.close(), 0);
+          }
         }
       },
     });
@@ -872,7 +900,7 @@ function ContentMaker(props) {
   };
   return (
     <React.Fragment>
-      <Dialog open={confirmed} onClose={() => setConfirmed(null)}>
+      <Dialog open={confirmed} onClose={() => !saving && setConfirmed(null)}>
         <DialogTitle>{confirmed && confirmed.title}</DialogTitle>
         <DialogContent>{confirmed && confirmed.message}</DialogContent>
         <DialogActions>
@@ -880,6 +908,7 @@ function ContentMaker(props) {
             onClick={() => {
               setConfirmed(null);
             }}
+            disabled={saving}
           >
             No
           </Button>
@@ -888,8 +917,25 @@ function ContentMaker(props) {
             color="primary"
             variant="contained"
             onClick={() => confirmed.yes()}
+            style={{ position: "relative" }}
+            disabled={saving}
           >
             Yes
+            {saving && (
+              <CircularProgress
+                size={18}
+                style={{
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                }}
+              />
+            )}
           </Button>
         </DialogActions>
       </Dialog>
@@ -928,12 +974,18 @@ function ContentMaker(props) {
                     className="themed-input"
                     style={{ marginRight: 5 }}
                     margin="dense"
+                    inputProps={{
+                      max: config.maxWidth,
+                    }}
                     value={canvasConfig.width || config.width}
                     onChange={(e) => {
                       let size = parseFloat(e.target.value);
                       if (!size) return;
                       setCanvasConfig({ ...canvasConfig, width: size });
-                      window.creator.canvas.setWidth(size);
+                      if (size <= config.maxWidth)
+                        window.creator.canvas.setWidth(size);
+                      else alert("Canvas width exceeded");
+
                       scaleContainer();
                     }}
                   />
@@ -944,11 +996,16 @@ function ContentMaker(props) {
                     type="number"
                     label="Height"
                     className="themed-input"
+                    inputProps={{
+                      max: config.maxHeight,
+                    }}
                     onChange={(e) => {
                       let size = parseFloat(e.target.value);
                       if (!size) return;
                       setCanvasConfig({ ...canvasConfig, height: size });
-                      window.creator.canvas.setHeight(size);
+                      if (size <= config.maxHeight)
+                        window.creator.canvas.setHeight(size);
+                      else alert("Canvas height exceeded");
                       scaleContainer();
                     }}
                     value={canvasConfig.height || config.height}

@@ -26,6 +26,10 @@ function FV(props) {
       type: "google_drive",
     },
     {
+      link: "iskwela.sgp1.digitaloceanspaces.com",
+      type: "iskwela_file",
+    },
+    {
       link: "docs.google.com",
       type: "google_docs",
     },

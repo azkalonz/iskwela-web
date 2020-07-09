@@ -849,7 +849,7 @@ function Class(props) {
                     right: 0,
                     top: 50,
                     background: "#fff",
-                    zIndex: 1,
+                    zIndex: 10,
                   }}
                   justifyContent="flex-start"
                   flexWrap="nowrap"

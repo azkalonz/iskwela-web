@@ -274,6 +274,9 @@ function App(props) {
     },
   });
   useEffect(() => {
+    console.log(window.location);
+  }, [window.location]);
+  useEffect(() => {
     socket.on("get class details", (c) => {
       if (store.getState().classes[c.id]) {
         UserData.updateClassDetails(c.id, c.details);

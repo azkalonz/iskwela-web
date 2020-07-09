@@ -162,12 +162,12 @@ const UserData = {
     let gradingCategories = await Api.get(
       "/api/schooladmin/school-grading-categories"
     );
+
     let allclasses = {};
     await asyncForEach(data.classes, async (c) => {
       allclasses[c.id] = c;
       allclasses[c.id].teacher.pic = "/";
     });
-    data.classDetails = {};
     store.dispatch({
       type: "SET_GRADING_CATEGORIES",
       categories: gradingCategories,
@@ -175,10 +175,6 @@ const UserData = {
     store.dispatch({
       type: "SET_QUESTIONNAIRES",
       questionnaires,
-    });
-    store.dispatch({
-      type: "SET_CLASS_DETAILS",
-      class_details: data.classDetails,
     });
     store.dispatch({
       type: "SET_CLASSES",

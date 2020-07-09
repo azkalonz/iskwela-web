@@ -598,6 +598,22 @@ function InstructionalMaterials(props) {
     newitem[item.id] = item;
     setSelectedItems({ ...selectedItems, ...newitem });
   };
+  const handleFileCreator = () => {
+    socket.off("get item");
+    socket.on("get item", async (details) => {
+      if (details.type === "ATTACH_INSTRUCTIONAL_MATERIALS") {
+        const { url, b64, title } = details.data;
+        setForm({ ...form, url, title });
+        handleClickOpen("WEB_LINK");
+        console.log(url, title);
+      }
+    });
+    window.open(
+      "/content-maker?origin=ATTACH_INSTRUCTIONAL_MATERIALS&upload=true&callback=send_item&to=" +
+        socket.id,
+      "_blank"
+    );
+  };
   return (
     <Box width="100%" alignSelf="flex-start">
       <GooglePicker
@@ -718,6 +734,12 @@ function InstructionalMaterials(props) {
                   <Icon>storage</Icon>
                 </ListItemIcon>
                 <ListItemText primary="Google Drive" />
+              </StyledMenuItem>
+              <StyledMenuItem onClick={() => handleFileCreator()}>
+                <ListItemIcon>
+                  <Icon>create</Icon>
+                </ListItemIcon>
+                <ListItemText primary="Editor" />
               </StyledMenuItem>
               <StyledMenuItem onClick={() => handleClickOpen("WEB_LINK")}>
                 <ListItemIcon>

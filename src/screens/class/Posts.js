@@ -23,12 +23,22 @@ import {
   ListItem,
   ListItemAvatar,
   ListItemText,
+  Menu,
+  MenuItem,
+  Popover,
 } from "@material-ui/core";
 import { connect } from "react-redux";
 import MUIRichTextEditor from "mui-rte";
 import moment from "moment";
 import { makeLinkTo } from "../../components/router-dom";
 import UserData from "../../components/UserData";
+import socket from "../../components/socket.io";
+import PopupState, { bindMenu, bindTrigger } from "material-ui-popup-state";
+import { EditorState, convertToRaw } from "draft-js";
+import Pagination, { getPageItems } from "../../components/Pagination";
+import Api from "../../api";
+import { List } from "immutable";
+
 function ClassCard(props) {
   const { blockProps } = props;
   const { value } = blockProps;
@@ -177,21 +187,23 @@ function Editor(props) {
           regex: /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)/g,
         },
       ]}
-      customControls={[
-        {
-          name: "class",
-          type: "atomic",
-          atomicComponent: ClassCard,
-        },
-      ]}
     />
   );
 }
 function Comment(props) {
   return (
-    <Box width="100%" display="flex" alignItems="flex-start">
+    <Box
+      width="100%"
+      display="flex"
+      alignItems="flex-start"
+      marginBottom={2}
+      className={"comment-container " + "comment-" + props.id}
+    >
       <Box>
-        <Avatar src="/" alt="C" />
+        <Avatar
+          src={props.author.preferences.profile_picture}
+          alt={props.author.first_name}
+        />
       </Box>
       <Box
         width="100%"
@@ -199,12 +211,14 @@ function Comment(props) {
         style={{ borderRadius: 6, background: "rgb(249, 245, 254)" }}
       >
         <Box p={1}>
-          <Typography style={{ fontWeight: "bold" }}>Yi Hanying</Typography>
+          <Typography style={{ fontWeight: "bold" }}>
+            {props.author.first_name + " " + props.author.last_name}
+          </Typography>
           <Editor
             toolbar={false}
             inlineToolbar={false}
             readOnly={true}
-            value={props.value}
+            value={props.comment}
           />
         </Box>
       </Box>
@@ -215,6 +229,7 @@ function StartADiscussion(props) {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const [editorRef, setEditorRef] = useState({});
+  const [uploadAnchor, setUploadAnchor] = useState();
   let classesAutocomplete = Object.keys(props.classes)
     .filter((k, i) => {
       let c = Object.keys(props.classes);
@@ -243,9 +258,19 @@ function StartADiscussion(props) {
   const handlePost = () => {
     if (editorRef.current) {
       editorRef.current.save && editorRef.current.save();
+      props.onPost();
     } else {
       handleOpen("DISCUSSION");
     }
+  };
+  const handleSave = (data) => {
+    socket.emit("save post", {
+      class_id: props.class.id,
+      value: data,
+      author: props.userInfo,
+      date: moment(new Date()).format("MMMM DD, YYYY hh:mm:ss"),
+    });
+    handleClose("DISCUSSION");
   };
   const handleOpen = (name) => {
     let m = { ...states };
@@ -257,8 +282,94 @@ function StartADiscussion(props) {
     m[name] = false;
     setStates(m);
   };
+  const uploadImage = (url = null) => {
+    let f = document.querySelector("#upload-image");
+    return new Promise(async (resolve, reject) => {
+      let body = new FormData();
+      body.append("file", f.files[0]);
+      if (url) {
+        resolve({
+          data: {
+            url,
+            width: "100%",
+            height: "auto",
+            alignment: "left", // or "center", "right"
+            type: "image", // or "video"
+          },
+        });
+      }
+      const uploadedFile = await Api.post("/api/public/upload", { body });
+      if (!uploadedFile) {
+        reject();
+        return;
+      }
+      resolve({
+        data: {
+          url: uploadedFile.url,
+          width: "100%",
+          height: "auto",
+          alignment: "left", // or "center", "right"
+          type: "image", // or "video"
+        },
+      });
+    });
+  };
   return (
     <React.Fragment>
+      <Popover
+        onClose={() => setUploadAnchor(null)}
+        style={{ zIndex: 1302 }}
+        anchorEl={uploadAnchor}
+        open={uploadAnchor ? true : false}
+        anchorOrigin={{
+          vertical: "bottom",
+          horizontal: "right",
+        }}
+        transformOrigin={{
+          vertical: "top",
+          horizontal: "left",
+        }}
+      >
+        <Box p={2}>
+          <input
+            id="upload-image"
+            accept="image/x-png,image/gif,image/jpeg"
+            type="file"
+            style={{ display: "none" }}
+            onChange={() => {
+              if (
+                document.querySelector("#upload-image").files.length &&
+                editorRef.current
+              ) {
+                editorRef.current.insertAtomicBlockAsync(
+                  "IMAGE",
+                  uploadImage(),
+                  "Uploading..."
+                );
+              }
+            }}
+          />
+          <Button
+            onClick={() => document.querySelector("#upload-image").click()}
+          >
+            Upload Image
+          </Button>
+          <Button
+            onClick={() => {
+              let url = prompt("Enter Image URL");
+              if (url) {
+                editorRef.current.insertAtomicBlockAsync(
+                  "IMAGE",
+                  uploadImage(url),
+                  "Uploading..."
+                );
+              }
+            }}
+          >
+            Insert URL
+          </Button>
+        </Box>
+      </Popover>
       <Paper
         style={{
           zIndex: !states.DISCUSSION ? 1 : 1302,
@@ -281,6 +392,7 @@ function StartADiscussion(props) {
                 </Box>
                 <Box
                   width="100%"
+                  id="start-a-discussion"
                   style={{ cursor: "pointer" }}
                   onClick={() => handleOpen("DISCUSSION")}
                 >
@@ -303,11 +415,26 @@ function StartADiscussion(props) {
                 <Editor
                   // focused={true}
                   label="Try @Student, :English, #HashTag"
-                  controls={toolbarcontrols}
+                  controls={[...toolbarcontrols, "insert-photo"]}
                   inlineToolbarControls={inlinetoolbarcontrols}
                   getRef={(ref) => setEditorRef(ref)}
                   inlineToolbar={true}
-                  onSave={(data) => console.log(data)}
+                  onSave={(data) => handleSave(data)}
+                  customControls={[
+                    {
+                      name: "insert-photo",
+                      icon: <Icon>insert_photo</Icon>,
+                      type: "callback",
+                      onClick: (editorState, name, anchor) => {
+                        setUploadAnchor(anchor);
+                      },
+                    },
+                    {
+                      name: "class",
+                      type: "atomic",
+                      atomicComponent: ClassCard,
+                    },
+                  ]}
                   autocomplete={{
                     strategies: [
                       {
@@ -375,12 +502,32 @@ const ConnectedStartADiscussion = connect((states) => ({
 
 function WriteAComment(props) {
   const theme = useTheme();
+  const [editorRef, setEditorRef] = useState();
+  const [content, setContent] = useState("");
+  const handleAddComment = (class_id, post_id, comment) => {
+    let x = JSON.parse(comment);
+    if (!x.blocks[Object.keys(x.blocks).length - 1].text)
+      x.blocks.splice(Object.keys(x.blocks).length - 1);
+    x = JSON.stringify(x);
+    comment = x;
+    setContent(
+      JSON.stringify(
+        convertToRaw(EditorState.createEmpty().getCurrentContent())
+      )
+    );
+    socket.emit("add comment", {
+      class_id,
+      post_id,
+      comment,
+      author: props.userInfo,
+    });
+  };
   return (
     <Box width="100%" display="flex" alignItems="flex-start">
       <Box>
         <Avatar
-          src={props.user.preferences.profile_picture}
-          alt={props.user.first_name}
+          src={props.userInfo.preferences.profile_picture}
+          alt={props.userInfo.first_name}
         />
       </Box>
       <Box
@@ -395,11 +542,16 @@ function WriteAComment(props) {
       >
         <Editor
           toolbar={false}
+          getRef={(ref) => setEditorRef(ref)}
           inlineToolbar={false}
           label="Write a comment"
+          value={content}
+          onSave={(data) => {
+            handleAddComment(props.class.id, props.data.id, data);
+          }}
           onChange={(state) => {
             if (state.getCurrentContent().getPlainText().indexOf("\n") >= 0) {
-              console.log("Post comment");
+              if (editorRef.current) editorRef.current.save();
             }
           }}
           autocomplete={{
@@ -430,8 +582,19 @@ function WriteAComment(props) {
 function Discussion(props) {
   const [expanded, setExpanded] = useState(false);
   const styles = useStyles();
+  const count = 5;
+  const [commentsPerPage, setCommentsPerPage] = useState(count);
+  const [date, setDate] = useState(moment(props.data.date).fromNow());
+  const tick = () =>
+    setInterval(() => setDate(moment(props.data.date).fromNow()), 60000);
+  const handleDelete = (class_id, id) => {
+    socket.emit("delete post", { class_id, id });
+  };
+  useEffect(() => {
+    tick();
+  }, []);
   return (
-    <Paper style={{ marginTop: 13 }}>
+    <Paper style={{ marginTop: 13 }} id={"discussion-" + props.data.id}>
       <Box>
         <Box
           width="100%"
@@ -443,31 +606,48 @@ function Discussion(props) {
         >
           <Box display="flex" alignItems="center">
             <Avatar
-              src={props.class.teacher.profile_picture}
+              src={props.data.author.preferences.profile_picture}
               alt="Profile pic"
             />
             <Box marginLeft={2}>
               <Typography style={{ fontWeight: "bold" }}>
-                {props.class.teacher.first_name +
+                {props.data.author.first_name +
                   " " +
-                  props.class.teacher.last_name}
+                  props.data.author.last_name}
               </Typography>
               <Typography color="textSecondary" style={{ marginTop: -6 }}>
-                1 hour ago
+                {date}
               </Typography>
             </Box>
           </Box>
           <Box>
-            <IconButton color="primary">
-              <Icon>more_vert</Icon>
-            </IconButton>
+            {props.data.author.id === props.userInfo.id && (
+              <PopupState variant="popover" popupId="publish-btn">
+                {(popupState) => (
+                  <React.Fragment>
+                    <IconButton color="primary" {...bindTrigger(popupState)}>
+                      <Icon>more_vert</Icon>
+                    </IconButton>
+                    <Menu {...bindMenu(popupState)}>
+                      <MenuItem
+                        onClick={() => {
+                          handleDelete(props.data.class_id, props.data.id);
+                          popupState.close();
+                        }}
+                      >
+                        Delete
+                      </MenuItem>
+                    </Menu>
+                  </React.Fragment>
+                )}
+              </PopupState>
+            )}
           </Box>
         </Box>
         <Box
           width="100%"
           p={2}
           paddingTop={0}
-          style={{ opacity: 0.8 }}
           // className={[
           //   styles.discussionPost,
           //   expanded ? "expanded" : "not-expanded",
@@ -477,7 +657,7 @@ function Discussion(props) {
             toolbar={false}
             inlineToolbar={false}
             readOnly={true}
-            value={props.value}
+            value={props.data.value}
           />
           {/* {!expanded && (
             <Box className="show-more">
@@ -489,14 +669,30 @@ function Discussion(props) {
         </Box>
         <Divider />
         <Box p={2}>
-          <Typography style={{ fontWeight: "bold" }}>5 Comments</Typography>
+          <Typography style={{ fontWeight: "bold" }}>
+            {(props.data.comments && props.data.comments.length) || 0} comments
+          </Typography>
         </Box>
         <Divider />
         <Box p={2}>
-          <Comment value='{"blocks":[{"key":"dm726","text":"Hello @sjenelyn ","type":"unstyled","depth":0,"inlineStyleRanges":[],"entityRanges":[{"offset":6,"length":9,"key":0}],"data":{}}],"entityMap":{"0":{"type":"AC_ITEM","mutability":"IMMUTABLE","data":{}}}}' />
+          {props.data.comments &&
+            props.data.comments
+              .reverse()
+              .slice(0, commentsPerPage)
+              .map((c) => <Comment {...c} />)}
+          {props.data.comments &&
+          props.data.comments.length &&
+          commentsPerPage < props.data.comments.length - 1 ? (
+            <a
+              href="#"
+              onClick={() => setCommentsPerPage(commentsPerPage + count)}
+            >
+              Show more comments
+            </a>
+          ) : null}
         </Box>
         <Box p={2}>
-          <WriteAComment user={props.userInfo || {}} class={props.class} />
+          <WriteAComment {...props} />
         </Box>
       </Box>
     </Paper>
@@ -519,39 +715,99 @@ function WhatsDue(props) {
 function Posts(props) {
   const { class_id } = props.match.params;
   const theme = useTheme();
+  const styles = useStyles();
   const isTablet = useMediaQuery(theme.breakpoints.down("md"));
+  const [posts, setPosts] = useState([]);
+  const [discussionPage, setDiscussionPage] = useState(1);
+  useEffect(() => {
+    props.onLoad(true);
+    socket.on("get post", (posts) => {
+      props.onLoad(false);
+      setPosts(posts || []);
+    });
+    socket.emit("get post", class_id);
+  }, []);
+  useEffect(() => {
+    if (posts) {
+      socket.off("add items");
+      socket.off("delete items");
+      socket.off("update post");
+      socket.on("update post", (data) => {
+        let p = [...posts];
+        let index = p.findIndex((q) => q.id === data.id);
+        p[index] = data;
+        setPosts(p);
+      });
+      socket.on("delete items", (data) => {
+        if (data.type === "POST")
+          setPosts(posts.filter((q) => q.id !== data.id));
+      });
+      socket.on("add items", (data) => {
+        if (
+          data.type === "POST" &&
+          parseInt(data.items.class_id) === parseInt(class_id)
+        )
+          setPosts([...posts, data.items]);
+      });
+    }
+  }, [posts]);
   return (
     <React.Fragment>
       {props.classes[class_id] && props.classes[class_id].students && (
-        <Box p={2}>
+        <Box p={2} className={styles.root}>
           <Box
             display="flex"
             justifyContent="space-between"
             alignItems="flex-start"
           >
             <Box width="100%">
-              <ConnectedStartADiscussion class={props.classes[class_id]}>
-                <IconButton>
+              <ConnectedStartADiscussion
+                class={props.classes[class_id]}
+                author={props.userInfo}
+                onPost={() => setDiscussionPage(1)}
+              >
+                {/* <IconButton>
                   <Icon color="primary">insert_photo_outline</Icon>
-                </IconButton>
+                </IconButton> */}
               </ConnectedStartADiscussion>
               {isTablet && (
                 <Box width="100%" style={{ marginTop: 13 }}>
                   <WhatsDue />
                 </Box>
               )}
-              <Discussion
-                userInfo={props.userInfo}
-                pics={props.pics}
-                class={props.classes[class_id]}
-                value='{"blocks":[{"key":"c602k","text":"Submission of Activities","type":"header-two","depth":0,"inlineStyleRanges":[],"entityRanges":[],"data":{}},{"key":"4pbnh","text":"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.","type":"unstyled","depth":0,"inlineStyleRanges":[],"entityRanges":[],"data":{}},{"key":"df51u","text":"","type":"unstyled","depth":0,"inlineStyleRanges":[],"entityRanges":[],"data":{}},{"key":"6chnj","text":"Activities","type":"unstyled","depth":0,"inlineStyleRanges":[{"offset":0,"length":10,"style":"BOLD"}],"entityRanges":[],"data":{}},{"key":"7upst","text":"Activity # 1","type":"unordered-list-item","depth":0,"inlineStyleRanges":[],"entityRanges":[],"data":{}},{"key":"7luks","text":"Activity # 2","type":"unordered-list-item","depth":0,"inlineStyleRanges":[],"entityRanges":[],"data":{}},{"key":"emnbv","text":"Activity # 3","type":"unordered-list-item","depth":0,"inlineStyleRanges":[],"entityRanges":[],"data":{}},{"key":"esgh0","text":"","type":"unstyled","depth":0,"inlineStyleRanges":[],"entityRanges":[],"data":{}},{"key":"a6euv","text":" ","type":"atomic","depth":0,"inlineStyleRanges":[],"entityRanges":[{"offset":0,"length":1,"key":0}],"data":{}},{"key":"5f556","text":"","type":"unstyled","depth":0,"inlineStyleRanges":[],"entityRanges":[],"data":{}},{"key":"1tsfk","text":"@smark ","type":"unstyled","depth":0,"inlineStyleRanges":[],"entityRanges":[{"offset":0,"length":6,"key":1}],"data":{}}],"entityMap":{"0":{"type":"CLASS","mutability":"IMMUTABLE","data":{"value":{"id":1,"name":"English 101","description":null,"room_number":"PCmcutuzVTDGtfWwWo2O05CO1pZz3qSA","frequency":"DAILY","date_from":null,"date_to":null,"time_from":"08:00:00","time_to":"09:00:00","next_schedule":{"id":311,"from":"2020-07-03 08:00:00","to":"2020-07-03 09:00:00","status":"PENDING"},"subject":{"id":1,"name":"English"},"teacher":{"id":1,"first_name":"Teacher","last_name":"Jenelyn","pic":"blob:http://localhost:3000/a9550f4f-8036-4742-850f-b58eaf890775"},"theme":"#424a9a"}}},"1":{"type":"AC_ITEM","mutability":"IMMUTABLE","data":{}}}}'
-              />
-              <Discussion
-                userInfo={props.userInfo}
-                pics={props.pics}
-                class={props.classes[class_id]}
-                value='{"blocks":[{"key":"8dl04","text":"Editor Features","type":"unstyled","depth":0,"inlineStyleRanges":[],"entityRanges":[],"data":{}},{"key":"2if2v","text":"","type":"unstyled","depth":0,"inlineStyleRanges":[],"entityRanges":[],"data":{}},{"key":"emch8","text":"Tag user","type":"unstyled","depth":0,"inlineStyleRanges":[],"entityRanges":[],"data":{}},{"key":"34opk","text":"@sjenelyn @sgrace @svhenjoseph ","type":"unstyled","depth":0,"inlineStyleRanges":[],"entityRanges":[{"offset":0,"length":9,"key":0},{"offset":10,"length":7,"key":1},{"offset":18,"length":12,"key":2}],"data":{}},{"key":"2sfr","text":"@sdavyjones  ","type":"unstyled","depth":0,"inlineStyleRanges":[],"entityRanges":[{"offset":0,"length":11,"key":3}],"data":{}},{"key":"2lkes","text":"#HashTag","type":"unstyled","depth":0,"inlineStyleRanges":[],"entityRanges":[],"data":{}},{"key":"5lkgn","text":"http://link.com","type":"unstyled","depth":0,"inlineStyleRanges":[],"entityRanges":[],"data":{}},{"key":"9rpo9","text":"","type":"unstyled","depth":0,"inlineStyleRanges":[],"entityRanges":[],"data":{}},{"key":"52v8","text":"Custom element","type":"unstyled","depth":0,"inlineStyleRanges":[{"offset":0,"length":14,"style":"BOLD"}],"entityRanges":[],"data":{}},{"key":"6rkg9","text":"Class Schedule Card","type":"unstyled","depth":0,"inlineStyleRanges":[],"entityRanges":[],"data":{}},{"key":"d4e6d","text":"","type":"unstyled","depth":0,"inlineStyleRanges":[],"entityRanges":[],"data":{}},{"key":"6hba1","text":" ","type":"atomic","depth":0,"inlineStyleRanges":[],"entityRanges":[{"offset":0,"length":1,"key":4}],"data":{}},{"key":"ae22q","text":"","type":"unstyled","depth":0,"inlineStyleRanges":[],"entityRanges":[],"data":{}},{"key":"9ktnl","text":"","type":"unstyled","depth":0,"inlineStyleRanges":[],"entityRanges":[],"data":{}},{"key":"8a7f3","text":" ","type":"atomic","depth":0,"inlineStyleRanges":[],"entityRanges":[{"offset":0,"length":1,"key":5}],"data":{}},{"key":"9pijt","text":"","type":"unstyled","depth":0,"inlineStyleRanges":[],"entityRanges":[],"data":{}},{"key":"b45mr","text":"Title","type":"header-two","depth":0,"inlineStyleRanges":[],"entityRanges":[],"data":{}},{"key":"15hbp","text":"Bold","type":"unstyled","depth":0,"inlineStyleRanges":[{"offset":0,"length":4,"style":"BOLD"}],"entityRanges":[],"data":{}},{"key":"eupst","text":"Italic","type":"unstyled","depth":0,"inlineStyleRanges":[{"offset":0,"length":6,"style":"ITALIC"}],"entityRanges":[],"data":{}},{"key":"ibur","text":"Underlined","type":"unstyled","depth":0,"inlineStyleRanges":[{"offset":0,"length":10,"style":"UNDERLINE"}],"entityRanges":[],"data":{}},{"key":"54k6r","text":"Strike-through","type":"unstyled","depth":0,"inlineStyleRanges":[{"offset":0,"length":14,"style":"STRIKETHROUGH"}],"entityRanges":[],"data":{}},{"key":"aptaj","text":"Combination","type":"unstyled","depth":0,"inlineStyleRanges":[{"offset":0,"length":11,"style":"STRIKETHROUGH"},{"offset":0,"length":11,"style":"UNDERLINE"},{"offset":0,"length":11,"style":"ITALIC"},{"offset":0,"length":11,"style":"BOLD"}],"entityRanges":[],"data":{}},{"key":"9rdji","text":"Highlight Text","type":"unstyled","depth":0,"inlineStyleRanges":[{"offset":0,"length":14,"style":"HIGHLIGHT"}],"entityRanges":[],"data":{}},{"key":"8kt99","text":"Inline Toolbar","type":"unstyled","depth":0,"inlineStyleRanges":[],"entityRanges":[],"data":{}},{"key":"2ad3a","text":"Ordered List","type":"ordered-list-item","depth":0,"inlineStyleRanges":[],"entityRanges":[],"data":{}},{"key":"6j12l","text":"Unordered List","type":"unordered-list-item","depth":0,"inlineStyleRanges":[],"entityRanges":[],"data":{}},{"key":"baj0p","text":"A ","type":"blockquote","depth":0,"inlineStyleRanges":[],"entityRanges":[],"data":{}},{"key":"asn81","text":"Quote","type":"blockquote","depth":0,"inlineStyleRanges":[],"entityRanges":[],"data":{}}],"entityMap":{"0":{"type":"AC_ITEM","mutability":"IMMUTABLE","data":{}},"1":{"type":"AC_ITEM","mutability":"IMMUTABLE","data":{}},"2":{"type":"AC_ITEM","mutability":"IMMUTABLE","data":{}},"3":{"type":"AC_ITEM","mutability":"IMMUTABLE","data":{}},"4":{"type":"CLASS","mutability":"IMMUTABLE","data":{"value":{"id":1,"name":"English 101","description":null,"room_number":"PCmcutuzVTDGtfWwWo2O05CO1pZz3qSA","frequency":"DAILY","date_from":null,"date_to":null,"time_from":"08:00:00","time_to":"09:00:00","next_schedule":{"id":311,"from":"2020-07-03 08:00:00","to":"2020-07-03 09:00:00","status":"PENDING"},"subject":{"id":1,"name":"English"},"teacher":{"id":1,"first_name":"Teacher","last_name":"Jenelyn","pic":"blob:http://localhost:3000/a9550f4f-8036-4742-850f-b58eaf890775"},"theme":"#424a9a"}}},"5":{"type":"CLASS","mutability":"IMMUTABLE","data":{"value":{"id":3,"name":"Science 101","description":null,"room_number":"OkWhSfEqRPoC8aRo7ZfStwItdXaVN4LB","frequency":"DAILY","date_from":null,"date_to":null,"time_from":"10:00:00","time_to":"11:00:00","next_schedule":{"id":713,"from":"2020-07-03 10:00:00","to":"2020-07-03 11:00:00","status":"PENDING"},"subject":{"id":2,"name":"Science"},"teacher":{"id":1,"first_name":"Teacher","last_name":"Jenelyn","pic":"blob:http://localhost:3000/a9550f4f-8036-4742-850f-b58eaf890775"},"theme":"#a74ff8"}}}}}'
-              />
+              {getPageItems(
+                posts
+                  .sort((a, b) => b.id - a.id)
+                  .map((p) => (
+                    <Discussion
+                      userInfo={props.userInfo}
+                      class={props.classes[class_id]}
+                      data={p}
+                    />
+                  )),
+                discussionPage,
+                10
+              )}
+              <Box marginTop={2} marginBottom={2}>
+                <Pagination
+                  count={posts.length}
+                  itemsPerPage={10}
+                  icon="sms_outline"
+                  emptyTitle="There are no posts in this Class yet."
+                  emptyMessage={
+                    <Button
+                      onClick={() =>
+                        document.querySelector("#start-a-discussion").click()
+                      }
+                    >
+                      Start a Discussion
+                    </Button>
+                  }
+                  nolink
+                  page={discussionPage}
+                  onChange={(p) => setDiscussionPage(p)}
+                />
+              </Box>
             </Box>
             {!isTablet && (
               <Box minWidth={350} marginLeft={3} position="sticky" top={60}>
@@ -565,6 +821,11 @@ function Posts(props) {
   );
 }
 const useStyles = makeStyles((theme) => ({
+  root: {
+    "& .comment-container:last-of-type": {
+      marginBottom: "0!important",
+    },
+  },
   discussionPost: {
     maxHeight: 230,
     overflow: "hidden",
