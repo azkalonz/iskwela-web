@@ -363,10 +363,12 @@ function Home(props) {
       if (id.value && id.value.length >= 7) {
         props.history.push(
           makeLinkTo(["id"], {
-            id: id && id.value ? "?id=" + id.value + "#meeting" : "#meeting",
+            id:
+              id && id.value
+                ? "?id=" + id.value.replace(" ", "-") + "#meeting"
+                : "#meeting",
           })
         );
-        setSuccess(true);
       } else {
         setErrors(["Room ID must be at least 7 characters long."]);
       }
@@ -380,7 +382,6 @@ function Home(props) {
             id: "?id=" + id.value.replace(" ", "-") + "#meeting",
           })
         );
-        setSuccess(true);
       } else {
         setErrors(["Room ID must be at least 7 characters long."]);
       }
