@@ -506,6 +506,14 @@ function WriteAComment(props) {
   const [content, setContent] = useState("");
   const handleAddComment = (class_id, post_id, comment) => {
     let x = JSON.parse(comment);
+    if (!x.blocks[0].text) {
+      setContent(
+        JSON.stringify(
+          convertToRaw(EditorState.createEmpty().getCurrentContent())
+        )
+      );
+      return;
+    }
     if (!x.blocks[Object.keys(x.blocks).length - 1].text)
       x.blocks.splice(Object.keys(x.blocks).length - 1);
     x = JSON.stringify(x);
