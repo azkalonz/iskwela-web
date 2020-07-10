@@ -773,6 +773,7 @@ function Class(props) {
                 "ONGOING" && (
                 <VideoConference
                   match={props.match}
+                  location={props.location}
                   getRoom={() => getRoom()}
                   updateClass={(e) => {
                     if (isTeacher) updateClass(e);
@@ -833,6 +834,7 @@ function Class(props) {
               justifyContent="center"
               style={{
                 margin: !isTablet ? "0 40px" : 0,
+                position: "relative",
               }}
             >
               {rightPanelLoading && (
@@ -847,8 +849,7 @@ function Class(props) {
                     position: "absolute",
                     left: 0,
                     right: 0,
-                    top: 50,
-                    background: "#fff",
+                    top: 0,
                     zIndex: 10,
                   }}
                   justifyContent="flex-start"
@@ -885,7 +886,7 @@ function Class(props) {
             ? true
             : false
         }
-        style={{ zIndex: 10, backgroundColor: "rgba(0,0,0,0.7)" }}
+        style={{ zIndex: 16, backgroundColor: "rgba(0,0,0,0.7)" }}
         onClick={() => {
           props.history.push("#");
           setCollapsePanel(false);

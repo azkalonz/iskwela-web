@@ -119,7 +119,7 @@ function AnswerQuiz(props) {
                   props.questionsSet[
                     props.questionsSet.findIndex((q) => quiz.id === q.id) - 1
                   ].id,
-                "&q=" + query.q + "#start",
+                "&q=" + query.q + "&start=true",
               ])
             );
           }}
@@ -324,7 +324,7 @@ function AnswerQuiz(props) {
                                     (q) => quiz.id === q.id
                                   ) + 1
                                 ].id,
-                              "&q=" + query.q + "#start",
+                              "&q=" + query.q + "&start=true",
                             ])
                           );
                         }}

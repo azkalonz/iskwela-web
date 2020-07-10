@@ -438,7 +438,7 @@ function Assignment(props) {
         schedule_id,
         option_name,
         "?id=" + currentItem.questionnaires[0].id,
-        "&q=" + currentItem.id + "#start",
+        "&q=" + currentItem.id + "&start=true",
       ])
     );
     setCurrentItem(null);
@@ -554,6 +554,7 @@ function Assignment(props) {
                           );
                           setCurrentItem(null);
                         }}
+                        className="warn-to-leave"
                       >
                         <Icon color="primary">arrow_back</Icon>
                       </IconButton>
@@ -563,6 +564,7 @@ function Assignment(props) {
                         variant="contained"
                         color="primary"
                         onClick={() => handleStart()}
+                        className="warn-to-leave"
                       >
                         Start
                       </Button>
@@ -631,7 +633,7 @@ function Assignment(props) {
                                 schedule_id,
                                 option_name,
                                 "?id=" + m.id,
-                                "&q=" + currentItem.id + "#start",
+                                "&q=" + currentItem.id + "&start=true",
                               ])
                             );
                           }}
@@ -647,7 +649,7 @@ function Assignment(props) {
           </Grow>
         </React.Fragment>
       )}
-      {ITEMS && props.location.hash !== "#start" && !currentItem && (
+      {ITEMS && !query.start && !currentItem && (
         <React.Fragment>
           <Box
             m={2}
@@ -826,7 +828,7 @@ function Assignment(props) {
         match={props.match}
         data={props.questionnaires}
       />
-      {ITEMS && questionnairesToAnswer && props.location.hash === "#start" && (
+      {ITEMS && questionnairesToAnswer && query.start && (
         <AnswerQuiz
           id={query.id && parseInt(query.id)}
           noPaging={true}

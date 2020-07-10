@@ -438,7 +438,7 @@ function Quizzes(props) {
         schedule_id,
         option_name,
         "?id=" + currentItem.questionnaires[0].id,
-        "&q=" + currentItem.id + "#start",
+        "&q=" + currentItem.id + "&start=true",
       ])
     );
     setCurrentItem(null);
@@ -543,6 +543,7 @@ function Quizzes(props) {
                   >
                     <Box>
                       <IconButton
+                        className="warn-to-leave"
                         onClick={() => {
                           history.push(
                             makeLinkTo([
@@ -562,6 +563,7 @@ function Quizzes(props) {
                       <Button
                         variant="contained"
                         color="primary"
+                        className="warn-to-leave"
                         onClick={() => handleStart()}
                       >
                         Start
@@ -631,7 +633,7 @@ function Quizzes(props) {
                                 schedule_id,
                                 option_name,
                                 "?id=" + m.id,
-                                "&q=" + currentItem.id + "#start",
+                                "&q=" + currentItem.id + "&start=true",
                               ])
                             );
                           }}
@@ -647,7 +649,7 @@ function Quizzes(props) {
           </Grow>
         </React.Fragment>
       )}
-      {ITEMS && props.location.hash !== "#start" && !currentItem && (
+      {ITEMS && !query.start && !currentItem && (
         <React.Fragment>
           <Box
             m={2}
@@ -824,7 +826,7 @@ function Quizzes(props) {
         match={props.match}
         data={props.questionnaires}
       />
-      {ITEMS && questionnairesToAnswer && props.location.hash === "#start" && (
+      {ITEMS && questionnairesToAnswer && query.start && (
         <AnswerQuiz
           id={query.id && parseInt(query.id)}
           noPaging={true}

@@ -41,6 +41,8 @@ import { useHistory } from "react-router-dom";
 const styles = (theme) => ({
   root: {
     margin: 0,
+    position: "relative",
+    zIndex: 10,
     padding: theme.spacing(2),
   },
   closeButton: {
@@ -77,7 +79,7 @@ const useStyles = makeStyles((theme) => ({
     position: "sticky",
     top: 0,
     right: 0,
-    zIndex: 10,
+    zIndex: 15,
     left: 0,
   },
   appbar: {
@@ -128,7 +130,7 @@ function NavBar(props) {
     store.dispatch({ type: "SET_THEME", theme: mode });
   };
   return (
-    <div className={classes.root}>
+    <div className={classes.root} id="nav-bar">
       <ProfilePicDialog
         open={changeProfileDialog}
         onClose={() => setChangeProfileDialog(false)}
@@ -194,8 +196,13 @@ function NavBar(props) {
                 onClose={handleClose}
               >
                 {props.userInfo.user_type === "t" && (
-                  <MenuItem onClick={() => meeting.open()}>
-                    Start a Meeting
+                  <MenuItem>
+                    <Box
+                      className="warn-to-leave"
+                      onClick={() => meeting.open()}
+                    >
+                      Start a Meeting
+                    </Box>
                   </MenuItem>
                 )}
                 <MenuItem onClick={() => setchangePassDialog(true)}>

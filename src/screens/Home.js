@@ -557,7 +557,7 @@ function Home(props) {
         </Drawer>
         <Backdrop
           open={props.location.hash === "#menu" && isMobile ? true : false}
-          style={{ zIndex: 10, backgroundColor: "rgba(0,0,0,0.7)" }}
+          style={{ zIndex: 16, backgroundColor: "rgba(0,0,0,0.7)" }}
           onClick={() => {
             props.history.push("#");
           }}

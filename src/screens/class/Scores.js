@@ -1,265 +1,339 @@
-import React, { useEffect, useState } from "react";
-import { connect } from "react-redux";
-import { makeLinkTo } from "../../components/router-dom";
 import {
-  IconButton,
-  Icon,
+  Avatar,
   Box,
-  Typography,
-  Divider,
-  Table,
-  TableBody,
-  TableCell,
-  DialogTitle as MuiDialogTitle,
-  DialogContent,
-  DialogActions,
-  withStyles,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
   Button,
-  useTheme,
-  useMediaQuery,
   Dialog,
-  TextField,
+  DialogContent,
+  DialogTitle,
+  Icon,
+  List,
+  ListItem,
+  ListItemAvatar,
+  ListItemText,
+  Paper,
+  Typography,
+  useTheme,
 } from "@material-ui/core";
+import MaterialTable from "material-table";
 import moment from "moment";
-import Pagination, { getPageItems } from "../../components/Pagination";
-import { SearchInput } from "../../components/Selectors";
-const styles = (theme) => ({
-  root: {
-    margin: 0,
-    padding: theme.spacing(2),
-  },
-  closeButton: {
-    position: "absolute",
-    right: theme.spacing(1),
-    top: theme.spacing(1),
-    color: theme.palette.grey[500],
-  },
-});
-const DialogTitle = withStyles(styles)((props) => {
-  const { children, classes, onClose, ...other } = props;
-  return (
-    <MuiDialogTitle disableTypography {...other}>
-      <Typography variant="h6">{children}</Typography>
-      {onClose ? (
-        <IconButton
-          aria-label="close"
-          className={classes.closeButton}
-          onClick={onClose}
-        >
-          <Icon>close</Icon>
-        </IconButton>
-      ) : null}
-    </MuiDialogTitle>
-  );
-});
+import React, { useEffect, useState } from "react";
+import { Chart } from "react-charts";
+import { connect } from "react-redux";
+
 function Scores(props) {
-  const query = require("query-string").parse(window.location.search);
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const { class_id, schedule_id } = props.match.params;
-  const [quiz, setQuiz] = useState();
-  const [page, setPage] = useState(query.page ? parseInt(query.page) : 1);
-  const [search, setSearch] = useState("");
-  const [currentStudent, setStudent] = useState();
-  useEffect(() => {
-    if (props.questionnaires && query.quiz_id) {
-      let q = props.questionnaires.find(
-        (qq) => qq.id === parseInt(query.quiz_id)
-      );
-      if (q) setQuiz(q);
-      console.log(q);
+  const [graphData, setGraphData] = useState({ left: [], right: [] });
+  const theme = useTheme();
+  const [compareData, setCompareData] = useState();
+  const [modals, setModals] = useState({});
+  const [currentStudent, setCurrentStudent] = useState();
+  const [currentData, setCurrentData] = useState();
+  const [table, setTable] = useState({
+    columns: [
+      { title: "Image", field: "image" },
+      { title: "Name", field: "name" },
+      { title: "Quizzes", field: "quizzes" },
+      { title: "Activities", field: "activities" },
+      { title: "Assignments", field: "assignments" },
+      { title: "Periodical Exams", field: "periodical_exams" },
+      {
+        title: "Performnce Tasks",
+        field: "performance_tasks",
+      },
+      { title: "Grades", field: "grades" },
+    ],
+    data: [],
+  });
+  const randomScore = () => (Math.random() * (99 - 75 + 1) + 75).toFixed(2);
+  function randomDate(start, end) {
+    return new Date(
+      start.getTime() + Math.random() * (end.getTime() - start.getTime())
+    );
+  }
+  const randomData = (count, title) => {
+    let x = [];
+    for (let i = 0; i < count; i++) {
+      x[i] = {
+        date: moment(randomDate(new Date(2020, 0, 1), new Date())).format(
+          "MMM DD, YYYY"
+        ),
+        title: title + " " + (i + 1),
+        total_score: 100,
+        achieved_score: randomScore(),
+      };
     }
-  }, [props.questionnaires]);
+    return x;
+  };
+  const ScoreSummaryLink = (props) => {
+    const { s, title, activity } = props;
+    return (
+      <span
+        style={{ cursor: "pointer", textDecoration: "underline" }}
+        onClick={() => {
+          document.querySelector("#right-panel").scrollTop = 0;
+          setCurrentStudent({
+            ...s,
+            summary_title: title + " Summary",
+            columns: table2headers,
+            data: randomData(10, activity),
+          });
+          setCompareData(null);
+          setGraphData({ ...graphData, right: [] });
+          setCurrentData({
+            ...s,
+            name: s.first_name + " " + s.last_name,
+          });
+        }}
+      >
+        {randomScore()}
+      </span>
+    );
+  };
   useEffect(() => {
-    if (query.add_score) {
-      setStudent(
-        props.classDetails[class_id].students.find(
-          (s) => s.id === parseInt(query.add_score)
-        )
-      );
+    setTable({
+      ...table,
+      data: props.classDetails[class_id].students.map((s) => ({
+        id: s.id,
+        image_url: s.preferences.profile_picture,
+        image: <Avatar src={s.preferences.profile_picture} alt={s.last_name} />,
+        name: s.last_name + ", " + s.first_name,
+        quizzes: <ScoreSummaryLink s={s} title="Quizzes" activity="Quiz" />,
+        assignments: (
+          <ScoreSummaryLink s={s} title="Assignments" activity="Assignment" />
+        ),
+        activities: (
+          <ScoreSummaryLink s={s} title="Activities" activity="Activity" />
+        ),
+        periodical_exams: (
+          <ScoreSummaryLink s={s} title="Periodical Exams" activity="Exam" />
+        ),
+        performance_tasks: (
+          <ScoreSummaryLink s={s} title="Performance Tasks" activity="Task" />
+        ),
+        grades: randomScore(),
+        nquizzes: randomScore(),
+        nassignments: randomScore(),
+        nactivities: randomScore(),
+        nperiodical_exams: randomScore(),
+        nperformance_tasks: randomScore(),
+        ngrades: randomScore(),
+      })),
+    });
+  }, []);
+  useEffect(() => {
+    if (currentData) {
+      let x = {
+        label: currentData.name.toUpperCase(),
+        data: [
+          "nquizzes",
+          "nactivities",
+          "nassignments",
+          "nperiodical_exams",
+          "nperformance_tasks",
+          "ngrades",
+        ].map((s, i) => [
+          i,
+          parseInt(table.data.find((q) => q.id === currentData.id)[s]),
+        ]),
+      };
+      setGraphData({ ...graphData, left: [x] });
     }
-  }, [query.add_score]);
-  const addScore = {
-    close: () =>
-      props.history.push(
-        makeLinkTo(["class", class_id, schedule_id, "scores", "q", "p"], {
-          q: "?quiz_id=" + query.quiz_id,
-          p: query.page ? "&page=" + query.page : "",
-        })
-      ),
-    open: (id) =>
-      props.history.push(
-        makeLinkTo(
-          [
-            "class",
-            class_id,
-            schedule_id,
-            "scores",
-            "quiz_id",
-            "page",
-            "add_score",
-          ],
-          {
-            quiz_id: "?quiz_id=" + query.quiz_id,
-            page: query.page ? "&page=" + query.page : "",
-            add_score: "&add_score=" + id,
-          }
-        )
-      ),
+    if (compareData) {
+      let x = {
+        label: compareData.name.toUpperCase(),
+        data: [
+          "nquizzes",
+          "nactivities",
+          "nassignments",
+          "nperiodical_exams",
+          "nperformance_tasks",
+          "ngrades",
+        ].map((s, i) => [
+          i,
+          parseInt(table.data.find((q) => q.id === compareData.id)[s]),
+        ]),
+      };
+      setGraphData({ ...graphData, right: [x] });
+    }
+  }, [currentData, compareData]);
+  const handleOpen = (name) => {
+    let m = { ...modals };
+    m[name] = true;
+    setModals(m);
+  };
+  const handleClose = (name) => {
+    let m = { ...modals };
+    m[name] = false;
+    setModals(m);
   };
   return (
-    <React.Fragment>
-      <Dialog
-        open={query.add_score ? true : false}
-        onClose={addScore.close}
-        fullWidth
-        maxWidth="sm"
-      >
-        {currentStudent && (
-          <React.Fragment>
-            <DialogTitle onClose={addScore.close}>
-              {currentStudent.first_name}&nbsp;
-              {currentStudent.last_name}
-            </DialogTitle>
-            <DialogContent>
-              <TextField
-                variant="filled"
-                label="Addition score"
-                type="number"
-                fullWidth
-              />
-              <TextField
-                variant="filled"
-                label="Reason or notes"
-                type="text"
-                multiline
-                fullWidth
-              />
-            </DialogContent>
-            <DialogActions>
-              <Button onClick={addScore.close}>Cancel</Button>
-              <Button
-                variant="contained"
-                color="primary"
-                onClick={addScore.close}
-              >
-                Save
-              </Button>
-            </DialogActions>
-          </React.Fragment>
-        )}
+    <Box marginTop={2} marginBottom={2}>
+      <Dialog open={modals.COMPARE} onClose={() => handleClose("COMPARE")}>
+        <DialogTitle>Compare to</DialogTitle>
+        <DialogContent>
+          <List>
+            {table &&
+              table.data &&
+              table.data.map((s) => (
+                <ListItem
+                  onClick={() => {
+                    setCompareData(s);
+                    handleClose("COMPARE");
+                    setTimeout(() => {
+                      document.querySelector("#right-panel").scrollTop = 0;
+                    }, 0);
+                  }}
+                >
+                  <ListItemAvatar>
+                    <Avatar src={s.image_url} alt={s.name} />
+                  </ListItemAvatar>
+                  <ListItemText primary={s.name} />
+                </ListItem>
+              ))}
+          </List>
+        </DialogContent>
       </Dialog>
-      <IconButton
-        onClick={() =>
-          props.history.push(
-            makeLinkTo(["class", class_id, schedule_id, "quizzes"])
-          )
-        }
-      >
-        <Icon>arrow_back</Icon>
-      </IconButton>
-      {quiz && (
-        <React.Fragment>
-          <Box m={2}>
-            <Paper>
-              <Box
-                p={2}
-                display="flex"
-                justifyContent="space-between"
-                alignItems="flex-start"
+      {currentData && (
+        <Paper>
+          <Box p={2}>
+            {currentStudent && (
+              <Button
+                onClick={() => {
+                  setCurrentStudent(null);
+                  setCurrentData(null);
+                }}
               >
-                <div>
-                  <Typography
-                    style={{ fontWeight: "bold", whiteSpace: "pre-wrap" }}
-                    variant="body1"
-                  >
-                    {quiz.title}
-                  </Typography>
-                  <Typography
-                    variant="body1"
-                    style={{ whiteSpace: "pre-wrap" }}
-                  >
-                    {quiz.intro}
-                  </Typography>
-                  <Typography variant="body1" color="textSecondary">
-                    {quiz.questions.length} Questions
-                  </Typography>
-                </div>
-                <div>
-                  <Typography variant="body1" color="textSecondary">
-                    {moment(new Date()).format("LL")}
-                  </Typography>
-                </div>
-              </Box>
-            </Paper>
-          </Box>
-          <Divider />
-          <Box m={2}>
+                <Icon color="primary" fontSize="small">
+                  arrow_back
+                </Icon>
+                Back
+              </Button>
+            )}
             <Box
-              style={{ float: "right", margin: "13px 0" }}
-              width={isMobile ? "100%" : 230}
+              display="flex"
+              width="100%"
+              justifyContent="space-between"
+              alignItems="flex-start"
             >
-              <SearchInput onChange={(s) => setSearch(s)} />
+              {currentData && (
+                <Box display="flex" width="100%" alignItems="center">
+                  <Box marginRight={2}>
+                    <Avatar
+                      src={currentData.image_url}
+                      style={{
+                        width: 100,
+                        height: 100,
+                      }}
+                    />
+                  </Box>
+                  <Box>
+                    <Typography style={{ fontSize: 21 }}>
+                      {currentData.name}
+                    </Typography>
+                  </Box>
+                </Box>
+              )}
+              {compareData && (
+                <Box
+                  display="flex"
+                  width="100%"
+                  alignItems="center"
+                  justifyContent="flex-end"
+                >
+                  <Box marginRight={2}>
+                    <Typography style={{ fontSize: 21 }}>
+                      {compareData.name}
+                    </Typography>
+                  </Box>
+                  <Box>
+                    <Avatar
+                      src={compareData.image_url}
+                      style={{
+                        width: 100,
+                        height: 100,
+                      }}
+                    />
+                  </Box>
+                </Box>
+              )}
             </Box>
-            <TableContainer component={Paper}>
-              <Table aria-label="simple table">
-                <TableHead>
-                  <TableRow>
-                    <TableCell align="left">Student</TableCell>
-                    <TableCell align="center">Score</TableCell>
-                    <TableCell align="right">Action</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {getPageItems(
-                    props.classDetails[class_id].students.filter(
-                      (s) =>
-                        JSON.stringify(s).toLowerCase().indexOf(search) >= 0
-                    ),
-                    page
-                  ).map((row) => (
-                    <TableRow key={row.name}>
-                      <TableCell component="th" scope="row">
-                        {row.first_name}
-                        &nbsp;
-                        {row.last_name}
-                      </TableCell>
-                      <TableCell align="center">20</TableCell>
-                      <TableCell align="right">
-                        <Button
-                          variant="contained"
-                          color="primary"
-                          onClick={() => addScore.open(row.id)}
-                        >
-                          Add Score
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
-            <br />
-            <Pagination
-              match={props.match}
-              queries={"&quiz_id=" + query.quiz_id}
-              onChange={(p) => setPage(p)}
-              page={page}
-              count={props.classDetails[class_id].students.length}
-              itemsPerPage={10}
-            />
+            <Box height={300} m={2}>
+              <Typography style={{ fontWeight: "bold" }}>
+                Performance
+              </Typography>
+              <Chart
+                data={graphData.left.concat(graphData.right)}
+                axes={[
+                  { primary: true, type: "linear", position: "bottom" },
+                  { type: "linear", position: "left" },
+                ]}
+                tooltip
+              />
+            </Box>
           </Box>
-        </React.Fragment>
+        </Paper>
       )}
-    </React.Fragment>
+      {!currentStudent ? (
+        <MaterialTable
+          title="Students Scores"
+          columns={table.columns}
+          data={table.data}
+          options={{
+            pageSize: 10,
+            actionsColumnIndex: 8,
+            rowStyle: (data) => {
+              if (currentData && currentData.id === data.id) {
+                return {
+                  background: theme.palette.primary.main,
+                  color: "#fff",
+                };
+              } else if (compareData && compareData.id === data.id) {
+                return {
+                  background: theme.palette.secondary.main,
+                  color: "#222",
+                };
+              }
+            },
+          }}
+          actions={[
+            {
+              icon: "compare_arrows",
+              tooltip: "Compare",
+              onClick: (e, row) => {
+                setCurrentData(row);
+                handleOpen("COMPARE");
+              },
+            },
+          ]}
+        />
+      ) : (
+        <MaterialTable
+          title={currentStudent.summary_title}
+          columns={currentStudent.columns}
+          data={currentStudent.data}
+          options={{
+            pageSize: 10,
+            actionsColumnIndex: 8,
+          }}
+        />
+      )}
+    </Box>
   );
 }
-
+const table2headers = [
+  { title: "Quiz Date", field: "date", type: "date" },
+  { title: "Title", field: "title" },
+  {
+    title: "Total Score",
+    field: "total_score",
+    type: "numeric",
+  },
+  {
+    title: "Achieved Score",
+    field: "achieved_score",
+    type: "numeric",
+  },
+];
 export default connect((states) => ({
-  questionnaires: states.questionnaires,
   classDetails: states.classDetails,
 }))(Scores);

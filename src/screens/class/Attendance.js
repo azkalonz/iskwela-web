@@ -61,7 +61,12 @@ function Attendance(props) {
     query.date && query.date !== -1 ? parseInt(query.date) : -1
   );
   const [attendance, setAttendance] = useState(
-    store.getState().classDetails[class_id].students
+    store.getState().classDetails[class_id].students.map((q) => ({
+      ...q,
+      absences: Math.round(Math.random())
+        ? Math.floor(Math.random() * (5 - 1) + 1) + " absences"
+        : "",
+    }))
   );
   const [page, setPage] = useState(query.page ? parseInt(query.page) : 1);
   const [search, setSearch] = useState("");
@@ -136,7 +141,7 @@ function Attendance(props) {
         justifyContent="center"
         alignItems="stretch"
       >
-        <Box p={2} width="100%">
+        <Box p={2} width="100%" marginTop={2}>
           <Box
             flexDirection="row"
             flexWrap="wrap"
@@ -262,12 +267,7 @@ function Attendance(props) {
                         <ListItemText
                           style={{ marginRight: 10 }}
                           primary={item.first_name + " " + item.last_name}
-                          secondary={
-                            Math.round(Math.random())
-                              ? Math.floor(Math.random() * (5 - 1) + 1) +
-                                " absences"
-                              : ""
-                          }
+                          secondary={item.absences}
                         />
                         <Typography
                           variant="body1"

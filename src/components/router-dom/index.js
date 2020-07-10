@@ -1,30 +1,19 @@
-import React from "react";
-import AssignmentOutlinedIcon from "@material-ui/icons/AssignmentOutlined";
-import BorderColorOutlinedIcon from "@material-ui/icons/BorderColorOutlined";
-import EventNoteOutlinedIcon from "@material-ui/icons/EventNoteOutlined";
-import EventOutlinedIcon from "@material-ui/icons/EventOutlined";
-import FaceOutlinedIcon from "@material-ui/icons/FaceOutlined";
-import Activity from "../../screens/class/Activity";
-import Project from "../../screens/class/Project";
-import Posts from "../../screens/class/Posts";
-import Attendance from "../../screens/class/Attendance";
-import LessonPlan from "../../screens/class/LessonPlan";
-import Quizzes from "../../screens/class/Quizzes";
-import Periodical from "../../screens/class/Periodical";
-import Assignment from "../../screens/class/Assignment";
 import CreateQuestionnaire from "../../containers/CreateQuestionnaire";
+import Activity from "../../screens/class/Activity";
+import AnswerQuiz from "../../screens/class/AnswerQuiz";
+import Assignment from "../../screens/class/Assignment";
+import Attendance from "../../screens/class/Attendance";
+import InstructionalMaterials from "../../screens/class/InstructionalMaterials";
+import LessonPlan from "../../screens/class/LessonPlan";
+import Kahoot from "../../screens/class/Kahoot";
+import Periodical from "../../screens/class/Periodical";
+import Posts from "../../screens/class/Posts";
+import Project from "../../screens/class/Project";
 import Questionnaires from "../../screens/class/Questionnaires";
-import Students from "../../screens/class/Students";
+import Quizzes from "../../screens/class/Quizzes";
 import Schedule from "../../screens/class/Schedule";
 import Scores from "../../screens/class/Scores";
-import InstructionalMaterials from "../../screens/class/InstructionalMaterials";
-import CreateOutlinedIcon from "@material-ui/icons/CreateOutlined";
-import PeopleOutlinedIcon from "@material-ui/icons/PeopleOutlined";
-import NoteAddOutlinedIcon from "@material-ui/icons/NoteAddOutlined";
-import AnswerQuiz from "../../screens/class/AnswerQuiz";
-import MenuBookOutlinedIcon from "@material-ui/icons/MenuBookOutlined";
-import QuestionAnswerOutlinedIcon from "@material-ui/icons/QuestionAnswerOutlined";
-import DvrOutlinedIcon from "@material-ui/icons/DvrOutlined";
+import Students from "../../screens/class/Students";
 export function makeLinkTo(path, options = {}, relative = false) {
   path = path.map((p) => (options[p] != null ? options[p] : p));
   return (
@@ -82,6 +71,12 @@ export const rightPanelOptions = [
         icon: null,
         screen: Assignment,
       },
+      {
+        title: "Kahoot",
+        link: "kahoot.it",
+        icon: null,
+        screen: Kahoot,
+      },
     ],
   },
   {
@@ -116,10 +111,20 @@ export const rightPanelOptions = [
     screen: LessonPlan,
   },
   {
-    title: "Attendance Reports",
-    link: "attendance",
+    title: "Reports",
     icon: "icon-attendance",
-    screen: Attendance,
+    children: [
+      {
+        title: "Attendance",
+        link: "attendance",
+        screen: Attendance,
+      },
+      {
+        title: "Scores",
+        link: "scores",
+        screen: Scores,
+      },
+    ],
   },
   {
     title: "Schedules",
@@ -192,6 +197,12 @@ export const rightPanelOptionsStudents = [
         link: "assignments",
         icon: null,
         screen: Assignment,
+      },
+      {
+        title: "Kahoot",
+        link: "kahoot.it",
+        icon: null,
+        screen: Kahoot,
       },
     ],
   },

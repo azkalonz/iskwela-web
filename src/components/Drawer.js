@@ -30,19 +30,28 @@ function Drawer(props) {
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const isTablet = useMediaQuery(theme.breakpoints.down("md"));
   const history = useHistory();
-  const { class_id } = props.match.params;
+  const { class_id, room_name, screen_name } = props.match.params;
   const [more, setMore] = useState(false);
   const classes = props.classes.sort((a, b) =>
     a.next_schedule.status === "ONGOING" ? -1 : 0
   );
   useEffect(() => {
     focusCurrentTab();
-  }, [isTablet, props.location.hash]);
+    if (!room_name)
+      document
+        .querySelectorAll(".safe-to-url")
+        .forEach((i) => (i.style.display = "none"));
+  }, [isTablet, props.location]);
+  useEffect(() => {
+    if (room_name) history.push(more ? "#more" : "#less");
+  }, [more]);
   const focusCurrentTab = () => {
     let t = document.querySelector(".selected.tab");
     if (!t) {
-      setMore(true);
-      setTimeout(() => focusCurrentTab(), 0);
+      if (props.location.pathname.indexOf("class") >= 0) {
+        setMore(true);
+        setTimeout(() => focusCurrentTab(), 0);
+      }
     } else {
       let cont = document.querySelector("#tabs-container");
       if (cont && !isTablet) {
@@ -70,11 +79,12 @@ function Drawer(props) {
             variant="h6"
             align="center"
             style={{ width: "100%", cursor: "pointer" }}
-            onClick={() => {
-              history.push("/");
-            }}
           >
             <Box
+              className="logo-btn"
+              onClick={() => {
+                history.push("/");
+              }}
               style={{
                 width: "100%",
                 height: 50,
@@ -116,16 +126,6 @@ function Drawer(props) {
                     ? "selected tab"
                     : "tab"
                 }
-                onClick={() => {
-                  history.push(
-                    makeLinkTo(
-                      ["class", item.id, item.next_schedule.id, "opt"],
-                      {
-                        opt: item.next_schedule.id ? "posts" : "",
-                      }
-                    )
-                  );
-                }}
                 style={{ cursor: "pointer" }}
               >
                 <Tooltip title={item.name} placement="right">
@@ -134,6 +134,16 @@ function Drawer(props) {
                     className="tab-btn"
                     style={{
                       backgroundColor: item.color,
+                    }}
+                    onClick={() => {
+                      history.push(
+                        makeLinkTo(
+                          ["class", item.id, item.next_schedule.id, "opt"],
+                          {
+                            opt: item.next_schedule.id ? "posts" : "",
+                          }
+                        )
+                      );
                     }}
                   >
                     <Typography variant="body1" component="h2">
@@ -163,16 +173,6 @@ function Drawer(props) {
                         : "tab"
                     }
                     key={index}
-                    onClick={() => {
-                      history.push(
-                        makeLinkTo(
-                          ["class", item.id, item.next_schedule.id, "opt"],
-                          {
-                            opt: item.next_schedule.id ? "posts" : "",
-                          }
-                        )
-                      );
-                    }}
                     style={{ cursor: "pointer" }}
                   >
                     <Tooltip title={item.name} placement="right">
@@ -181,6 +181,16 @@ function Drawer(props) {
                         className="tab-btn"
                         style={{
                           backgroundColor: item.color,
+                        }}
+                        onClick={() => {
+                          history.push(
+                            makeLinkTo(
+                              ["class", item.id, item.next_schedule.id, "opt"],
+                              {
+                                opt: item.next_schedule.id ? "posts" : "",
+                              }
+                            )
+                          );
                         }}
                       >
                         <Typography variant="body1" component="h2">
@@ -234,16 +244,10 @@ function Drawer(props) {
               style={{ opacity: 0.14, backgroundColor: "rgb(55, 19, 138)" }}
             />
           </Box>
-          <Box
-            className={
-              window.location.pathname === "/improvement"
-                ? "selected tab bordered"
-                : "tab"
-            }
-          >
+          <Box className={screen_name ? "selected tab bordered" : "tab"}>
             <Box
               onClick={() => {
-                history.push("/");
+                history.push("/explore/jumpstart");
               }}
               className="tab-btn screen-btn"
               style={{
@@ -395,16 +399,6 @@ function Drawer(props) {
                       ? "selected tab"
                       : "tab"
                   }
-                  onClick={() => {
-                    history.push(
-                      makeLinkTo(
-                        ["class", item.id, item.next_schedule.id, "opt"],
-                        {
-                          opt: item.next_schedule.id ? "posts" : "",
-                        }
-                      )
-                    );
-                  }}
                   style={{ cursor: "pointer" }}
                 >
                   <Tooltip title={item.name} placement="right">
@@ -413,6 +407,16 @@ function Drawer(props) {
                       className="tab-btn"
                       style={{
                         backgroundColor: item.color,
+                      }}
+                      onClick={() => {
+                        history.push(
+                          makeLinkTo(
+                            ["class", item.id, item.next_schedule.id, "opt"],
+                            {
+                              opt: item.next_schedule.id ? "posts" : "",
+                            }
+                          )
+                        );
                       }}
                     >
                       <Typography variant="body1" component="h2">
@@ -448,16 +452,6 @@ function Drawer(props) {
                           : "tab"
                       }
                       key={index}
-                      onClick={() => {
-                        history.push(
-                          makeLinkTo(
-                            ["class", item.id, item.next_schedule.id, "opt"],
-                            {
-                              opt: item.next_schedule.id ? "posts" : "",
-                            }
-                          )
-                        );
-                      }}
                       style={{ cursor: "pointer" }}
                     >
                       <Tooltip title={item.name} placement="right">
@@ -466,6 +460,21 @@ function Drawer(props) {
                           className="tab-btn"
                           style={{
                             backgroundColor: item.color,
+                          }}
+                          onClick={() => {
+                            history.push(
+                              makeLinkTo(
+                                [
+                                  "class",
+                                  item.id,
+                                  item.next_schedule.id,
+                                  "opt",
+                                ],
+                                {
+                                  opt: item.next_schedule.id ? "posts" : "",
+                                }
+                              )
+                            );
                           }}
                         >
                           <Typography variant="body1" component="h2">

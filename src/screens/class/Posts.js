@@ -264,11 +264,13 @@ function StartADiscussion(props) {
     }
   };
   const handleSave = (data) => {
+    let x = JSON.parse(data);
+    console.log(x);
     socket.emit("save post", {
       class_id: props.class.id,
       value: data,
       author: props.userInfo,
-      date: moment(new Date()).format("MMMM DD, YYYY hh:mm:ss"),
+      date: new Date().toString(),
     });
     handleClose("DISCUSSION");
   };
@@ -629,7 +631,8 @@ function Discussion(props) {
             </Box>
           </Box>
           <Box>
-            {props.data.author.id === props.userInfo.id && (
+            {props.data.author.id === props.userInfo.id ||
+            props.userInfo.user_type === "t" ? (
               <PopupState variant="popover" popupId="publish-btn">
                 {(popupState) => (
                   <React.Fragment>
@@ -649,7 +652,7 @@ function Discussion(props) {
                   </React.Fragment>
                 )}
               </PopupState>
-            )}
+            ) : null}
           </Box>
         </Box>
         <Box

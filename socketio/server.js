@@ -73,7 +73,7 @@ io.on("connection", (socket) => {
           id: c.comments.length,
           comment,
           author,
-          date: new Date(),
+          date: new Date().toString(),
         });
       } else {
         c.comments = [
@@ -81,7 +81,7 @@ io.on("connection", (socket) => {
             id: 0,
             comment,
             author,
-            date: new Date(),
+            date: new Date().toString(),
           },
         ];
       }

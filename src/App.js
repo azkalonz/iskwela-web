@@ -17,6 +17,7 @@ import store from "./components/redux/store";
 import socket from "./components/socket.io";
 import UserData from "./components/UserData";
 import Class from "./containers/Class";
+import Explore from "./containers/Explore";
 import AnswerQuiz from "./screens/class/AnswerQuiz";
 import Home from "./screens/Home";
 import Login from "./screens/Login";
@@ -103,7 +104,6 @@ function App(props) {
       MuiAppBar: {
         root: {
           background: "#fff!important",
-          boxShadow: "0 2px 6px rgb(241, 230, 255)!important",
           border: "1px solid rgb(233, 228, 239)",
           borderRadius: 0,
           "& > div": {
@@ -146,7 +146,7 @@ function App(props) {
       MuiPaper: {
         root: {
           ...(props.theme === "dark" ? { backgroundColor: "#111" } : {}),
-          "&:not(.MuiCard-root):not(.MuiDialog-paper):not(.MuiAlert-root):not(.box-container)": {
+          "&:not(.MuiCard-root):not(.MuiAppBar-root):not(.MuiDialog-paper):not(.MuiAlert-root):not(.box-container)": {
             boxShadow: "0 2px 4px rgb(241, 230, 255)!important",
             border: "1px solid rgb(233, 228, 239)",
             borderRadius: 4,
@@ -335,6 +335,11 @@ function App(props) {
                 <Route exact path="/answer/:quiz_id?" component={AnswerQuiz} />
                 <Route exact path="/content-maker" component={ContentMaker} />
                 <Route exact path="/picker" component={GooglePicker} />
+                <Route
+                  exact
+                  path="/explore/:screen_name?"
+                  component={Explore}
+                />
                 <Route
                   path="/class/:class_id/:schedule_id?/:option_name?/:room_name?"
                   component={Class}

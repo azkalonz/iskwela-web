@@ -1,10 +1,23 @@
 import React, { useState, useEffect } from "react";
 import NavBar from "../components/NavBar";
 import FullscreenIcon from "@material-ui/icons/Fullscreen";
-import { IconButton, Box, Divider, makeStyles } from "@material-ui/core";
+import {
+  IconButton,
+  Box,
+  Divider,
+  makeStyles,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
+  useTheme,
+  useMediaQuery,
+} from "@material-ui/core";
 import ShareOutlinedIcon from "@material-ui/icons/ShareOutlined";
 import Jitsi from "react-jitsi";
 import store from "../components/redux/store";
+import { safeURLChange } from "../components/safeUrl";
 
 const resize = (e) => {
   let v = document.querySelector("#video-conference-container");
@@ -20,11 +33,14 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 function VideoConference(props) {
+  const theme = useTheme();
+  const { room_name } = props.match.params;
   const { getRoom } = props;
   const styles = useStyles();
   const room = getRoom();
   const [loading, setLoading] = useState(false);
   const [isResizing, setisResizing] = useState(false);
+  const [confirmed, setConfirmed] = useState();
   const handleAPI = (JitsiApi) => {
     JitsiApi.executeCommand("toggleVideo");
     JitsiApi.on("readyToClose", () => {
@@ -57,6 +73,31 @@ function VideoConference(props) {
       window.removeEventListener("mousemove", resize);
     }
   }, [isResizing]);
+
+  useEffect(() => {
+    safeURLChange(room_name, HandleURLChange);
+  }, []);
+  useEffect(() => {
+    safeURLChange(room_name, HandleURLChange);
+  }, [props.location]);
+  const HandleURLChange = (x) => {
+    setConfirmed({
+      title: "You are about to leave the Video Conference.",
+      message: "Do you wish to continue?",
+      yes: () => {
+        x.style.display = "none";
+        x.previousElementSibling.click();
+        x.parentElement.firstElementChild.click();
+        document
+          .querySelectorAll(".safe-to-url")
+          .forEach((i) => (i.style.display = "none"));
+      },
+      no: () => {
+        setConfirmed(null);
+      },
+    });
+  };
+
   return loading ? null : (
     <Box
       width="100%"
@@ -67,6 +108,29 @@ function VideoConference(props) {
       position="relative"
       className={styles.vcontainer}
     >
+      {confirmed && (
+        <Dialog open={confirmed ? true : false} onClose={() => confirmed.no()}>
+          <DialogTitle>{confirmed.title}</DialogTitle>
+          <DialogContent>{confirmed.message}</DialogContent>
+          <DialogActions>
+            <Button
+              onClick={() => {
+                confirmed.no();
+              }}
+            >
+              No
+            </Button>
+
+            <Button
+              color="primary"
+              variant="contained"
+              onClick={() => confirmed.yes()}
+            >
+              Yes
+            </Button>
+          </DialogActions>
+        </Dialog>
+      )}
       <NavBar
         title="Video Conference"
         right={
