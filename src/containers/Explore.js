@@ -111,7 +111,7 @@ function Explore(props) {
     let c = document.querySelector("#right-panel-content");
     let n = document.querySelector("#nav-bar");
     if (c && n) c.style.height = window.innerHeight - n.clientHeight + "px";
-    else c.style.height = "100%";
+    else if (c) c.style.height = "100%";
   };
   useEffect(() => {
     if (query.hidepanel) {
