@@ -26,6 +26,10 @@ import Posts from "./screens/class/Posts";
 
 const primaryColor = "#7539ff";
 const secondaryColor = "#FFD026";
+
+Math.map = (n, start1, stop1, start2, stop2) => {
+  return ((n - start1) / (stop1 - start1)) * (stop2 - start2) + start2;
+};
 Math.rand = (min, max) => {
   min = Math.ceil(min);
   max = Math.floor(max);
@@ -313,22 +317,22 @@ function App(props) {
         UserData.addClassSchedule(c.id, c.details);
       }
     });
-    setLoading(false);
-    // Api.auth({
-    //   success: async (user) => {
-    //     await UserData.getUserData(user);
-    //     setTimeout(() => {
-    //       setLoading(false);
-    //     }, 500);
-    //   },
-    //   fail: () => {
-    //     if (
-    //       window.location.pathname === "/login" ||
-    //       window.location.pathname === "/login/"
-    //     )
-    //       setLoading(false);
-    //   },
-    // });
+    // setLoading(false);
+    Api.auth({
+      success: async (user) => {
+        await UserData.getUserData(user);
+        setTimeout(() => {
+          setLoading(false);
+        }, 500);
+      },
+      fail: () => {
+        if (
+          window.location.pathname === "/login" ||
+          window.location.pathname === "/login/"
+        )
+          setLoading(false);
+      },
+    });
   }, []);
   return (
     <MuiThemeProvider theme={theme}>

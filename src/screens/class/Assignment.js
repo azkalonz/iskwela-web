@@ -96,7 +96,7 @@ function Assignment(props) {
   const isTablet = useMediaQuery(theme.breakpoints.down("md"));
   const [currentItem, setCurrentItem] = useState();
   const [saving, setSaving] = useState(false);
-  const { class_id, option_name, schedule_id } = props.match.params;
+  const { class_id, room_name, option_name, schedule_id } = props.match.params;
   const [ITEMS, setITEMS] = useState();
   const [search, setSearch] = useState("");
   const [modals, setModals] = React.useState({});
@@ -437,6 +437,8 @@ function Assignment(props) {
         class_id,
         schedule_id,
         option_name,
+        room_name || "",
+
         "?id=" + currentItem.questionnaires[0].id,
         "&q=" + currentItem.id + "&start=true",
       ])
@@ -550,11 +552,11 @@ function Assignment(props) {
                               class_id,
                               schedule_id,
                               option_name,
+                              room_name || "",
                             ])
                           );
                           setCurrentItem(null);
                         }}
-                        className="warn-to-leave"
                       >
                         <Icon color="primary">arrow_back</Icon>
                       </IconButton>
@@ -564,7 +566,6 @@ function Assignment(props) {
                         variant="contained"
                         color="primary"
                         onClick={() => handleStart()}
-                        className="warn-to-leave"
                       >
                         Start
                       </Button>
@@ -632,6 +633,8 @@ function Assignment(props) {
                                 class_id,
                                 schedule_id,
                                 option_name,
+                                room_name || "",
+
                                 "?id=" + m.id,
                                 "&q=" + currentItem.id + "&start=true",
                               ])
@@ -831,6 +834,8 @@ function Assignment(props) {
       {ITEMS && questionnairesToAnswer && query.start && (
         <AnswerQuiz
           id={query.id && parseInt(query.id)}
+          type="assignments"
+          endpoint="assignment"
           noPaging={true}
           fullHeight
           match={props.match}
@@ -963,7 +968,9 @@ function Assignment(props) {
                                   "class",
                                   class_id,
                                   schedule_id,
-                                  "questionnaire?hidepanel=true&callback=send_item&to=" +
+                                  "questionnaire",
+                                  room_name || "",
+                                  "?hidepanel=true&callback=send_item&to=" +
                                     socket.id,
                                 ]),
                                 "_blank"

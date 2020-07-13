@@ -89,7 +89,6 @@ function Recorder(props) {
     audioRef.current.src = "";
   };
   const downloadAudio = () => {
-    let blob = recorder.getBlob();
     window.getSeekableBlob(recorder.getBlob(), function (seekableBlob) {
       window.invokeSaveAsDialog(
         seekableBlob,
@@ -360,7 +359,7 @@ function Recorder(props) {
         >
           <IconButton
             onClick={() => {
-              audioRef.current.volume = !audio.muted ? 1 : 0;
+              audioRef.current.volume = audio.muted ? 1 : 0;
               setAudio({ ...audio, muted: !audio.muted });
             }}
           >

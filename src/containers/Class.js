@@ -79,6 +79,7 @@ function ClassRightPanel(props) {
       style={{
         padding: !isTablet ? "0 40px" : 0,
       }}
+      height={props.isConferencing ? "100vh" : "auto"}
     >
       <View
         {...props}
@@ -730,6 +731,12 @@ function Class(props) {
       </Slide>
     );
   };
+  const isConferencing = () =>
+    room_name &&
+    !isValidOption(option_name)?.solo &&
+    CLASS &&
+    schedule_id &&
+    props.classDetails[class_id].schedules[schedule_id].status === "ONGOING";
   return (
     <div>
       <Drawer {...props}>
@@ -759,37 +766,52 @@ function Class(props) {
               height="100%"
               justifyContent="center"
             >
-              <Scrollbars autoHide>
-                {room_name &&
-                  !isValidOption(option_name)?.solo &&
-                  CLASS &&
-                  schedule_id &&
-                  props.classDetails[class_id].schedules[schedule_id].status ===
-                    "ONGOING" && (
-                    <VideoConference
-                      match={props.match}
-                      location={props.location}
-                      getRoom={() => getRoom()}
-                      updateClass={(e) => {
-                        if (isTeacher) updateClass(e);
-                      }}
-                      left={
-                        !collapsePanel && !isMobile ? (
-                          <Tooltip
-                            title="Show class panel"
-                            placement="bottom-start"
+              <Scrollbars
+                autoHide
+                onScroll={(e) => {
+                  let d = document.querySelector("#react-jitsi-container");
+                  if (isMobile) {
+                    d.classList.remove("floating");
+                    return;
+                  }
+                  if (!d) return;
+                  if (!d.getAttribute("data-initial-height"))
+                    d.setAttribute("data-initial-height", d.clientHeight);
+                  if (
+                    e.target.scrollTop >=
+                    parseFloat(d.getAttribute("data-initial-height"))
+                  ) {
+                    d.classList.add("floating");
+                  } else {
+                    d.classList.remove("floating");
+                  }
+                }}
+              >
+                {isConferencing() && (
+                  <VideoConference
+                    match={props.match}
+                    location={props.location}
+                    getRoom={() => getRoom()}
+                    updateClass={(e) => {
+                      if (isTeacher) updateClass(e);
+                    }}
+                    left={
+                      !collapsePanel && !isMobile ? (
+                        <Tooltip
+                          title="Show class panel"
+                          placement="bottom-start"
+                        >
+                          <IconButton
+                            aria-label="Collapse Panel"
+                            onClick={() => setCollapsePanel(!collapsePanel)}
                           >
-                            <IconButton
-                              aria-label="Collapse Panel"
-                              onClick={() => setCollapsePanel(!collapsePanel)}
-                            >
-                              <span className="icon-menu-open"></span>
-                            </IconButton>
-                          </Tooltip>
-                        ) : null
-                      }
-                    />
-                  )}
+                            <span className="icon-menu-open"></span>
+                          </IconButton>
+                        </Tooltip>
+                      ) : null
+                    }
+                  />
+                )}
                 <NavBar
                   title={
                     isValidOption(option_name)
@@ -862,6 +884,7 @@ function Class(props) {
                 {CLASS && class_id && (
                   <ClassRightPanel
                     classSched={schedule_id}
+                    isConferencing={isConferencing()}
                     loading={(e) => setRightPanelLoading(e)}
                     {...props}
                   />

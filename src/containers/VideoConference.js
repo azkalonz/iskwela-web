@@ -27,9 +27,9 @@ const resize = (e) => {
 };
 const useStyles = makeStyles((theme) => ({
   vcontainer: {
-    "& #react-jitsi-container": {
-      height: "90%!important",
-    },
+    // "& #react-jitsi-container": {
+    //   height: "90%!important",
+    // },
   },
 }));
 function VideoConference(props) {

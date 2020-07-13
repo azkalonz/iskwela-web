@@ -22,7 +22,7 @@ const UserData = {
     let scheduleDetails = await Api.get(
       "/api/schedule/" +
         schedule_id +
-        "?include=materials, activities, lessonPlans"
+        "?include=materials,publishedSeatworks,publishedProjects,projects,seatworks,lessonPlans"
     );
     schedCopy.date = moment(schedCopy.from).format("LL");
     schedCopy.time = moment(schedCopy.from).format("LT");
@@ -108,11 +108,20 @@ const UserData = {
     mergedClassDetails[class_id] = newClassDetails;
 
     let allScheds = [];
-    let schedules = await Api.get(
-      "/api/teacher/class-schedules/" +
-        class_id +
-        "?include=materials, activities, lessonPlans"
-    );
+    let schedules;
+    if (store.getState().userInfo.user_type === "t") {
+      schedules = await Api.get(
+        "/api/teacher/class-schedules/" +
+          class_id +
+          "?include=materials,publishedSeatworks,publishedProjects,projects, seatworks"
+      );
+    } else {
+      schedules = await Api.get(
+        "/api/student/class-schedules/" +
+          class_id +
+          "?include=materials,publishedSeatworks,publishedProjects"
+      );
+    }
     schedules.forEach((s) => {
       allScheds[s.id] = s;
       allScheds[s.id].date = moment(s.from).format("LL");

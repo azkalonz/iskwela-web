@@ -28,6 +28,9 @@ import {
   useMediaQuery,
   useTheme,
   withStyles,
+  FormControl,
+  Select,
+  InputLabel,
 } from "@material-ui/core";
 import MuiDialogTitle from "@material-ui/core/DialogTitle";
 import Grow from "@material-ui/core/Grow";
@@ -48,7 +51,11 @@ import React, { useEffect, useState } from "react";
 import { connect } from "react-redux";
 import { useHistory } from "react-router-dom";
 import Api from "../../api";
-import { CreateDialog, GooglePicker } from "../../components/dialogs";
+import {
+  CreateDialog,
+  GooglePicker,
+  RecorderDialog,
+} from "../../components/dialogs";
 import FileUpload, { stageFiles } from "../../components/FileUpload";
 import FileViewer from "../../components/FileViewer";
 import Form from "../../components/Form";
@@ -111,7 +118,7 @@ function Project(props) {
     UPLOAD_ANSWER: false,
     ACTIVITY_MATERIALS: false,
   });
-  const { class_id, option_name, schedule_id } = props.match.params;
+  const { room_name, class_id, option_name, schedule_id } = props.match.params;
   const [activities, setActivities] = useState();
   const [dragover, setDragover] = useState(false);
   const [search, setSearch] = useState("");
@@ -147,12 +154,14 @@ function Project(props) {
     published: 0,
     total_score: 100,
     class_id: parseInt(class_id),
+    grading_category:
+      props.gradingCategories[0] && props.gradingCategories[0].id,
   };
   const [form, setForm] = useState(formTemplate);
   const cellheaders = [
     { id: "title", title: "Title", width: "50%" },
     { id: "status", title: "Status", align: "center", width: "15%" },
-    { id: "available_from", title: "Date", align: "flex-end", width: "35%" },
+    { id: "due_date", title: "Date", align: "flex-end", width: "35%" },
   ];
   const _handleFileOption = (option, file) => {
     switch (option) {
@@ -210,8 +219,8 @@ function Project(props) {
       let a = props.classDetails[class_id].schedules;
       let allActivities = [];
       a.forEach((s) => {
-        if (s.activities) {
-          s.activities.forEach((ss) => {
+        if (s[isTeacher ? "projects" : "publishedProjects"]) {
+          s[isTeacher ? "projects" : "publishedProjects"].forEach((ss) => {
             allActivities.push({ ...ss, schedule_id: s.id });
           });
         }
@@ -226,9 +235,9 @@ function Project(props) {
             ...newAct,
           });
       }
-      if (query.activity_id) {
+      if (query.project_id) {
         setCurrentActivity(
-          allActivities.find((q) => q.id === parseInt(query.activity_id))
+          allActivities.find((q) => q.id === parseInt(query.project_id))
         );
       }
     } catch (e) {}
@@ -246,44 +255,19 @@ function Project(props) {
   }, [currentActivity]);
   const getAnswers = async () => {
     currentActivity.answers = null;
-    let a = await Api.get(
-      "/api/teacher/seatwork-answers/" + currentActivity.id
-    );
+    let a = await Api.get("/api/teacher/project-answers/" + currentActivity.id);
     a = props.classDetails[class_id].students.map((s) => {
-      let sa = a.find((st) => st.student.id === s.id);
+      let sa = a.filter((st) => st.student.id === s.id);
 
       return sa
-        ? { ...sa, student: s }
+        ? { answers: sa, student: s }
         : {
             student: s,
           };
     });
-    // await asyncForEach(a, async (s, index, arr) => {
-    //   if (store.getState().pics[s.student.id]) {
-    //     a[index].student.pic = store.getState().pics[s.student.id];
-    //     return;
-    //   }
-    //   try {
-    //     let pic = await Api.postBlob("/api/download/user/profile-picture", {
-    //       body: { id: s.student.id },
-    //     }).then((resp) => (resp.ok ? resp.blob() : null));
-    //     if (pic) {
-    //       var picUrl = URL.createObjectURL(pic);
-    //       let userpic = {};
-    //       userpic[s.student.id] = picUrl;
-    //       store.dispatch({
-    //         type: "SET_PIC",
-    //         userpic,
-    //       });
-    //       a[index].student.pic = picUrl;
-    //     }
-    //   } catch (e) {
-    //     a[index].student.pic = "/logo192.png";
-    //   }
-    // });
     setCurrentActivity({
       ...currentActivity,
-      answers: a.sort((b, c) => (b.answer_media ? -1 : 0)),
+      answers: a.sort((b, c) => (b.answers.length ? -1 : 0)),
     });
   };
   const _handleSearch = (e) => {
@@ -312,7 +296,8 @@ function Project(props) {
         class_id,
         schedule_id,
         option_name,
-        "?activity_id=" + item.id,
+        room_name || "",
+        "?project_id=" + item.id,
       ])
     );
     setCurrentActivity(
@@ -340,13 +325,13 @@ function Project(props) {
     });
     if (formData.data.published && formData.data.id) {
       try {
-        await Api.post("/api/class/seatwork/publish/" + formData.data.id, {});
+        await Api.post("/api/class/project/publish/" + formData.data.id, {});
       } catch (e) {
         setErrors(["Oops! Something when wrong. Please try again."]);
       }
     }
     try {
-      res = await formData.send("/api/class/seatwork/save");
+      res = await formData.send("/api/class/project/save");
     } catch (e) {
       setErrors(["Oops! Something when wrong. Please try again."]);
     }
@@ -355,12 +340,12 @@ function Project(props) {
       if (form.materials && newMaterial && Object.keys(newMaterial).length) {
         await asyncForEach(form.materials, async (m) => {
           if (m.uploaded_file) return;
-          await Api.post("/api/class/seatwork-material/save", {
+          await Api.post("/api/class/project-material/save", {
             body: {
               ...(m.id ? { id: m.id } : {}),
               url: m.resource_link,
               title: m.title,
-              activity_id: res.id,
+              project_id: res.id,
             },
           });
         });
@@ -370,7 +355,7 @@ function Project(props) {
         body.append("file", contentCreatorFile.file);
         body.append("assignment_id", res.id);
         body.append("title", contentCreatorFile.title);
-        let a = await FileUpload.upload("/api/upload/seatwork/material", {
+        let a = await FileUpload.upload("/api/upload/project/material", {
           body,
           onUploadProgress: (event, source) =>
             store.dispatch({
@@ -398,7 +383,7 @@ function Project(props) {
           body.append("title", file.name);
           let a;
           try {
-            a = await FileUpload.upload("/api/upload/seatwork/material", {
+            a = await FileUpload.upload("/api/upload/project/material", {
               body,
               onUploadProgress: (event, source) =>
                 store.dispatch({
@@ -437,16 +422,18 @@ function Project(props) {
     if (res && !errors) {
       setSuccess(true);
       try {
-        newform = props.classDetails[class_id].schedules[
-          schedule_id
-        ].activities.find((a) => a.id === res.id);
+        newform = props.classDetails[class_id].schedules[schedule_id][
+          isTeacher ? "projects" : "publishedProjects"
+        ].find((a) => a.id === res.id);
       } catch (e) {
         newform =
-          props.classDetails[class_id].schedules[schedule_id].activities;
+          props.classDetails[class_id].schedules[schedule_id][
+            isTeacher ? "projects" : "publishedProjects"
+          ];
         newform = newform[newform.length - 1];
       }
       if (newform) setForm(newform);
-      removeFiles("activity-materials");
+      removeFiles("activity-materials", "#activity-material");
       setNewMaterial({});
       setContentCreatorFile(null);
       setSavingId([]);
@@ -466,16 +453,16 @@ function Project(props) {
   const _markActivity = async (activity, mark) => {
     let done = mark === "done" ? true : false;
     setConfirmed({
-      title: (done ? "Close " : "Open ") + " Activity",
+      title: (done ? "Close " : "Open ") + " Project",
       message:
-        "Are you sure to " + (done ? "Close" : "Open") + " this activity?",
+        "Are you sure to " + (done ? "Close" : "Open") + " this project?",
       yes: async () => {
         setErrors(null);
         setSaving(true);
         setConfirmed(null);
         setSavingId([...savingId, activity.id]);
         let res = await Api.post(
-          "/api/class/seatwork/mark-" + mark + "/" + activity.id
+          "/api/class/project/mark-" + mark + "/" + activity.id
         );
         if (res) {
           let newScheduleDetails = await UserData.updateScheduleDetails(
@@ -497,8 +484,8 @@ function Project(props) {
   const _handleUpdateActivityStatus = async (a, s) => {
     let stat = s ? "Publish" : "Unpublish";
     setConfirmed({
-      title: stat + " Activity",
-      message: "Are you sure to " + stat + " this activity?",
+      title: stat + " Project",
+      message: "Are you sure to " + stat + " this project?",
       yes: async () => {
         setErrors(null);
         setSaving(true);
@@ -529,7 +516,7 @@ function Project(props) {
   const _handleRemoveActivity = (activity) => {
     setConfirmed({
       title: "Remove Activity",
-      message: "Are you sure to remove this activity?",
+      message: "Are you sure to remove this project?",
       yes: async () => {
         setErrors(null);
         setSaving(true);
@@ -538,7 +525,7 @@ function Project(props) {
         let id = parseInt(activity.id);
         let res;
         try {
-          res = await Api.post("/api/teacher/remove/class-seatwork/" + id, {
+          res = await Api.post("/api/teacher/remove/class-project/" + id, {
             body: {
               id,
             },
@@ -571,8 +558,8 @@ function Project(props) {
   const _handleUpdateActivitiesStatus = (a, s, callback = null) => {
     let stat = s ? "Publish" : "Unpublish";
     setConfirmed({
-      title: stat + " " + Object.keys(a).length + " Activities",
-      message: "Are you sure to " + stat + " this activities?",
+      title: stat + " " + Object.keys(a).length + " Projects",
+      message: "Are you sure to " + stat + " this projects?",
       yes: async () => {
         setErrors(null);
         setSaving(true);
@@ -622,8 +609,8 @@ function Project(props) {
   };
   const _handleRemoveActivities = (activities, callback = null) => {
     setConfirmed({
-      title: "Remove " + Object.keys(activities).length + " Activities",
-      message: "Are you sure to remove this activities?",
+      title: "Remove " + Object.keys(activities).length + " Projects",
+      message: "Are you sure to remove this projects?",
       yes: async () => {
         setErrors(null);
         setSaving(true);
@@ -637,7 +624,7 @@ function Project(props) {
           let id = parseInt(i);
           let res;
           try {
-            res = await Api.post("/api/teacher/remove/class-seatwork/" + id, {
+            res = await Api.post("/api/teacher/remove/class-project/" + id, {
               body: {
                 id,
               },
@@ -694,7 +681,7 @@ function Project(props) {
         setErrors(null);
         setConfirmed(null);
         let res = await Api.post(
-          "/api/teacher/remove/class-seatwork-material/" + material.id,
+          "/api/teacher/remove/class-project-material/" + material.id,
           {
             body: {
               id: material.id,
@@ -711,10 +698,22 @@ function Project(props) {
             id: class_id,
             details: newScheduleDetails,
           });
-          for (let i = 0; i < newScheduleDetails.activities.length; i++) {
-            if (newScheduleDetails.activities[i].id === form.id) {
+          for (
+            let i = 0;
+            i <
+            newScheduleDetails[isTeacher ? "projects" : "publishedProjects"]
+              .length;
+            i++
+          ) {
+            if (
+              newScheduleDetails[isTeacher ? "projects" : "publishedProjects"][
+                i
+              ].id === form.id
+            ) {
               setForm({
-                ...newScheduleDetails.activities[i],
+                ...newScheduleDetails[
+                  isTeacher ? "projects" : "publishedProjects"
+                ][i],
                 schedule_id: newScheduleDetails.id,
                 published: form.status === "unpublished" ? 0 : 1,
                 subject_id: props.classDetails[class_id].subject.id,
@@ -812,7 +811,7 @@ function Project(props) {
     let body = new FormData();
     body.append("file", FileUpload.files["answers"][0]);
     body.append("assignment_id", currentActivity.id);
-    let a = await FileUpload.upload("/api/upload/seatwork/answer", {
+    let a = await FileUpload.upload("/api/upload/project/answer", {
       body,
       onUploadProgress: (event, source) =>
         store.dispatch({
@@ -855,7 +854,7 @@ function Project(props) {
   useEffect(() => {
     socket.on("get item", getItem);
     if (document.querySelector("#activity-material") && !saving)
-      removeFiles("activity-materials");
+      removeFiles("activity-materials", "#activity-material");
   }, []);
   useEffect(() => {
     _getActivities();
@@ -913,7 +912,8 @@ function Project(props) {
           <DialogActions>
             <Button
               onClick={() => {
-                setConfirmed(null);
+                if (confirmed.no) confirmed.no();
+                else setConfirmed(null);
               }}
             >
               No
@@ -990,7 +990,7 @@ function Project(props) {
                 setForm(formTemplate);
               }}
             >
-              Add New Activity
+              Add New Project
             </Button>
           )}
           <Box
@@ -1073,6 +1073,7 @@ function Project(props) {
                               class_id,
                               schedule_id,
                               option_name,
+                              room_name || "",
                             ])
                           );
                           setCurrentActivity(null);
@@ -1147,9 +1148,7 @@ function Project(props) {
                         alignItems="center"
                         style={{ whiteSpace: "nowrap" }}
                       >
-                        {moment(currentActivity.available_from).format("LL")}
-                        <Icon>arrow_right_alt</Icon>
-                        {moment(currentActivity.available_to).format("LL")}
+                        {moment(currentActivity.due_date).format("LL hh:mm A")}
                       </Box>
                     </Box>
                     <Box p={2}>
@@ -1437,40 +1436,82 @@ function Project(props) {
                               style={{ marginRight: theme.spacing(2) }}
                             />
                             <Box maxWidth="80%">
-                              <Typography
-                                style={{
-                                  fontWeight: "bold",
-                                  cursor: "pointer",
-                                }}
-                                onClick={() =>
-                                  i.answer_media &&
-                                  _handleOpenAnswer({
-                                    id: i.id,
-                                    name:
-                                      i.student.first_name +
-                                      " " +
-                                      i.student.last_name,
-                                  })
-                                }
+                              <PopupState
+                                variant="popover"
+                                popupId="publish-btn"
                               >
-                                {i.student.first_name +
-                                  " " +
-                                  i.student.last_name}
-                              </Typography>
+                                {(popupState) => (
+                                  <React.Fragment>
+                                    {i.answers.length > 1 ? (
+                                      <Typography
+                                        {...bindTrigger(popupState)}
+                                        style={{
+                                          fontWeight: "bold",
+                                          cursor: "pointer",
+                                        }}
+                                      >
+                                        {i.student.first_name +
+                                          " " +
+                                          i.student.last_name}
+                                      </Typography>
+                                    ) : (
+                                      <Typography
+                                        onClick={() =>
+                                          i.answers.length &&
+                                          _handleOpenAnswer({
+                                            id: i.answers[0].id,
+                                            name:
+                                              i.student.first_name +
+                                              " " +
+                                              i.student.last_name,
+                                          })
+                                        }
+                                        style={{
+                                          fontWeight: "bold",
+                                          cursor: "pointer",
+                                        }}
+                                      >
+                                        {i.student.first_name +
+                                          " " +
+                                          i.student.last_name}
+                                      </Typography>
+                                    )}
+                                    <Menu {...bindMenu(popupState)}>
+                                      {i.answers.map((a, ii) => (
+                                        <MenuItem
+                                          onClick={() =>
+                                            _handleOpenAnswer({
+                                              id: a.id,
+                                              name:
+                                                i.student.first_name +
+                                                " " +
+                                                i.student.last_name,
+                                            })
+                                          }
+                                        >
+                                          {`Answer (ver. ${ii + 1})`}
+                                        </MenuItem>
+                                      ))}
+                                    </Menu>
+                                  </React.Fragment>
+                                )}
+                              </PopupState>
                               <Chip
                                 size="small"
                                 style={{
                                   background:
                                     theme.palette[
-                                      i.answer_media ? "success" : "error"
+                                      i.answers.length ? "success" : "error"
                                     ].main,
                                   color: "#fff",
                                 }}
                                 label={
-                                  i.answer_media ? "SUBMITTED" : "NOT SUBMITTED"
+                                  i.answers.length
+                                    ? "SUBMITTED"
+                                    : "NOT SUBMITTED"
                                 }
                               />
-                              {isTeacher && i.answer_media && (
+                              {isTeacher && i.answers.length ? (
                                 <Box>
                                   <Button
                                     onClick={() =>
@@ -1486,7 +1527,7 @@ function Project(props) {
                                     ADD SCORE
                                   </Button>
                                 </Box>
-                              )}
+                              ) : null}
                             </Box>
                           </Box>
                         </Paper>
@@ -1638,9 +1679,7 @@ function Project(props) {
                   DATE
                 </Typography>
                 <Box display="flex" alignItems="center">
-                  {moment(item.available_from).format("LL")}
-                  <Icon>arrow_right_alt</Icon>
-                  {moment(item.available_to).format("LL")}
+                  {moment(item.due_date).format("LL hh:mm A")}
                 </Box>
               </Box>
             </Box>
@@ -1708,26 +1747,52 @@ function Project(props) {
                     textAlign: "right",
                   }}
                 >
-                  {moment(item.available_from).format("LL")}
-                  <Icon>arrow_right_alt</Icon>
-                  {moment(item.available_to).format("LL")}
+                  {moment(item.due_date).format("LL hh:mm A")}
                 </Typography>
               </Box>
             </Box>
           )}
         />
       )}
+      <RecorderDialog
+        open={modals.VOICE_RECORDER}
+        onClose={(done, cb = null) =>
+          done
+            ? handleClose("VOICE_RECORDER")
+            : setConfirmed({
+                title: "Cancel",
+                message: "Do you want to cancel the voice recording?",
+                yes: () => {
+                  cb && cb();
+                  handleClose("VOICE_RECORDER");
+                  setConfirmed(null);
+                },
+              })
+        }
+        onSave={(a) => console.log(a)}
+      />
       <CreateDialog
-        title={form.id ? "Edit Seatwork" : "Create Seatwork"}
+        title={form.id ? "Edit Project" : "Create Project"}
         open={modals.ACTIVITY || false}
-        onClose={() => handleClose("ACTIVITY")}
+        onClose={() => {
+          setConfirmed({
+            title: "Save Changes",
+            message: "Would you like to save your changes before you exit?",
+            no: () => {
+              setForm(formTemplate);
+              handleClose("ACTIVITY");
+              setConfirmed(null);
+            },
+            yes: () => setConfirmed(null),
+          });
+        }}
         leftContent={
           <React.Fragment>
             <TextField
               label="Title"
               variant="outlined"
               className={[styles.textField, "themed-input"].join(" ")}
-              defaultValue={form.title}
+              value={form.title}
               onChange={(e) => setForm({ ...form, title: e.target.value })}
               fullWidth
             />
@@ -1738,8 +1803,10 @@ function Project(props) {
                 justifyContent="space-between"
                 alignItems="flex-end"
                 marginBottom={2}
+                flexWrap={isMobile ? "wrap" : "nowrap"}
+                style={{ marginTop: isMobile ? 30 : 0 }}
               >
-                <Box width="49%" display="flex">
+                <Box width={isMobile ? "100%" : "50%"} display="flex">
                   <KeyboardDatePicker
                     disableToolbar
                     variant="inline"
@@ -1759,6 +1826,7 @@ function Project(props) {
                     }}
                     style={{
                       marginRight: theme.spacing(2),
+                      flex: 1,
                     }}
                   />
                   <KeyboardTimePicker
@@ -1769,6 +1837,10 @@ function Project(props) {
                     KeyboardButtonProps={{
                       "aria-label": "change time",
                     }}
+                    style={{
+                      flex: 1,
+                      marginRight: isMobile ? 0 : theme.spacing(2),
+                    }}
                     className="themed-input date"
                     onChange={(date) => {
                       setForm({
@@ -1778,17 +1850,63 @@ function Project(props) {
                     }}
                   />
                 </Box>
-                <TextField
-                  label="Total Score"
-                  variant="outlined"
-                  className={[styles.textField, "themed-input"].join(" ")}
-                  defaultValue={form.total_score}
-                  onChange={(e) =>
-                    setForm({ ...form, total_score: parseInt(e.target.value) })
-                  }
-                  type="number"
-                  style={{ width: "49%" }}
-                />
+                <Box
+                  width={isMobile ? "100%" : "50%"}
+                  display="flex"
+                  flexWrap={isMobile ? "wrap" : "nowrap"}
+                  alignItems="flex-end"
+                >
+                  <TextField
+                    label="Total Score"
+                    variant="outlined"
+                    className={[styles.textField, "themed-input"].join(" ")}
+                    defaultValue={form.total_score}
+                    onChange={(e) =>
+                      setForm({
+                        ...form,
+                        total_score: parseInt(e.target.value),
+                      })
+                    }
+                    type="number"
+                    style={{
+                      flex: 1,
+                      marginRight: theme.spacing(2),
+                      ...(isMobile
+                        ? {
+                            minWidth: "100%",
+                            marginBottom: 30,
+                          }
+                        : {}),
+                    }}
+                  />
+                  <FormControl
+                    variant="outlined"
+                    fullWidth
+                    className="themed-input select"
+                    style={{ flex: 1 }}
+                  >
+                    <InputLabel>Grading Category</InputLabel>
+                    <Select
+                      label="Grading Category"
+                      variant="outlined"
+                      padding={10}
+                      value={parseInt(form.grading_category)}
+                      onChange={(e) => {
+                        setForm({
+                          ...form,
+                          grading_category: e.target.value,
+                        });
+                      }}
+                      style={{ paddingTop: 17 }}
+                    >
+                      {props.gradingCategories.map((c, index) => (
+                        <MenuItem value={c.id} key={index}>
+                          {c.category}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </Box>
               </Box>
             </MuiPickersUtilsProvider>
             <TextField
@@ -1797,7 +1915,7 @@ function Project(props) {
               variant="outlined"
               rows={10}
               style={{ marginTop: 13 }}
-              defaultValue={form.description}
+              value={form.description}
               multiline={true}
               onChange={(e) =>
                 setForm({ ...form, description: e.target.value })
@@ -1832,7 +1950,8 @@ function Project(props) {
                       ...filesToUpload,
                       ACTIVITY_MATERIALS: isfiles,
                     });
-                    if (!isfiles) removeFiles("activity-materials");
+                    if (!isfiles)
+                      removeFiles("activity-materials", "#activity-material");
                   }}
                   multiple
                 />
@@ -1877,6 +1996,14 @@ function Project(props) {
                           }}
                         >
                           Content Maker
+                        </MenuItem>
+                        <MenuItem
+                          onClick={() => {
+                            handleOpen("VOICE_RECORDER");
+                            popupState.close();
+                          }}
+                        >
+                          Audio
                         </MenuItem>
                       </Menu>
                     </React.Fragment>
@@ -2180,4 +2307,5 @@ export default connect((state) => ({
   pics: state.pics,
   dataProgress: state.dataProgress,
   classDetails: state.classDetails,
+  gradingCategories: state.gradingCategories,
 }))(Project);

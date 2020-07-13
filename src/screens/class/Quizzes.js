@@ -96,7 +96,7 @@ function Quizzes(props) {
   const isTablet = useMediaQuery(theme.breakpoints.down("md"));
   const [currentItem, setCurrentItem] = useState();
   const [saving, setSaving] = useState(false);
-  const { class_id, option_name, schedule_id } = props.match.params;
+  const { class_id, room_name, option_name, schedule_id } = props.match.params;
   const [ITEMS, setITEMS] = useState();
   const [search, setSearch] = useState("");
   const [modals, setModals] = React.useState({});
@@ -437,6 +437,7 @@ function Quizzes(props) {
         class_id,
         schedule_id,
         option_name,
+        room_name || "",
         "?id=" + currentItem.questionnaires[0].id,
         "&q=" + currentItem.id + "&start=true",
       ])
@@ -548,7 +549,6 @@ function Quizzes(props) {
                   >
                     <Box>
                       <IconButton
-                        className="warn-to-leave"
                         onClick={() => {
                           history.push(
                             makeLinkTo([
@@ -556,6 +556,7 @@ function Quizzes(props) {
                               class_id,
                               schedule_id,
                               option_name,
+                              room_name || "",
                             ])
                           );
                           setCurrentItem(null);
@@ -568,7 +569,6 @@ function Quizzes(props) {
                       <Button
                         variant="contained"
                         color="primary"
-                        className="warn-to-leave"
                         onClick={() => handleStart()}
                       >
                         Start
@@ -637,6 +637,7 @@ function Quizzes(props) {
                                 class_id,
                                 schedule_id,
                                 option_name,
+                                room_name || "",
                                 "?id=" + m.id,
                                 "&q=" + currentItem.id + "&start=true",
                               ])
@@ -834,6 +835,8 @@ function Quizzes(props) {
       {ITEMS && questionnairesToAnswer && query.start && (
         <AnswerQuiz
           id={query.id && parseInt(query.id)}
+          type="quizzes"
+          endpoint="quiz"
           noPaging={true}
           fullHeight
           match={props.match}
@@ -966,8 +969,10 @@ function Quizzes(props) {
                                   "class",
                                   class_id,
                                   schedule_id,
-                                  "questionnaire?hidepanel=true&callback=send_item&to=" +
-                                    socket.id,
+                                  "questionnaire",
+                                  room_name ||
+                                    "?hidepanel=true&callback=send_item&to=" +
+                                      socket.id,
                                 ]),
                                 "_blank"
                               );

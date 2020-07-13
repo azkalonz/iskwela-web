@@ -1,46 +1,103 @@
-import React, { useEffect, useState } from "react";
 import {
   Box,
-  Typography,
-  IconButton,
+  Button,
+  Checkbox,
+  CircularProgress,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   Grow,
   Icon,
-  Button,
+  IconButton,
+  List,
+  ListItem,
+  ListItemText,
+  Paper,
   TextField,
+  Typography,
   useMediaQuery,
   useTheme,
-  Checkbox,
-  Paper,
 } from "@material-ui/core";
 import moment from "moment";
-import { useHistory } from "react-router-dom";
-import { makeLinkTo } from "../../components/router-dom";
+import React, { useEffect, useState } from "react";
 import { connect } from "react-redux";
+import { useHistory } from "react-router-dom";
+import Api from "../../api";
+import store from "../../components/redux/store";
+import { makeLinkTo } from "../../components/router-dom";
+import socket from "../../components/socket.io";
 
 function AnswerQuiz(props) {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
-  const { class_id, schedule_id, option_name } = props.match.params;
+  const { class_id, schedule_id, option_name, room_name } = props.match.params;
   const query = require("query-string").parse(window.location.search);
   const quiz_id = props.match.params.quiz_id || props.id || parseInt(query.id);
   const [quiz, setQuiz] = useState();
   const [isAvailable, setAvailable] = useState(true);
   const [answers, setAnswers] = useState({});
+  const [quizScore, setQuizScore] = useState();
+  const [saving, setSaving] = useState(false);
+  const [quizState, setQuizState] = useState({});
   const [currentSlide, setCurrentSlide] = useState();
   const [flaggedQuestions, setFlagged] = useState([]);
+  const student_id = store.getState().userInfo.id;
   const history = useHistory();
+
+  const getProgress = (callback) => {
+    socket.off("get progress");
+    socket.emit("get progress", {
+      student_id,
+      type: props.type,
+      id: props.quiz.id,
+    });
+    socket.on("get progress", (data = {}) => {
+      console.log("progress ", data);
+      if (data) {
+        callback(data);
+      } else {
+        callback();
+      }
+    });
+  };
   useEffect(() => {
     setCurrentSlide(0);
-    if (quiz_id) getQuiz();
+    if (quiz_id) {
+      getProgress((data = {}) => {
+        if (data.date_started) getQuiz({ date_started: data.date_started });
+        else getQuiz();
+        setQuizState(data);
+        setFlagged(
+          data["flagged-items-" + quiz_id + "-" + query.q]
+            ? JSON.parse(data["flagged-items-" + quiz_id + "-" + query.q])
+            : []
+        );
+        setAnswers(
+          data["answered-questions-" + quiz_id + "-" + query.q]
+            ? JSON.parse(data["answered-questions-" + quiz_id + "-" + query.q])
+            : {}
+        );
+      });
+    }
   }, [props.questionsSet, quiz_id]);
   useEffect(() => {
     setCurrentSlide(query.question ? parseInt(query.question) : 0);
   }, [query.question]);
-  const getQuiz = () => {
-    console.log(props.questionsSet);
+  const getQuiz = (savedState = {}) => {
     let quiz = props.questionsSet.find((q) => q.id === parseInt(quiz_id));
-    console.log(quiz);
     if (!quiz) return;
+    if (!savedState.date_started) {
+      savedState.date_started = new Date().toString();
+      socket.emit("update progress", {
+        type: props.type,
+        student_id,
+        item: {
+          ...props.quiz,
+          date_started: new Date().toString(),
+        },
+      });
+    }
     quiz.slides = quiz.questions.map((q) => ({
       ...q,
       type: 1,
@@ -50,25 +107,7 @@ function AnswerQuiz(props) {
       },
       score: q.weight,
     }));
-    if (!isNaN(parseInt(query.q))) {
-      setFlagged(
-        window.localStorage["flagged-items-" + quiz_id + "-" + query.q]
-          ? JSON.parse(
-              window.localStorage["flagged-items-" + quiz_id + "-" + query.q]
-            )
-          : []
-      );
-      setAnswers(
-        window.localStorage["answered-questions-" + quiz_id + "-" + query.q]
-          ? JSON.parse(
-              window.localStorage[
-                "answered-questions-" + quiz_id + "-" + query.q
-              ]
-            )
-          : {}
-      );
-    }
-    setQuiz(quiz);
+    setQuiz({ ...quiz, ...savedState });
   };
   const navigateSlide = (index) => {
     if (!isAvailable) return;
@@ -94,12 +133,123 @@ function AnswerQuiz(props) {
       navigateSlide(index + 1);
     }
     setFlagged(flags);
-    window.localStorage[
-      "flagged-items-" + quiz_id + "-" + query.q
-    ] = JSON.stringify(flags);
+    let flagID = "flagged-items-" + quiz_id + "-" + query.q;
+    let progress = {};
+    progress[flagID] = JSON.stringify(flags);
+    socket.emit("update progress", {
+      student_id,
+      id: props.quiz.id,
+      type: props.type,
+      item: { ...progress, id: props.quiz.id },
+    });
+  };
+  const handleSubmit = () => {
+    getProgress(async (data) => {
+      setSaving(true);
+      let answer = {
+        activity_id: props.quiz.id,
+        subject_id: props.quiz.subject.id,
+        start_time: moment(quiz.date_started).format("YYYY-MM-DD hh:mm:ss"),
+        end_time: moment(new Date().toString()).format("YYYY-MM-DD hh:mm:ss"),
+        questionnaires: props.questionsSet.map((q) => {
+          let answers = data[`answered-questions-${q.id}-${props.quiz.id}`];
+          if (answers) {
+            answers = JSON.parse(answers);
+            answers = Object.keys(answers).map((qq) => ({
+              question_id: parseInt(qq),
+              status: 0,
+              is_correct: answers[qq][0].is_correct ? true : false,
+              answer: answers[qq][0].option,
+            }));
+          } else {
+            answers = [];
+          }
+          return {
+            questionnaire_id: q.id,
+            answers,
+          };
+        }),
+      };
+      try {
+        let res = await Api.post("/api/" + props.endpoint + "/answer/submit", {
+          body: answer,
+        });
+        socket.emit("remove progress", {
+          student_id,
+          id: props.quiz.id,
+          type: props.type,
+        });
+        setQuizScore(res);
+      } catch (e) {
+        alert("Please provide an answer to all questions");
+      }
+      setSaving(false);
+    });
   };
   return (
     <React.Fragment>
+      <Dialog
+        open={quizScore ? true : false}
+        onClose={() => setQuizScore(null)}
+      >
+        <DialogTitle>Result</DialogTitle>
+        {quizScore && (
+          <DialogContent>
+            <List>
+              <ListItem>
+                <ListItemText
+                  primary={
+                    "You scored " +
+                    quizScore.score +
+                    " out of " +
+                    quizScore.pefect_score
+                  }
+                  secondary="Score"
+                />
+              </ListItem>
+              <ListItem>
+                <ListItemText
+                  primary={moment
+                    .utc(
+                      moment
+                        .duration(quizScore.duration * 1000)
+                        .as("milliseconds")
+                    )
+                    .format(quizScore.duration >= 3600 ? "HH:mm:ss" : "mm:ss")}
+                  secondary="Duration"
+                />
+              </ListItem>
+            </List>
+          </DialogContent>
+        )}
+        <DialogActions>
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={() => {
+              history.push(
+                makeLinkTo([
+                  "class",
+                  class_id,
+                  schedule_id,
+                  option_name,
+                  room_name || "",
+                ])
+              );
+            }}
+          >
+            Done
+          </Button>
+        </DialogActions>
+      </Dialog>
+      <Dialog open={saving}>
+        <DialogContent>
+          <Box display="flex" alignItems="center">
+            <CircularProgress style={{ marginRight: 7 }} />
+            <Typography>Submitting...</Typography>
+          </Box>
+        </DialogContent>
+      </Dialog>
       {class_id &&
       schedule_id &&
       quiz &&
@@ -115,6 +265,7 @@ function AnswerQuiz(props) {
                 class_id,
                 schedule_id,
                 option_name,
+                room_name || "",
                 "?id=" +
                   props.questionsSet[
                     props.questionsSet.findIndex((q) => quiz.id === q.id) - 1
@@ -130,9 +281,19 @@ function AnswerQuiz(props) {
         <IconButton
           onClick={() => {
             history.push(
-              makeLinkTo(["class", class_id, schedule_id, option_name, "q"], {
-                q: query.q ? "?id=" + query.q : "",
-              })
+              makeLinkTo(
+                [
+                  "class",
+                  class_id,
+                  schedule_id,
+                  option_name,
+                  room_name || "",
+                  "q",
+                ],
+                {
+                  q: query.q ? "?id=" + query.q : "",
+                }
+              )
             );
           }}
         >
@@ -166,7 +327,7 @@ function AnswerQuiz(props) {
                             (props.quiz && props.quiz.duration * 60000) ||
                             60000 * 60
                           }
-                          started={new Date()}
+                          started={quiz.date_started || new Date()}
                         />
                       </Typography>
                     </Box>
@@ -271,9 +432,16 @@ function AnswerQuiz(props) {
                             }
                           }
                           if (!a) delete e[id];
-                          window.localStorage[
-                            "answered-questions-" + quiz_id + "-" + query.q
-                          ] = JSON.stringify(e);
+                          let answerID =
+                            "answered-questions-" + quiz_id + "-" + query.q;
+                          let progress = {};
+                          progress[answerID] = JSON.stringify(e);
+                          socket.emit("update progress", {
+                            student_id,
+                            id: props.quiz.id,
+                            type: props.type,
+                            item: { ...progress, id: props.quiz.id },
+                          });
                           return e;
                         });
                       }}
@@ -300,7 +468,7 @@ function AnswerQuiz(props) {
                       <Button
                         variant="outlined"
                         color="primary"
-                        onClick={() => navigateSlide(currentSlide + 1)}
+                        onClick={() => handleSubmit()}
                       >
                         Submit
                       </Button>
@@ -318,6 +486,7 @@ function AnswerQuiz(props) {
                               class_id,
                               schedule_id,
                               option_name,
+                              room_name || "",
                               "?id=" +
                                 props.questionsSet[
                                   props.questionsSet.findIndex(
@@ -361,7 +530,7 @@ function AnswerQuiz(props) {
                             (props.quiz && props.quiz.duration * 60000) ||
                             60000 * 60
                           }
-                          started={new Date()}
+                          started={quiz.date_started || new Date()}
                         />
                       </Typography>
                     </Box>

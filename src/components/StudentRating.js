@@ -13,20 +13,33 @@ import {
   DialogActions,
   Avatar,
   Button,
+  TextField,
 } from "@material-ui/core";
+import Api from "../api";
 
 export default function StudenRating(props) {
   const [value, setValue] = React.useState(5);
   const [hover, setHover] = React.useState(-1);
+  const handleSave = async () => {
+    if (!props.activity) return;
+    let res = await Api.post("/api/class/seatwork/set-score", {
+      body: {
+        score: Math.map(value, 0, 5, 0, props.activity.total_score),
+        activity_id: props.activity.id,
+        student_id: props.activity.student.id,
+      },
+    });
+    props.onClose(true);
+  };
   return (
     <Dialog
       open={props.open ? props.open : false}
       fullWidth
       maxWidth="sm"
-      onClose={props.onClose}
+      onClose={() => props.onClose()}
       TransitionComponent={Transition}
     >
-      <DialogTitle onClose={props.onClose}>
+      <DialogTitle onClose={() => props.onClose()}>
         {props.activity && props.activity.title}
       </DialogTitle>
       {props.activity && props.activity.student && (
@@ -58,6 +71,15 @@ export default function StudenRating(props) {
             Rating
           </Typography>
           <Box p={2}>
+            <TextField
+              type="number"
+              inputProps={{ max: props.activity.total_score || 100, min: 0 }}
+              value={Math.map(value, 0, 5, 0, props.activity.total_score)}
+              onChange={(e) => {
+                let val = parseInt(e.target.value);
+                setValue(Math.map(val, 0, props.activity.total_score, 0, 5));
+              }}
+            />
             <MuiRating
               name="hover-feedback"
               value={value ? value : 5}
@@ -69,9 +91,6 @@ export default function StudenRating(props) {
                 setHover(newHover);
               }}
             />
-            {value !== null && (
-              <Box ml={2}>{labels[hover !== -1 ? hover : value]}</Box>
-            )}
           </Box>
         </DialogContent>
       )}
@@ -79,7 +98,7 @@ export default function StudenRating(props) {
         <Button variant="outlined" onClick={props.onClose}>
           Cancel
         </Button>
-        <Button variant="outlined" color="primary" onClick={props.onClose}>
+        <Button variant="outlined" color="primary" onClick={handleSave}>
           Save
         </Button>
       </DialogActions>
@@ -116,16 +135,3 @@ const DialogTitle = withStyles(styles)((props) => {
 const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction="up" ref={ref} {...props} />;
 });
-
-const labels = {
-  0.5: "Useless",
-  1: "Useless+",
-  1.5: "Poor",
-  2: "Poor+",
-  2.5: "Ok",
-  3: "Ok+",
-  3.5: "Good",
-  4: "Good+",
-  4.5: "Excellent",
-  5: "Excellent+",
-};

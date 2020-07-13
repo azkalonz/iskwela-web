@@ -28,6 +28,9 @@ import {
   useMediaQuery,
   useTheme,
   withStyles,
+  FormControl,
+  Select,
+  InputLabel,
 } from "@material-ui/core";
 import MuiDialogTitle from "@material-ui/core/DialogTitle";
 import Grow from "@material-ui/core/Grow";
@@ -69,6 +72,8 @@ import socket from "../../components/socket.io";
 import StudentRating from "../../components/StudentRating";
 import { Table as MTable } from "../../components/Table";
 import UserData, { asyncForEach } from "../../components/UserData";
+import { Rating as MuiRating } from "@material-ui/lab";
+
 const queryString = require("query-string");
 function Alert(props) {
   return <MuiAlert elevation={6} variant="filled" {...props} />;
@@ -115,7 +120,7 @@ function Activity(props) {
     UPLOAD_ANSWER: false,
     ACTIVITY_MATERIALS: false,
   });
-  const { class_id, option_name, schedule_id } = props.match.params;
+  const { class_id, option_name, schedule_id, room_name } = props.match.params;
   const [activities, setActivities] = useState();
   const [dragover, setDragover] = useState(false);
   const [search, setSearch] = useState("");
@@ -151,6 +156,8 @@ function Activity(props) {
     published: 0,
     total_score: 100,
     class_id: parseInt(class_id),
+    grading_category:
+      props.gradingCategories[0] && props.gradingCategories[0].id,
   };
   const [form, setForm] = useState(formTemplate);
   const cellheaders = [
@@ -214,8 +221,8 @@ function Activity(props) {
       let a = props.classDetails[class_id].schedules;
       let allActivities = [];
       a.forEach((s) => {
-        if (s.activities) {
-          s.activities.forEach((ss) => {
+        if (s[isTeacher ? "seatworks" : "publishedSeatworks"]) {
+          s[isTeacher ? "seatworks" : "publishedSeatworks"].forEach((ss) => {
             allActivities.push({ ...ss, schedule_id: s.id });
           });
         }
@@ -248,20 +255,42 @@ function Activity(props) {
       if (!currentActivity.answers) getAnswers();
     }
   }, [currentActivity]);
+  const handleRefreshAnswers = (save) => {
+    if (save) {
+      setCurrentActivity({
+        ...currentActivity,
+        answers: null,
+        rateStudent: null,
+      });
+      getAnswers();
+    } else {
+      setCurrentActivity({
+        ...currentActivity,
+        rateStudent: null,
+      });
+    }
+  };
   const getAnswers = async () => {
     currentActivity.answers = null;
     let a = await Api.get(
       "/api/teacher/seatwork-answers/" + currentActivity.id
     );
+    let scores = await Api.get(
+      "/api/class/seatwork/get-score/" + currentActivity.id
+    );
     a = props.classDetails[class_id].students.map((s) => {
       let sa = a.filter((st) => st.student.id === s.id);
-
       return sa
         ? { answers: sa, student: s }
         : {
             student: s,
           };
     });
+    a = a.map((q) => {
+      let f = scores.find((qq) => q.student.id === qq.student_id);
+      return f ? { ...q, score: f } : q;
+    });
+    console.log(a);
     setCurrentActivity({
       ...currentActivity,
       answers: a.sort((b, c) => (b.answers.length ? -1 : 0)),
@@ -293,6 +322,7 @@ function Activity(props) {
         class_id,
         schedule_id,
         option_name,
+        room_name || "",
         "?activity_id=" + item.id,
       ])
     );
@@ -418,16 +448,18 @@ function Activity(props) {
     if (res && !errors) {
       setSuccess(true);
       try {
-        newform = props.classDetails[class_id].schedules[
-          schedule_id
-        ].activities.find((a) => a.id === res.id);
+        newform = props.classDetails[class_id].schedules[schedule_id][
+          isTeacher ? "seatworks" : "publishedSeatworks"
+        ].find((a) => a.id === res.id);
       } catch (e) {
         newform =
-          props.classDetails[class_id].schedules[schedule_id].activities;
+          props.classDetails[class_id].schedules[schedule_id][
+            isTeacher ? "seatworks" : "publishedSeatworks"
+          ];
         newform = newform[newform.length - 1];
       }
       if (newform) setForm(newform);
-      removeFiles("activity-materials");
+      removeFiles("activity-materials", "#activity-material");
       setNewMaterial({});
       setContentCreatorFile(null);
       setSavingId([]);
@@ -692,10 +724,22 @@ function Activity(props) {
             id: class_id,
             details: newScheduleDetails,
           });
-          for (let i = 0; i < newScheduleDetails.activities.length; i++) {
-            if (newScheduleDetails.activities[i].id === form.id) {
+          for (
+            let i = 0;
+            i <
+            newScheduleDetails[isTeacher ? "seatworks" : "publishedSeatworks"]
+              .length;
+            i++
+          ) {
+            if (
+              newScheduleDetails[
+                isTeacher ? "seatworks" : "publishedSeatworks"
+              ][i].id === form.id
+            ) {
               setForm({
-                ...newScheduleDetails.activities[i],
+                ...newScheduleDetails[
+                  isTeacher ? "seatworks" : "publishedSeatworks"
+                ][i],
                 schedule_id: newScheduleDetails.id,
                 published: form.status === "unpublished" ? 0 : 1,
                 subject_id: props.classDetails[class_id].subject.id,
@@ -836,7 +880,7 @@ function Activity(props) {
   useEffect(() => {
     socket.on("get item", getItem);
     if (document.querySelector("#activity-material") && !saving)
-      removeFiles("activity-materials");
+      removeFiles("activity-materials", "#activity-material");
   }, []);
   useEffect(() => {
     _getActivities();
@@ -880,9 +924,9 @@ function Activity(props) {
       <StudentRating
         activity={currentActivity}
         open={currentActivity && currentActivity.rateStudent}
-        onClose={() =>
-          setCurrentActivity({ ...currentActivity, rateStudent: null })
-        }
+        onClose={(save = false) => {
+          handleRefreshAnswers(save);
+        }}
       />
       {confirmed && (
         <Dialog
@@ -894,7 +938,8 @@ function Activity(props) {
           <DialogActions>
             <Button
               onClick={() => {
-                setConfirmed(null);
+                if (confirmed.no) confirmed.no();
+                else setConfirmed(null);
               }}
             >
               No
@@ -1054,6 +1099,7 @@ function Activity(props) {
                               class_id,
                               schedule_id,
                               option_name,
+                              room_name || "",
                             ])
                           );
                           setCurrentActivity(null);
@@ -1346,15 +1392,7 @@ function Activity(props) {
                       textAlign: "right",
                     }}
                   >
-                    <IconButton
-                      onClick={() => {
-                        setCurrentActivity({
-                          ...currentActivity,
-                          answers: null,
-                        });
-                        getAnswers();
-                      }}
-                    >
+                    <IconButton onClick={() => handleRefreshAnswers(true)}>
                       <Icon color="primary">refresh</Icon>
                     </IconButton>
                     <Box width="100%">
@@ -1416,6 +1454,18 @@ function Activity(props) {
                               style={{ marginRight: theme.spacing(2) }}
                             />
                             <Box maxWidth="80%">
+                              {i.score && (
+                                <MuiRating
+                                  readOnly
+                                  value={Math.map(
+                                    i.score.score,
+                                    0,
+                                    currentActivity.total_score,
+                                    0,
+                                    5
+                                  )}
+                                />
+                              )}
                               <PopupState
                                 variant="popover"
                                 popupId="publish-btn"
@@ -1754,14 +1804,25 @@ function Activity(props) {
       <CreateDialog
         title={form.id ? "Edit Seatwork" : "Create Seatwork"}
         open={modals.ACTIVITY || false}
-        onClose={() => handleClose("ACTIVITY")}
+        onClose={() => {
+          setConfirmed({
+            title: "Save Changes",
+            message: "Would you like to save your changes before you exit?",
+            no: () => {
+              setForm(formTemplate);
+              handleClose("ACTIVITY");
+              setConfirmed(null);
+            },
+            yes: () => setConfirmed(null),
+          });
+        }}
         leftContent={
           <React.Fragment>
             <TextField
               label="Title"
               variant="outlined"
               className={[styles.textField, "themed-input"].join(" ")}
-              defaultValue={form.title}
+              value={form.title}
               onChange={(e) => setForm({ ...form, title: e.target.value })}
               fullWidth
             />
@@ -1772,8 +1833,10 @@ function Activity(props) {
                 justifyContent="space-between"
                 alignItems="flex-end"
                 marginBottom={2}
+                flexWrap={isMobile ? "wrap" : "nowrap"}
+                style={{ marginTop: isMobile ? 30 : 0 }}
               >
-                <Box width="69%" display="flex">
+                <Box width={isMobile ? "100%" : "50%"} display="flex">
                   <KeyboardDatePicker
                     disableToolbar
                     variant="inline"
@@ -1804,7 +1867,10 @@ function Activity(props) {
                     KeyboardButtonProps={{
                       "aria-label": "change time",
                     }}
-                    style={{ flex: 1 }}
+                    style={{
+                      flex: 1,
+                      marginRight: isMobile ? 0 : theme.spacing(2),
+                    }}
                     className="themed-input date"
                     onChange={(date) => {
                       setForm({
@@ -1814,17 +1880,63 @@ function Activity(props) {
                     }}
                   />
                 </Box>
-                <TextField
-                  label="Total Score"
-                  variant="outlined"
-                  className={[styles.textField, "themed-input"].join(" ")}
-                  defaultValue={form.total_score}
-                  onChange={(e) =>
-                    setForm({ ...form, total_score: parseInt(e.target.value) })
-                  }
-                  type="number"
-                  style={{ width: "29%" }}
-                />
+                <Box
+                  width={isMobile ? "100%" : "50%"}
+                  display="flex"
+                  flexWrap={isMobile ? "wrap" : "nowrap"}
+                  alignItems="flex-end"
+                >
+                  <TextField
+                    label="Total Score"
+                    variant="outlined"
+                    className={[styles.textField, "themed-input"].join(" ")}
+                    defaultValue={form.total_score}
+                    onChange={(e) =>
+                      setForm({
+                        ...form,
+                        total_score: parseInt(e.target.value),
+                      })
+                    }
+                    type="number"
+                    style={{
+                      flex: 1,
+                      marginRight: theme.spacing(2),
+                      ...(isMobile
+                        ? {
+                            minWidth: "100%",
+                            marginBottom: 30,
+                          }
+                        : {}),
+                    }}
+                  />
+                  <FormControl
+                    variant="outlined"
+                    fullWidth
+                    className="themed-input select"
+                    style={{ flex: 1 }}
+                  >
+                    <InputLabel>Grading Category</InputLabel>
+                    <Select
+                      label="Grading Category"
+                      variant="outlined"
+                      padding={10}
+                      value={parseInt(form.grading_category)}
+                      onChange={(e) => {
+                        setForm({
+                          ...form,
+                          grading_category: e.target.value,
+                        });
+                      }}
+                      style={{ paddingTop: 17 }}
+                    >
+                      {props.gradingCategories.map((c, index) => (
+                        <MenuItem value={c.id} key={index}>
+                          {c.category}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </Box>
               </Box>
             </MuiPickersUtilsProvider>
             <TextField
@@ -1833,7 +1945,7 @@ function Activity(props) {
               variant="outlined"
               rows={10}
               style={{ marginTop: 13 }}
-              defaultValue={form.description}
+              value={form.description}
               multiline={true}
               onChange={(e) =>
                 setForm({ ...form, description: e.target.value })
@@ -1868,7 +1980,8 @@ function Activity(props) {
                       ...filesToUpload,
                       ACTIVITY_MATERIALS: isfiles,
                     });
-                    if (!isfiles) removeFiles("activity-materials");
+                    if (!isfiles)
+                      removeFiles("activity-materials", "#activity-material");
                   }}
                   multiple
                 />
@@ -2224,4 +2337,5 @@ export default connect((state) => ({
   pics: state.pics,
   dataProgress: state.dataProgress,
   classDetails: state.classDetails,
+  gradingCategories: state.gradingCategories,
 }))(Activity);
