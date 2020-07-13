@@ -1051,7 +1051,6 @@ function Quizzes(props) {
                           <MenuItem
                             disabled={form.status !== "unpublished"}
                             onClick={() => {
-                              handleSave({ published: 1 });
                               popupState.close();
                             }}
                           >
@@ -1061,7 +1060,6 @@ function Quizzes(props) {
                             <MenuItem
                               disabled={form.status === "unpublished"}
                               onClick={() => {
-                                handleSave({ published: 0 });
                                 popupState.close();
                               }}
                             >

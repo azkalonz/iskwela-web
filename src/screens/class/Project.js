@@ -72,6 +72,8 @@ import socket from "../../components/socket.io";
 import StudentRating from "../../components/StudentRating";
 import { Table as MTable } from "../../components/Table";
 import UserData, { asyncForEach } from "../../components/UserData";
+import { Rating as MuiRating } from "@material-ui/lab";
+
 const queryString = require("query-string");
 function Alert(props) {
   return <MuiAlert elevation={6} variant="filled" {...props} />;
@@ -253,18 +255,40 @@ function Project(props) {
       if (!currentActivity.answers) getAnswers();
     }
   }, [currentActivity]);
+  const handleRefreshAnswers = (save) => {
+    if (save) {
+      setCurrentActivity({
+        ...currentActivity,
+        answers: null,
+        rateStudent: null,
+      });
+      getAnswers();
+    } else {
+      setCurrentActivity({
+        ...currentActivity,
+        rateStudent: null,
+      });
+    }
+  };
   const getAnswers = async () => {
     currentActivity.answers = null;
     let a = await Api.get("/api/teacher/project-answers/" + currentActivity.id);
+    let scores = await Api.get(
+      "/api/class/project/get-score/" + currentActivity.id
+    );
     a = props.classDetails[class_id].students.map((s) => {
       let sa = a.filter((st) => st.student.id === s.id);
-
       return sa
         ? { answers: sa, student: s }
         : {
             student: s,
           };
     });
+    a = a.map((q) => {
+      let f = scores.find((qq) => q.student.id === qq.student_id);
+      return f ? { ...q, score: f } : q;
+    });
+    console.log(a);
     setCurrentActivity({
       ...currentActivity,
       answers: a.sort((b, c) => (b.answers.length ? -1 : 0)),
@@ -896,11 +920,12 @@ function Project(props) {
         <Progress id={option_name} data={props.dataProgress[option_name]} />
       )}
       <StudentRating
+        endpoint="project"
         activity={currentActivity}
         open={currentActivity && currentActivity.rateStudent}
-        onClose={() =>
-          setCurrentActivity({ ...currentActivity, rateStudent: null })
-        }
+        onClose={(save = false) => {
+          handleRefreshAnswers(save);
+        }}
       />
       {confirmed && (
         <Dialog
@@ -1436,6 +1461,18 @@ function Project(props) {
                               style={{ marginRight: theme.spacing(2) }}
                             />
                             <Box maxWidth="80%">
+                              {i.score && (
+                                <MuiRating
+                                  readOnly
+                                  value={Math.map(
+                                    i.score.score,
+                                    0,
+                                    currentActivity.total_score,
+                                    0,
+                                    5
+                                  )}
+                                />
+                              )}
                               <PopupState
                                 variant="popover"
                                 popupId="publish-btn"
