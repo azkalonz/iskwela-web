@@ -770,11 +770,11 @@ function Class(props) {
                 autoHide
                 onScroll={(e) => {
                   let d = document.querySelector("#react-jitsi-container");
+                  if (!d) return;
                   if (isMobile) {
                     d.classList.remove("floating");
                     return;
                   }
-                  if (!d) return;
                   if (!d.getAttribute("data-initial-height"))
                     d.setAttribute("data-initial-height", d.clientHeight);
                   if (
