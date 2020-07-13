@@ -131,7 +131,7 @@ function AnswerQuiz(props) {
     }
   };
   const flag = (index) => {
-    if (!isAvailable) return;
+    if (!isAvailable || !props.quiz) return;
     let flags = [...flaggedQuestions];
     if (flags.indexOf(index) >= 0) flags.splice(flags.indexOf(index), 1);
     else {
@@ -421,6 +421,7 @@ function AnswerQuiz(props) {
                   >
                     <Choices
                       onChooseAnwer={(a, combine = false) => {
+                        if (!props.quiz) return;
                         setAnswers(() => {
                           let id = quiz.slides[currentSlide].id;
                           let e = { ...answers };
