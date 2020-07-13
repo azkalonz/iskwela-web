@@ -1812,16 +1812,18 @@ function Project(props) {
         title={form.id ? "Edit Project" : "Create Project"}
         open={modals.ACTIVITY || false}
         onClose={() => {
-          setConfirmed({
-            title: "Save Changes",
-            message: "Would you like to save your changes before you exit?",
-            no: () => {
-              setForm(formTemplate);
-              handleClose("ACTIVITY");
-              setConfirmed(null);
-            },
-            yes: () => setConfirmed(null),
-          });
+          setForm(formTemplate);
+          handleClose("ACTIVITY");
+          // setConfirmed({
+          //   title: "Save Changes",
+          //   message: "Would you like to save your changes before you exit?",
+          //   no: () => {
+          //     setForm(formTemplate);
+          //     handleClose("ACTIVITY");
+          //     setConfirmed(null);
+          //   },
+          //   yes: () => setConfirmed(null),
+          // });
         }}
         leftContent={
           <React.Fragment>
