@@ -113,7 +113,7 @@ const UserData = {
       schedules = await Api.get(
         "/api/teacher/class-schedules/" +
           class_id +
-          "?include=materials,publishedSeatworks,publishedProjects,projects, seatworks"
+          "?include=materials,publishedSeatworks,publishedProjects,projects,seatworks,lessonPlans"
       );
     } else {
       schedules = await Api.get(
