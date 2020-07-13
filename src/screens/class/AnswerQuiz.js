@@ -150,6 +150,7 @@ function AnswerQuiz(props) {
     });
   };
   const handleSubmit = () => {
+    if (!props.quiz) return;
     getProgress(async (data) => {
       setSaving(true);
       let answer = {
