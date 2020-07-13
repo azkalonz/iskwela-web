@@ -345,7 +345,7 @@ function Project(props) {
               ...(m.id ? { id: m.id } : {}),
               url: m.resource_link,
               title: m.title,
-              project_id: res.id,
+              activity_id: res.id,
             },
           });
         });

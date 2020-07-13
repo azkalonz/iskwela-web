@@ -31,7 +31,7 @@ import { saveAs } from "file-saver";
 import React, { useEffect, useState } from "react";
 import { connect } from "react-redux";
 import Api from "../../api";
-import { GooglePicker } from "../../components/dialogs";
+import { GooglePicker, RecorderDialog } from "../../components/dialogs";
 import FileUpload, { stageFiles } from "../../components/FileUpload";
 import FileViewer from "../../components/FileViewer";
 import Pagination from "../../components/Pagination";
@@ -616,6 +616,23 @@ function InstructionalMaterials(props) {
   };
   return (
     <Box width="100%" alignSelf="flex-start">
+      <RecorderDialog
+        open={modals.VOICE_RECORDER}
+        onClose={(done, cb = null) =>
+          done
+            ? handleClose("VOICE_RECORDER")
+            : setConfirmed({
+                title: "Cancel",
+                message: "Do you want to cancel the voice recording?",
+                yes: () => {
+                  cb && cb();
+                  handleClose("VOICE_RECORDER");
+                  setConfirmed(null);
+                },
+              })
+        }
+        onSave={(a) => console.log(a)}
+      />
       <GooglePicker
         auth={(s) => (modals.OPEN_GDRIVE = s)}
         form={form}
@@ -752,6 +769,12 @@ function InstructionalMaterials(props) {
                   <CloudUploadOutlinedIcon />
                 </ListItemIcon>
                 <ListItemText primary="Upload" />
+              </StyledMenuItem>
+              <StyledMenuItem onClick={() => handleClickOpen("VOICE_RECORDER")}>
+                <ListItemIcon>
+                  <Icon>mic</Icon>
+                </ListItemIcon>
+                <ListItemText primary="Audio" />
               </StyledMenuItem>
             </StyledMenu>
           </div>
