@@ -64,21 +64,27 @@ function AnswerQuiz(props) {
   useEffect(() => {
     setCurrentSlide(0);
     if (quiz_id) {
-      getProgress((data = {}) => {
-        if (data.date_started) getQuiz({ date_started: data.date_started });
-        else getQuiz();
-        setQuizState(data);
-        setFlagged(
-          data["flagged-items-" + quiz_id + "-" + query.q]
-            ? JSON.parse(data["flagged-items-" + quiz_id + "-" + query.q])
-            : []
-        );
-        setAnswers(
-          data["answered-questions-" + quiz_id + "-" + query.q]
-            ? JSON.parse(data["answered-questions-" + quiz_id + "-" + query.q])
-            : {}
-        );
-      });
+      if (props.quiz) {
+        getProgress((data = {}) => {
+          if (data.date_started) getQuiz({ date_started: data.date_started });
+          else getQuiz();
+          setQuizState(data);
+          setFlagged(
+            data["flagged-items-" + quiz_id + "-" + query.q]
+              ? JSON.parse(data["flagged-items-" + quiz_id + "-" + query.q])
+              : []
+          );
+          setAnswers(
+            data["answered-questions-" + quiz_id + "-" + query.q]
+              ? JSON.parse(
+                  data["answered-questions-" + quiz_id + "-" + query.q]
+                )
+              : {}
+          );
+        });
+      } else {
+        getQuiz();
+      }
     }
   }, [props.questionsSet, quiz_id]);
   useEffect(() => {
