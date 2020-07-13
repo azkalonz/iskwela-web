@@ -18,21 +18,9 @@ code {
 }
 
 *::-webkit-scrollbar {
-  width: 0;
-  background-color: rgba("255,255,255,0");
+  width: 4px;
 }
-*::-webkit-scrollbar-thumb {
-  border-radius: 0px;
-  visibility: hidden;
-  background-color: rgba(0, 0, 0, 0.07);
-  border-radius: 23px;
-}
-*:hover::-webkit-scrollbar-thumb {
-  visibility: visible;
-}
-*::-webkit-scrollbar-thumb:hover {
-  visibility: visible;
-}
+
 #file-viewer-container .MuiDialogContent-root {
   padding: 0;
 }
@@ -54,4 +42,8 @@ code {
   top: 0;
   bottom: 0;
   z-index: 10;
+}
+#waveform > wave > wave {
+  background: #7539ffa6;
+  border-right: 3px solid #7539ff !important;
 }

@@ -1,36 +1,37 @@
-import React, { useState, useEffect } from "react";
-import Toolbar from "../components/quiz/Toolbar";
-import SlideContainer, { Slide, SlideRenderer } from "../components/quiz/Slide";
-import PropTypes from "prop-types";
 import {
   Box,
   Button,
-  IconButton,
-  Icon,
+  CircularProgress,
   Dialog,
-  Typography,
-  Tab,
-  Tabs,
-  withStyles,
-  DialogTitle as MuiDialogTitle,
-  DialogContent,
-  Slide as MuiSlide,
   DialogActions,
-  ListItemSecondaryAction,
+  DialogContent,
+  DialogTitle as MuiDialogTitle,
+  Icon,
+  IconButton,
   List,
   ListItem,
+  ListItemSecondaryAction,
   ListItemText,
-  CircularProgress,
+  Slide as MuiSlide,
+  Tab,
+  Tabs,
+  Typography,
+  withStyles,
 } from "@material-ui/core";
-import { connect } from "react-redux";
 import moment from "moment";
-import AnswerQuiz from "../screens/class/AnswerQuiz";
+import PropTypes from "prop-types";
+import React, { useEffect, useState } from "react";
+import { Scrollbars } from "react-custom-scrollbars";
+import { connect } from "react-redux";
 import { useHistory } from "react-router-dom";
-import { makeLinkTo } from "../components/router-dom";
 import Api from "../api";
 import Pagination, { getPageItems } from "../components/Pagination";
+import SlideContainer, { Slide, SlideRenderer } from "../components/quiz/Slide";
+import Toolbar from "../components/quiz/Toolbar";
+import { makeLinkTo } from "../components/router-dom";
 import { SearchInput } from "../components/Selectors";
 import socket from "../components/socket.io";
+import AnswerQuiz from "../screens/class/AnswerQuiz";
 
 const Transition = React.forwardRef(function Transition(props, ref) {
   return <MuiSlide direction="up" ref={ref} {...props} />;
@@ -96,7 +97,7 @@ function CreateQuestionnaire(props) {
       },
     ],
     type: 1,
-    score: 100,
+    score: 1,
   };
   const [quiz, setQuiz] = useState(
     quiz_id && props.questionnaires.find((q) => q.id === parseInt(quiz_id))
@@ -122,7 +123,7 @@ function CreateQuestionnaire(props) {
               id: 1,
               choices: slideTemplate.choices,
               type: 1,
-              score: 100,
+              score: 1,
             },
           ],
         }
@@ -157,7 +158,7 @@ function CreateQuestionnaire(props) {
     let containerHeight = s.clientHeight;
     let slideHeight = 232;
     let totalViewableSlides = Math.ceil(containerHeight / slideHeight) + 2;
-    let containerViewport = s.scrollTop + s.clientHeight;
+    let containerViewport = s.scrollTop - 50 + s.clientHeight;
     let range = Math.ceil(containerViewport / slideHeight);
     let viewable = [];
     for (let i = 0; i < totalViewableSlides; i++) {
@@ -271,7 +272,7 @@ function CreateQuestionnaire(props) {
                 ],
                 question: e.question,
                 type: 1,
-                score: 100,
+                score: 1,
               });
               history.push("#");
             }}
@@ -429,21 +430,23 @@ function CreateQuestionnaire(props) {
             {...props}
           />
           <Box height="100%" overflow="auto">
-            <SlideRenderer
-              {...props}
-              slide={quiz.slides[currentSlide]}
-              quiz={quiz}
-              onSave={(callback = null) => handleSave(quiz, callback)}
-              onChange={(s, q = null) => {
-                setQuiz(() => {
-                  let ss = [...quiz.slides];
-                  ss.forEach((i, ii) => {
-                    if (i.id === s.id) ss[ii] = s;
+            <Scrollbars autoHide>
+              <SlideRenderer
+                {...props}
+                slide={quiz.slides[currentSlide]}
+                quiz={quiz}
+                onSave={(callback = null) => handleSave(quiz, callback)}
+                onChange={(s, q = null) => {
+                  setQuiz(() => {
+                    let ss = [...quiz.slides];
+                    ss.forEach((i, ii) => {
+                      if (i.id === s.id) ss[ii] = s;
+                    });
+                    return { ...quiz, ...(q ? q : {}), slides: ss };
                   });
-                  return { ...quiz, ...(q ? q : {}), slides: ss };
-                });
-              }}
-            />
+                }}
+              />
+            </Scrollbars>
           </Box>
         </Box>
       </Box>

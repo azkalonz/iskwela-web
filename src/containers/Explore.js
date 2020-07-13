@@ -56,13 +56,13 @@ const rightPanelOptions = [
     title: "Quizizz",
     link: "https://quizizz.com/admin",
     id: "quizizz",
-    image: "/explore/quizizz.png",
+    image: "/explore/explore.svg",
   },
   {
     title: "Jumpstart",
     link: "https://activity.jumpstart.com/#/",
     id: "jumpstart",
-    image: "/explore/jumpstart.jpg",
+    image: "/explore/explore.svg",
   },
   {
     title: (
@@ -73,6 +73,17 @@ const rightPanelOptions = [
     ),
     link: "http://kahoot.com/",
     id: "kahoot",
+    external: true,
+  },
+  {
+    title: (
+      <Box display="flex" alignItems="center">
+        <Box marginRight={2}>Mentimeter</Box>
+        <Icon fontSize="small">launch</Icon>
+      </Box>
+    ),
+    link: "https://www.mentimeter.com/",
+    id: "mentimeter",
     external: true,
   },
 ];
@@ -285,7 +296,7 @@ function Explore(props) {
               <React.Fragment>
                 <Paper
                   className="box-container"
-                  style={{ background: themeColor }}
+                  style={{ background: themeColor, height: 440 }}
                 >
                   <Toolbar
                     className={styles.toolbar}
@@ -343,41 +354,6 @@ function Explore(props) {
                       }}
                     />
                   </Box>
-                  <Box p={2.2} className={styles.centered}>
-                    <Box
-                      flex={1}
-                      className={[styles.centered, styles.start].join(" ")}
-                      width="50%"
-                    >
-                      <Typography
-                        variant="body2"
-                        style={{
-                          fontSize: "0.8rem",
-                          marginLeft: 5,
-                          color: "rgba(255,255,255,0.75)",
-                        }}
-                      ></Typography>
-                    </Box>
-                    <Divider
-                      orientation="vertical"
-                      style={{ marginRight: 5 }}
-                      flexItem
-                    />
-                    <Box
-                      flex={1}
-                      className={[styles.centered, styles.start].join(" ")}
-                      width="50%"
-                    >
-                      <Typography
-                        variant="body2"
-                        style={{
-                          fontSize: "0.75rem",
-                          marginLeft: 5,
-                          color: "rgba(255,255,255,0.75)",
-                        }}
-                      ></Typography>
-                    </Box>
-                  </Box>
                 </Paper>
               </React.Fragment>
             )}
@@ -385,7 +361,7 @@ function Explore(props) {
             <Paper
               className="box-container"
               style={{
-                minHeight: "100%",
+                height: "100%",
                 background: themeColor,
               }}
             >
@@ -549,6 +525,8 @@ const useStyles = makeStyles((theme) => ({
       marginLeft: -8,
     },
     width: 320,
+    display: "flex",
+    flexDirection: "column",
     position: "relative",
     // background: theme.palette.primary.main,
     // boxShadow: "0 0 5px rgba(0,0,0,0.3)",

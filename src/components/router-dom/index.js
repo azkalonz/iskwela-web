@@ -6,6 +6,7 @@ import Attendance from "../../screens/class/Attendance";
 import InstructionalMaterials from "../../screens/class/InstructionalMaterials";
 import LessonPlan from "../../screens/class/LessonPlan";
 import Kahoot from "../../screens/class/Kahoot";
+import Todo from "../../screens/class/Todo";
 import Periodical from "../../screens/class/Periodical";
 import Posts from "../../screens/class/Posts";
 import Project from "../../screens/class/Project";
@@ -38,8 +39,10 @@ export const rightPanelOptions = [
   },
   {
     title: "Student Activities",
+    navTitle: "Due this week",
+    link: "todo",
     icon: "icon-activities",
-    screen: Activity,
+    screen: Todo,
     children: [
       {
         title: "Seat Works",
@@ -93,6 +96,7 @@ export const rightPanelOptions = [
       {
         title: "Create Questionnaire",
         screen: CreateQuestionnaire,
+        solo: true,
         link: "questionnaire",
         icon: null,
       },

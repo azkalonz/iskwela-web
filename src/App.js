@@ -12,6 +12,7 @@ import { connect } from "react-redux";
 import { BrowserRouter, Redirect, Route, Switch } from "react-router-dom";
 import Api from "./api";
 import ContentMaker from "./components/content-creator";
+import Recorder from "./components/Recorder";
 import GooglePicker from "./components/GooglePicker";
 import store from "./components/redux/store";
 import socket from "./components/socket.io";
@@ -25,7 +26,11 @@ import Posts from "./screens/class/Posts";
 
 const primaryColor = "#7539ff";
 const secondaryColor = "#FFD026";
-
+Math.rand = (min, max) => {
+  min = Math.ceil(min);
+  max = Math.floor(max);
+  return Math.floor(Math.random() * (max - min)) + min;
+};
 function App(props) {
   const [loading, setLoading] = useState(true);
   const skeletonCustomTheme = {
@@ -141,6 +146,12 @@ function App(props) {
       MuiDivider: {
         root: {
           marginTop: 1,
+        },
+      },
+      MuiAvatar: {
+        root: {
+          fontSize: "1em",
+          zIndex: "10!important",
         },
       },
       MuiPaper: {
@@ -302,22 +313,22 @@ function App(props) {
         UserData.addClassSchedule(c.id, c.details);
       }
     });
-    // setLoading(false);
-    Api.auth({
-      success: async (user) => {
-        await UserData.getUserData(user);
-        setTimeout(() => {
-          setLoading(false);
-        }, 500);
-      },
-      fail: () => {
-        if (
-          window.location.pathname === "/login" ||
-          window.location.pathname === "/login/"
-        )
-          setLoading(false);
-      },
-    });
+    setLoading(false);
+    // Api.auth({
+    //   success: async (user) => {
+    //     await UserData.getUserData(user);
+    //     setTimeout(() => {
+    //       setLoading(false);
+    //     }, 500);
+    //   },
+    //   fail: () => {
+    //     if (
+    //       window.location.pathname === "/login" ||
+    //       window.location.pathname === "/login/"
+    //     )
+    //       setLoading(false);
+    //   },
+    // });
   }, []);
   return (
     <MuiThemeProvider theme={theme}>
@@ -327,6 +338,7 @@ function App(props) {
           {!loading && (
             <BrowserRouter>
               <Switch>
+                <Route exact path="/record" component={Recorder} />
                 <Route exact path="/" component={Home} />
                 <Route exact path="/post" component={Posts} />
                 <Route exact path="/login">

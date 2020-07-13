@@ -372,10 +372,21 @@ function StartADiscussion(props) {
           </Button>
         </Box>
       </Popover>
-      <Paper
+      <div
         style={{
-          zIndex: !states.DISCUSSION ? 1 : 1302,
           position: "relative",
+          borderRadius: 4,
+          background: "#fff",
+          ...(states.DISCUSSION
+            ? {
+                boxShadow: "none",
+                zIndex: 1302,
+              }
+            : {
+                zIndex: 1,
+                border: "1px solid rgb(233, 228, 239)",
+                boxShadow: "0 2px 4px rgb(241, 230, 255)!important",
+              }),
         }}
       >
         <Box p={2}>
@@ -415,7 +426,7 @@ function StartADiscussion(props) {
                 style={{ position: "relative", minHeight: isMobile ? 125 : 90 }}
               >
                 <Editor
-                  // focused={true}
+                  focused={true}
                   label="Try @Student, :English, #HashTag"
                   controls={[...toolbarcontrols, "insert-photo"]}
                   inlineToolbarControls={inlinetoolbarcontrols}
@@ -488,7 +499,7 @@ function StartADiscussion(props) {
             </Box>
           </Box>
         </Box>
-      </Paper>
+      </div>
       <Backdrop
         open={states.DISCUSSION || false}
         onClick={() => handleClose("DISCUSSION")}
@@ -766,12 +777,8 @@ function Posts(props) {
     <React.Fragment>
       {props.classes[class_id] && props.classes[class_id].students && (
         <Box p={2} className={styles.root}>
-          <Box
-            display="flex"
-            justifyContent="space-between"
-            alignItems="flex-start"
-          >
-            <Box width="100%">
+          <Box display="flex" justifyContent="center" alignItems="flex-start">
+            <Box width="100%" maxWidth={765}>
               <ConnectedStartADiscussion
                 class={props.classes[class_id]}
                 author={props.userInfo}

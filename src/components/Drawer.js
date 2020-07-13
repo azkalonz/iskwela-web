@@ -114,7 +114,10 @@ function Drawer(props) {
                 transform: "translateX(-1.5px)",
               }}
             >
-              <DashboardOutlined style={{ color: "#38108d" }} />
+              <span
+                className="icon-classes"
+                style={{ color: "#38108d", fontSize: "2em" }}
+              />
             </Box>
           </Box>
           {classes.slice(0, 5).map((item, index) => {
@@ -258,7 +261,10 @@ function Drawer(props) {
                 transform: "translateX(-1.5px)",
               }}
             >
-              <Icon style={{ color: "#38108d" }}>school</Icon>
+              <span
+                className="icon-explore"
+                style={{ color: "#38108d", fontSize: "2em" }}
+              />
             </Box>
           </Box>
         </div>
@@ -384,7 +390,10 @@ function Drawer(props) {
               }}
             >
               <Box className="tab-btn screen-btn">
-                <DashboardOutlined color="#38108d" />
+                <span
+                  className="icon-classes"
+                  style={{ color: "#38108d", fontSize: "2em" }}
+                />
               </Box>
               <Typography style={{ color: "#38108d", fontWeight: "bold" }}>
                 Classes
@@ -432,7 +441,19 @@ function Drawer(props) {
                       </Typography>
                     </Box>
                   </Tooltip>
-                  <Typography style={{ color: "#38108d", fontWeight: "bold" }}>
+                  <Typography
+                    style={{ color: "#38108d", fontWeight: "bold" }}
+                    onClick={() => {
+                      history.push(
+                        makeLinkTo(
+                          ["class", item.id, item.next_schedule.id, "opt"],
+                          {
+                            opt: item.next_schedule.id ? "posts" : "",
+                          }
+                        )
+                      );
+                    }}
+                  >
                     {item.name}
                   </Typography>
                   <Typography color="textSecondary">
@@ -492,6 +513,16 @@ function Drawer(props) {
                       </Tooltip>
                       <Typography
                         style={{ color: "#38108d", fontWeight: "bold" }}
+                        onClick={() => {
+                          history.push(
+                            makeLinkTo(
+                              ["class", item.id, item.next_schedule.id, "opt"],
+                              {
+                                opt: item.next_schedule.id ? "posts" : "",
+                              }
+                            )
+                          );
+                        }}
                       >
                         {item.name}
                       </Typography>
@@ -526,6 +557,34 @@ function Drawer(props) {
             <Divider
               style={{ opacity: 0.14, backgroundColor: "rgb(55, 19, 138)" }}
             />
+            <Box className={screen_name ? "selected tab bordered" : "tab"}>
+              <Box
+                onClick={() => {
+                  history.push("/explore/jumpstart");
+                }}
+                className="tab-btn screen-btn"
+                style={{
+                  alignItems: "center",
+                  cursor: "pointer",
+                  justifyContent: "center",
+                  display: "flex",
+                  transform: "translateX(-1.5px)",
+                }}
+              >
+                <span
+                  className="icon-explore"
+                  style={{ color: "#38108d", fontSize: "2em" }}
+                />
+              </Box>
+              <Typography
+                style={{ color: "#38108d", fontWeight: "bold" }}
+                onClick={() => {
+                  history.push("/explore/jumpstart");
+                }}
+              >
+                Explore
+              </Typography>
+            </Box>
             <Box
               className={"tab"}
               onClick={() => {
@@ -608,8 +667,19 @@ const useStyles = makeStyles((theme) => ({
       },
       "&.selected": {
         position: "relative",
-        "&:not(.bordered)>div": {
-          opacity: 0.5,
+        "&:not(.bordered)>div:first-of-type": {
+          transform: "scale(0.9)",
+          "&::before": {
+            content: "''",
+            position: "absolute",
+            left: 0,
+            right: 0,
+            bottom: 0,
+            top: 0,
+            borderRadius: 8,
+            border: "4px solid " + theme.palette.primary.main,
+            transform: "scale(1.3)",
+          },
         },
         "&.bordered::after": {
           content: "''",

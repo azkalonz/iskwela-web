@@ -217,6 +217,7 @@ export function SlideRenderer(props) {
             }}
           >
             <SearchInput
+              quickSearch={false}
               style={{ width: "100%" }}
               onChange={(e) => {
                 searchMedia(e, 1);
@@ -480,7 +481,20 @@ export function SlideRenderer(props) {
               <Typography variant="body1" color="textSecondary">
                 Score
               </Typography>
-              <ValuePicker
+              <TextField
+                type="number"
+                defaultValue="1"
+                inputProps={{
+                  min: "1",
+                }}
+                onChange={(e) => {
+                  e = parseInt(e.target.value);
+                  let s = { ...slide, score: e };
+                  setSlide(s);
+                  props.onChange(s);
+                }}
+              />
+              {/* <ValuePicker
                 size={50}
                 value={slide.score ? slide.score : 100}
                 onChange={(d) => {
@@ -489,7 +503,7 @@ export function SlideRenderer(props) {
                   props.onChange(s);
                 }}
                 values={scoreValues}
-              />
+              /> */}
             </Box>
           </Box>
           <Box

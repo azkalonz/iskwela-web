@@ -1,45 +1,41 @@
-import React, { useState, useEffect } from "react";
-import Drawer from "../components/Drawer";
-import NavBar from "../components/NavBar";
-import { useHistory } from "react-router-dom";
 import {
-  makeStyles,
+  Avatar,
+  Backdrop,
+  Box,
+  Button,
   Card,
   CardActionArea,
   CardActions,
   CardContent,
-  CardMedia,
-  InputBase,
-  IconButton,
-  Snackbar,
-  Typography,
-  Box,
-  Paper,
-  Avatar,
-  Button,
-  Icon,
   Dialog,
   DialogContent,
   DialogTitle as MuiDialogTitle,
-  withStyles,
+  Icon,
+  IconButton,
+  makeStyles,
+  Paper,
+  Snackbar,
   TextField,
-  useTheme,
+  Typography,
   useMediaQuery,
-  Backdrop,
+  useTheme,
+  withStyles,
 } from "@material-ui/core";
-import QueryBuilderOutlinedIcon from "@material-ui/icons/QueryBuilderOutlined";
-import CalendarTodayOutlinedIcon from "@material-ui/icons/CalendarTodayOutlined";
-import Skeleton from "react-loading-skeleton";
-import moment from "moment";
-import VideocamIcon from "@material-ui/icons/Videocam";
 import Grow from "@material-ui/core/Grow";
-import SearchIcon from "@material-ui/icons/Search";
-import { makeLinkTo } from "../components/router-dom";
-import { connect } from "react-redux";
+import VideocamIcon from "@material-ui/icons/Videocam";
 import MuiAlert from "@material-ui/lab/Alert";
-import { SearchInput } from "../components/Selectors";
-import Pagination, { getPageItems } from "../components/Pagination";
+import moment from "moment";
+import React, { useEffect, useState } from "react";
 import Jitsi from "react-jitsi";
+import Skeleton from "react-loading-skeleton";
+import { connect } from "react-redux";
+import { useHistory } from "react-router-dom";
+import Drawer from "../components/Drawer";
+import NavBar from "../components/NavBar";
+import Pagination, { getPageItems } from "../components/Pagination";
+import { makeLinkTo } from "../components/router-dom";
+import { Scrollbars } from "react-custom-scrollbars";
+import { SearchInput } from "../components/Selectors";
 
 function Alert(props) {
   return <MuiAlert elevation={6} variant="filled" {...props} />;
@@ -497,63 +493,65 @@ function Home(props) {
       </Dialog>
       <div style={{ height: "100vh", overflow: "hidden auto" }}>
         <Drawer {...props}>
-          <NavBar
-            title="Classes"
-            left={
-              isTablet && (
-                <IconButton
-                  aria-label="Collapse Panel"
-                  onClick={() => {
-                    props.history.push("#menu");
-                  }}
-                  style={{ marginLeft: -15 }}
-                >
-                  <Icon>menu</Icon>
-                </IconButton>
-              )
-            }
-          />
-          <Box m={2} display="flex" flexWrap="wrap" justifyContent={"center"}>
-            <Box
-              width="100%"
-              display={isMobile ? "block" : "flex"}
-              justifyContent="flex-end"
-              alignItems="center"
-              p={4}
-              style={{ paddingTop: 7, paddingBottom: 7 }}
-            >
-              <Box
-                p={0.3}
-                width={isMobile ? "100%" : 230}
-                style={{ display: "flex" }}
-              >
-                <SearchInput
-                  onChange={(s) => {
-                    setPage(1);
-                    setSearch(s);
-                  }}
-                />
-              </Box>
-            </Box>
-            {loading && [1, 1, 1].map((c, i) => fakeLoader(i))}
-            {!loading &&
-              props.classes &&
-              getPageItems(getFilteredClass(), page, itemsPerPage).map((c) =>
-                classItem(c)
-              )}
-          </Box>
-          <Box m={2}>
-            <Pagination
-              match={props.match}
-              count={getFilteredClass().length}
-              itemsPerPage={itemsPerPage}
-              nolink
-              emptyTitle={"Nothing Found"}
-              emptyMessage={"Try a different keyword."}
-              page={page}
-              onChange={(p) => setPage(p)}
+          <Scrollbars autoHide>
+            <NavBar
+              title="Classes"
+              left={
+                isTablet && (
+                  <IconButton
+                    aria-label="Collapse Panel"
+                    onClick={() => {
+                      props.history.push("#menu");
+                    }}
+                    style={{ marginLeft: -15 }}
+                  >
+                    <Icon>menu</Icon>
+                  </IconButton>
+                )
+              }
             />
-          </Box>
+            <Box m={2} display="flex" flexWrap="wrap" justifyContent={"center"}>
+              <Box
+                width="100%"
+                display={isMobile ? "block" : "flex"}
+                justifyContent="flex-end"
+                alignItems="center"
+                p={4}
+                style={{ paddingTop: 7, paddingBottom: 7 }}
+              >
+                <Box
+                  p={0.3}
+                  width={isMobile ? "100%" : 230}
+                  style={{ display: "flex" }}
+                >
+                  <SearchInput
+                    onChange={(s) => {
+                      setPage(1);
+                      setSearch(s);
+                    }}
+                  />
+                </Box>
+              </Box>
+              {loading && [1, 1, 1].map((c, i) => fakeLoader(i))}
+              {!loading &&
+                props.classes &&
+                getPageItems(getFilteredClass(), page, itemsPerPage).map((c) =>
+                  classItem(c)
+                )}
+            </Box>
+            <Box m={2}>
+              <Pagination
+                match={props.match}
+                count={getFilteredClass().length}
+                itemsPerPage={itemsPerPage}
+                nolink
+                emptyTitle={"Nothing Found"}
+                emptyMessage={"Try a different keyword."}
+                page={page}
+                onChange={(p) => setPage(p)}
+              />
+            </Box>
+          </Scrollbars>
         </Drawer>
         <Backdrop
           open={props.location.hash === "#menu" && isMobile ? true : false}

@@ -80,6 +80,7 @@ const useStyles = makeStyles((theme) => ({
     top: 0,
     right: 0,
     zIndex: 15,
+    maxHeight: 51,
     left: 0,
   },
   appbar: {
@@ -147,9 +148,8 @@ function NavBar(props) {
           <Typography
             variant="body1"
             color="textPrimary"
-            style={{ opacity: 0.65 }}
             className={classes.title}
-            style={{ fontWeight: "bold" }}
+            style={{ fontWeight: "bold", opacity: 0.65 }}
             id="navbar-title"
           >
             {props.title || ""}

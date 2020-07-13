@@ -48,6 +48,17 @@ function FV(props) {
         };
       },
     },
+    {
+      link: "mentimeter.com/s",
+      type: "mentimeter",
+      format: (url) => {
+        let x = url.replace("/s/", "/embed/");
+        return {
+          url: x,
+          type: "mentimeter",
+        };
+      },
+    },
   ];
   const viewAbleTypes = [
     "application/pdf",

@@ -29,6 +29,50 @@ import socket from "../../components/socket.io";
 import Pagination, { getPageItems } from "../Pagination";
 import { makeLinkTo } from "../router-dom";
 import { SearchInput } from "../Selectors";
+import Recorder from "../../components/Recorder";
+
+export function RecorderDialog(props) {
+  const [audio, setAudio] = useState();
+  const theme = useTheme();
+  const [stream, setStream] = useState();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  const handleClose = (e = false) => {
+    if (audio) props.onSave && props.onSave(audio);
+    if (stream)
+      props.onClose(e, () =>
+        stream.getTracks().forEach(function (track) {
+          track.stop();
+        })
+      );
+    else props.onClose(e);
+  };
+  return (
+    <Dialog
+      open={props.open || false}
+      maxWidth="md"
+      fullWidth
+      fullScreen={isMobile}
+      style={{ background: "linear-gradient(45deg, #df2550, #9471ff)" }}
+      onClose={() => handleClose()}
+    >
+      <DialogTitle onClose={() => handleClose()}>
+        <Typography>Voice Recorder</Typography>
+      </DialogTitle>
+      <DialogContent>
+        <Recorder onSave={(a) => setAudio(a)} getStream={(r) => setStream(r)} />
+      </DialogContent>
+      <DialogActions>
+        <Button
+          variant="outlined"
+          color="primary"
+          onClick={() => handleClose(true)}
+        >
+          Save
+        </Button>
+      </DialogActions>
+    </Dialog>
+  );
+}
 
 function AttachQuestionnaireDialog(props) {
   const history = useHistory();

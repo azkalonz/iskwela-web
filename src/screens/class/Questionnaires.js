@@ -1,22 +1,13 @@
-import MomentUtils from "@date-io/moment";
 import {
   Box,
   Button,
-  CircularProgress,
   Dialog,
   DialogActions,
   DialogContent,
-  Icon,
   IconButton,
-  List,
-  ListItem,
-  ListItemSecondaryAction,
   ListItemText,
   makeStyles,
-  Menu,
-  MenuItem,
   Snackbar,
-  TextField,
   Typography,
   useMediaQuery,
   useTheme,
@@ -24,26 +15,15 @@ import {
 } from "@material-ui/core";
 import MuiDialogTitle from "@material-ui/core/DialogTitle";
 import Grow from "@material-ui/core/Grow";
-import ArrowDropDownIcon from "@material-ui/icons/ArrowDropDown";
-import AttachFileOutlinedIcon from "@material-ui/icons/AttachFileOutlined";
 import CloseIcon from "@material-ui/icons/Close";
 import MuiAlert from "@material-ui/lab/Alert";
-import {
-  KeyboardDatePicker,
-  MuiPickersUtilsProvider,
-} from "@material-ui/pickers";
-import PopupState, { bindMenu, bindTrigger } from "material-ui-popup-state";
 import moment from "moment";
 import React, { useEffect, useState } from "react";
 import { connect } from "react-redux";
 import { useHistory } from "react-router-dom";
 import Api from "../../api";
-import { CreateDialog, GooglePicker } from "../../components/dialogs";
-import FileUpload, { stageFiles } from "../../components/FileUpload";
 import FileViewer from "../../components/FileViewer";
-import Form from "../../components/Form";
 import Pagination from "../../components/Pagination";
-import store from "../../components/redux/store";
 import { makeLinkTo } from "../../components/router-dom";
 import {
   ScheduleSelector,
@@ -53,7 +33,6 @@ import {
 import socket from "../../components/socket.io";
 import { Table as MTable } from "../../components/Table";
 import UserData, { asyncForEach } from "../../components/UserData";
-import { idText } from "typescript";
 import AnswerQuiz from "./AnswerQuiz";
 const queryString = require("query-string");
 function Alert(props) {
@@ -556,7 +535,9 @@ function Questionnaires(props) {
             style={{ order: isMobile ? 2 : 0, fontWeight: "bold" }}
             color="secondary"
             onClick={() => {
-              props.history.push(makeLinkTo(["questionnaire"], {}, true));
+              props.history.push(
+                makeLinkTo(["class", class_id, schedule_id, "questionnaire"])
+              );
             }}
           >
             Add New Questionnaire

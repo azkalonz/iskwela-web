@@ -48,7 +48,11 @@ import React, { useEffect, useState } from "react";
 import { connect } from "react-redux";
 import { useHistory } from "react-router-dom";
 import Api from "../../api";
-import { CreateDialog, GooglePicker } from "../../components/dialogs";
+import {
+  CreateDialog,
+  GooglePicker,
+  RecorderDialog,
+} from "../../components/dialogs";
 import FileUpload, { stageFiles } from "../../components/FileUpload";
 import FileViewer from "../../components/FileViewer";
 import Form from "../../components/Form";
@@ -250,40 +254,17 @@ function Activity(props) {
       "/api/teacher/seatwork-answers/" + currentActivity.id
     );
     a = props.classDetails[class_id].students.map((s) => {
-      let sa = a.find((st) => st.student.id === s.id);
+      let sa = a.filter((st) => st.student.id === s.id);
 
       return sa
-        ? { ...sa, student: s }
+        ? { answers: sa, student: s }
         : {
             student: s,
           };
     });
-    // await asyncForEach(a, async (s, index, arr) => {
-    //   if (store.getState().pics[s.student.id]) {
-    //     a[index].student.pic = store.getState().pics[s.student.id];
-    //     return;
-    //   }
-    //   try {
-    //     let pic = await Api.postBlob("/api/download/user/profile-picture", {
-    //       body: { id: s.student.id },
-    //     }).then((resp) => (resp.ok ? resp.blob() : null));
-    //     if (pic) {
-    //       var picUrl = URL.createObjectURL(pic);
-    //       let userpic = {};
-    //       userpic[s.student.id] = picUrl;
-    //       store.dispatch({
-    //         type: "SET_PIC",
-    //         userpic,
-    //       });
-    //       a[index].student.pic = picUrl;
-    //     }
-    //   } catch (e) {
-    //     a[index].student.pic = "/logo192.png";
-    //   }
-    // });
     setCurrentActivity({
       ...currentActivity,
-      answers: a.sort((b, c) => (b.answer_media ? -1 : 0)),
+      answers: a.sort((b, c) => (b.answers.length ? -1 : 0)),
     });
   };
   const _handleSearch = (e) => {
@@ -1435,40 +1416,82 @@ function Activity(props) {
                               style={{ marginRight: theme.spacing(2) }}
                             />
                             <Box maxWidth="80%">
-                              <Typography
-                                style={{
-                                  fontWeight: "bold",
-                                  cursor: "pointer",
-                                }}
-                                onClick={() =>
-                                  i.answer_media &&
-                                  _handleOpenAnswer({
-                                    id: i.id,
-                                    name:
-                                      i.student.first_name +
-                                      " " +
-                                      i.student.last_name,
-                                  })
-                                }
+                              <PopupState
+                                variant="popover"
+                                popupId="publish-btn"
                               >
-                                {i.student.first_name +
-                                  " " +
-                                  i.student.last_name}
-                              </Typography>
+                                {(popupState) => (
+                                  <React.Fragment>
+                                    {i.answers.length > 1 ? (
+                                      <Typography
+                                        {...bindTrigger(popupState)}
+                                        style={{
+                                          fontWeight: "bold",
+                                          cursor: "pointer",
+                                        }}
+                                      >
+                                        {i.student.first_name +
+                                          " " +
+                                          i.student.last_name}
+                                      </Typography>
+                                    ) : (
+                                      <Typography
+                                        onClick={() =>
+                                          i.answers.length &&
+                                          _handleOpenAnswer({
+                                            id: i.answers[0].id,
+                                            name:
+                                              i.student.first_name +
+                                              " " +
+                                              i.student.last_name,
+                                          })
+                                        }
+                                        style={{
+                                          fontWeight: "bold",
+                                          cursor: "pointer",
+                                        }}
+                                      >
+                                        {i.student.first_name +
+                                          " " +
+                                          i.student.last_name}
+                                      </Typography>
+                                    )}
+                                    <Menu {...bindMenu(popupState)}>
+                                      {i.answers.map((a, ii) => (
+                                        <MenuItem
+                                          onClick={() =>
+                                            _handleOpenAnswer({
+                                              id: a.id,
+                                              name:
+                                                i.student.first_name +
+                                                " " +
+                                                i.student.last_name,
+                                            })
+                                          }
+                                        >
+                                          {`Answer (ver. ${ii + 1})`}
+                                        </MenuItem>
+                                      ))}
+                                    </Menu>
+                                  </React.Fragment>
+                                )}
+                              </PopupState>
                               <Chip
                                 size="small"
                                 style={{
                                   background:
                                     theme.palette[
-                                      i.answer_media ? "success" : "error"
+                                      i.answers.length ? "success" : "error"
                                     ].main,
                                   color: "#fff",
                                 }}
                                 label={
-                                  i.answer_media ? "SUBMITTED" : "NOT SUBMITTED"
+                                  i.answers.length
+                                    ? "SUBMITTED"
+                                    : "NOT SUBMITTED"
                                 }
                               />
-                              {isTeacher && i.answer_media && (
+                              {isTeacher && i.answers.length ? (
                                 <Box>
                                   <Button
                                     onClick={() =>
@@ -1484,7 +1507,7 @@ function Activity(props) {
                                     ADD SCORE
                                   </Button>
                                 </Box>
-                              )}
+                              ) : null}
                             </Box>
                           </Box>
                         </Paper>
@@ -1711,6 +1734,23 @@ function Activity(props) {
           )}
         />
       )}
+      <RecorderDialog
+        open={modals.VOICE_RECORDER}
+        onClose={(done, cb = null) =>
+          done
+            ? handleClose("VOICE_RECORDER")
+            : setConfirmed({
+                title: "Cancel",
+                message: "Do you want to cancel the voice recording?",
+                yes: () => {
+                  cb && cb();
+                  handleClose("VOICE_RECORDER");
+                  setConfirmed(null);
+                },
+              })
+        }
+        onSave={(a) => console.log(a)}
+      />
       <CreateDialog
         title={form.id ? "Edit Seatwork" : "Create Seatwork"}
         open={modals.ACTIVITY || false}
@@ -1873,6 +1913,14 @@ function Activity(props) {
                           }}
                         >
                           Content Maker
+                        </MenuItem>
+                        <MenuItem
+                          onClick={() => {
+                            handleOpen("VOICE_RECORDER");
+                            popupState.close();
+                          }}
+                        >
+                          Audio
                         </MenuItem>
                       </Menu>
                     </React.Fragment>

@@ -447,6 +447,11 @@ function Quizzes(props) {
 
   const getFilteredITEMS = (ac = ITEMS) =>
     ac
+      .filter((a) =>
+        props.classDetails[class_id]
+          ? a.subject.id === props.classDetails[class_id].subject.id
+          : false
+      )
       .filter((a) => JSON.stringify(a).toLowerCase().indexOf(search) >= 0)
       .filter((a) => (isTeacher ? true : a.published))
       .reverse();

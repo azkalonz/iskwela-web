@@ -42,6 +42,7 @@ import {
 import socket from "../components/socket.io";
 import UserData from "../components/UserData";
 import VideoConference from "../containers/VideoConference";
+import { Scrollbars } from "react-custom-scrollbars";
 
 function setPanelIds(panel, i = 0) {
   panel.forEach((p) => {
@@ -58,6 +59,8 @@ const rightPanelOptions = setPanelIds(teacherPanel);
 const rightPanelOptionsStudents = setPanelIds(studentPanel);
 
 function ClassRightPanel(props) {
+  const theme = useTheme();
+  const isTablet = useMediaQuery(theme.breakpoints.down("md"));
   const { option_name, class_id } = props.match.params;
   let [View, setView] = useState();
   const handleRefresh = async () => {
@@ -71,19 +74,18 @@ function ClassRightPanel(props) {
     else props.loading(false);
   }, [option_name]);
   return View ? (
-    <Box width="100%" height="100%">
+    <Box
+      width="100%"
+      style={{
+        padding: !isTablet ? "0 40px" : 0,
+      }}
+    >
       <View
         {...props}
         refresh={handleRefresh}
         onLoad={(load = false) => props.loading(load)}
         test={123}
       />
-      {/* <IconButton
-        onClick={handleRefresh}
-        style={{ position: "absolute", right: 10, bottom: 10 }}
-      >
-        <Icon>refresh</Icon>
-      </IconButton> */}
     </Box>
   ) : null;
 }
@@ -207,6 +209,7 @@ function Class(props) {
             onClick={() => {
               handleExpand();
             }}
+            className={p.solo ? "warn-to-leave" : ""}
             style={{ cursor: "pointer" }}
           >
             <ListItem
@@ -648,45 +651,49 @@ function Class(props) {
               <Paper
                 className="box-container"
                 style={{
-                  minHeight: "100%",
+                  height: "100%",
+                  overflow: "auto",
+                  marginBottom: 0,
                   background: props.classes[class_id].color,
                 }}
               >
-                {opts.mini && !collapsePanel && (
-                  <Tooltip title="Hide class panel" placement="bottom-start">
-                    <IconButton
-                      style={{
-                        width: "100%",
-                        color: "#fff",
-                      }}
-                      aria-label="Collapse Panel"
-                      onClick={() => setCollapsePanel(!collapsePanel)}
-                    >
-                      <span className="icon-menu-open"></span>
-                    </IconButton>
-                  </Tooltip>
-                )}
-                <List component="nav" aria-labelledby="nested-list-subheader">
-                  {isTeacher
-                    ? rightPanelOptions
-                        .filter((s) => !s.hidden)
-                        .map((r, id) =>
-                          panelOption({
-                            ...r,
-                            isChild: false,
-                            ...(opts.mini ? { shrink: true } : {}),
-                          })
-                        )
-                    : rightPanelOptionsStudents
-                        .filter((s) => !s.hidden)
-                        .map((r, id) =>
-                          panelOption({
-                            ...r,
-                            isChild: false,
-                            ...(opts.mini ? { shrink: true } : {}),
-                          })
-                        )}
-                </List>
+                <Scrollbars autoHide>
+                  {opts.mini && !collapsePanel && (
+                    <Tooltip title="Hide class panel" placement="bottom-start">
+                      <IconButton
+                        style={{
+                          width: "100%",
+                          color: "#fff",
+                        }}
+                        aria-label="Collapse Panel"
+                        onClick={() => setCollapsePanel(!collapsePanel)}
+                      >
+                        <span className="icon-menu-open"></span>
+                      </IconButton>
+                    </Tooltip>
+                  )}
+                  <List component="nav" aria-labelledby="nested-list-subheader">
+                    {isTeacher
+                      ? rightPanelOptions
+                          .filter((s) => !s.hidden)
+                          .map((r, id) =>
+                            panelOption({
+                              ...r,
+                              isChild: false,
+                              ...(opts.mini ? { shrink: true } : {}),
+                            })
+                          )
+                      : rightPanelOptionsStudents
+                          .filter((s) => !s.hidden)
+                          .map((r, id) =>
+                            panelOption({
+                              ...r,
+                              isChild: false,
+                              ...(opts.mini ? { shrink: true } : {}),
+                            })
+                          )}
+                  </List>
+                </Scrollbars>
               </Paper>
             </React.Fragment>
           ) : (
@@ -741,45 +748,69 @@ function Class(props) {
             height="100vh"
             id="right-panel"
             position="relative"
-            // onScroll={(e) => {
-            //   const clamp = (v, min = 0, max = 1) =>
-            //     Math.min(max, Math.max(min, v));
-            //   function p5map(n, start1, stop1, start2, stop2) {
-            //     return (
-            //       ((n - start1) / (stop1 - start1)) * (stop2 - start2) + start2
-            //     );
-            //   }
-
-            //   if ($("#activity-preview")[0]) {
-            //     let x = $("#activity-preview");
-            //     let offset = $("#video-conference-container");
-            //     offset = offset[0] ? offset[0].offsetHeight : 0;
-            //     let top = e.target.scrollTop - offset;
-            //     x.css(
-            //       "opacity",
-            //       clamp(
-            //         p5map(top, 0, $("#activity-preview")[0].clientHeight, 1, 0),
-            //         0,
-            //         1
-            //       )
-            //     );
-            //   }
-            // }}
+            display="flex"
+            flexDirection="column"
+            alignItems="stretch"
           >
-            {room_name &&
-              CLASS &&
-              schedule_id &&
-              props.classDetails[class_id].schedules[schedule_id].status ===
-                "ONGOING" && (
-                <VideoConference
-                  match={props.match}
-                  location={props.location}
-                  getRoom={() => getRoom()}
-                  updateClass={(e) => {
-                    if (isTeacher) updateClass(e);
-                  }}
+            <Box
+              flex={1}
+              display="flex"
+              alignItems="center"
+              height="100%"
+              justifyContent="center"
+            >
+              <Scrollbars autoHide>
+                {room_name &&
+                  !isValidOption(option_name)?.solo &&
+                  CLASS &&
+                  schedule_id &&
+                  props.classDetails[class_id].schedules[schedule_id].status ===
+                    "ONGOING" && (
+                    <VideoConference
+                      match={props.match}
+                      location={props.location}
+                      getRoom={() => getRoom()}
+                      updateClass={(e) => {
+                        if (isTeacher) updateClass(e);
+                      }}
+                      left={
+                        !collapsePanel && !isMobile ? (
+                          <Tooltip
+                            title="Show class panel"
+                            placement="bottom-start"
+                          >
+                            <IconButton
+                              aria-label="Collapse Panel"
+                              onClick={() => setCollapsePanel(!collapsePanel)}
+                            >
+                              <span className="icon-menu-open"></span>
+                            </IconButton>
+                          </Tooltip>
+                        ) : null
+                      }
+                    />
+                  )}
+                <NavBar
+                  title={
+                    isValidOption(option_name)
+                      ? isValidOption(option_name).navTitle
+                        ? isValidOption(option_name).navTitle
+                        : isValidOption(option_name).title
+                      : ""
+                  }
+                  routes={
+                    isTeacher
+                      ? rightPanelOptions.filter(
+                          (r) =>
+                            r.children && r.children.indexOf(option_name) >= 0
+                        )
+                      : rightPanelOptionsStudents.filter(
+                          (r) =>
+                            r.children && r.children.indexOf(option_name) >= 0
+                        )
+                  }
                   left={
-                    !collapsePanel && !isMobile ? (
+                    !collapsePanel && isMobile ? (
                       <Tooltip
                         title="Show class panel"
                         placement="bottom-start"
@@ -787,6 +818,8 @@ function Class(props) {
                         <IconButton
                           aria-label="Collapse Panel"
                           onClick={() => setCollapsePanel(!collapsePanel)}
+                          color="primary"
+                          style={{ marginRight: 13 }}
                         >
                           <span className="icon-menu-open"></span>
                         </IconButton>
@@ -794,88 +827,46 @@ function Class(props) {
                     ) : null
                   }
                 />
-              )}
-
-            <NavBar
-              title={
-                isValidOption(option_name)
-                  ? isValidOption(option_name).title
-                  : ""
-              }
-              routes={
-                isTeacher
-                  ? rightPanelOptions.filter(
-                      (r) => r.children && r.children.indexOf(option_name) >= 0
-                    )
-                  : rightPanelOptionsStudents.filter(
-                      (r) => r.children && r.children.indexOf(option_name) >= 0
-                    )
-              }
-              left={
-                !collapsePanel && isMobile ? (
-                  <Tooltip title="Show class panel" placement="bottom-start">
-                    <IconButton
-                      aria-label="Collapse Panel"
-                      onClick={() => setCollapsePanel(!collapsePanel)}
-                      color="primary"
-                      style={{ marginRight: 13 }}
-                    >
-                      <span className="icon-menu-open"></span>
-                    </IconButton>
-                  </Tooltip>
-                ) : null
-              }
-            />
-            <Box
-              flex={1}
-              display="flex"
-              alignItems="center"
-              height="86%"
-              justifyContent="center"
-              style={{
-                margin: !isTablet ? "0 40px" : 0,
-                position: "relative",
-              }}
-            >
-              {rightPanelLoading && (
-                <Box
-                  width="100%"
-                  height="100%"
-                  display="flex"
-                  alignItems="flex-start"
-                  flexDirection="column"
-                  p={2}
-                  style={{
-                    position: "absolute",
-                    left: 0,
-                    right: 0,
-                    top: 0,
-                    zIndex: 10,
-                  }}
-                  justifyContent="flex-start"
-                  flexWrap="nowrap"
-                >
-                  <Box style={{ padding: "6px 0" }} width={200}>
-                    <Skeleton width="100%" height={50} />
+                {rightPanelLoading && (
+                  <Box
+                    width="100%"
+                    display="flex"
+                    alignItems="flex-start"
+                    flexDirection="column"
+                    p={2}
+                    style={{
+                      position: "absolute",
+                      left: 0,
+                      right: 0,
+                      top: 0,
+                      zIndex: 10,
+                      position: "relative",
+                    }}
+                    justifyContent="flex-start"
+                    flexWrap="nowrap"
+                  >
+                    <Box style={{ padding: "6px 0" }} width={200}>
+                      <Skeleton width="100%" height={50} />
+                    </Box>
+                    <Box style={{ padding: "6px 0" }} width="100%">
+                      <Skeleton width="100%" height={40} />
+                    </Box>
+                    <Box style={{ padding: "6px 0" }} width="100%">
+                      <Skeleton width="100%" height={40} />
+                    </Box>
+                    <Box style={{ padding: "6px 0" }} width="100%">
+                      <Skeleton width="100%" height={300} />
+                    </Box>
                   </Box>
-                  <Box style={{ padding: "6px 0" }} width="100%">
-                    <Skeleton width="100%" height={40} />
-                  </Box>
-                  <Box style={{ padding: "6px 0" }} width="100%">
-                    <Skeleton width="100%" height={40} />
-                  </Box>
-                  <Box style={{ padding: "6px 0" }} width="100%">
-                    <Skeleton width="100%" height={300} />
-                  </Box>
-                </Box>
-              )}
-              {CLASS && class_id && (
-                <ClassRightPanel
-                  classSched={schedule_id}
-                  loading={(e) => setRightPanelLoading(e)}
-                  {...props}
-                />
-              )}
+                )}
+                {CLASS && class_id && (
+                  <ClassRightPanel
+                    classSched={schedule_id}
+                    loading={(e) => setRightPanelLoading(e)}
+                    {...props}
+                  />
+                )}
+              </Scrollbars>
             </Box>
           </Box>
         </Box>
