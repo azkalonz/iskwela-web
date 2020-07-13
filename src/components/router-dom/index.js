@@ -153,6 +153,8 @@ export const rightPanelOptionsStudents = [
   {
     title: "Student Activities",
     icon: "icon-activities",
+    navTitle: "Due this week",
+    link: "todo",
     screen: Activity,
     children: [
       {
