@@ -20,6 +20,7 @@ import moment from "moment";
 import PopupState, { bindTrigger, bindMenu } from "material-ui-popup-state";
 const RecordRTC = require("recordrtc");
 
+const tickInterval = 100;
 const hasGetUserMedia = !!(
   navigator.getUserMedia ||
   navigator.webkitGetUserMedia ||
@@ -27,6 +28,7 @@ const hasGetUserMedia = !!(
   navigator.msGetUserMedia
 );
 let timer;
+let playerTimer;
 let DURATION = 0;
 
 function Recorder(props) {
@@ -34,6 +36,7 @@ function Recorder(props) {
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const audioRef = useRef();
   const [duration, setDuration] = useState(0);
+  const [timerDuration, setTimerDuration] = useState(0);
   const [status, setStatus] = useState({});
   const [audio, setAudio] = useState({ muted: false, volume: 1 });
   const [recorder, setRecorder] = useState();
@@ -133,11 +136,14 @@ function Recorder(props) {
   const handlePlay = () => {
     if (!status.player || status.player === "paused") {
       let wv = document.querySelector("#waveform wave wave");
-      window.clearInterval(timer);
+      playerTimer = setInterval(() => {
+        if (!audioRef.current) return;
+        let { currentTime } = audioRef.current;
+        setTimerDuration(currentTime);
+      }, 1000);
       timer = setInterval(() => {
         if (!audioRef.current) return;
         let { currentTime } = audioRef.current;
-        setDuration(currentTime);
         let width = (currentTime / duration) * 100;
         wv.style.width = width + "%";
         if (Math.round(width) >= 100) {
@@ -147,12 +153,13 @@ function Recorder(props) {
           window.clearInterval(timer);
           setStatus({ ...status, player: "paused" });
         }
-      }, 1000);
+      }, tickInterval);
       setStatus({ ...status, player: "playing" });
       audioRef.current.volume = audio.volume;
       audioRef.current.play();
     } else {
       setStatus({ ...status, player: "paused" });
+      window.clearInterval(playerTimer);
       window.clearInterval(timer);
       audioRef.current.pause();
     }
@@ -330,7 +337,9 @@ function Recorder(props) {
               {!isMobile && status.recorder === "stopped" && (
                 <Typography>
                   {moment
-                    .utc(moment.duration(duration * 1000).as("milliseconds"))
+                    .utc(
+                      moment.duration(timerDuration * 1000).as("milliseconds")
+                    )
                     .format("mm:ss")}
                 </Typography>
               )}
