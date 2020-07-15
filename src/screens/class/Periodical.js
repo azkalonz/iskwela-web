@@ -845,7 +845,7 @@ function Periodical(props) {
         />
       )}
       <CreateDialog
-        title={form.id ? "Edit Quiz" : "Create Quiz"}
+        title={form.id ? "Edit Periodical" : "Create Periodical"}
         open={modals.CREATE_DIALOG ? modals.CREATE_DIALOG : false}
         onClose={() => handleClose("CREATE_DIALOG")}
         leftContent={

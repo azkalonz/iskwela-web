@@ -846,7 +846,7 @@ function Assignment(props) {
         />
       )}
       <CreateDialog
-        title={form.id ? "Edit Quiz" : "Create Quiz"}
+        title={form.id ? "Edit Assignment" : "Create Assignment"}
         open={modals.CREATE_DIALOG ? modals.CREATE_DIALOG : false}
         onClose={() => handleClose("CREATE_DIALOG")}
         leftContent={
