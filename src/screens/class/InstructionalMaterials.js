@@ -605,7 +605,6 @@ function InstructionalMaterials(props) {
         const { url, b64, title } = details.data;
         setForm({ ...form, url, title });
         handleClickOpen("WEB_LINK");
-        console.log(url, title);
       }
     });
     window.open(
@@ -631,7 +630,7 @@ function InstructionalMaterials(props) {
                 },
               })
         }
-        onSave={(a) => console.log(a)}
+        onSave={(a) => null}
       />
       <GooglePicker
         auth={(s) => (modals.OPEN_GDRIVE = s)}

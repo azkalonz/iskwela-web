@@ -316,7 +316,6 @@ function Quizzes(props) {
       ...quiz,
       subject_id: props.classes[class_id].subject.id,
     });
-    console.log(res);
   };
   return (
     <Box width="100%" alignSelf="flex-start">

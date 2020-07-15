@@ -84,7 +84,6 @@ const UserData = {
             nosched: true,
           },
         };
-        console.log("neww", this.updateClass(class_id, scheduleAdded, false));
         store.dispatch({
           type: "SET_CLASSES",
           classes: this.updateClass(class_id, scheduleAdded, false),

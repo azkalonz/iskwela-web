@@ -37,7 +37,7 @@ const screen = {
   width: window.outerWidth,
   height: window.outerHeight,
 };
-const config = {
+export const config = {
   width: 720,
   height: 900,
   maxWidth: 1500,
@@ -49,9 +49,6 @@ function ContentCreator(fabric, id, params = {}) {
   fabric.Object.prototype.transparentCorners = false;
   this.canvas = new fabric.Canvas(id, {
     isDrawingMode: false,
-    backgroundColor: config.background,
-    width: config.width,
-    height: config.height,
   });
   this.canvas._historyInit();
   this.fabric = fabric;
@@ -128,22 +125,27 @@ function ContentCreator(fabric, id, params = {}) {
     });
     if (callback) callback();
   };
-  this.addImage = (url, callback = null) => {
+  this.addImage = (url, callback = null, style = {}) => {
     if (!url) return;
-    this.fabric.Image.fromURL(url, (myImg) => {
-      try {
-        var img1 = myImg.set({
-          left: 0,
-          top: 0,
-          width: myImg._originalElement.width,
-          height: myImg._originalElement.height,
-        });
-        img1.scaleToWidth(500);
-        this.canvas.add(img1);
-      } catch (e) {
-        callback && callback(["Invalid Image"]);
+    this.fabric.Image.fromURL(
+      url,
+      (myImg) => {
+        try {
+          var img1 = myImg.set({
+            left: 0,
+            top: 0,
+            width: myImg._originalElement.width,
+            height: myImg._originalElement.height,
+            ...style,
+          });
+          img1.scaleToWidth(500);
+          this.canvas.add(img1);
+        } catch (e) {
+          callback && callback(["Invalid Image"]);
+        }
       }
-    });
+      // { crossOrigin: "Anonymous" }
+    );
   };
   this.remove = () => {
     this.canvas.getActiveObjects().forEach((obj) => {
@@ -274,7 +276,7 @@ function ContentCreator(fabric, id, params = {}) {
     };
 
     var img = new Image();
-    img.src = "/content-maker/pattern.jpg";
+    img.src = "/content-maker/pattern.png";
 
     this.texturePatternBrush = new this.fabric.PatternBrush(this.canvas);
     this.texturePatternBrush.source = img;
@@ -283,7 +285,7 @@ function ContentCreator(fabric, id, params = {}) {
 function Alert(props) {
   return <MuiAlert elevation={6} variant="filled" {...props} />;
 }
-const dataURItoBlob = (dataURI) => {
+export const dataURItoBlob = (dataURI) => {
   var byteString = atob(dataURI.split(",")[1]);
   var mimeString = dataURI.split(",")[0].split(":")[1].split(";")[0];
   var ab = new ArrayBuffer(byteString.length);
@@ -345,19 +347,31 @@ const zoom = (scale, relative = false) => {
     cont.style.transform = `scale(${scale})`;
   }
 };
-const scaleContainer = () => {
-  let rpanelToolbar = document.querySelector("#right-panel-toolbar");
+export const scaleContainer = (container = "") => {
+  let rpanelToolbar = document.querySelector(
+    "#" + container + " #right-panel-toolbar"
+  );
+  if (!rpanelToolbar) return;
   let screen =
-    window.innerHeight - rpanelToolbar.clientHeight - (config.padding || 0);
-  let scale = screen / document.querySelector("#content-maker").clientHeight;
-  let rpanel = document.querySelector("#right-panel");
+    window.innerHeight -
+    rpanelToolbar.clientHeight -
+    (config.padding || 0) -
+    rpanelToolbar.getBoundingClientRect().y;
+  let scale =
+    screen /
+    document.querySelector("#" + container + " #" + container + "-canvas")
+      .clientHeight;
+  let rpanel = document.querySelector("#" + container + " #right-panel");
   if (scale < 1) {
     document.querySelector(
-      "#content-maker-container"
+      "#" + container + " #content-maker-container"
     ).style.transform = `scale(${scale})`;
-    document.querySelector("#content-maker-container").style.transformOrigin =
-      "center top";
-    document.querySelector(".canvas-container").style.height = "auto";
+    document.querySelector(
+      "#" + container + " #content-maker-container"
+    ).style.transformOrigin = "center top";
+    document.querySelector(
+      "#" + container + " .canvas-container"
+    ).style.height = "auto";
     rpanel.style.width = screen + "px";
     rpanel.style.height =
       window.innerHeight - rpanelToolbar.clientHeight + "px";
@@ -366,8 +380,8 @@ const scaleContainer = () => {
 const resizeDomEl = (e) => {
   if (!window.resizing) return;
   let el = window.resizing.el.parentElement;
-  let orientation =
-    window.resizing.orientation === "vertical" ? "width" : "height";
+  let isVertical = window.resizing.orientation === "vertical";
+  let orientation = isVertical ? "width" : "height";
   let size =
     el[
       window.resizing.orientation === "vertical"
@@ -386,7 +400,10 @@ const resizeDomEl = (e) => {
     window.resizing.done();
   } else {
     el.style[orientation] =
-      e[window.resizing.orientation === "vertical" ? "clientX" : "clientY"] +
+      e[isVertical ? "clientX" : "clientY"] -
+      document.querySelector("#toolbar").getBoundingClientRect()[
+        isVertical ? "x" : "y"
+      ] +
       "px";
     window.resizing.el.classList.add("resizing");
     window.resizing.callback && window.resizing.callback();
@@ -435,17 +452,6 @@ function ResizeLine(props) {
             ]
           );
         props.ready();
-      }}
-      onDoubleClick={() => {
-        let isVertical = props.orientation === "vertical" ? true : false;
-        let el = resizeRef.current.parentElement;
-        let offset = 2;
-        el.style[isVertical ? "width" : "height"] =
-          (el[isVertical ? "clientWidth" : "clientHeight"] >
-          props.minSize + offset
-            ? props.minSize + offset
-            : el.getAttribute("data-initial-size")) + "px";
-        scaleContainer();
       }}
       className={styles.resizeline}
       ref={resizeRef}
@@ -500,7 +506,358 @@ function CircleColorPicker(props) {
     </Box>
   );
 }
+export function getControls(
+  {
+    addCircle,
+    triangle,
+    changeBrush,
+    setCanvasConfig,
+    canvasConfig,
+    addText,
+    addRect,
+  },
+  filter = [],
+  customControls = [],
+  props
+) {
+  return [
+    {
+      id: "save",
+      title: "Save",
+      action: "save",
+      icon: "save",
+    },
+    {
+      id: "select",
+      title: "Select",
+      icon: "highlight_alt",
+      action: "closeDrawing",
+    },
+    {
+      id: "shapes",
+      title: "Shape",
+      icon: "crop_square",
+      type: "atomic",
+      tools: ["stroke_color", "stroke_width", "shape_color"],
+      atomicComponent: (
+        <React.Fragment>
+          <List>
+            {[
+              {
+                title: "Square",
+                icon: "crop_square",
+                onClick: addRect,
+              },
+              { title: "Circle", icon: "lens", onClick: addCircle },
+              {
+                title: "Triangle",
+                icon: "change_history",
+                onClick: triangle,
+              },
+            ].map((c, key) => (
+              <ListItem key={key} onClick={() => c.onClick()}>
+                <ListItemIcon>
+                  <Icon>{c.icon}</Icon>
+                </ListItemIcon>
+                <ListItemText primary={c.title} />
+              </ListItem>
+            ))}
+          </List>
+        </React.Fragment>
+      ),
+    },
+    {
+      id: "brush",
+      title: "Select Brush",
+      type: "atomic",
+      action: "toggleDrawing",
+      tools: ["brush_color", "brush_size", "brush_shadow", "brush_shadow_blur"],
+      atomicComponent: (
+        <React.Fragment>
+          <List>
+            {brushes.map((i, ii) => (
+              <ListItem
+                key={ii}
+                onClick={() => {
+                  changeBrush(i.id, {
+                    color: "black",
+                  });
+                  setCanvasConfig({
+                    ...canvasConfig,
+                    brushIndex: ii,
+                  });
+                }}
+                style={{
+                  background:
+                    canvasConfig.brushIndex >= 0 &&
+                    canvasConfig.brushIndex === ii
+                      ? "rgba(0,0,0,0.16)"
+                      : "",
+                }}
+              >
+                <ListItemText primary={i.name} />
+              </ListItem>
+            ))}
+          </List>
+        </React.Fragment>
+      ),
+      icon: "brush",
+      onClose: (c) => c.actions.closeDrawing(),
+    },
+    {
+      id: "text",
+      title: "Text",
+      icon: "text_fields",
+      type: "atomic",
+      atomicComponent: (closeControl) => (
+        <Box p={2}>
+          <List style={{ maxWidth: 325 }}>
+            {textStyles.map((s, index) => (
+              <ListItem key={index} onClick={() => addText("Text", s.style)}>
+                <ListItemText
+                  primary="Lorem ipsum dolor sit amet, consectetur..."
+                  primaryTypographyProps={{
+                    style: {
+                      ...(s.style ? s.style : {}),
+                    },
+                  }}
+                />
+              </ListItem>
+            ))}
+          </List>
+        </Box>
+      ),
+    },
+    {
+      id: "image",
+      title: "Image",
+      icon: "insert_photo",
+      type: "atomic",
+      atomicComponent: (closeControl) => (
+        <Box p={2}>
+          <List>
+            {[
+              {
+                title: "Insert URL",
+                icon: "link",
+                onClick: () => {
+                  let url = prompt("Enter URL");
+                  if (url) {
+                    window.creator.addImage(url);
+                  }
+                },
+              },
+              {
+                title: "Upload Image",
+                icon: "insert_photo",
+                onClick: () => {
+                  let c = document.querySelector(
+                    "#" + props.id + " #upload-image"
+                  );
+                  if (!c) {
+                    let x = document.createElement("input");
+                    x.setAttribute("type", "file");
+                    x.setAttribute("id", "upload-image");
+                    x.setAttribute(
+                      "accept",
+                      "image/x-png,image/gif,image/jpeg"
+                    );
+                    x.addEventListener("change", async () => {
+                      if (c.files.length) {
+                        if (props.upload_to_server) {
+                          let body = new FormData();
+                          body.append("file", c.files[0]);
+                          let uploadedFile = await Api.post(
+                            "/api/public/upload",
+                            {
+                              body,
+                            }
+                          );
+                          if (uploadedFile.url) {
+                            window.creator.addImage(uploadedFile.url);
+                          }
+                        } else {
+                          if (URL.createObjectURL(c.files[0]))
+                            window.creator.addImage(
+                              URL.createObjectURL(c.files[0])
+                            );
+                        }
+                      }
+                    });
+                    x.style.display = "none";
+                    document.querySelector("#" + props.id).appendChild(x);
+                  }
+                  c = document.querySelector("#" + props.id + " #upload-image");
+                  c.click();
+                },
+              },
+              {
+                title: "Google Drive",
+                onClick: () => window.GPICKER && window.GPICKER(),
+                icon: "storage",
+              },
+            ].map((c, index) => (
+              <ListItem key={index} onClick={c.onClick}>
+                <ListItemIcon>
+                  <Icon>{c.icon}</Icon>
+                </ListItemIcon>
+                <ListItemText primary={c.title} />
+              </ListItem>
+            ))}
+          </List>
+        </Box>
+      ),
+    },
+    {
+      id: "zoom",
+      title: "Zoom",
+      icon: "zoom_in",
+      type: "atomic",
+      atomicComponent: (closeControl) => (
+        <Box p={2}>
+          <List>
+            {[
+              {
+                title: "Zoom In",
+                icon: "zoom_in",
+                onClick: () => zoom(0.1),
+              },
+              {
+                title: "Zoom Out",
+                icon: "zoom_out",
+                onClick: () => zoom(-0.1),
+              },
+            ].map((c, index) => (
+              <ListItem key={index} onClick={() => c.onClick()}>
+                <ListItemIcon>
+                  <Icon>{c.icon}</Icon>
+                </ListItemIcon>
+                <ListItemText primary={c.title} />
+              </ListItem>
+            ))}
+          </List>
+          <Slider
+            onChange={(e, val) => {
+              zoom(parseFloat(val), true);
+            }}
+            min={0.1}
+            max={2}
+            step={0.1}
+            defaultValue={1}
+          />
+          <Button onClick={() => zoomStop(true)} variant="contained">
+            Reset
+          </Button>
+        </Box>
+      ),
+      onClose: () => zoomStop(),
+    },
+  ]
+    .concat(customControls)
+    .filter((c) => filter.indexOf(c.id) < 0);
+}
+export const getDefaultControls = (
+  { canvasConfig, setCanvasConfig },
+  appendControl = [],
+  id
+) => (
+  <Box p={2} width={325} display="flex" flexWrap="wrap">
+    <TextField
+      fullWidth
+      variant="outlined"
+      label="File Title"
+      margin="dense"
+      defaultValue={canvasConfig.title}
+      className="themed-input"
+      onChange={(e) => {
+        setCanvasConfig({ ...canvasConfig, title: e.target.value });
+      }}
+    />
+    <Box display="flex" fullWidth>
+      <TextField
+        variant="outlined"
+        type="number"
+        label="Width"
+        className="themed-input"
+        style={{ marginRight: 5 }}
+        margin="dense"
+        inputProps={{
+          max: config.maxWidth,
+        }}
+        value={canvasConfig.width || config.width}
+        onChange={(e) => {
+          let size = parseFloat(e.target.value);
+          if (!size) return;
+          setCanvasConfig({ ...canvasConfig, width: size });
+          if (size <= config.maxWidth) window.creator.canvas.setWidth(size);
+          else alert("Canvas width exceeded");
+          scaleContainer(id);
+        }}
+      />
+      <TextField
+        variant="outlined"
+        style={{ marginLeft: 5 }}
+        margin="dense"
+        type="number"
+        label="Height"
+        className="themed-input"
+        inputProps={{
+          max: config.maxHeight,
+        }}
+        onChange={(e) => {
+          let size = parseFloat(e.target.value);
+          if (!size) return;
+          setCanvasConfig({ ...canvasConfig, height: size });
+          if (size <= config.maxHeight) window.creator.canvas.setHeight(size);
+          else alert("Canvas height exceeded");
+          scaleContainer(id);
+        }}
+        value={canvasConfig.height || config.height}
+      />
+    </Box>
+    <Box marginTop={2}>
+      <Typography>Background Color</Typography>
+      <CircleColorPicker
+        value={canvasConfig.background || "#fff"}
+        onChange={(color) => {
+          setCanvasConfig({ ...canvasConfig, background: color });
+          window.creator.canvas.setBackgroundColor(color).renderAll();
+        }}
+      />
+    </Box>
+    {appendControl.map((c, key) => (
+      <Box marginTop={2} key={key}>
+        {c}
+      </Box>
+    ))}
+  </Box>
+);
+export const blobToBase64 = (blob) => {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(blob);
+    reader.onloadend = function () {
+      resolve(reader.result);
+    };
+  });
+};
 function ContentMaker(props) {
+  useEffect(() => {
+    window.onresize = () => {
+      scaleContainer("editor");
+    };
+    scaleContainer("editor");
+  }, []);
+  return (
+    <Canvas
+      id="editor"
+      config={config}
+      controls={(c) => getControls(c, [], [], { id: "editor" })}
+      defaultControl={(c) => getDefaultControls(c, [], "editor")}
+    />
+  );
+}
+export function Canvas(props) {
   const theme = useTheme();
   const query = require("query-string").parse(window.location.search);
   const styles = useStyles();
@@ -513,67 +870,10 @@ function ContentMaker(props) {
   const [isResizing, setIsResizing] = useState({});
   const [confirmed, setConfirmed] = useState();
   const [toolSet, setToolSet] = useState([]);
-  const brushes = [
-    {
-      id: "Pencil",
-      name: "Pencil",
-    },
-    {
-      id: "Circle",
-      name: "Circle Brush",
-    },
-    {
-      id: "diamondPatternBrush",
-      name: "Diamond",
-    },
-    {
-      id: "texturePatternBrush",
-      name: "Texture",
-    },
-    {
-      id: "squarePatternBrush",
-      name: "Square Pattern",
-    },
-    {
-      id: "hLinePatternBrush",
-      name: "Horizontal Pattern",
-    },
-    {
-      id: "vLinePatternBrush",
-      name: "Vertical Pattern",
-    },
-    {
-      id: "Spray",
-      name: "Spray",
-    },
-  ];
-  const images = [
-    {
-      link: "/content-maker/1.png",
-    },
-    {
-      link: "/content-maker/2.png",
-    },
-    {
-      link: "/content-maker/3.jpg",
-    },
-    {
-      link: "/content-maker/5723.jpg",
-    },
-  ];
+
   useEffect(() => {
     setUp();
-    window.onresize = () => {
-      scaleContainer();
-    };
   }, []);
-  const addScript = async (src, loc) => {
-    let s = $(`<script src="${src}"></script>`);
-    s.onload = () => {
-      return;
-    };
-    loc.append(s);
-  };
   const changeBrush = (id) => {
     let { canvas, creator } = getCanvas();
     let { fabric } = creator;
@@ -604,9 +904,7 @@ function ContentMaker(props) {
     });
   };
   const setUp = async () => {
-    await addScript("/fabric.min.js", $("head"));
     $("body").css("overflow", "auto");
-
     /**
      * Override the initialize function for the _historyInit();
      */
@@ -761,29 +1059,34 @@ function ContentMaker(props) {
       this._historySaveAction();
     };
 
-    const creator = new ContentCreator(window.fabric, "content-maker", {
+    const creator = new ContentCreator(window.fabric, props.id + "-canvas", {
       onModified: () => getLayers(),
     });
     const { canvas } = creator;
     window.creator = creator;
-    if (window.localStorage["content-creator"]) {
-      let savedState = JSON.parse(window.localStorage["content-creator"]);
-      await canvas.loadFromJSON(
-        JSON.parse(window.localStorage["content-creator"]),
-        function () {
-          canvas.setWidth(savedState.width || config.width);
-          canvas.setHeight(savedState.height || config.height);
-          canvas.preserveObjectStacking = true;
-          canvas.renderAll();
-        }
-      );
+    if (props.value) {
+      let savedState = props.value;
+      await canvas.loadFromJSON(savedState, function () {
+        canvas.setWidth(props.config.width || savedState.width || config.width);
+        canvas.setHeight(
+          props.config.height || savedState.height || config.height
+        );
+        canvas.preserveObjectStacking = true;
+        canvas.renderAll();
+      });
     } else {
-      canvas.setWidth(config.width);
-      canvas.setHeight(config.height);
+      if (props.config) {
+        canvas.setWidth(props.config.width);
+        canvas.setHeight(props.config.height);
+        canvas.setBackgroundColor(props.config.backgroundColor || "#fff");
+      } else {
+        canvas.setWidth(config.width);
+        canvas.setHeight(config.height);
+      }
     }
     $("#canvas-width").val(canvas.width);
     $("#canvas-height").val(canvas.height);
-    scaleContainer();
+    scaleContainer(props.id);
   };
   const getLayers = () => {
     const { canvas } = getCanvas();
@@ -822,15 +1125,6 @@ function ContentMaker(props) {
     canvas.add(text);
   };
 
-  const blobToBase64 = (blob) => {
-    return new Promise((resolve) => {
-      const reader = new FileReader();
-      reader.readAsDataURL(blob);
-      reader.onloadend = function () {
-        resolve(reader.result);
-      };
-    });
-  };
   const handleSave = () => {
     setConfirmed({
       title: "Save Material",
@@ -900,7 +1194,10 @@ function ContentMaker(props) {
   };
   return (
     <React.Fragment>
-      <Dialog open={confirmed} onClose={() => !saving && setConfirmed(null)}>
+      <Dialog
+        open={confirmed || false}
+        onClose={() => !saving && setConfirmed(null)}
+      >
         <DialogTitle>{confirmed && confirmed.title}</DialogTitle>
         <DialogContent>{confirmed && confirmed.message}</DialogContent>
         <DialogActions>
@@ -939,91 +1236,17 @@ function ContentMaker(props) {
           </Button>
         </DialogActions>
       </Dialog>
-      <GooglePicker
-        type="photo"
-        auth={(s) => (window.GPICKER = s)}
-        onSelect={({ thumb }) => {
-          console.log(thumb);
-          if (thumb) {
-            console.log(thumb);
-          }
-        }}
-      />
-      <div className={styles.root}>
+      <GooglePicker type="photo" auth={(s) => (window.GPICKER = s)} />
+      <div id={props.id} className={styles.root}>
         <Box id="toolbar-container">
           <CreatorToolbar
+            {...props}
+            disabledIcon={props.disabledIcon}
             onShowTools={(tool) => setToolSet(tool)}
             defaultControl={
-              <Box p={2} width={325} display="flex" flexWrap="wrap">
-                <TextField
-                  fullWidth
-                  variant="outlined"
-                  label="File Title"
-                  margin="dense"
-                  defaultValue={canvasConfig.title}
-                  className="themed-input"
-                  onChange={(e) => {
-                    setCanvasConfig({ ...canvasConfig, title: e.target.value });
-                  }}
-                />
-                <Box display="flex" fullWidth>
-                  <TextField
-                    variant="outlined"
-                    type="number"
-                    label="Width"
-                    className="themed-input"
-                    style={{ marginRight: 5 }}
-                    margin="dense"
-                    inputProps={{
-                      max: config.maxWidth,
-                    }}
-                    value={canvasConfig.width || config.width}
-                    onChange={(e) => {
-                      let size = parseFloat(e.target.value);
-                      if (!size) return;
-                      setCanvasConfig({ ...canvasConfig, width: size });
-                      if (size <= config.maxWidth)
-                        window.creator.canvas.setWidth(size);
-                      else alert("Canvas width exceeded");
-
-                      scaleContainer();
-                    }}
-                  />
-                  <TextField
-                    variant="outlined"
-                    style={{ marginLeft: 5 }}
-                    margin="dense"
-                    type="number"
-                    label="Height"
-                    className="themed-input"
-                    inputProps={{
-                      max: config.maxHeight,
-                    }}
-                    onChange={(e) => {
-                      let size = parseFloat(e.target.value);
-                      if (!size) return;
-                      setCanvasConfig({ ...canvasConfig, height: size });
-                      if (size <= config.maxHeight)
-                        window.creator.canvas.setHeight(size);
-                      else alert("Canvas height exceeded");
-                      scaleContainer();
-                    }}
-                    value={canvasConfig.height || config.height}
-                  />
-                </Box>
-                <Box marginTop={2}>
-                  <Typography>Background Color</Typography>
-                  <CircleColorPicker
-                    value={canvasConfig.background || "#fff"}
-                    onChange={(color) => {
-                      setCanvasConfig({ ...canvasConfig, background: color });
-                      window.creator.canvas
-                        .setBackgroundColor(color)
-                        .renderAll();
-                    }}
-                  />
-                </Box>
-              </Box>
+              (props.defaultControl &&
+                props.defaultControl({ canvasConfig, setCanvasConfig })) ||
+              null
             }
             actions={{
               save: () => handleSave(),
@@ -1065,6 +1288,18 @@ function ContentMaker(props) {
                       changeBrushStyle({
                         color,
                       });
+                    }}
+                  />
+                ),
+              },
+              background_color: {
+                title: "Canvas Background",
+                component: (
+                  <CircleColorPicker
+                    onChange={(color) => {
+                      window.creator.canvas
+                        .setBackgroundColor(color)
+                        .renderAll();
                     }}
                   />
                 ),
@@ -1177,224 +1412,18 @@ function ContentMaker(props) {
                 ),
               },
             }}
-            controls={[
-              {
-                title: "Save",
-                action: "save",
-                icon: "save",
-              },
-              {
-                title: "Select",
-                icon: "highlight_alt",
-                action: "closeDrawing",
-              },
-              {
-                title: "Shape",
-                icon: "crop_square",
-                type: "atomic",
-                tools: ["stroke_color", "stroke_width", "shape_color"],
-                atomicComponent: (
-                  <React.Fragment>
-                    <List>
-                      {[
-                        {
-                          title: "Square",
-                          icon: "crop_square",
-                          onClick: addRect,
-                        },
-                        { title: "Circle", icon: "lens", onClick: addCircle },
-                        {
-                          title: "Triangle",
-                          icon: "change_history",
-                          onClick: triangle,
-                        },
-                      ].map((c) => (
-                        <ListItem onClick={() => c.onClick()}>
-                          <ListItemIcon>
-                            <Icon>{c.icon}</Icon>
-                          </ListItemIcon>
-                          <ListItemText primary={c.title} />
-                        </ListItem>
-                      ))}
-                    </List>
-                  </React.Fragment>
-                ),
-              },
-              {
-                title: "Select Brush",
-                type: "atomic",
-                action: "toggleDrawing",
-                tools: [
-                  "brush_color",
-                  "brush_size",
-                  "brush_shadow",
-                  "brush_shadow_blur",
-                ],
-                atomicComponent: (
-                  <React.Fragment>
-                    <List>
-                      {brushes.map((i, ii) => (
-                        <ListItem
-                          key={ii}
-                          onClick={() => {
-                            changeBrush(i.id, {
-                              color: "black",
-                            });
-                            setCanvasConfig({
-                              ...canvasConfig,
-                              brushIndex: ii,
-                            });
-                          }}
-                          style={{
-                            background:
-                              canvasConfig.brushIndex >= 0 &&
-                              canvasConfig.brushIndex === ii
-                                ? "rgba(0,0,0,0.16)"
-                                : "",
-                          }}
-                        >
-                          <ListItemText primary={i.name} />
-                        </ListItem>
-                      ))}
-                    </List>
-                  </React.Fragment>
-                ),
-                icon: "brush",
-                onClose: (c) => c.actions.closeDrawing(),
-              },
-              {
-                title: "Text",
-                icon: "text_fields",
-                type: "atomic",
-                atomicComponent: (closeControl) => (
-                  <Box p={2}>
-                    <List style={{ maxWidth: 325 }}>
-                      {textStyles.map((s, index) => (
-                        <ListItem
-                          key={index}
-                          onClick={() => addText("Text", s.style)}
-                        >
-                          <ListItemText
-                            primary="Lorem ipsum dolor sit amet, consectetur..."
-                            primaryTypographyProps={{
-                              style: {
-                                ...(s.style ? s.style : {}),
-                              },
-                            }}
-                          />
-                        </ListItem>
-                      ))}
-                    </List>
-                  </Box>
-                ),
-              },
-              {
-                title: "Image",
-                icon: "insert_photo",
-                type: "atomic",
-                atomicComponent: (closeControl) => (
-                  <Box p={2}>
-                    <List>
-                      {[
-                        {
-                          title: "Insert URL",
-                          icon: "link",
-                          onClick: () => {
-                            let url = prompt("Enter URL");
-                            if (url) {
-                              window.creator.addImage(url);
-                            }
-                          },
-                        },
-                        {
-                          title: "Upload Image",
-                          icon: "insert_photo",
-                          onClick: () => {
-                            let c = document.querySelector("#upload-image");
-                            if (!c) {
-                              let x = document.createElement("input");
-                              x.setAttribute("type", "file");
-                              x.setAttribute("id", "upload-image");
-                              x.setAttribute(
-                                "accept",
-                                "image/x-png,image/gif,image/jpeg"
-                              );
-                              x.addEventListener("change", () => {
-                                if (c.files) {
-                                  if (URL.createObjectURL(c.files[0]))
-                                    window.creator.addImage(
-                                      URL.createObjectURL(c.files[0])
-                                    );
-                                }
-                              });
-                              x.style.display = "none";
-                              document.body.appendChild(x);
-                            }
-                            c = document.querySelector("#upload-image");
-                            c.click();
-                          },
-                        },
-                        {
-                          title: "Google Drive",
-                          onClick: () => window.GPICKER && window.GPICKER(),
-                          icon: "storage",
-                        },
-                      ].map((c) => (
-                        <ListItem onClick={c.onClick}>
-                          <ListItemIcon>
-                            <Icon>{c.icon}</Icon>
-                          </ListItemIcon>
-                          <ListItemText primary={c.title} />
-                        </ListItem>
-                      ))}
-                    </List>
-                  </Box>
-                ),
-              },
-              {
-                title: "Zoom",
-                icon: "zoom_in",
-                type: "atomic",
-                atomicComponent: (closeControl) => (
-                  <Box p={2}>
-                    <List>
-                      {[
-                        {
-                          title: "Zoom In",
-                          icon: "zoom_in",
-                          onClick: () => zoom(0.1),
-                        },
-                        {
-                          title: "Zoom Out",
-                          icon: "zoom_out",
-                          onClick: () => zoom(-0.1),
-                        },
-                      ].map((c) => (
-                        <ListItem onClick={() => c.onClick()}>
-                          <ListItemIcon>
-                            <Icon>{c.icon}</Icon>
-                          </ListItemIcon>
-                          <ListItemText primary={c.title} />
-                        </ListItem>
-                      ))}
-                    </List>
-                    <Slider
-                      onChange={(e, val) => {
-                        zoom(parseFloat(val), true);
-                      }}
-                      min={0.1}
-                      max={2}
-                      step={0.1}
-                      defaultValue={1}
-                    />
-                    <Button onClick={() => zoomStop(true)} variant="contained">
-                      Reset
-                    </Button>
-                  </Box>
-                ),
-                onClose: () => zoomStop(),
-              },
-            ]}
+            controls={
+              props.controls &&
+              props.controls({
+                addRect,
+                addCircle,
+                triangle,
+                changeBrush,
+                setCanvasConfig,
+                canvasConfig,
+                addText,
+              })
+            }
           />
         </Box>
         <Box flex={1} position="relative" zIndex={4}>
@@ -1409,7 +1438,20 @@ function ContentMaker(props) {
                 display="flex"
                 alignItems="center"
               >
-                <ButtonGroup variant="outlined" color="primary">
+                {props.disabledIcon && (
+                  <Button
+                    onClick={() => props.onPreview && props.onPreview(false)}
+                    variant="contained"
+                    color="primary"
+                  >
+                    EXIT BOARD
+                  </Button>
+                )}
+                <ButtonGroup
+                  variant="outlined"
+                  color="primary"
+                  disabled={props.disabledIcon}
+                >
                   <Button onClick={() => window.creator.canvas.undo()}>
                     <Icon>undo</Icon>
                   </Button>
@@ -1452,6 +1494,7 @@ function ContentMaker(props) {
             <ResizeLine
               orientation="horizontal"
               minSize={6}
+              id={props.id}
               resizing={isResizing.TOOLBAR || false}
               ready={() =>
                 setIsResizing({ ...isResizing, ...{ TOOLBAR: true } })
@@ -1459,7 +1502,7 @@ function ContentMaker(props) {
               done={() =>
                 setIsResizing({ ...isResizing, ...{ TOOLBAR: false } })
               }
-              onResize={() => scaleContainer()}
+              onResize={() => scaleContainer(props.id)}
               style={{
                 position: "absolute",
                 borderBottom: "1px solid rgba(0,0,0,0.17)",
@@ -1479,7 +1522,11 @@ function ContentMaker(props) {
                 transformOrigin: "top left",
               }}
             >
-              <canvas id="content-maker"></canvas>
+              <canvas
+                id={props.id + "-canvas"}
+                style={{ opacity: props.preview ? 0 : 1 }}
+              ></canvas>
+              {props.preview}
             </Box>
           </Box>
         </Box>
@@ -1539,7 +1586,7 @@ function ContentMaker(props) {
     </React.Fragment>
   );
 }
-function CreatorToolbar(props) {
+export function CreatorToolbar(props) {
   const [isResizing, setIsResizing] = useState({});
   const [modals, setModals] = useState(props.controls.map((c) => false));
   const styles = useStyles();
@@ -1562,7 +1609,8 @@ function CreatorToolbar(props) {
           c.tools.map((t) => props.tools[t] || null).filter((t) => t !== null)
         )
       : props.onShowTools([]);
-    setTimeout(scaleContainer, 0);
+    document.querySelector("#toolbar").style.width = "auto";
+    setTimeout(() => scaleContainer(props.id), 0);
   };
 
   return (
@@ -1583,17 +1631,17 @@ function CreatorToolbar(props) {
           }}
         >
           {props.controls.map((c, index) => (
-            <React.Fragment>
+            <React.Fragment key={index}>
               <Box>
                 <Tooltip title={c.title} placement="right">
                   <IconButton
                     onClick={() => toggleAtomic(c, index)}
                     {...(c.props || {})}
+                    disabled={props.disabledIcon || false}
+                    color={modals[index] ? "primary" : "inherit"}
                   >
                     {typeof c.icon === "string" ? (
-                      <Icon color={modals[index] ? "primary" : "default"}>
-                        {c.icon}
-                      </Icon>
+                      <Icon>{c.icon}</Icon>
                     ) : (
                       c.icon
                     )}
@@ -1619,21 +1667,22 @@ function CreatorToolbar(props) {
             : 0,
         }}
       >
-        {props.controls.map((c, index) => (
-          <React.Fragment>
-            {modals[index] && (
-              <Grow in={true}>
-                <Box className="control">
-                  {typeof c.atomicComponent !== "function"
-                    ? c.atomicComponent
-                    : c.atomicComponent(() =>
-                        toggleAtomic(c, index, c.onClose)
-                      )}
-                </Box>
-              </Grow>
-            )}
-          </React.Fragment>
-        ))}
+        {!props.disabledIcon &&
+          props.controls.map((c, index) => (
+            <React.Fragment key={index}>
+              {modals[index] && (
+                <Grow in={true}>
+                  <Box className="control">
+                    {typeof c.atomicComponent !== "function"
+                      ? c.atomicComponent
+                      : c.atomicComponent(() =>
+                          toggleAtomic(c, index, c.onClose)
+                        )}
+                  </Box>
+                </Grow>
+              )}
+            </React.Fragment>
+          ))}
         {props.defaultControl &&
         (!Object.keys(modals).find((q) => (modals[q] ? q : null)) ||
           !props.controls[
@@ -1644,12 +1693,13 @@ function CreatorToolbar(props) {
       </Box>
       <ResizeLine
         minSize={48}
-        maxSize={500}
+        maxSize={375}
+        id={props.id}
         orientation="vertical"
         resizing={isResizing.CONTROLS || false}
         ready={() => setIsResizing({ ...isResizing, ...{ CONTROLS: true } })}
         done={() => setIsResizing({ ...isResizing, ...{ CONTROLS: false } })}
-        onResize={() => scaleContainer()}
+        onResize={() => scaleContainer(props.id)}
         style={{
           position: "absolute",
           borderRight: "1px solid rgba(0,0,0,0.17)",
@@ -1661,6 +1711,41 @@ function CreatorToolbar(props) {
     </Box>
   );
 }
+
+export const brushes = [
+  {
+    id: "Pencil",
+    name: "Pencil",
+  },
+  {
+    id: "Circle",
+    name: "Circle Brush",
+  },
+  {
+    id: "diamondPatternBrush",
+    name: "Diamond",
+  },
+  {
+    id: "texturePatternBrush",
+    name: "Texture",
+  },
+  {
+    id: "squarePatternBrush",
+    name: "Square Pattern",
+  },
+  {
+    id: "hLinePatternBrush",
+    name: "Horizontal Pattern",
+  },
+  {
+    id: "vLinePatternBrush",
+    name: "Vertical Pattern",
+  },
+  {
+    id: "Spray",
+    name: "Spray",
+  },
+];
 
 const useStyles = makeStyles((theme) => ({
   resizeline: {

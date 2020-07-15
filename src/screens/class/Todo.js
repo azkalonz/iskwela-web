@@ -47,6 +47,7 @@ function Todo(props) {
               margin: "0 auto",
               marginTop: theme.spacing(2),
             }),
+        maxWidth: props.maxWidth || "auto",
       }}
     >
       {props.classDetails[class_id] && (

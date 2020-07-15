@@ -284,7 +284,6 @@ function LessonPlan(props) {
       body.append("file", file);
       body.append("schedule_id", schedule_id);
       body.append("title", form.title);
-      console.log("file", file);
       let res = await FileUpload.upload("/api/upload/class/lesson-plan", {
         body,
         onUploadProgress: (event, source) =>

@@ -288,7 +288,6 @@ function Project(props) {
       let f = scores.find((qq) => q.student.id === qq.student_id);
       return f ? { ...q, score: f } : q;
     });
-    console.log(a);
     setCurrentActivity({
       ...currentActivity,
       answers: a.sort((b, c) => (b.answers.length ? -1 : 0)),
@@ -890,7 +889,6 @@ function Project(props) {
       let file = new File([blob], details.data.title, { type: blob.type });
       setContentCreatorFile({ file, title: details.data.title });
       stageFiles("activity-materials", file);
-      console.log(file, contentCreatorFile);
       setFilesToUpload({ ...filesToUpload, ACTIVITY_MATERIALS: true });
     }
   };
@@ -1806,7 +1804,7 @@ function Project(props) {
                 },
               })
         }
-        onSave={(a) => console.log(a)}
+        onSave={(a) => null}
       />
       <CreateDialog
         title={form.id ? "Edit Project" : "Create Project"}

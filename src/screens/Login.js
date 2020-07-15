@@ -244,6 +244,7 @@ const useStyles = makeStyles((theme) => ({
       position: "absolute",
       pointerEvents: "none",
       zIndex: 1,
+      display: "none",
     },
     "& .student": {
       height: "100%",
@@ -254,6 +255,7 @@ const useStyles = makeStyles((theme) => ({
       right: -50,
       background: "url(/login/student.svg) no-repeat",
       backgroundSize: "100% auto",
+      display: "none",
       backgroundPosition: "0 95%",
     },
     "& .media": {
@@ -265,6 +267,7 @@ const useStyles = makeStyles((theme) => ({
       left: 0,
       background: "url(/login/media.svg) no-repeat",
       backgroundSize: "100% auto",
+      display: "none",
       backgroundPosition: "0 70%",
     },
     "& .lamp": {

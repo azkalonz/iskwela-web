@@ -53,7 +53,6 @@ function AnswerQuiz(props) {
       id: props.quiz.id,
     });
     socket.on("get progress", (data = {}) => {
-      console.log("progress ", data);
       if (data) {
         callback(data);
       } else {

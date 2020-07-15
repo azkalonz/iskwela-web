@@ -74,15 +74,10 @@ function ClassRightPanel(props) {
     else props.loading(false);
   }, [option_name]);
   return View ? (
-    <Box
-      width="100%"
-      style={{
-        padding: !isTablet ? "0 40px" : 0,
-      }}
-      height={props.isConferencing ? "100vh" : "auto"}
-    >
+    <Box width="100%" height={props.isConferencing ? "100vh" : "auto"}>
       <View
         {...props}
+        maxWidth={1040}
         refresh={handleRefresh}
         onLoad={(load = false) => props.loading(load)}
         test={123}
@@ -886,6 +881,7 @@ function Class(props) {
                     classSched={schedule_id}
                     isConferencing={isConferencing()}
                     loading={(e) => setRightPanelLoading(e)}
+                    fullWidth={query.full_width ? true : false}
                     {...props}
                   />
                 )}

@@ -14,6 +14,7 @@ import Api from "./api";
 import ContentMaker from "./components/content-creator";
 import Recorder from "./components/Recorder";
 import GooglePicker from "./components/GooglePicker";
+import WhiteBoard from "./components/WhiteBoard";
 import store from "./components/redux/store";
 import socket from "./components/socket.io";
 import UserData from "./components/UserData";
@@ -289,9 +290,6 @@ function App(props) {
     },
   });
   useEffect(() => {
-    console.log(window.location);
-  }, [window.location]);
-  useEffect(() => {
     socket.on("get class details", (c) => {
       if (store.getState().classes[c.id]) {
         UserData.updateClassDetails(c.id, c.details);
@@ -306,7 +304,6 @@ function App(props) {
       } else {
         questionnaires.push(q);
       }
-      console.log(questionnaires);
       store.dispatch({
         type: "SET_QUESTIONNAIRES",
         questionnaires,
@@ -342,6 +339,7 @@ function App(props) {
           {!loading && (
             <BrowserRouter>
               <Switch>
+                <Route exact path="/white" component={WhiteBoard} />
                 <Route exact path="/record" component={Recorder} />
                 <Route exact path="/" component={Home} />
                 <Route exact path="/post" component={Posts} />

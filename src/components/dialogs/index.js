@@ -293,7 +293,7 @@ const styles = (theme) => ({
     color: theme.palette.grey[500],
   },
 });
-const DialogTitle = withStyles(styles)((props) => {
+export const DialogTitle = withStyles(styles)((props) => {
   const { children, classes, onClose, ...other } = props;
   return (
     <MuiDialogTitle disableTypography className={classes.root} {...other}>

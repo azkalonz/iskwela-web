@@ -265,7 +265,6 @@ function StartADiscussion(props) {
   };
   const handleSave = (data) => {
     let x = JSON.parse(data);
-    console.log(x);
     socket.emit("save post", {
       class_id: props.class.id,
       value: data,
@@ -776,7 +775,11 @@ function Posts(props) {
   return (
     <React.Fragment>
       {props.classes[class_id] && props.classes[class_id].students && (
-        <Box p={2} className={styles.root}>
+        <Box
+          p={2}
+          className={styles.root}
+          style={{ maxWidth: props.maxWidth || "auto" }}
+        >
           <Box display="flex" justifyContent="center" alignItems="flex-start">
             <Box width="100%" maxWidth={765}>
               <ConnectedStartADiscussion

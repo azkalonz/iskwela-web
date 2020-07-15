@@ -6,6 +6,7 @@ import Attendance from "../../screens/class/Attendance";
 import InstructionalMaterials from "../../screens/class/InstructionalMaterials";
 import LessonPlan from "../../screens/class/LessonPlan";
 import Kahoot from "../../screens/class/Kahoot";
+import WhiteBoard from "../../components/WhiteBoard";
 import Todo from "../../screens/class/Todo";
 import Periodical from "../../screens/class/Periodical";
 import Posts from "../../screens/class/Posts";
@@ -73,6 +74,12 @@ export const rightPanelOptions = [
         link: "assignments",
         icon: null,
         screen: Assignment,
+      },
+      {
+        title: "White Board",
+        link: "white-board",
+        icon: null,
+        screen: WhiteBoard,
       },
       {
         title: "Kahoot",
@@ -203,6 +210,12 @@ export const rightPanelOptionsStudents = [
         link: "assignments",
         icon: null,
         screen: Assignment,
+      },
+      {
+        title: "White Board",
+        link: "white-board",
+        icon: null,
+        screen: WhiteBoard,
       },
       {
         title: "Kahoot",

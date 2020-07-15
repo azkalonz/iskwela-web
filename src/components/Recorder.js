@@ -176,15 +176,15 @@ function Recorder(props) {
           if (preview.duration && preview.duration !== Infinity) {
             DURATION = preview.duration;
             setDuration(DURATION);
+            audioRef.current.src = "";
+            audioRef.current.src = url;
+            drawSpectrum(url);
+            setStatus({ recorder: "stopped", player: "pause" });
+            props.onSave && props.onSave(d.files[0]);
           }
         },
         false
       );
-      audioRef.current.src = "";
-      audioRef.current.src = url;
-      drawSpectrum(url);
-      setStatus({ recorder: "stopped", player: "pause" });
-      props.onSave && props.onSave(d.files[0]);
     }
   };
   useEffect(() => {
