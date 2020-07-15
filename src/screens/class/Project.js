@@ -861,6 +861,11 @@ function Project(props) {
   const handleCreateContent = () => {
     window.open("/content-maker?callback=send_item&to=" + socket.id, "_blank");
   };
+  const saveAudio = (audio) => {
+    let file = new File([audio], "Audio 🎧", { type: audio.type });
+    stageFiles("activity-materials", file);
+    setFilesToUpload({ ...filesToUpload, ACTIVITY_MATERIALS: true });
+  };
 
   const getFilteredActivities = (ac = activities) =>
     ac
@@ -1804,7 +1809,7 @@ function Project(props) {
                 },
               })
         }
-        onSave={(a) => null}
+        onSave={(a) => saveAudio(a)}
       />
       <CreateDialog
         title={form.id ? "Edit Project" : "Create Project"}

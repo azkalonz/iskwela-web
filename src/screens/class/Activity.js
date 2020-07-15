@@ -863,6 +863,12 @@ function Activity(props) {
   const handleCreateContent = () => {
     window.open("/content-maker?callback=send_item&to=" + socket.id, "_blank");
   };
+  const saveAudio = (audio) => {
+    let file = new File([audio], "Audio 🎧", { type: audio.type });
+    console.log(file);
+    stageFiles("activity-materials", file);
+    setFilesToUpload({ ...filesToUpload, ACTIVITY_MATERIALS: true });
+  };
 
   const getFilteredActivities = (ac = activities) =>
     ac
@@ -1797,7 +1803,7 @@ function Activity(props) {
                 },
               })
         }
-        onSave={(a) => null}
+        onSave={(a) => saveAudio(a)}
       />
       <CreateDialog
         title={form.id ? "Edit Seatwork" : "Create Seatwork"}

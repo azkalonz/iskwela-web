@@ -578,6 +578,7 @@ function InstructionalMaterials(props) {
       },
     });
   };
+
   const getFilteredMaterials = (ma = materials) =>
     ma
       .filter((i) => (isTeacher ? true : i.status === "published"))

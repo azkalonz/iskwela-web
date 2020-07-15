@@ -52,7 +52,6 @@ export function RecorderDialog(props) {
       maxWidth="md"
       fullWidth
       fullScreen={isMobile}
-      style={{ background: "linear-gradient(45deg, #df2550, #9471ff)" }}
       onClose={() => handleClose()}
     >
       <DialogTitle onClose={() => handleClose()}>

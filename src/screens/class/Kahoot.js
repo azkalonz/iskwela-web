@@ -12,7 +12,7 @@ function Kahoot(props) {
     };
   }, []);
   return (
-    <Box marginTop={2} marginBottom={2} height="100%" width="100%">
+    <Box marginTop={2} marginBottom={2} height="100vh" width="100%">
       <iframe
         id="kahoot-iframe"
         style={{ border: "none" }}
