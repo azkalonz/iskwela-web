@@ -880,6 +880,7 @@ function Project(props) {
       .reverse();
 
   useEffect(() => {
+    socket.off("get item");
     socket.on("get item", getItem);
     if (document.querySelector("#activity-material") && !saving)
       removeFiles("activity-materials", "#activity-material");
