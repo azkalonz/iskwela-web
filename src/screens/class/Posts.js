@@ -778,7 +778,7 @@ function Posts(props) {
         <Box
           p={2}
           className={styles.root}
-          style={{ maxWidth: props.maxWidth || "auto" }}
+          style={{ maxWidth: props.maxWidth || "auto", margin: "0 auto" }}
         >
           <Box display="flex" justifyContent="center" alignItems="flex-start">
             <Box width="100%" maxWidth={765}>
