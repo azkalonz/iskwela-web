@@ -571,10 +571,10 @@ export function SlideRenderer(props) {
                 }}
               >
                 <MenuItem value={1}>Multiple Choice</MenuItem>
-                <MenuItem value={2}>True or False</MenuItem>
+                {/* <MenuItem value={2}>True or False</MenuItem>
                 <MenuItem value={3}>Yes or No</MenuItem>
                 <MenuItem value={4}>Checkbox</MenuItem>
-                <MenuItem value={5}>Short Answer</MenuItem>
+                <MenuItem value={5}>Short Answer</MenuItem> */}
                 {/* <MenuItem value={6}>Match Type</MenuItem> */}
               </Select>
             </FormControl>
