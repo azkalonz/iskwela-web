@@ -135,6 +135,9 @@ function RecentMessages(props) {
                 </ListItem>
               );
             })}
+          <ListItem onClick={() => history.push("/chat/")}>
+            <ListItemText primary="See All" />
+          </ListItem>
         </List>
       </Box>
     </Popover>

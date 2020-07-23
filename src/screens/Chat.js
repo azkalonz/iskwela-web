@@ -326,7 +326,7 @@ function ChatBox(props) {
       >
         {props.chat && props.chat.messages && (
           <Scrollbars autoHide>
-            {props.chat.loaded !== props.chat.total && (
+            {props.chat.loaded !== props.chat.total && chat_id && (
               <Box width="100%" display="flex" justifyContent="center">
                 <IconButton onClick={loadMore}>
                   <Icon>expand_less</Icon>
