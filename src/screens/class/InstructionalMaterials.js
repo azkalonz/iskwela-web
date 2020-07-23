@@ -63,8 +63,6 @@ function InstructionalMaterials(props) {
   const classSched = props.classSched;
   const isTeacher = props.userInfo.user_type === "t" ? true : false;
   const styles = useStyles();
-  const [file, setFile] = useState();
-  const [openFileViewer, setOpenFileViewer] = useState();
   const [form, setForm] = useState({});
   const [hasFiles, setHasFiles] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -177,46 +175,46 @@ function InstructionalMaterials(props) {
   const _handleOpenFile = async (f) => {
     const controller = new AbortController();
     const signal = controller.signal;
+    let filetoopen = {};
     if (!f.uploaded_file) {
-      setFile({
-        ...file,
+      filetoopen = {
+        ...filetoopen,
         title: f.title,
         url: f.resource_link,
         error: false,
-      });
+      };
     } else {
-      setFile({
+      filetoopen = {
         title: f.title,
         error: false,
         onCancel: () => controller.abort(),
-      });
+      };
+      props.openFile(filetoopen);
       let res = await Api.postBlob("/api/download/class/material/" + f.id, {
         config: {
           signal,
         },
       }).then((resp) => (resp.ok ? resp.blob() : null));
       if (res)
-        setFile({
-          ...file,
+        filetoopen = {
+          ...filetoopen,
           title: f.title,
           url: URL.createObjectURL(
             new File([res], "activity-material-" + f.id, { type: res.type })
           ),
           error: false,
           type: res.type,
-        });
+        };
       else {
         setErrors(["Cannot open file."]);
-        setFile({
-          ...file,
+        filetoopen = {
+          ...filetoopen,
           title: f.title,
           error: true,
-        });
+        };
       }
     }
-    if (openFileViewer) {
-      openFileViewer();
-    }
+    props.openFile(filetoopen);
   };
 
   const _handleMaterialAddLink = async () => {
@@ -651,14 +649,6 @@ function InstructionalMaterials(props) {
       />
       {props.dataProgress[option_name] && (
         <Progress id={option_name} data={props.dataProgress[option_name]} />
-      )}
-      {file && (
-        <FileViewer
-          file={file}
-          open={(openRef) => setOpenFileViewer(openRef)}
-          onClose={() => setFile(null)}
-          error={file.error}
-        />
       )}
       <Dialog
         open={confirmed ? true : false}

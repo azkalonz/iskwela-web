@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   makeStyles,
   AppBar,
@@ -24,6 +24,8 @@ import {
   useTheme,
   useMediaQuery,
   ButtonGroup,
+  Icon,
+  Badge,
 } from "@material-ui/core";
 import { connect } from "react-redux";
 import actions from "./redux/actions";
@@ -38,6 +40,8 @@ import HelpOutlineOutlinedIcon from "@material-ui/icons/HelpOutlineOutlined";
 import store from "./redux/store";
 import { makeLinkTo } from "./router-dom";
 import { useHistory } from "react-router-dom";
+import Messages, { RecentMessages } from "./Messages";
+import socket from "./socket.io";
 const styles = (theme) => ({
   root: {
     margin: 0,
@@ -93,12 +97,14 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 function NavBar(props) {
+  const [notSeen, setNotSeen] = useState(0);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const history = useHistory();
   const classes = useStyles();
-  const [anchorEl, setAnchorEl] = React.useState(null);
+  const [anchorEl, setAnchorEl] = useState(null);
   const open = Boolean(anchorEl);
+  const [messageAnchor, setMessageAnchor] = useState(null);
   const [changeProfileDialog, setChangeProfileDialog] = useState(false);
   const [changePassDialog, setchangePassDialog] = useState(false);
 
@@ -130,6 +136,9 @@ function NavBar(props) {
     window.localStorage["mode"] = mode;
     store.dispatch({ type: "SET_THEME", theme: mode });
   };
+  useEffect(() => {
+    Messages.getRecentMessages(props.userInfo);
+  }, []);
   return (
     <div className={classes.root} id="nav-bar">
       <ProfilePicDialog
@@ -156,7 +165,24 @@ function NavBar(props) {
           </Typography>
           {props.right}
           {!props.right && (
-            <div>
+            <Box display="flex" alignItems="center">
+              <RecentMessages
+                anchor={messageAnchor}
+                onClose={() => setMessageAnchor(null)}
+                onNotSeen={(n) => setNotSeen(n)}
+              />
+              <IconButton onClick={(e) => setMessageAnchor(e.currentTarget)}>
+                <Badge
+                  anchorOrigin={{
+                    vertical: "bottom",
+                    horizontal: "right",
+                  }}
+                  badgeContent={notSeen}
+                  color="error"
+                >
+                  <Icon>message</Icon>
+                </Badge>
+              </IconButton>
               <ButtonGroup>
                 <Button
                   style={{ textTransform: "none" }}
@@ -225,7 +251,7 @@ function NavBar(props) {
                 </MenuItem>
                 <MenuItem onClick={handleLogout}>Logout</MenuItem>
               </Menu>
-            </div>
+            </Box>
           )}
         </Toolbar>
       </AppBar>

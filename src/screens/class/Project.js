@@ -108,13 +108,12 @@ const DialogTitle = withStyles(styles)((props) => {
     </MuiDialogTitle>
   );
 });
-
+const filesForm = {};
 function Project(props) {
   const theme = useTheme();
   const history = useHistory();
   const query = queryString.parse(window.location.search);
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
-  const [openFileViewer, setOpenFileViewer] = useState();
   const [saving, setSaving] = useState(false);
   const [filesToUpload, setFilesToUpload] = useState({
     UPLOAD_ANSWER: false,
@@ -125,7 +124,6 @@ function Project(props) {
   const [dragover, setDragover] = useState(false);
   const [search, setSearch] = useState("");
   const [modals, setModals] = React.useState({});
-  const [file, setFile] = useState();
   const isTeacher = props.userInfo.user_type === "t" ? true : false;
   const styles = useStyles();
   const classSched = props.classSched;
@@ -136,7 +134,6 @@ function Project(props) {
   const [confirmed, setConfirmed] = useState(false);
   const [savingId, setSavingId] = useState([]);
   const [answersSearch, setAnswersSearch] = useState("");
-  const [contentCreatorFile, setContentCreatorFile] = useState();
   const [selectedStatus, setSelectedStatus] = useState(
     isTeacher
       ? query.status && query.status !== "all"
@@ -243,6 +240,10 @@ function Project(props) {
         );
       }
     } catch (e) {}
+  };
+  const getFiles = (id) => {
+    if (!filesForm[id]) filesForm[id] = new FormData();
+    return filesForm[id];
   };
   useEffect(() => {
     if (props.classDetails[class_id]) {
@@ -359,7 +360,6 @@ function Project(props) {
       setErrors(["Oops! Something when wrong. Please try again."]);
     }
     if (res && !res.errors) {
-      let materialFiles = document.querySelector("#activity-material");
       if (form.materials && newMaterial && Object.keys(newMaterial).length) {
         await asyncForEach(form.materials, async (m) => {
           if (m.uploaded_file) return;
@@ -373,60 +373,38 @@ function Project(props) {
           });
         });
       }
-      if (contentCreatorFile) {
-        let body = new FormData();
-        body.append("file", contentCreatorFile.file);
-        body.append("assignment_id", res.id);
-        body.append("title", contentCreatorFile.title);
-        let a = await FileUpload.upload("/api/upload/project/material", {
-          body,
-          onUploadProgress: (event, source) =>
-            store.dispatch({
-              type: "SET_PROGRESS",
-              id: option_name,
-              data: {
-                title: contentCreatorFile.title,
-                loaded: event.loaded,
-                total: event.total,
-                onCancel: source,
-              },
-            }),
-        });
-        if (a.errors) {
-          for (let e in a.errors) {
-            err.push(a.errors[e][0]);
-          }
-        }
-      }
-      if (materialFiles.files.length) {
-        await asyncForEach(materialFiles.files, async (file) => {
-          let body = new FormData();
-          body.append("file", file);
-          body.append("assignment_id", res.id);
-          body.append("title", file.name);
-          let a;
-          try {
-            a = await FileUpload.upload("/api/upload/project/material", {
-              body,
-              onUploadProgress: (event, source) =>
-                store.dispatch({
-                  type: "SET_PROGRESS",
-                  id: option_name,
-                  data: {
-                    title: file.name,
-                    loaded: event.loaded,
-                    total: event.total,
-                    onCancel: source,
-                  },
-                }),
-            });
-            if (a.errors) {
+      if (getFiles("activity-materials").getAll("files[]").length) {
+        await asyncForEach(
+          getFiles("activity-materials").getAll("files[]"),
+          async (file) => {
+            let body = new FormData();
+            body.append("file", file);
+            body.append("assignment_id", res.id);
+            body.append("title", file.name);
+            let a;
+            try {
+              a = await FileUpload.upload("/api/upload/project/material", {
+                body,
+                onUploadProgress: (event, source) =>
+                  store.dispatch({
+                    type: "SET_PROGRESS",
+                    id: option_name,
+                    data: {
+                      title: file.name,
+                      loaded: event.loaded,
+                      total: event.total,
+                      onCancel: source,
+                    },
+                  }),
+              });
+              if (a.errors) {
+                setErrors(["Oops! Something went wrong. Please try again."]);
+              }
+            } catch (e) {
               setErrors(["Oops! Something went wrong. Please try again."]);
             }
-          } catch (e) {
-            setErrors(["Oops! Something went wrong. Please try again."]);
           }
-        });
+        );
       }
       if (!noupdate) {
         newScheduleDetails = await UserData.updateScheduleDetails(
@@ -458,7 +436,6 @@ function Project(props) {
       if (newform) setForm(newform);
       removeFiles("activity-materials", "#activity-material");
       setNewMaterial({});
-      setContentCreatorFile(null);
       setSavingId([]);
     }
     setForm({
@@ -469,6 +446,7 @@ function Project(props) {
   };
   const removeFiles = (id, inputID = null) => {
     setFilesToUpload({});
+    delete filesForm[id];
     FileUpload.removeFiles(id);
     if (inputID && document.querySelector(inputID))
       document.querySelector(inputID).value = "";
@@ -760,72 +738,72 @@ function Project(props) {
   const _handleOpenAnswer = async (f) => {
     const controller = new AbortController();
     const signal = controller.signal;
-    setFile({
+    let filetoopen = {};
+    filetoopen = {
       title: f.name,
       onCancel: () => controller.abort(),
-    });
-    if (openFileViewer) {
-      openFileViewer();
-    }
+    };
+    props.openFile(filetoopen);
     let res = await Api.postBlob("/api/download/activity/answer/" + f.id, {
       config: {
         signal,
       },
     }).then((resp) => (resp.ok ? resp.blob() : null));
     if (res)
-      setFile({
-        ...file,
+      filetoopen = {
+        ...filetoopen,
         title: f.name,
         url: URL.createObjectURL(
           new File([res], f.name + "'s Activity Answer", { type: res.type })
         ),
         type: res.type,
-      });
+      };
     else setErrors(["Cannot open file."]);
+    props.openFile(filetoopen);
   };
   const _handleOpenFile = async (f) => {
     const controller = new AbortController();
     const signal = controller.signal;
+    let filetoopen = {};
     if (!f.uploaded_file) {
-      setFile({
-        ...file,
+      filetoopen = {
+        ...filetoopen,
         title: f.title,
         url: f.resource_link,
         error: false,
-      });
+      };
     } else {
-      setFile({
+      filetoopen = {
         title: f.title,
         error: false,
         onCancel: () => controller.abort(),
-      });
+      };
+      props.openFile(filetoopen);
       let res = await Api.postBlob("/api/download/activity/material/" + f.id, {
         config: {
           signal,
         },
       }).then((resp) => (resp.ok ? resp.blob() : null));
       if (res)
-        setFile({
-          ...file,
+        filetoopen = {
+          ...filetoopen,
           title: f.title,
           url: URL.createObjectURL(
             new File([res], "activity-material-" + f.id, { type: res.type })
           ),
           error: false,
           type: res.type,
-        });
+        };
       else {
         setErrors(["Cannot open file."]);
-        setFile({
-          ...file,
+        filetoopen = {
+          ...filetoopen,
           title: f.title,
           error: true,
-        });
+        };
       }
     }
-    if (openFileViewer) {
-      openFileViewer();
-    }
+    props.openFile(filetoopen);
   };
 
   const _handleAnswerUpload = async () => {
@@ -863,6 +841,7 @@ function Project(props) {
   };
   const saveAudio = (audio) => {
     let file = new File([audio], "Audio 🎧", { type: audio.type });
+    getFiles("activity-materials").append("files[]", file);
     stageFiles("activity-materials", file);
     setFilesToUpload({ ...filesToUpload, ACTIVITY_MATERIALS: true });
   };
@@ -893,7 +872,7 @@ function Project(props) {
       const parsed = JSON.parse(details.data.b64);
       const blob = await fetch(parsed.blob).then((res) => res.blob());
       let file = new File([blob], details.data.title, { type: blob.type });
-      setContentCreatorFile({ file, title: details.data.title });
+      getFiles("activity-materials").append("files[]", file);
       stageFiles("activity-materials", file);
       setFilesToUpload({ ...filesToUpload, ACTIVITY_MATERIALS: true });
     }
@@ -993,14 +972,6 @@ function Project(props) {
           Success
         </Alert>
       </Snackbar>
-      {file && (
-        <FileViewer
-          file={file}
-          open={(openRef) => setOpenFileViewer(openRef)}
-          onClose={() => setFile(null)}
-          error={file.error}
-        />
-      )}
       {!currentActivity && (
         <Box
           m={2}
@@ -1985,16 +1956,22 @@ function Project(props) {
                       .files.length
                       ? true
                       : false;
-                    stageFiles(
-                      "activity-materials",
-                      document.querySelector("#activity-material").files
-                    );
-                    setFilesToUpload({
-                      ...filesToUpload,
-                      ACTIVITY_MATERIALS: isfiles,
-                    });
-                    if (!isfiles)
-                      removeFiles("activity-materials", "#activity-material");
+                    const projectFiles = document.querySelector(
+                      "#activity-material"
+                    ).files;
+                    if (isfiles && projectFiles.length) {
+                      stageFiles("activity-materials", projectFiles);
+                      setFilesToUpload({
+                        ...filesToUpload,
+                        ACTIVITY_MATERIALS: isfiles,
+                      });
+                      for (let i = 0; i < projectFiles.length; i++) {
+                        getFiles("activity-materials").append(
+                          "files[]",
+                          projectFiles[i]
+                        );
+                      }
+                    }
                   }}
                   multiple
                 />

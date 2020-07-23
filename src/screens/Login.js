@@ -111,10 +111,10 @@ function LoginContainer(props) {
         {isMobile && <img src="/logo/logo-single.svg" width={60} />}
       </Box>
       <Typography
-        variant="h4"
         style={{
           fontWeight: "bold",
           color: !isMobile ? theme.palette.grey[800] : "#fff",
+          fontSize: isMobile ? "1.8rem" : "2rem",
           textAlign: isMobile ? "center" : "left",
           zIndex: 2,
           position: "relative",

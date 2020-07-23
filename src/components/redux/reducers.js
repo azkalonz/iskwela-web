@@ -51,6 +51,7 @@ const classes = (state = [], payload) => {
           payload.classes[k].image = i;
         }
       });
+      console.log("details", payload.classes);
       return payload.classes;
     default:
       return state;
@@ -114,6 +115,94 @@ const dataProgress = (state = {}, payload) => {
       return state;
   }
 };
+const onlineUsers = (state = [], payload) => {
+  switch (payload.type) {
+    case "SET_ONLINE_USERS":
+      return payload.data;
+    default:
+      return state;
+  }
+};
+const messages = (
+  state = {
+    recent_messages: [],
+    current: { messages: [], loaded: 0 },
+  },
+  payload
+) => {
+  switch (payload.type) {
+    case "SET_MESSAGES":
+      let added = payload.data.messages.length;
+      let { messages, loaded, channel } = state.current;
+      if (payload.data.channel !== channel) loaded = 0;
+      console.log(payload);
+      return {
+        ...state,
+        current: {
+          ...state.current,
+          ...payload.data,
+          messages:
+            payload.data.channel === channel &&
+            state.current.messages.length < payload.data.total
+              ? [...messages, ...payload.data.messages]
+              : payload.data.messages,
+          loaded:
+            loaded +
+            (state.current.messages.length < payload.data.total ? added : 0),
+        },
+      };
+    case "SET_RECENT":
+      let r = [...state.recent_messages];
+      let recentIndex = r.findIndex(
+        (q) =>
+          (q.receiver.username === payload.data[0].sender.username &&
+            q.sender.username === payload.data[0].receiver.username) ||
+          (q.receiver.username === payload.data[0].receiver.username &&
+            q.sender.username === payload.data[0].sender.username)
+      );
+      if (recentIndex >= 0) r.splice(recentIndex, 1);
+      r = [...r, ...payload.data];
+      return {
+        ...state,
+        recent_messages: r,
+      };
+    case "ADD_MESSAGE":
+      let newMessage = [...state.current.messages];
+      if (payload.data.channel === state.current.channel)
+        newMessage.push(payload.data);
+      return {
+        ...state,
+        recent_messages: [...state.recent_messages, payload.data],
+        current: {
+          ...state.current,
+          messages: newMessage,
+        },
+      };
+    case "UPDATE_MESSAGE":
+      const { id, update } = payload.data;
+      let updatedState = { ...state };
+      updatedState.recent_messages = updatedState.recent_messages.map((q) =>
+        q.id === id
+          ? {
+              ...q,
+              ...update,
+            }
+          : q
+      );
+      updatedState.current.messages = updatedState.current.messages.map((q) =>
+        q.id === id
+          ? {
+              ...q,
+              ...update,
+            }
+          : q
+      );
+      console.log(state);
+      return updatedState;
+    default:
+      return state;
+  }
+};
 
 export default combineReducers({
   userInfo,
@@ -125,4 +214,6 @@ export default combineReducers({
   theme,
   pics,
   gradingCategories,
+  onlineUsers,
+  messages,
 });

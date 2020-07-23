@@ -18,6 +18,7 @@ import {
 } from "@material-ui/core";
 import moment from "moment";
 import PopupState, { bindTrigger, bindMenu } from "material-ui-popup-state";
+import Api from "../api";
 const RecordRTC = require("recordrtc");
 
 const tickInterval = 100;
@@ -51,7 +52,8 @@ function Recorder(props) {
         setStream(stream);
         let r = RecordRTC(stream, {
           type: "audio",
-          mimeType: "audio/wav",
+          recorderType: RecordRTC.StereoAudioRecorder,
+          numberOfAudioChannels: 2,
         });
         r.onStateChanged = (state) => {
           window.clearInterval(timer);
@@ -62,10 +64,6 @@ function Recorder(props) {
                 setDuration(DURATION);
               }, 1000);
               break;
-            case "paused":
-              break;
-            case "stopped":
-              DURATION = 0;
           }
           setStatus({ ...status, recorder: state });
         };
@@ -74,6 +72,7 @@ function Recorder(props) {
   };
   const startRecording = () => {
     if (!recorder) return;
+    recorder.reset();
     DURATION = 0;
     setDuration(DURATION);
     window.clearInterval(timer);
@@ -92,14 +91,8 @@ function Recorder(props) {
     audioRef.current.src = "";
   };
   const downloadAudio = () => {
-    window.getSeekableBlob(recorder.getBlob(), function (seekableBlob) {
-      window.invokeSaveAsDialog(
-        seekableBlob,
-        "iSkwela-Audio-Recording-" +
-          new Date().toString().replace(" ", "-") +
-          ".wav"
-      );
-    });
+    if (!props.preview) saveAs(recorder.getBlob(), "Audio.wav");
+    else if (props.src) saveAs(props.src, "Audio.wav");
   };
   const stopRecording = (save = true) => {
     if (!recorder) return;
@@ -121,6 +114,7 @@ function Recorder(props) {
       barWidth: 2,
       barHeight: 1,
       barGap: null,
+      ...(props.wvConfig ? props.wvConfig : {}),
     });
     wavesurfer.load(url);
     initListeners();
@@ -128,9 +122,9 @@ function Recorder(props) {
   const initListeners = () => {
     let wv = document.querySelector("#waveform wave");
     wv.addEventListener("click", (e) => {
-      let d = (e.offsetX / parseInt(wv.clientWidth)) * duration;
+      let d = (e.offsetX / parseInt(wv.clientWidth)) * DURATION;
       audioRef.current.currentTime = d;
-      setDuration(d);
+      // setDuration(d);
     });
   };
   const handlePlay = () => {
@@ -166,6 +160,7 @@ function Recorder(props) {
   };
   const playUploadedFile = () => {
     let d = document.querySelector("#audio-upload");
+    audioRef.current.src = "";
     if (d?.files.length) {
       let url = URL.createObjectURL(d.files[0]);
       let preview = document.createElement("audio");
@@ -176,7 +171,6 @@ function Recorder(props) {
           if (preview.duration && preview.duration !== Infinity) {
             DURATION = preview.duration;
             setDuration(DURATION);
-            audioRef.current.src = "";
             audioRef.current.src = url;
             drawSpectrum(url);
             setStatus({ recorder: "stopped", player: "pause" });
@@ -187,21 +181,48 @@ function Recorder(props) {
       );
     }
   };
+  const loadAudio = (url) => {
+    let preview = document.createElement("audio");
+    preview.src = url;
+    preview.addEventListener(
+      "loadedmetadata",
+      function () {
+        if (preview.duration && preview.duration !== Infinity) {
+          DURATION = preview.duration;
+          setDuration(DURATION);
+          audioRef.current.src = "";
+          audioRef.current.src = url;
+          drawSpectrum(url);
+          setStatus({ recorder: "stopped", player: "pause" });
+        }
+      },
+      false
+    );
+  };
   useEffect(() => {
     if (!hasGetUserMedia) {
       alert(
         "Your browser cannot stream from your webcam. Please switch to Chrome or Firefox."
       );
     } else {
-      captureDevice();
+      if (!props.preview) captureDevice();
     }
   }, []);
   useEffect(() => {
     if (stream && props.getStream) props.getStream(stream);
   }, [stream]);
+  useEffect(() => {
+    if (props.src) {
+      loadAudio(props.src);
+    }
+  }, [props.src]);
   return (
-    <Paper style={{ boxShadow: "none!important" }}>
-      <Box width="100%" height={127} position="relative">
+    <Paper style={{ boxShadow: "none!important", width: "100%" }}>
+      <Box
+        width="100%"
+        height={props.wvConfig?.height || 127}
+        position="relative"
+      >
         <input
           style={{ display: "none" }}
           type="file"
@@ -223,13 +244,15 @@ function Recorder(props) {
                   >
                     Download
                   </MenuItem>
-                  <MenuItem
-                    onClick={() =>
-                      document.querySelector("#audio-upload").click()
-                    }
-                  >
-                    Upload Audio
-                  </MenuItem>
+                  {!props.preview && (
+                    <MenuItem
+                      onClick={() =>
+                        document.querySelector("#audio-upload").click()
+                      }
+                    >
+                      Upload Audio
+                    </MenuItem>
+                  )}
                 </Menu>
               </React.Fragment>
             )}
@@ -242,7 +265,7 @@ function Recorder(props) {
             display: status.recorder === "stopped" ? "block" : "none",
           }}
         ></div>
-        {status.player !== "playing" && (
+        {!props.preview && status.player !== "playing" && (
           <Grow in={true}>
             <Box
               width="100%"
@@ -301,54 +324,56 @@ function Recorder(props) {
         justifyContent="space-between"
         p={isMobile ? 0 : 2}
       >
-        <Box
-          display="flex"
-          alignItems="center"
-          minWidth={isMobile ? "auto" : 100}
-        >
-          {status.recorder && (
-            <React.Fragment>
-              <IconButton
-                onClick={
-                  status.recorder === "recording"
-                    ? pauseRecording
-                    : status.recorder === "paused"
-                    ? resumeRecording
-                    : startRecording
-                }
-                color="primary"
-              >
-                <Icon
-                  color={
+        {!props.preview && (
+          <Box
+            display="flex"
+            alignItems="center"
+            minWidth={isMobile ? "auto" : 100}
+          >
+            {status.recorder && (
+              <React.Fragment>
+                <IconButton
+                  onClick={
                     status.recorder === "recording"
-                      ? "default"
+                      ? pauseRecording
                       : status.recorder === "paused"
-                      ? "primary"
-                      : "error"
+                      ? resumeRecording
+                      : startRecording
                   }
+                  color="primary"
                 >
-                  {status.recorder === "recording"
-                    ? "pause"
-                    : status.recorder === "paused"
-                    ? "play_arrow"
-                    : "mic"}
-                </Icon>
-              </IconButton>
-              {!isMobile && status.recorder === "stopped" && (
-                <Typography>
-                  {moment
-                    .utc(
-                      moment.duration(timerDuration * 1000).as("milliseconds")
-                    )
-                    .format("mm:ss")}
-                </Typography>
-              )}
-            </React.Fragment>
-          )}
-        </Box>
+                  <Icon
+                    color={
+                      status.recorder === "recording"
+                        ? "default"
+                        : status.recorder === "paused"
+                        ? "primary"
+                        : "error"
+                    }
+                  >
+                    {status.recorder === "recording"
+                      ? "pause"
+                      : status.recorder === "paused"
+                      ? "play_arrow"
+                      : "mic"}
+                  </Icon>
+                </IconButton>
+                {!isMobile && status.recorder === "stopped" && (
+                  <Typography>
+                    {moment
+                      .utc(
+                        moment.duration(timerDuration * 1000).as("milliseconds")
+                      )
+                      .format("mm:ss")}
+                  </Typography>
+                )}
+              </React.Fragment>
+            )}
+          </Box>
+        )}
         <Box>
           <ButtonGroup disabled={status.recorder !== "stopped"}>
-            <IconButton>
+            <IconButton onClick={() => (audioRef.current.currentTime -= 5)}>
               <Icon>fast_rewind</Icon>
             </IconButton>
             <IconButton onClick={handlePlay}>
@@ -356,7 +381,7 @@ function Recorder(props) {
                 {status.player === "playing" ? "pause" : "play_arrow"}
               </Icon>
             </IconButton>
-            <IconButton>
+            <IconButton onClick={() => (audioRef.current.currentTime += 5)}>
               <Icon>fast_forward</Icon>
             </IconButton>
           </ButtonGroup>

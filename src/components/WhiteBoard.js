@@ -516,22 +516,11 @@ function WhiteBoard(props) {
   return (
     <React.Fragment>
       {isMobile && (
-        <AppBar variant="outlined">
-          <Toolbar>
-            <IconButton onClick={() => setIsMenu(!isMenu)} color="primary">
-              {!isMenu && <span className="icon-menu-open"></span>}
-            </IconButton>
-            <Typography
-              style={{
-                fontSize: "2rem",
-                color: "#e91e63",
-                fontWeight: "bold",
-              }}
-            >
-              White Boards
-            </Typography>
-          </Toolbar>
-        </AppBar>
+        <Toolbar>
+          <IconButton onClick={() => setIsMenu(!isMenu)} color="primary">
+            <Icon>menu</Icon>
+          </IconButton>
+        </Toolbar>
       )}
       <Backdrop
         open={isMenu}

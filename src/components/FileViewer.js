@@ -13,13 +13,17 @@ import {
 } from "@material-ui/core";
 import LaunchIcon from "@material-ui/icons/Launch";
 import React, { useEffect, useState } from "react";
+import Recorder from "./Recorder";
 
 function FV(props) {
   const theme = useTheme();
+  const [open, setOpen] = useState(false);
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const styles = useStyles();
   const [status, setStatus] = useState("");
   const [fullscreen, setFullscreen] = useState(false);
+  const [floating, setFloating] = useState(false);
+  const [CustomLoader, setCustomLoader] = useState();
   const viewableLinks = [
     {
       link: "drive.google.com",
@@ -67,6 +71,9 @@ function FV(props) {
     "image/png",
     "image/gif",
     "video/mp4",
+    // "audio/wav",
+    // "audio/x-wav",
+    // "audio/ogg",
     "video/x-flv",
     "application/x-mpegURL",
     "video/MP2T",
@@ -76,6 +83,32 @@ function FV(props) {
     "video/x-ms-wmv",
     "text/plain",
   ].concat(viewableLinks.map((l) => l.type));
+
+  const customFileLoader = {
+    audio: {
+      load: () => {
+        setStatus("CUSTOM_LOADED");
+        setCustomLoader(
+          <Box
+            display="flex"
+            justifyContent="center"
+            alignItems="center"
+            width="100%"
+            height="100%"
+          >
+            <Recorder
+              preview={true}
+              src={props.file.url}
+              wvConfig={{
+                height: 90,
+              }}
+            />
+          </Box>
+        );
+      },
+    },
+  };
+
   const getCustomType = (url) => {
     for (let i in viewableLinks) {
       if (url.indexOf(viewableLinks[i].link) >= 0) {
@@ -87,10 +120,16 @@ function FV(props) {
       }
     }
   };
+  const getCustomLoader = (type) =>
+    customFileLoader[
+      Object.keys(customFileLoader).find((k) => type && type.indexOf(k) >= 0)
+    ];
   useEffect(() => {
-    if (typeof props.open === "function") props.open(loadFile());
+    if (typeof props.open === "function") props.open(() => setOpen(true));
   }, [props.open]);
-
+  useEffect(() => {
+    if (props.file) loadFile();
+  }, [props.file, fullscreen, floating]);
   const isViewable = (type) => {
     return type && viewAbleTypes.indexOf(type) >= 0 ? true : false;
   };
@@ -99,6 +138,8 @@ function FV(props) {
     if (props.file.url) {
       if (isViewable(props.file.type)) {
         loadIframe();
+      } else if (getCustomLoader(props.file.type)) {
+        getCustomLoader(props.file.type).load();
       } else if (getCustomType(props.file.url)) {
         let f = getCustomType(props.file.url);
         if (typeof f === "string") loadIframe();
@@ -153,100 +194,120 @@ function FV(props) {
   useEffect(() => {
     if (isMobile) setFullscreen(true);
   }, [isMobile]);
-  return (
-    <Dialog
-      open={status ? true : false}
-      keepMounted
-      id="file-viewer-container"
-      fullWidth
-      maxWidth="xl"
-      fullScreen={fullscreen}
-      onClose={handleClose}
-    >
-      <DialogContent style={{ height: "100vh" }}>
-        <Toolbar
-          className={[
-            styles.toolbar,
-            ...(fullscreen && !isMobile ? ["fullscreen"] : []),
-          ].join(" ")}
+  const content = (
+    <React.Fragment>
+      <Toolbar
+        className={[
+          styles.toolbar,
+          ...(fullscreen && !isMobile ? ["fullscreen"] : []),
+        ].join(" ")}
+      >
+        <Typography
+          variant="body1"
+          color="textPrimary"
+          style={{ fontWeight: "bold", display: "block", flex: 1 }}
         >
-          <Typography
-            variant="body1"
-            color="textPrimary"
-            style={{ fontWeight: "bold" }}
-          >
-            {props.file.title}
-          </Typography>
-          <div>
-            <IconButton onClick={() => setFullscreen(!fullscreen)}>
-              {fullscreen ? (
-                <Icon fontSize="small">fullscreen_exit</Icon>
+          {props.file.title}
+        </Typography>
+        <div>
+          <IconButton onClick={() => setFullscreen(!fullscreen)}>
+            {fullscreen ? (
+              <Icon fontSize="small">fullscreen_exit</Icon>
+            ) : (
+              <Icon fontSize="small">fullscreen</Icon>
+            )}
+          </IconButton>
+          {!isMobile && (
+            <IconButton onClick={() => setFloating(!floating)}>
+              {floating ? (
+                <Icon fontSize="small">check_box_outline_blank</Icon>
               ) : (
-                <Icon fontSize="small">fullscreen</Icon>
+                <Icon fontSize="small">minimize</Icon>
               )}
             </IconButton>
-            <IconButton onClick={handleClose}>
-              <Icon fontSize="small">close</Icon>
-            </IconButton>
-          </div>
-        </Toolbar>
-        <Box
-          width="100%"
-          height={fullscreen ? "100%" : "93%"}
-          overflow="hidden"
-          position="relative"
-        >
-          {status === "LOADING" && (
-            <Box
-              display="flex"
-              justifyContent="center"
-              alignItems="center"
-              width="100%"
-              height="100%"
-            >
-              {!props.error ? (
-                <img src="/login/loader2.svg" alt="Loading..." width={130} />
-              ) : (
-                "Something went wrong" + props.error
-              )}
-            </Box>
           )}
-
-          {status === "INVALID" && (
-            <Box
-              display="flex"
-              justifyContent="center"
-              alignItems="center"
-              width="100%"
-              height="100%"
-            >
-              <Typography variant="body2">
-                No preview is available.
-                <Link
-                  variant="body2"
-                  style={{ cursor: "pointer" }}
-                  href={props.file.url}
-                  target="_blank"
-                >
-                  Open the file in new tab insted{" "}
-                  <LaunchIcon fontSize="small" />
-                </Link>
-              </Typography>
-            </Box>
-          )}
-          <iframe
-            title="File Viewer"
-            id="file-viewer"
+          <IconButton onClick={handleClose}>
+            <Icon fontSize="small">close</Icon>
+          </IconButton>
+        </div>
+      </Toolbar>
+      <Box
+        width="100%"
+        height={fullscreen ? "100%" : "93%"}
+        overflow="hidden"
+        position="relative"
+      >
+        {status === "LOADING" && (
+          <Box
+            display="flex"
+            justifyContent="center"
+            alignItems="center"
             width="100%"
             height="100%"
-            style={{
-              border: "none",
-              display: status === "LOADED" ? "block" : "none",
-            }}
-          ></iframe>
-        </Box>
-      </DialogContent>
-    </Dialog>
+          >
+            {!props.error ? (
+              <img src="/login/loader2.svg" alt="Loading..." width={130} />
+            ) : (
+              "Something went wrong" + props.error
+            )}
+          </Box>
+        )}
+
+        {status === "INVALID" && (
+          <Box
+            display="flex"
+            justifyContent="center"
+            alignItems="center"
+            width="100%"
+            height="100%"
+          >
+            <Typography variant="body2">
+              No preview is available.
+              <Link
+                variant="body2"
+                style={{ cursor: "pointer" }}
+                href={props.file.url}
+                target="_blank"
+              >
+                Open the file in new tab insted <LaunchIcon fontSize="small" />
+              </Link>
+            </Typography>
+          </Box>
+        )}
+        <iframe
+          title="File Viewer"
+          id="file-viewer"
+          width="100%"
+          height="100%"
+          style={{
+            border: "none",
+            display: status === "LOADED" ? "block" : "none",
+          }}
+        ></iframe>
+        {status === "CUSTOM_LOADED" && CustomLoader}
+      </Box>
+    </React.Fragment>
+  );
+  return (
+    open && (
+      <React.Fragment>
+        {!floating || fullscreen || (isMobile && floating) ? (
+          <Dialog
+            open={status ? true : false}
+            keepMounted
+            id="file-viewer-container"
+            fullWidth
+            maxWidth="xl"
+            fullScreen={fullscreen}
+            onClose={handleClose}
+          >
+            <DialogContent style={{ height: "100vh" }}>{content}</DialogContent>
+          </Dialog>
+        ) : (
+          <Box className="floating-file-viewer">{content}</Box>
+        )}
+      </React.Fragment>
+    )
   );
 }
 const useStyles = makeStyles(() => ({

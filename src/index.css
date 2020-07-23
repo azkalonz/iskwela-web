@@ -60,6 +60,70 @@ code {
 #react-jitsi-container {
   height: 90% !important;
 }
+.video-chat {
+  height: 100vh;
+}
+.video-chat #react-jitsi-container {
+  height: 100% !important;
+}
 fieldset {
   border: 1px solid rgba(0, 0, 0, 0.16);
+}
+.floating-file-viewer {
+  position: fixed;
+  right: 10px;
+  bottom: 10px;
+  width: 320px;
+  height: 215px;
+  display: flex;
+  justify-content: stretch;
+  align-items: stretch;
+  box-shadow: 0 2px 4px rgb(241, 230, 255) !important;
+  flex-direction: column;
+  overflow: auto;
+  background: #fff;
+  z-index: 99999;
+}
+.call-animation {
+  background: #7539ff;
+  width: 135px;
+  height: 135px;
+  position: relative;
+  margin: 0 auto;
+  border-radius: 100%;
+  border: solid 5px #fff;
+  animation: play 2s ease infinite;
+  -webkit-backface-visibility: hidden;
+  -moz-backface-visibility: hidden;
+  -ms-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+.call-animation img {
+  width: 135px;
+  height: 135px;
+  border-radius: 50%;
+  left: -5px;
+  top: -5px;
+  position: absolute;
+}
+@keyframes play {
+  0% {
+    transform: scale(1);
+  }
+  15% {
+    box-shadow: 0 0 0 5px rgba(117, 57, 255, 0.4);
+  }
+  25% {
+    box-shadow: 0 0 0 10px rgba(117, 57, 255, 0.4),
+      0 0 0 20px rgba(86, 42, 189, 0.2);
+  }
+  25% {
+    box-shadow: 0 0 0 10px rgba(117, 57, 255, 0.4),
+      0 0 0 20px rgba(86, 42, 189, 0.2);
+  }
+}
+.not-seen span,
+.not-seen span p,
+.not-seen p {
+  font-weight: bold !important;
 }

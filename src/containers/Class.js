@@ -32,6 +32,7 @@ import { useHistory } from "react-router-dom";
 import Api from "../api";
 import Drawer from "../components/Drawer";
 import NavBar from "../components/NavBar";
+import FileViewer from "../components/FileViewer";
 import {
   getView,
   isValidOption,
@@ -98,6 +99,8 @@ function Class(props) {
   const [loading, setLoading] = useState(true);
   const [CLASS, setCLASS] = useState();
   const userInfo = props.userInfo;
+  const [file, setFile] = useState();
+  const [openFileViewer, setOpenFileViewer] = useState();
   const isTeacher = userInfo.user_type === "t" ? true : false;
   const [saving, setSaving] = useState(false);
   const [currentID, setCurrentID] = useState(class_id);
@@ -883,6 +886,18 @@ function Class(props) {
                     loading={(e) => setRightPanelLoading(e)}
                     fullWidth={query.full_width ? true : false}
                     {...props}
+                    openFile={(f) => {
+                      setFile(f);
+                      openFileViewer && openFileViewer();
+                    }}
+                  />
+                )}
+                {file && (
+                  <FileViewer
+                    file={file}
+                    open={(openRef) => setOpenFileViewer(openRef)}
+                    onClose={() => setFile(null)}
+                    error={file.error}
                   />
                 )}
               </Scrollbars>

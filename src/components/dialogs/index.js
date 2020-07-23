@@ -21,6 +21,7 @@ import {
   useMediaQuery,
   useTheme,
   withStyles,
+  Avatar,
 } from "@material-ui/core";
 import React, { useEffect, useState } from "react";
 import { connect } from "react-redux";
@@ -30,6 +31,55 @@ import Pagination, { getPageItems } from "../Pagination";
 import { makeLinkTo } from "../router-dom";
 import { SearchInput } from "../Selectors";
 import Recorder from "../../components/Recorder";
+import Messages from "../Messages";
+
+function VideoCall(props) {
+  const { caller = {}, receiver = {}, status } = props;
+  const isCaller = props.userInfo.id === caller.id;
+  const { first_name, last_name, preferences } = isCaller ? receiver : caller;
+  const openVideoChat = () => {
+    if (!window.videochat)
+      window.videochat = window.open(
+        "/videocall?chat=" + caller.id + "-" + receiver.id,
+        "_blank"
+      );
+    else if (window.videochat) {
+      window.videochat.close();
+      window.videochat = null;
+      openVideoChat();
+    }
+  };
+  useEffect(() => {
+    if (status === "ACCEPTED") openVideoChat();
+  }, [status]);
+  return Object.keys(caller).length && Object.keys(receiver).length ? (
+    <Dialog open={props.open && caller} onClose={props.onClose}>
+      <DialogTitle onClose={props.onClose}>
+        {isCaller && "Calling "} {first_name + " " + last_name}{" "}
+        {!isCaller && "wants to video call with you"}
+      </DialogTitle>
+      <DialogContent>
+        <Box className="call-animation">
+          <img src={preferences?.profile_picture} alt={first_name} />
+        </Box>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={() => Messages.vc.decline(caller, receiver)}>
+          Decline
+        </Button>
+        {!isCaller && (
+          <Button onClick={() => Messages.vc.accept(caller, receiver)}>
+            Accept
+          </Button>
+        )}
+      </DialogActions>
+    </Dialog>
+  ) : null;
+}
+const ConnectedVideoCall = connect((states) => ({
+  userInfo: states.userInfo,
+}))(VideoCall);
+export { ConnectedVideoCall as VideoCall };
 
 export function RecorderDialog(props) {
   const [audio, setAudio] = useState();

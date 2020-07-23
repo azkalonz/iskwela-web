@@ -22,8 +22,11 @@ import Class from "./containers/Class";
 import Explore from "./containers/Explore";
 import AnswerQuiz from "./screens/class/AnswerQuiz";
 import Home from "./screens/Home";
+import Chat, { VideoChat } from "./screens/Chat";
 import Login from "./screens/Login";
 import Posts from "./screens/class/Posts";
+import Messages from "./components/Messages";
+import { VideoCall } from "./components/dialogs";
 
 const primaryColor = "#7539ff";
 const secondaryColor = "#FFD026";
@@ -38,6 +41,7 @@ Math.rand = (min, max) => {
 };
 function App(props) {
   const [loading, setLoading] = useState(true);
+  const [videocall, setVideocall] = useState({});
   const skeletonCustomTheme = {
     color: "rgba(215, 215, 215, 0.4)",
     highlightColor: "rgba(176,176,176,0.2)",
@@ -119,6 +123,11 @@ function App(props) {
           "& > div": {
             border: "none",
           },
+        },
+      },
+      MuiTouchRipple: {
+        child: {
+          backgroundColor: primaryColor,
         },
       },
       MuiExpansionPanel: {
@@ -290,6 +299,22 @@ function App(props) {
     },
   });
   useEffect(() => {
+    Messages.subscribe((resp) => {
+      console.log(resp);
+      store.dispatch({
+        type: resp.type,
+        data: resp.data,
+      });
+    });
+    socket.on("videocall", ({ caller, receiver, status }) => {
+      setVideocall({
+        open: true,
+        caller,
+        receiver,
+        status,
+      });
+      if (status !== "CALLING") setVideocall({ ...videocall, open: false });
+    });
     socket.on("get class details", (c) => {
       if (store.getState().classes[c.id]) {
         UserData.updateClassDetails(c.id, c.details);
@@ -317,6 +342,7 @@ function App(props) {
     // setLoading(false);
     Api.auth({
       success: async (user) => {
+        socket.emit("online user", { ...user, status: "online" });
         await UserData.getUserData(user);
         setTimeout(() => {
           setLoading(false);
@@ -336,12 +362,20 @@ function App(props) {
       <CssBaseline />
       <StylesProvider>
         <SkeletonTheme {...skeletonCustomTheme}>
+          <VideoCall
+            open={videocall.open}
+            caller={videocall.caller}
+            receiver={videocall.receiver}
+            status={videocall.status}
+          />
           {!loading && (
             <BrowserRouter>
               <Switch>
                 <Route exact path="/white" component={WhiteBoard} />
                 <Route exact path="/record" component={Recorder} />
                 <Route exact path="/" component={Home} />
+                <Route exact path="/chat/:chat_id?" component={Chat} />
+                <Route exact path="/videocall" component={VideoChat} />
                 <Route exact path="/post" component={Posts} />
                 <Route exact path="/login">
                   <Login setLoading={(l) => setLoading(l)} />
