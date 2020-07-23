@@ -46,7 +46,7 @@ function getRecentMessages(user, otheruser) {
   return m;
 }
 function getSocketId(user) {
-  let u = chat.online_users.find((q) => q.id === user.id);
+  let u = chat.online_users.find((q) => user && q.id === user.id);
   return u && u.socket;
 }
 function getSocketSiblings(socketid) {
