@@ -409,7 +409,7 @@ const resizeDomEl = (e) => {
     window.resizing.callback && window.resizing.callback();
   }
 };
-function ResizeLine(props) {
+export function ResizeLine(props) {
   const resizeRef = useRef();
   const styles = useStyles();
 

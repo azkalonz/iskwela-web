@@ -187,7 +187,7 @@ function Home(props) {
                 <Box
                   className={styles.media}
                   style={{
-                    background: `url(${c.bg_image}) no-repeat`,
+                    background: `url(${c.bg_image || c.image}) no-repeat`,
                     backgroundColor: c.color,
                     backgroundPosition: "top",
                   }}

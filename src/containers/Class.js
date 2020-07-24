@@ -404,17 +404,19 @@ function Class(props) {
     newinput.addEventListener("change", async () => {
       if (newinput.files.length && class_id !== undefined) {
         setSaving(true);
-        let body = new FormData();
-        body.append("image", newinput.files[0]);
-        await Api.post("/api/upload/class/image/" + class_id, {
-          body,
-        });
-        let newClassDetails = await UserData.updateClassDetails(class_id);
-        UserData.updateClass(class_id, newClassDetails[class_id]);
-        socket.emit(
-          "new class details",
-          JSON.stringify({ details: newClassDetails, id: class_id })
-        );
+        try {
+          let body = new FormData();
+          body.append("image", newinput.files[0]);
+          await Api.post("/api/upload/class/image/" + class_id, {
+            body,
+          });
+          let newClassDetails = await UserData.updateClassDetails(class_id);
+          UserData.updateClass(class_id, newClassDetails[class_id]);
+          socket.emit(
+            "new class details",
+            JSON.stringify({ details: newClassDetails, id: class_id })
+          );
+        } catch (e) {}
       }
       setSaving(false);
     });
@@ -510,6 +512,7 @@ function Class(props) {
                         style={{
                           background: `url(${
                             props.classes[class_id].bg_image ||
+                            props.classes[class_id].image ||
                             "https://www.iskwela.net/img/on-iskwela.svg"
                           }) no-repeat`,
                           backgroundPosition: props.classes[class_id].bg_image

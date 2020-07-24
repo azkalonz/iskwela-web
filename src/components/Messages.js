@@ -17,7 +17,7 @@ import socket from "./socket.io";
 import { connect } from "react-redux";
 import { useHistory } from "react-router-dom";
 import moment from "moment";
-
+const { OnlineBadge, OfflineBadge } = require("../screens/Chat");
 const Messages = {
   hooks: {},
   updateMessage: (id, { sender, receiver, update }, callback) => {
@@ -145,7 +145,26 @@ function RecentMessages(props) {
                 }}
               >
                 <Box marginRight={1}>
-                  <Avatar src={user.preferences.profile_picture} />
+                  {React.createElement(
+                    eval(
+                      props.onlineUsers &&
+                        props.onlineUsers.find((q) => q.id === user.id)
+                          ?.status === "online"
+                        ? "OnlineBadge"
+                        : "OfflineBadge"
+                    ),
+                    {
+                      anchorOrigin: {
+                        vertical: "bottom",
+                        horizontal: "right",
+                      },
+                      variant: "dot",
+                    },
+                    <Avatar
+                      src={user.preferences.profile_picture}
+                      alt={user.first_name}
+                    />
+                  )}
                 </Box>
                 <Box
                   flex={1}
@@ -185,9 +204,11 @@ function RecentMessages(props) {
     </Popover>
   );
 }
+
 const ConnectedRecentMessages = connect((states) => ({
   recent: states.messages.recent_messages,
   userInfo: states.userInfo,
+  onlineUsers: states.onlineUsers,
 }))(RecentMessages);
 export { ConnectedRecentMessages as RecentMessages };
 

@@ -345,9 +345,6 @@ function ChatBox(props) {
           {loading && <CircularProgress size={18} />}
         </Box>
         <Box>
-          <IconButton>
-            <Icon>search</Icon>
-          </IconButton>
           {isTablet && (
             <IconButton
               color="primary"
@@ -852,7 +849,7 @@ const useStyles = makeStyles((theme) => ({
     "& .chat-details": {},
   },
 }));
-const OnlineBadge = withStyles((theme) => ({
+export const OnlineBadge = withStyles((theme) => ({
   badge: {
     backgroundColor: "#44b700",
     color: "#44b700",
@@ -861,7 +858,7 @@ const OnlineBadge = withStyles((theme) => ({
     zIndex: 10,
   },
 }))(Badge);
-const OfflineBadge = withStyles((theme) => ({
+export const OfflineBadge = withStyles((theme) => ({
   badge: {
     backgroundColor: "#b5b5b5",
     color: "#44b700",
