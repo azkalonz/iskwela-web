@@ -135,9 +135,6 @@ function VideoConference(props) {
         title="Video Conference"
         right={
           <Box display="flex" alignItems="center">
-            <IconButton>
-              <ShareOutlinedIcon color="textPrimary" />
-            </IconButton>
             <IconButton
               onClick={() => {
                 try {

@@ -300,7 +300,6 @@ function App(props) {
   });
   useEffect(() => {
     Messages.subscribe((resp) => {
-      console.log(resp);
       store.dispatch({
         type: resp.type,
         data: resp.data,
@@ -343,6 +342,22 @@ function App(props) {
     Api.auth({
       success: async (user) => {
         socket.emit("online user", { ...user, status: "online" });
+        Messages.hooks["new message"] = (data) => {
+          const { sender } = data;
+          if (sender.id !== user.id) {
+            let notifsound = document.querySelector("#notif-sound");
+            if (!notifsound) {
+              let notifAudio = document.createElement("audio");
+              notifAudio.setAttribute("id", "notif-sound");
+              notifAudio.src = "/chat/notification.mp3";
+              notifAudio.style.display = "none";
+              document.body.appendChild(notifAudio);
+            }
+            notifsound = document.querySelector("#notif-sound");
+            notifsound.currentTime = 0;
+            notifsound.play();
+          }
+        };
         await UserData.getUserData(user);
         setTimeout(() => {
           setLoading(false);

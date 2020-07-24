@@ -67,6 +67,7 @@ module.exports = {
       }
     });
     socket.on("get recent messages", ({ user, otheruser }) => {
+      if (!user) return;
       if (getSocketSiblings(socket.id))
         for (let socketID of getSocketSiblings(socket.id))
           io.to(socketID).emit(
@@ -76,6 +77,7 @@ module.exports = {
     });
     socket.on("send message", ({ channel, message }) => {
       const { receiver, sender } = channel;
+      if (!receiver || !sender) return;
       const inChannel = receiver.username + "-" + sender.username;
       const outChannel = sender.username + "-" + receiver.username;
       if (!chat.conversations[inChannel])
@@ -127,6 +129,7 @@ module.exports = {
           io.to(socketID).emit("get online users", chat.online_users);
     });
     socket.on("online user", (userInfo) => {
+      if (!userInfo) return;
       let userIndex = chat.online_users.findIndex((q) => q.id === userInfo.id);
       if (userIndex >= 0) {
         chat.online_users[userIndex].status = "online";
@@ -167,14 +170,28 @@ module.exports = {
           chat.conversations[channel] &&
           chat.conversations[channel].messages
         ) {
-          let msgIndex = chat.conversations[channel].messages.findIndex(
-            (q) => q.id === id
-          );
-          if (msgIndex >= 0) {
-            chat.conversations[channel].messages[msgIndex] = {
-              ...chat.conversations[channel].messages[msgIndex],
-              ...update,
-            };
+          if (typeof id === "number") {
+            let msgIndex = chat.conversations[channel].messages.findIndex(
+              (q) => q.id === id
+            );
+            if (msgIndex >= 0) {
+              chat.conversations[channel].messages[msgIndex] = {
+                ...chat.conversations[channel].messages[msgIndex],
+                ...update,
+              };
+            }
+          } else if (typeof id === "object") {
+            for (let i of id) {
+              let msgIndex = chat.conversations[channel].messages.findIndex(
+                (q) => q.id === i
+              );
+              if (msgIndex >= 0) {
+                chat.conversations[channel].messages[msgIndex] = {
+                  ...chat.conversations[channel].messages[msgIndex],
+                  ...update,
+                };
+              }
+            }
           }
         }
       }
@@ -182,7 +199,35 @@ module.exports = {
         for (let socketID of getSocketSiblings(socket.id))
           io.to(socketID).emit("update message", { id, update });
     });
+    socket.on("update chat", ({ sender, receiver, update }) => {
+      if (!sender || !receiver) return;
+      let channels = [
+        sender.username + "-" + receiver.username,
+        receiver.username + "-" + sender.username,
+      ];
+      for (let channel of channels) {
+        if (chat.conversations[channel]) {
+          chat.conversations[channel] = {
+            ...chat.conversations[channel],
+            ...update,
+          };
+        }
+      }
+      if (getSocketId(sender)) {
+        if (getSocketSiblings(getSocketId(sender)[0])) {
+          for (let socketID of getSocketSiblings(getSocketId(sender)[0]))
+            io.to(socketID).emit("update chat", { update });
+        }
+      }
+      if (getSocketId(receiver)) {
+        if (getSocketSiblings(getSocketId(receiver)[0])) {
+          for (let socketID of getSocketSiblings(getSocketId(receiver)[0]))
+            io.to(socketID).emit("update chat", { update });
+        }
+      }
+    });
     socket.on("videocall", ({ caller, receiver, status }) => {
+      if (!caller || !receiver) return;
       let to = getSocketId(receiver);
       let from = getSocketId(caller);
       if (to.length && from.length) {

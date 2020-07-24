@@ -171,7 +171,10 @@ function NavBar(props) {
                 onClose={() => setMessageAnchor(null)}
                 onNotSeen={(n) => setNotSeen(n)}
               />
-              <IconButton onClick={(e) => setMessageAnchor(e.currentTarget)}>
+              <IconButton
+                onClick={(e) => setMessageAnchor(e.currentTarget)}
+                color={notSeen ? "primary" : "default"}
+              >
                 <Badge
                   anchorOrigin={{
                     vertical: "bottom",

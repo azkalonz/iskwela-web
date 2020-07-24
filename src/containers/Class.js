@@ -134,6 +134,12 @@ function Class(props) {
       setCollapsePanel(false);
     }
   }, []);
+  useEffect(() => {
+    if (CLASS) {
+      if (CLASS.next_schedule.status !== "ONGOING" && room_name)
+        history.push(makeLinkTo(["class", class_id, schedule_id, option_name]));
+    }
+  }, [CLASS]);
   const _getClass = async () => {
     try {
       if (props.classDetails[class_id]) {
@@ -377,6 +383,7 @@ function Class(props) {
   };
 
   const getRoom = () => {
+    console.log(CLASS);
     return {
       name: CLASS.room_number,
       displayName: props.userInfo.first_name + " " + props.userInfo.last_name,

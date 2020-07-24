@@ -127,3 +127,7 @@ fieldset {
 .not-seen p {
   font-weight: bold !important;
 }
+.msg p,
+.msg span {
+  font-family: Arial, Helvetica, sans-serif;
+}

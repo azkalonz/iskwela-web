@@ -51,7 +51,6 @@ const classes = (state = [], payload) => {
           payload.classes[k].image = i;
         }
       });
-      console.log("details", payload.classes);
       return payload.classes;
     default:
       return state;
@@ -60,7 +59,6 @@ const classes = (state = [], payload) => {
 const classDetails = (state = {}, payload) => {
   switch (payload.type) {
     case "SET_CLASS_DETAILS":
-      console.log("details", payload.class_details);
       return payload.class_details;
     default:
       return state;
@@ -135,7 +133,6 @@ const messages = (
       let added = payload.data.messages.length;
       let { messages, loaded, channel } = state.current;
       if (payload.data.channel !== channel) loaded = 0;
-      console.log(payload);
       return {
         ...state,
         current: {
@@ -146,9 +143,7 @@ const messages = (
             state.current.messages.length < payload.data.total
               ? [...messages, ...payload.data.messages]
               : payload.data.messages,
-          loaded:
-            loaded +
-            (state.current.messages.length < payload.data.total ? added : 0),
+          loaded: loaded + added,
         },
       };
     case "SET_RECENT":
@@ -181,24 +176,52 @@ const messages = (
     case "UPDATE_MESSAGE":
       const { id, update } = payload.data;
       let updatedState = { ...state };
-      updatedState.recent_messages = updatedState.recent_messages.map((q) =>
-        q.id === id
-          ? {
-              ...q,
-              ...update,
-            }
-          : q
-      );
-      updatedState.current.messages = updatedState.current.messages.map((q) =>
-        q.id === id
-          ? {
-              ...q,
-              ...update,
-            }
-          : q
-      );
-      console.log(state);
+      if (typeof id === "number") {
+        updatedState.recent_messages = updatedState.recent_messages.map((q) =>
+          q.id === id
+            ? {
+                ...q,
+                ...update,
+              }
+            : q
+        );
+        updatedState.current.messages = updatedState.current.messages.map((q) =>
+          q.id === id
+            ? {
+                ...q,
+                ...update,
+              }
+            : q
+        );
+      } else if (typeof id === "object") {
+        for (let i of id) {
+          updatedState.recent_messages = updatedState.recent_messages.map((q) =>
+            q.id === i
+              ? {
+                  ...q,
+                  ...update,
+                }
+              : q
+          );
+          updatedState.current.messages = updatedState.current.messages.map(
+            (q) =>
+              q.id === i
+                ? {
+                    ...q,
+                    ...update,
+                  }
+                : q
+          );
+        }
+      }
       return updatedState;
+    case "UPDATE_CHAT":
+      let updatedChat = { ...state };
+      updatedChat.current = {
+        ...updatedChat.current,
+        ...payload.data.update,
+      };
+      return updatedChat;
     default:
       return state;
   }

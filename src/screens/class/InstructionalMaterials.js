@@ -882,9 +882,6 @@ function InstructionalMaterials(props) {
                   TITLE
                 </Typography>
                 <Typography variant="body1">{item.title}</Typography>
-                <Typography variant="body1" color="textSecondary">
-                  {item.resource_link ? item.resource_link : item.uploaded_file}
-                </Typography>
               </Box>
               <Box width="100%">
                 <Typography
@@ -911,9 +908,6 @@ function InstructionalMaterials(props) {
               <Box width="50%" overflow="hidden" maxWidth="50%">
                 <ListItemText
                   primary={item.title}
-                  secondary={
-                    item.resource_link ? item.resource_link : item.uploaded_file
-                  }
                   secondaryTypographyProps={{
                     style: {
                       width: isMobile ? "80%" : "100%",

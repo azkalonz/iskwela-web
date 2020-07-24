@@ -28,7 +28,7 @@ import Scrollbars from "react-custom-scrollbars";
 import Drawer from "../components/Drawer";
 import MUIRichTextEditor from "mui-rte";
 import { useHistory } from "react-router-dom";
-import { convertToRaw, EditorState } from "draft-js";
+import { convertToRaw, EditorState, ContentState } from "draft-js";
 import socket from "../components/socket.io";
 import moment from "moment";
 import NavBar from "../components/NavBar";
@@ -194,6 +194,7 @@ function ChatBox(props) {
   const isTablet = useMediaQuery(theme.breakpoints.down("md"));
   const { first_name, last_name, preferences = {} } = props.user || {};
   const editorRef = useRef();
+  const [reset, setReset] = useState(1);
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const { chat_id } = props.match.params;
@@ -201,11 +202,7 @@ function ChatBox(props) {
     if (!chat_id) return;
     let x = JSON.parse(message);
     if (!x.blocks[0].text) {
-      setMessage(
-        JSON.stringify(
-          convertToRaw(EditorState.createEmpty().getCurrentContent())
-        )
-      );
+      resetEditor();
       return;
     }
     if (!x.blocks[Object.keys(x.blocks).length - 1].text)
@@ -223,11 +220,24 @@ function ChatBox(props) {
         receiver: props.user,
         date: new Date().toISOString(),
       });
+    resetEditor();
+  };
+  const resetEditor = () => {
     setMessage(
       JSON.stringify(
         convertToRaw(EditorState.createEmpty().getCurrentContent())
       )
     );
+    setReset(null);
+    setTimeout(() => {
+      setReset(1);
+      doneTyping();
+      setTimeout(() => {
+        if (editorRef.current) {
+          editorRef.current.focus();
+        }
+      }, 0);
+    }, 0);
   };
   const sameSender = (convo, index) => {
     let i = 5;
@@ -259,6 +269,40 @@ function ChatBox(props) {
       .forEach((e) => e.classList.remove("opened"));
     props.loadMore(() => setLoading(false));
   };
+  const typing = () => {
+    let status = {};
+    status[props.userInfo.id] = {
+      message:
+        props.userInfo.first_name +
+        " " +
+        props.userInfo.last_name +
+        " is typing...",
+    };
+    Messages.updateConvo({
+      sender: props.userInfo,
+      receiver: props.user,
+      update: {
+        status: {
+          ...props.status,
+          ...status,
+        },
+      },
+    });
+  };
+  const doneTyping = () => {
+    let status = { ...props.status };
+    status[props.userInfo.id] = {};
+    Messages.updateConvo({
+      sender: props.userInfo,
+      receiver: props.user,
+      update: {
+        status,
+      },
+    });
+  };
+  useEffect(() => {
+    resetEditor();
+  }, [chat_id]);
   return (
     <Box
       width="100%"
@@ -334,111 +378,128 @@ function ChatBox(props) {
               </Box>
             )}
             <Box p={2}>
-              {props.chat.messages
-                .sort((a, b) => new Date(a.date) - new Date(b.date))
-                .map((c, index) => (
-                  <Box
-                    key={index}
-                    position="relative"
-                    marginTop={index === 0 ? 2 : 0}
-                  >
-                    {c.sender.id !== props.userInfo.id &&
-                      (sameSender(props.chat.messages, index) === 3 ||
-                        sameSender(props.chat.messages, index) === 5) && (
-                        <Box
-                          className="picture"
-                          style={{
-                            width: 35,
-                            height: 35,
-                            position: "absolute",
-                            bottom: 0,
-                            left: 0,
-                          }}
-                        >
-                          <Avatar
-                            style={{ width: "100%", height: "100%" }}
-                            src={c.sender.preferences.profile_picture}
-                            alt={c.sender.first_name}
-                          />
-                        </Box>
-                      )}
+              {chat_id &&
+                props.chat.messages
+                  .sort((a, b) => new Date(a.date) - new Date(b.date))
+                  .map((c, index) => (
                     <Box
                       key={index}
-                      display="flex"
-                      style={{
-                        marginLeft:
-                          c.sender.id !== props.userInfo.id ? "40px" : "0",
-                        position: "relative",
-                      }}
-                      justifyContent={
-                        c.sender.id !== props.userInfo.id
-                          ? "flex-start"
-                          : "flex-end"
-                      }
-                      flexWrap="wrap"
+                      position="relative"
+                      marginTop={index === 0 ? 2 : 0}
                     >
-                      {props.chat.messages[index - 1] &&
-                        moment(c.date).diff(
-                          props.chat.messages[index - 1].date,
-                          "days"
-                        ) > 1 && (
+                      {c.sender.id !== props.userInfo.id &&
+                        (sameSender(props.chat.messages, index) === 3 ||
+                          sameSender(props.chat.messages, index) === 5) && (
                           <Box
-                            display="flex"
-                            alignItems="center"
-                            justifyContent="space-between"
-                            width="100%"
+                            className="picture"
+                            style={{
+                              width: 35,
+                              height: 35,
+                              position: "absolute",
+                              bottom: 0,
+                              left: 0,
+                            }}
                           >
-                            <Box width="100%">
-                              <Divider />
-                            </Box>
-                            <Box p={2} style={{ whiteSpace: "pre" }}>
-                              {moment(c.date).format("MMMM DD, YYYY hh:mm A")}
-                            </Box>
-                            <Box width="100%">
-                              <Divider />
-                            </Box>
+                            <Avatar
+                              style={{ width: "100%", height: "100%" }}
+                              src={c.sender.preferences.profile_picture}
+                              alt={c.sender.first_name}
+                            />
                           </Box>
                         )}
                       <Box
-                        id={"msg-" + c.id}
-                        className={
-                          (c.sender.id !== props.userInfo.id
-                            ? "msg sender "
-                            : "msg receiver ") +
-                          getClassName(sameSender(props.chat.messages, index))
-                        }
-                        onClick={() =>
-                          document
-                            .querySelector("#msg-" + c.id)
-                            ?.nextElementSibling?.classList.toggle("opened")
-                        }
-                      >
-                        <MUIRichTextEditor
-                          readOnly={true}
-                          value={c.message}
-                          toolbar={false}
-                          inlineToolbar={false}
-                        />
-                      </Box>
-                      <Box
-                        className="details"
-                        width="100%"
+                        key={index}
+                        display="flex"
                         style={{
-                          textAlign:
-                            c.sender.id === props.userInfo.id
-                              ? "right"
-                              : "left",
+                          marginLeft:
+                            c.sender.id !== props.userInfo.id ? "40px" : "0",
+                          position: "relative",
                         }}
+                        justifyContent={
+                          c.sender.id !== props.userInfo.id
+                            ? "flex-start"
+                            : "flex-end"
+                        }
+                        flexWrap="wrap"
                       >
-                        {moment(c.date).format("MMMM DD, YYYY hh:mm A")}
+                        {props.chat.messages[index - 1] &&
+                          moment(c.date).diff(
+                            props.chat.messages[index - 1].date,
+                            "days"
+                          ) > 1 && (
+                            <Box
+                              display="flex"
+                              alignItems="center"
+                              justifyContent="space-between"
+                              width="100%"
+                            >
+                              <Box width="100%">
+                                <Divider />
+                              </Box>
+                              <Box p={2} style={{ whiteSpace: "pre" }}>
+                                {moment(c.date).format("MMMM DD, YYYY hh:mm A")}
+                              </Box>
+                              <Box width="100%">
+                                <Divider />
+                              </Box>
+                            </Box>
+                          )}
+                        <Box
+                          id={"msg-" + c.id}
+                          className={
+                            (c.sender.id !== props.userInfo.id
+                              ? "msg sender "
+                              : "msg receiver ") +
+                            getClassName(sameSender(props.chat.messages, index))
+                          }
+                          onClick={() =>
+                            document
+                              .querySelector("#msg-" + c.id)
+                              ?.nextElementSibling?.classList.toggle("opened")
+                          }
+                        >
+                          <MUIRichTextEditor
+                            readOnly={true}
+                            value={c.message}
+                            toolbar={false}
+                            inlineToolbar={false}
+                          />
+                        </Box>
+                        <Box
+                          className="details"
+                          width="100%"
+                          style={{
+                            textAlign:
+                              c.sender.id === props.userInfo.id
+                                ? "right"
+                                : "left",
+                          }}
+                        >
+                          {moment(c.date).format("MMMM DD, YYYY hh:mm A")}
+                        </Box>
                       </Box>
                     </Box>
-                  </Box>
-                ))}
+                  ))}
             </Box>
           </Scrollbars>
         )}
       </Box>
+      {props.status &&
+        props.user &&
+        Object.keys(props.status).map((q, index) => {
+          if (
+            parseInt(q) !== props.userInfo.id &&
+            props.user.id === parseInt(q)
+          ) {
+            return (
+              <Box width="100%" style={{ textAlign: "center" }} key={index}>
+                {props.status[q].message}
+              </Box>
+            );
+          } else {
+            return null;
+          }
+        })}
       <Box width="100%">
         <Divider />
       </Box>
@@ -460,21 +521,30 @@ function ChatBox(props) {
             padding: "0 13px",
           }}
         >
-          <MUIRichTextEditor
-            ref={editorRef}
-            value={message}
-            toolbar={true}
-            controls={[]}
-            label="Write Something"
-            onSave={(data) => {
-              sendMessage(data);
-            }}
-            onChange={(state) => {
-              if (state.getCurrentContent().getPlainText().indexOf("\n") >= 0) {
-                if (editorRef.current) editorRef.current.save();
-              }
-            }}
-          />
+          {reset && (
+            <MUIRichTextEditor
+              ref={editorRef}
+              value={message}
+              toolbar={true}
+              controls={[]}
+              label="Write Something"
+              onSave={(data) => {
+                sendMessage(data);
+              }}
+              onChange={(state) => {
+                if (state.getCurrentContent().getPlainText()) {
+                  typing();
+                } else {
+                  doneTyping();
+                }
+                if (
+                  state.getCurrentContent().getPlainText().indexOf("\n") >= 0
+                ) {
+                  if (editorRef.current) editorRef.current.save();
+                }
+              }}
+            />
+          )}
         </Box>
         <Box>
           <IconButton
@@ -518,16 +588,6 @@ function ChatDetails(props) {
         />
         <Scrollbars autoHide>
           <Box width="100%">
-            <Box p={2} textAlign="center" display="flex" alignItems="center">
-              <Avatar
-                src={preferences.profile_picture}
-                src={first_name}
-                style={{ width: 70, height: 70 }}
-              />
-              <Typography style={{ fontWeight: "bold", fontSize: "1.6rem" }}>
-                {first_name} {last_name}
-              </Typography>
-            </Box>
             <Box width="100%">
               <List>
                 <ListItem
@@ -558,7 +618,7 @@ function MainChat(props) {
   return (
     <Box width="100%" display="flex" height="100%">
       <Box width="100%" height="100%">
-        <ChatBox {...props} />
+        <ChatBox {...props} status={props.chat?.status} />
       </Box>
       <Box
         className={
@@ -592,7 +652,7 @@ function Chat(props) {
     }
     setTail(chat_id);
   };
-  useEffect(() => {
+  const seen = () => {
     if (chat.messages.length) {
       if (props.userInfo.username + "-" + chat_id === chat.channel) {
         const { id, sender, receiver, seen } = chat.messages[
@@ -600,11 +660,14 @@ function Chat(props) {
         ];
         let latestSeen = { ...seen };
         if (!latestSeen[props.userInfo.id]) {
+          let loadedNotSeen = chat.messages
+            .filter((q) => (!q.seen[props.userInfo.id] ? true : false))
+            .map((q) => q.id);
           latestSeen[props.userInfo.id] = {
             ...props.userInfo,
             date: new Date().toISOString(),
           };
-          Messages.updateMessage(id, {
+          Messages.updateMessage(loadedNotSeen, {
             sender,
             receiver,
             update: { seen: latestSeen },
@@ -612,6 +675,9 @@ function Chat(props) {
         }
       }
     }
+  };
+  useEffect(() => {
+    seen();
   }, [chat]);
   useEffect(() => {
     Messages.getRecentMessages(props.userInfo);

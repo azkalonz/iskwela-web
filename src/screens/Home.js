@@ -395,6 +395,10 @@ function Home(props) {
       >
         <Box width="100%" height="100%">
           <Jitsi
+            domain="jts.iskwela.net"
+            jwt={
+              "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJqaXRzaSIsImlzcyI6InNjaG9vbGh1YiIsInN1YiI6Imp0cy5pc2t3ZWxhLm5ldCIsInJvb20iOiIqIn0.3BQBpXgHFM51Al1qjPz-sCFDPEnuKwKb47-h2Dctsqg"
+            }
             displayName={name}
             roomName={id}
             containerStyle={{
