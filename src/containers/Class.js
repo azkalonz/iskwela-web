@@ -389,6 +389,40 @@ function Class(props) {
       displayName: props.userInfo.first_name + " " + props.userInfo.last_name,
     };
   };
+
+  const editClassPicture = () => {
+    let input = document.querySelector("#edit-class-pic-input");
+    if (!input) {
+      let x = document.createElement("input");
+      x.setAttribute("accept", "image/x-png,image/gif,image/jpeg");
+      x.setAttribute("type", "file");
+      x.setAttribute("id", "edit-class-pic-input");
+      document.querySelector("#root").appendChild(x);
+    }
+    input = document.querySelector("#edit-class-pic-input");
+    let newinput = input.cloneNode(true);
+    newinput.addEventListener("change", async () => {
+      if (newinput.files.length && class_id !== undefined) {
+        setSaving(true);
+        let body = new FormData();
+        body.append("image", newinput.files[0]);
+        await Api.post("/api/upload/class/image/" + class_id, {
+          body,
+        });
+        let newClassDetails = await UserData.updateClassDetails(class_id);
+        UserData.updateClass(class_id, newClassDetails[class_id]);
+        socket.emit(
+          "new class details",
+          JSON.stringify({ details: newClassDetails, id: class_id })
+        );
+      }
+      setSaving(false);
+    });
+    input.parentNode.replaceChild(newinput, input);
+    input = document.querySelector("#edit-class-pic-input");
+    input.click();
+  };
+
   const RightPanel = (opts = {}) => {
     return (
       <Slide
@@ -454,15 +488,36 @@ function Class(props) {
                       position="relative"
                       overflow="hidden"
                     >
+                      {saving && (
+                        <Box
+                          style={{
+                            position: "absolute",
+                            left: 0,
+                            right: 0,
+                            top: 0,
+                            bottom: 0,
+                            background: "rgba(255,255,255,0.5)",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                          }}
+                        >
+                          <CircularProgress />
+                        </Box>
+                      )}
                       <Box
+                        className="size-cover"
                         style={{
                           background: `url(${
-                            props.classes[class_id].image ||
+                            props.classes[class_id].bg_image ||
                             "https://www.iskwela.net/img/on-iskwela.svg"
-                          }) no-repeat right top`,
-                          backgroundSize: "cover",
+                          }) no-repeat`,
+                          backgroundPosition: props.classes[class_id].bg_image
+                            ? "right top"
+                            : "center",
                           width: "100%",
                           height: "100%",
+                          backgroundSize: "cover",
                         }}
                       />
                       {isTeacher && (
@@ -476,6 +531,7 @@ function Class(props) {
                               bottom: 10,
                               right: 10,
                             }}
+                            onClick={editClassPicture}
                           >
                             <CreateOutlined />
                           </IconButton>

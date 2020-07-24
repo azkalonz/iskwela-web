@@ -131,3 +131,6 @@ fieldset {
 .msg span {
   font-family: Arial, Helvetica, sans-serif;
 }
+.size-cover {
+  background-size: cover !important;
+}

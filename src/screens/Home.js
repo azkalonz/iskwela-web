@@ -187,12 +187,9 @@ function Home(props) {
                 <Box
                   className={styles.media}
                   style={{
-                    background: `url(${c.image || "/bg.jpg"}) no-repeat`,
-                    ...(c.image.indexOf("english.svg") >= 0
-                      ? { backgroundPosition: "bottom" }
-                      : {
-                          backgroundPosition: "top",
-                        }),
+                    background: `url(${c.bg_image}) no-repeat`,
+                    backgroundColor: c.color,
+                    backgroundPosition: "top",
                   }}
                 />
                 {/* <div className={styles.mediaOverlay} /> */}
