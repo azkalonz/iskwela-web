@@ -373,8 +373,9 @@ function ChatBox(props) {
             {React.createElement(
               eval(
                 onlineUsers &&
-                  onlineUsers.find((q) => q.id === props.user.id)?.status ===
-                    "online"
+                  onlineUsers.find(
+                    (q) => q && props.user && q.id === props.user.id
+                  )?.status === "online"
                   ? "OnlineBadge"
                   : "OfflineBadge"
               ),

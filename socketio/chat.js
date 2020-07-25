@@ -94,14 +94,26 @@ module.exports = {
           sender: receiver,
           receiver: sender,
         });
-      if (!chat.conversations[outChannel])
+      if (!chat.conversations[outChannel]) {
         chat.conversations[outChannel] = createChatData({
           sender,
           receiver,
         });
+        if (getSocketId(sender)) {
+          if (getSocketSiblings(getSocketId(sender)[0])) {
+            for (let socketID of getSocketSiblings(getSocketId(sender)[0]))
+              io.to(socketID).emit(
+                "get messages",
+                getMessages({ channel: outChannel, start: 0, end: 10 })
+              );
+          }
+        }
+      }
+      let seen = {};
+      seen[sender.id] = sender;
       let incomingMessage = {
         id: messageCounter,
-        seen: {},
+        seen,
         message,
         sender,
         receiver,
