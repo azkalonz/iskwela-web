@@ -42,6 +42,7 @@ import { makeLinkTo } from "./router-dom";
 import { useHistory } from "react-router-dom";
 import Messages, { RecentMessages } from "./Messages";
 import socket from "./socket.io";
+import { setTitle, pageState } from "../App";
 const styles = (theme) => ({
   root: {
     margin: 0,
@@ -107,7 +108,7 @@ function NavBar(props) {
   const [messageAnchor, setMessageAnchor] = useState(null);
   const [changeProfileDialog, setChangeProfileDialog] = useState(false);
   const [changePassDialog, setchangePassDialog] = useState(false);
-
+  const [pageTitle, setPageTitle] = useState([]);
   const meeting = {
     open: () => {
       let id = document.querySelector("#room-name");
@@ -136,9 +137,27 @@ function NavBar(props) {
     window.localStorage["mode"] = mode;
     store.dispatch({ type: "SET_THEME", theme: mode });
   };
+  const newMessageTitle = () =>
+    setTimeout(() => {
+      setTitle(`(${notSeen}) New Message`, "iSkwela", false);
+      window.clearTimeout(window.newmessage);
+      setTimeout(() => {
+        setTitle(pageState.subtitles, "iSkwela", false);
+        window.newmessage = newMessageTitle();
+      }, 1000);
+    }, 1000);
   useEffect(() => {
     Messages.getRecentMessages(props.userInfo);
   }, []);
+  useEffect(() => {
+    if (notSeen) {
+      window.clearTimeout(window.newmessage);
+      window.newmessage = newMessageTitle();
+    } else {
+      window.clearTimeout(window.newmessage);
+      setTitle(pageState.subtitles, "iSkwela", false);
+    }
+  }, [notSeen]);
   return (
     <div className={classes.root} id="nav-bar">
       <ProfilePicDialog

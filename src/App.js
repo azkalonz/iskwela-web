@@ -30,15 +30,23 @@ import { VideoCall } from "./components/dialogs";
 
 const primaryColor = "#7539ff";
 const secondaryColor = "#FFD026";
-
-export const setTitle = (subtitles = []) => {
-  if (typeof subtitles === "string") document.title = "iSkwela | " + subtitles;
-  else {
-    subtitles = subtitles.filter((q) => q !== undefined);
-    document.title = "iSkwela | " + subtitles.join(" | ");
+export const pageState = {};
+export const setTitle = (
+  subtitles = [],
+  title = "iSkwela",
+  saveState = true
+) => {
+  if (typeof subtitles === "string") {
+    subtitles = [subtitles];
+  }
+  subtitles = subtitles.filter((q) => q !== undefined);
+  title = [title].concat(subtitles);
+  document.title = title.join(" | ");
+  if (saveState) {
+    pageState.title = title;
+    pageState.subtitles = subtitles;
   }
 };
-
 String.prototype.ucfirst = function () {
   var firstLetter = this.valueOf().substr(0, 1);
   return firstLetter.toUpperCase() + this.valueOf().substr(1);
@@ -459,7 +467,10 @@ function App(props) {
                 />
                 <Route
                   path="/class/:class_id/:schedule_id?/:option_name?/:room_name?"
-                  component={Class}
+                  render={(p) => {
+                    setTitle("Loading Class...");
+                    return <Class {...p} />;
+                  }}
                 />
                 <Route path="*">
                   <Redirect to="/" />
