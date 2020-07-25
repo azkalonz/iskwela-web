@@ -141,15 +141,21 @@ function NavBar(props) {
     Messages.getRecentMessages(props.userInfo);
   }, []);
   useEffect(() => {
-    window.clearInterval(window.newmessage);
     if (notSeen > 0) {
+      window.clearInterval(window.newmessage);
       window.newmessage = setInterval(() => {
         if (new Date().getSeconds() % 2)
           setTitle(`(${notSeen}) New Message`, "iSkwela", false);
         else setTitle(pageState.subtitles, "iSkwela", false);
       }, 1000);
     } else {
-      setTitle(pageState.subtitles, "iSkwela", false);
+      window.notfocused = setInterval(() => {
+        if (document.hasFocus()) {
+          window.clearInterval(window.newmessage);
+          setTitle(pageState.subtitles, "iSkwela", false);
+          window.clearInterval(window.notfocused);
+        }
+      }, 100);
     }
   }, [notSeen]);
   return (

@@ -494,15 +494,9 @@ function ChatBox(props) {
                             bottom={5}
                             display="flex"
                             alignItems="center"
-                            style={{
-                              ...(c.sender.id !== props.userInfo.id
-                                ? {
-                                    right: -30,
-                                  }
-                                : { left: -25 }),
-                            }}
+                            style={{ left: -25 }}
                           >
-                            {index === props.chat.messages.length - 1 && (
+                            {c.sender.id === props.userInfo.id && (
                               <React.Fragment>
                                 {Object.keys(c.seen).length <
                                 props.chat.participants.length ? (
@@ -513,23 +507,29 @@ function ChatBox(props) {
                                     />
                                   </Tooltip>
                                 ) : (
-                                  <AvatarGroup max={3}>
-                                    {props.chat.participants
-                                      .filter((q) => q.id !== props.userInfo.id)
-                                      .map((s) => (
-                                        <Tooltip
-                                          title={
-                                            s.first_name + " " + s.last_name
-                                          }
-                                        >
-                                          <Avatar
-                                            alt={s.first_name}
-                                            src={s.preferences.profile_picture}
-                                            style={{ height: 25, width: 25 }}
-                                          />
-                                        </Tooltip>
-                                      ))}
-                                  </AvatarGroup>
+                                  index === props.chat.messages.length - 1 && (
+                                    <AvatarGroup max={3}>
+                                      {props.chat.participants
+                                        .filter(
+                                          (q) => q.id !== props.userInfo.id
+                                        )
+                                        .map((s) => (
+                                          <Tooltip
+                                            title={
+                                              s.first_name + " " + s.last_name
+                                            }
+                                          >
+                                            <Avatar
+                                              alt={s.first_name}
+                                              src={
+                                                s.preferences.profile_picture
+                                              }
+                                              style={{ height: 25, width: 25 }}
+                                            />
+                                          </Tooltip>
+                                        ))}
+                                    </AvatarGroup>
+                                  )
                                 )}
                               </React.Fragment>
                             )}
@@ -813,7 +813,12 @@ function Chat(props) {
     }
   };
   useEffect(() => {
-    seen();
+    window.clearInterval(window.seenbutnotfocused);
+    window.seenbutnotfocused = setInterval(() => {
+      if (document.hasFocus()) {
+        seen();
+      }
+    }, 1000);
   }, [chat]);
   useEffect(() => {
     Messages.hooks["get message"] = () => {
