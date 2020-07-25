@@ -286,12 +286,17 @@ function ChatBox(props) {
         return "";
     }
   };
+  const closeAllDetails = (ignore = []) => {
+    let d = document.querySelectorAll(".details.opened");
+    if (d)
+      d.forEach(
+        (e) => Array.from(ignore).indexOf(e) < 0 && e.classList.remove("opened")
+      );
+  };
   const loadMore = () => {
     if (loading) return;
     setLoading(true);
-    document
-      .querySelectorAll(".details.opened")
-      .forEach((e) => e.classList.remove("opened"));
+    closeAllDetails();
     props.loadMore(() => setLoading(false));
   };
   const typing = () => {
@@ -476,7 +481,7 @@ function ChatBox(props) {
                           moment(c.date).diff(
                             messages[index - 1].date,
                             "days"
-                          ) > 1 && (
+                          ) >= 1 && (
                             <Box
                               display="flex"
                               alignItems="center"
@@ -515,6 +520,7 @@ function ChatBox(props) {
                               .querySelector("#msg-" + c.id)
                               .querySelectorAll(".details");
                             if (m) {
+                              closeAllDetails(m);
                               m.forEach((el) => {
                                 el.classList.toggle("opened");
                               });
@@ -532,7 +538,7 @@ function ChatBox(props) {
                               <React.Fragment>
                                 {Object.keys(c.seen).length <
                                 props.chat.participants.length ? (
-                                  <Tooltip title="Delivered">
+                                  <Tooltip title="Sent">
                                     <CheckCircleIcon
                                       color="primary"
                                       fontSize="small"
@@ -606,23 +612,23 @@ function ChatBox(props) {
             </Box>
           </Scrollbars>
         )}
+        {props.status &&
+          props.user &&
+          Object.keys(props.status).map((q, index) => {
+            if (
+              parseInt(q) !== props.userInfo.id &&
+              props.user.id === parseInt(q)
+            ) {
+              return (
+                <Box width="100%" style={{ textAlign: "center" }} key={index}>
+                  {props.status[q].message}
+                </Box>
+              );
+            } else {
+              return null;
+            }
+          })}
       </Box>
-      {props.status &&
-        props.user &&
-        Object.keys(props.status).map((q, index) => {
-          if (
-            parseInt(q) !== props.userInfo.id &&
-            props.user.id === parseInt(q)
-          ) {
-            return (
-              <Box width="100%" style={{ textAlign: "center" }} key={index}>
-                {props.status[q].message}
-              </Box>
-            );
-          } else {
-            return null;
-          }
-        })}
       <Box width="100%">
         <Divider />
       </Box>
