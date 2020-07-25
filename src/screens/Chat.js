@@ -29,6 +29,8 @@ import Drawer from "../components/Drawer";
 import MUIRichTextEditor from "mui-rte";
 import { useHistory } from "react-router-dom";
 import { convertToRaw, EditorState, ContentState } from "draft-js";
+import CheckCircleIcon from "@material-ui/icons/CheckCircle";
+import CheckCircleOutlineIcon from "@material-ui/icons/CheckCircleOutline";
 import socket from "../components/socket.io";
 import moment from "moment";
 import NavBar from "../components/NavBar";
@@ -263,6 +265,7 @@ function ChatBox(props) {
     }
   };
   const loadMore = () => {
+    if (loading) return;
     setLoading(true);
     document
       .querySelectorAll(".details.opened")
@@ -342,7 +345,7 @@ function ChatBox(props) {
           <Typography style={{ marginLeft: 7 }}>
             {first_name} {last_name}
           </Typography>
-          {props.loading && <CircularProgress size={18} />}
+          {props.loading && chat_id && <CircularProgress size={18} />}
         </Box>
         <Box>
           {isTablet && (
@@ -368,7 +371,7 @@ function ChatBox(props) {
       >
         {props.chat && props.chat.messages && (
           <Scrollbars autoHide>
-            {props.chat.loaded !== props.chat.total && chat_id && (
+            {!loading && props.chat.loaded !== props.chat.total && chat_id && (
               <Box width="100%" display="flex" justifyContent="center">
                 <IconButton onClick={loadMore}>
                   <Icon>expand_less</Icon>
@@ -408,6 +411,8 @@ function ChatBox(props) {
                       <Box
                         key={index}
                         display="flex"
+                        id={"msg-" + c.id}
+                        className="msg-container"
                         style={{
                           marginLeft:
                             c.sender.id !== props.userInfo.id ? "40px" : "0",
@@ -443,7 +448,15 @@ function ChatBox(props) {
                             </Box>
                           )}
                         <Box
-                          id={"msg-" + c.id}
+                          className="details"
+                          width="100%"
+                          style={{
+                            textAlign: "center",
+                          }}
+                        >
+                          {moment(c.date).format("MMMM DD, YYYY hh:mm A")}
+                        </Box>
+                        <Box
                           className={
                             (c.sender.id !== props.userInfo.id
                               ? "msg sender "
@@ -452,12 +465,47 @@ function ChatBox(props) {
                               getBubbleShape(props.chat.messages, index)
                             )
                           }
-                          onClick={() =>
-                            document
+                          onClick={() => {
+                            let m = document
                               .querySelector("#msg-" + c.id)
-                              ?.nextElementSibling?.classList.toggle("opened")
-                          }
+                              .querySelectorAll(".details");
+                            if (m) {
+                              m.forEach((el) => {
+                                el.classList.toggle("opened");
+                              });
+                            }
+                          }}
                         >
+                          <Box
+                            position="absolute"
+                            bottom={10}
+                            display="flex"
+                            alignItems="center"
+                            style={{
+                              ...(c.sender.id !== props.userInfo.id
+                                ? {
+                                    right: -25,
+                                  }
+                                : { left: -25 }),
+                            }}
+                          >
+                            {index === props.chat.messages.length - 1 && (
+                              <React.Fragment>
+                                {Object.keys(c.seen).length >=
+                                props.chat.participants.length ? (
+                                  <CheckCircleIcon
+                                    color="primary"
+                                    fontSize="small"
+                                  />
+                                ) : (
+                                  <CheckCircleOutlineIcon
+                                    color="primary"
+                                    fontSize="small"
+                                  />
+                                )}
+                              </React.Fragment>
+                            )}
+                          </Box>
                           <MUIRichTextEditor
                             readOnly={true}
                             value={c.message}
@@ -475,7 +523,22 @@ function ChatBox(props) {
                                 : "left",
                           }}
                         >
-                          {moment(c.date).format("MMMM DD, YYYY hh:mm A")}
+                          Seen by {c.seen[props.userInfo.id] && " You "}
+                          {Object.keys(c.seen)
+                            .filter((q) => parseInt(q) !== props.userInfo.id)
+                            .map((k, index) => (
+                              <React.Fragment key={index}>
+                                {index === 0 && "and "}
+                                {c.seen[k].first_name +
+                                  " " +
+                                  c.seen[k].last_name}
+                                {index <
+                                  Object.keys(c.seen).filter(
+                                    (q) => parseInt(q) !== props.userInfo.id
+                                  ).length -
+                                    1 && ", "}
+                              </React.Fragment>
+                            ))}
                         </Box>
                       </Box>
                     </Box>
@@ -661,20 +724,19 @@ function Chat(props) {
           chat.messages.length - 1
         ];
         let latestSeen = { ...seen };
-        if (!latestSeen[props.userInfo.id]) {
-          let loadedNotSeen = chat.messages
-            .filter((q) => (!q.seen[props.userInfo.id] ? true : false))
-            .map((q) => q.id);
-          latestSeen[props.userInfo.id] = {
-            ...props.userInfo,
-            date: new Date().toISOString(),
-          };
-          Messages.updateMessage(loadedNotSeen, {
-            sender,
-            receiver,
-            update: { seen: latestSeen },
-          });
-        }
+        let loadedNotSeen = chat.messages
+          .filter((q) => (!q.seen[props.userInfo.id] ? true : false))
+          .map((q) => q.id);
+        latestSeen[props.userInfo.id] = {
+          ...props.userInfo,
+          date: new Date().toISOString(),
+        };
+        console.log(loadedNotSeen);
+        Messages.updateMessage(loadedNotSeen, {
+          sender,
+          receiver,
+          update: { seen: latestSeen },
+        });
       }
     }
   };
@@ -813,22 +875,25 @@ const useStyles = makeStyles((theme) => ({
     },
     "& .chat-box": {
       borderRight: "1px solid rgba(0,0,0,0.17)",
-      "& .msg": {
-        maxWidth: "85%",
-        cursor: "pointer",
-        padding: "0 13px",
-        marginTop: 3,
-        borderRadius: 18,
-        "&+.details": {
+      "& .msg-container": {
+        "& .details": {
           overflow: "hidden",
           transition: "height 0.2s ease-out",
           height: "0px",
           opacity: 0.7,
           "&.opened": {
             display: "block",
-            height: "15px",
+            height: "20px",
           },
         },
+      },
+      "& .msg": {
+        maxWidth: "85%",
+        cursor: "pointer",
+        padding: "0 13px",
+        position: "relative",
+        marginTop: 3,
+        borderRadius: 18,
       },
       "& .sender": {
         background: "rgba(0,0,0,0.05)",

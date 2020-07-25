@@ -11,6 +11,7 @@ function getMessages({ channel, start, end }) {
   let convo = chat.conversations[channel] || {};
   let messages = convo.messages || [];
   let total = messages.length;
+  let participants = convo.people || [];
   if (convo && messages) {
     messages = messages
       .sort((a, b) => new Date(b.date) - new Date(a.date))
@@ -20,6 +21,7 @@ function getMessages({ channel, start, end }) {
   return {
     channel,
     messages,
+    participants,
     total,
     start,
     end,
@@ -195,9 +197,18 @@ module.exports = {
           }
         }
       }
-      if (getSocketSiblings(socket.id))
-        for (let socketID of getSocketSiblings(socket.id))
-          io.to(socketID).emit("update message", { id, update });
+      if (getSocketId(sender)) {
+        if (getSocketSiblings(getSocketId(sender)[0])) {
+          for (let socketID of getSocketSiblings(getSocketId(sender)[0]))
+            io.to(socketID).emit("update message", { id, update });
+        }
+      }
+      if (getSocketId(receiver)) {
+        if (getSocketSiblings(getSocketId(receiver)[0])) {
+          for (let socketID of getSocketSiblings(getSocketId(receiver)[0]))
+            io.to(socketID).emit("update message", { id, update });
+        }
+      }
     });
     socket.on("update chat", ({ sender, receiver, update }) => {
       if (!sender || !receiver) return;
