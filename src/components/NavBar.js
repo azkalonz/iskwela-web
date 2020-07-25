@@ -205,9 +205,12 @@ function NavBar(props) {
                     </Typography>
                   )}
                 </Button>
-                <IconButton style={{ paddingLeft: 0 }} onClick={handleMenu}>
+                <Button
+                  style={{ paddingLeft: 0, paddingRight: 5, border: "none" }}
+                  onClick={handleMenu}
+                >
                   <ArrowDropDownIcon />
-                </IconButton>
+                </Button>
               </ButtonGroup>
               <Menu
                 id="menu-appbar"

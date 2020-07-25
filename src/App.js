@@ -39,6 +39,10 @@ export const setTitle = (subtitles = []) => {
   }
 };
 
+String.prototype.ucfirst = function () {
+  var firstLetter = this.valueOf().substr(0, 1);
+  return firstLetter.toUpperCase() + this.valueOf().substr(1);
+};
 Math.map = (n, start1, stop1, start2, stop2) => {
   return ((n - start1) / (stop1 - start1)) * (stop2 - start2) + start2;
 };

@@ -29,6 +29,7 @@ import {
   getDefaultControls,
   blobToBase64,
   scaleContainer,
+  ResizeLine,
 } from "./content-creator";
 import { connect } from "react-redux";
 import { DialogTitle } from "./dialogs";
@@ -392,8 +393,31 @@ function BoardsList(props) {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const boards = props.boards.filter((b) => b.info.id !== props.userInfo.id);
+  const [isResizing, setIsResizing] = useState({});
   return boards.length ? (
-    <Box className={"boards-list " + (props.className ? props.className : "")}>
+    <Box
+      className={"boards-list " + (props.className ? props.className : "")}
+      position="relative"
+    >
+      <ResizeLine
+        orientation="vertical"
+        id="main-board"
+        minSize={10}
+        inverted={true}
+        resizing={isResizing.BOARDS_LIST || false}
+        ready={() => setIsResizing({ ...isResizing, ...{ BOARDS_LIST: true } })}
+        done={() => setIsResizing({ ...isResizing, ...{ BOARDS_LIST: false } })}
+        onResize={() => null}
+        style={{
+          position: "absolute",
+          borderBottom: "1px solid rgba(0,0,0,0.17)",
+          width: 4,
+          height: "100%",
+          left: 0,
+          top: 0,
+          bottom: 0,
+        }}
+      />
       {props.onClose && (
         <Toolbar>
           {props.onClose}

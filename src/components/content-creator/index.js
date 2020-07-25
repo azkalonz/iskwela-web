@@ -390,21 +390,36 @@ const resizeDomEl = (e) => {
     ];
   let max;
   let initialSize = el.getAttribute("data-initial-size");
+  let offset = window.resizing.inverted
+    ? isVertical
+      ? window.innerWidth
+      : window.innerHeight
+    : 0;
+  let overrideSize = offset - e[isVertical ? "clientX" : "clientY"];
   if (!window.resizing.maxSize) max = parseInt(initialSize);
   else max = window.resizing.maxSize;
-  if (size > max) {
+  if (size > max && overrideSize < 0) {
     el.style[orientation] = max + "px";
     window.resizing.done();
-  } else if (window.resizing.minSize && size < window.resizing.minSize) {
+  } else if (
+    window.resizing.minSize &&
+    size < window.resizing.minSize &&
+    overrideSize < 0
+  ) {
     el.style[orientation] = window.resizing.minSize + 2 + "px";
     window.resizing.done();
   } else {
-    el.style[orientation] =
-      e[isVertical ? "clientX" : "clientY"] -
-      document.querySelector("#toolbar").getBoundingClientRect()[
-        isVertical ? "x" : "y"
-      ] +
-      "px";
+    if (overrideSize < 0) {
+      el.style[orientation] =
+        e[isVertical ? "clientX" : "clientY"] -
+        document.querySelector("#toolbar").getBoundingClientRect()[
+          isVertical ? "x" : "y"
+        ] +
+        "px";
+    } else {
+      el.style[orientation] = overrideSize + "px";
+      el.style["min" + orientation.ucfirst()] = overrideSize + "px";
+    }
     window.resizing.el.classList.add("resizing");
     window.resizing.callback && window.resizing.callback();
   }
@@ -427,6 +442,7 @@ export function ResizeLine(props) {
       maxSize: props.maxSize,
       minSize: props.minSize,
       done,
+      inverted: props.inverted,
       callback: props.onResize,
     };
     window.addEventListener("mousemove", resizeDomEl);
