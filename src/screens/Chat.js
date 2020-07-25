@@ -35,6 +35,7 @@ import socket from "../components/socket.io";
 import moment from "moment";
 import NavBar from "../components/NavBar";
 import Jitsi from "react-jitsi";
+import { ResizeLine } from "../components/content-creator";
 
 function Users(props) {
   const theme = useTheme();
@@ -340,13 +341,15 @@ function ChatBox(props) {
             </Icon>
           </IconButton>
         )}
-        <Box display="flex" alignItems="center" flex={1} overflow="hidden">
-          <Avatar src={preferences.profile_picture} alt={first_name} />
-          <Typography style={{ marginLeft: 7 }}>
-            {first_name} {last_name}
-          </Typography>
-          {props.loading && chat_id && <CircularProgress size={18} />}
-        </Box>
+        {chat_id && (
+          <Box display="flex" alignItems="center" flex={1} overflow="hidden">
+            <Avatar src={preferences.profile_picture} alt={first_name} />
+            <Typography style={{ marginLeft: 7 }}>
+              {first_name} {last_name}
+            </Typography>
+            {props.loading && <CircularProgress size={18} />}
+          </Box>
+        )}
         <Box>
           {isTablet && (
             <IconButton
@@ -632,6 +635,7 @@ function ChatBox(props) {
 function ChatDetails(props) {
   const theme = useTheme();
   const isTablet = useMediaQuery(theme.breakpoints.down("md"));
+  const { chat_id } = props.match.params;
   const { first_name, last_name, preferences = {} } = props.user || {};
   return (
     <Box height="100%" overflow="auto">
@@ -658,22 +662,24 @@ function ChatDetails(props) {
         <Scrollbars autoHide>
           <Box width="100%">
             <Box width="100%">
-              <List>
-                <ListItem
-                  onClick={() => Messages.vc.call(props.userInfo, props.user)}
-                >
-                  <ListItemIcon>
-                    <span
-                      className="icon-start-conference"
-                      style={{
-                        fontSize: "1.7rem",
-                        color: theme.palette.primary.main,
-                      }}
-                    ></span>
-                  </ListItemIcon>
-                  <ListItemText primary="Video Call" />
-                </ListItem>
-              </List>
+              {chat_id && (
+                <List>
+                  <ListItem
+                    onClick={() => Messages.vc.call(props.userInfo, props.user)}
+                  >
+                    <ListItemIcon>
+                      <span
+                        className="icon-start-conference"
+                        style={{
+                          fontSize: "1.7rem",
+                          color: theme.palette.primary.main,
+                        }}
+                      ></span>
+                    </ListItemIcon>
+                    <ListItemText primary="Video Call" />
+                  </ListItem>
+                </List>
+              )}
             </Box>
           </Box>
         </Scrollbars>
@@ -684,6 +690,7 @@ function ChatDetails(props) {
 function MainChat(props) {
   const theme = useTheme();
   const isTablet = useMediaQuery(theme.breakpoints.down("md"));
+  const [isResizing, setIsResizing] = useState({});
   return (
     <Box width="100%" display="flex" height="100%">
       <Box width="100%" height="100%">
@@ -695,8 +702,46 @@ function MainChat(props) {
         }
         width={325}
         minWidth={325}
-        style={{ right: props.location.hash === "#user-details" ? 0 : -325 }}
+        style={{
+          ...(props.location.hash === "#user-details" && isTablet
+            ? {
+                right: 0,
+              }
+            : {
+                ...(isTablet
+                  ? {
+                      right: -325,
+                    }
+                  : {
+                      right: 0,
+                      position: "relative",
+                    }),
+              }),
+        }}
       >
+        {!isTablet && (
+          <ResizeLine
+            orientation="vertical"
+            minSize={100}
+            maxSize={400}
+            inverted={true}
+            resizing={isResizing.DETAILS || false}
+            ready={() => setIsResizing({ ...isResizing, ...{ DETAILS: true } })}
+            done={() => setIsResizing({ ...isResizing, ...{ DETAILS: false } })}
+            offset={66}
+            force={true}
+            onResize={() => null}
+            style={{
+              position: "absolute",
+              borderBottom: "1px solid rgba(0,0,0,0.17)",
+              width: 4,
+              height: "100%",
+              left: 0,
+              top: 0,
+              bottom: 0,
+            }}
+          />
+        )}
         <ChatDetails {...props} />
       </Box>
     </Box>
@@ -712,6 +757,7 @@ function Chat(props) {
   const history = useHistory();
   const [loading, setLoading] = useState(false);
   const { onlineUsers, chat, recent = [] } = props;
+  const [isResizing, setIsResizing] = useState({});
 
   const getMessages = (start = 0, end = 10, callback = null) => {
     setLoading(true);
@@ -737,7 +783,6 @@ function Chat(props) {
           ...props.userInfo,
           date: new Date().toISOString(),
         };
-        console.log(loadedNotSeen);
         Messages.updateMessage(loadedNotSeen, {
           sender,
           receiver,
@@ -767,7 +812,22 @@ function Chat(props) {
           width={325}
           minWidth={325}
           className={isTablet ? "fixed-drawer drawer" : "drawer"}
-          style={{ left: props.location.hash === "#users" ? 0 : -325 }}
+          style={{
+            ...(props.location.hash === "#users" && isTablet
+              ? {
+                  left: 0,
+                }
+              : {
+                  ...(isTablet
+                    ? {
+                        left: -325,
+                      }
+                    : {
+                        left: 0,
+                        position: "relative",
+                      }),
+                }),
+          }}
         >
           <Users
             {...props}
@@ -778,6 +838,28 @@ function Chat(props) {
               history.push("/chat/" + user.username);
             }}
           />
+          {!isTablet && (
+            <ResizeLine
+              orientation="vertical"
+              minSize={100}
+              maxSize={400}
+              resizing={isResizing.USERS || false}
+              ready={() => setIsResizing({ ...isResizing, ...{ USERS: true } })}
+              done={() => setIsResizing({ ...isResizing, ...{ USERS: false } })}
+              offset={66}
+              force={true}
+              onResize={() => null}
+              style={{
+                position: "absolute",
+                borderBottom: "1px solid rgba(0,0,0,0.17)",
+                width: 4,
+                height: "100%",
+                right: 0,
+                top: 0,
+                bottom: 0,
+              }}
+            />
+          )}
         </Box>
         <Box width="100%" height="100%">
           <MainChat
@@ -842,6 +924,7 @@ const ConnectedVideoChat = connect((states) => ({
 export { ConnectedVideoChat as VideoChat };
 const useStyles = makeStyles((theme) => ({
   root: {
+    background: "#fff",
     height: "100vh",
     "& p": {
       display: "inline-block",
@@ -855,7 +938,8 @@ const useStyles = makeStyles((theme) => ({
         position: "fixed",
         top: 0,
         bottom: 0,
-        width: 325,
+        width: "325px!important",
+        minWidth: "325px!important",
         zIndex: 15,
       },
     },

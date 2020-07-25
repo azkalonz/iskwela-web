@@ -399,23 +399,41 @@ const resizeDomEl = (e) => {
   if (!window.resizing.maxSize) max = parseInt(initialSize);
   else max = window.resizing.maxSize;
   if (size > max && overrideSize < 0) {
-    el.style[orientation] = max + "px";
+    el.style[orientation] = size - (size % max) + "px";
+    if (window.resizing.force)
+      el.style["min" + orientation.ucfirst()] = size - (size % max) + "px";
     window.resizing.done();
   } else if (
     window.resizing.minSize &&
     size < window.resizing.minSize &&
     overrideSize < 0
   ) {
-    el.style[orientation] = window.resizing.minSize + 2 + "px";
+    el.style[orientation] = window.resizing.minSize + 4 + "px";
+    if (window.resizing.force)
+      el.style["min" + orientation.ucfirst()] =
+        window.resizing.minSize + 4 + "px";
     window.resizing.done();
   } else {
     if (overrideSize < 0) {
       el.style[orientation] =
         e[isVertical ? "clientX" : "clientY"] -
-        document.querySelector("#toolbar").getBoundingClientRect()[
-          isVertical ? "x" : "y"
-        ] +
+        (window.resizing.offset || 0) -
+        (document.querySelector("#toolbar")
+          ? document.querySelector("#toolbar").getBoundingClientRect()[
+              isVertical ? "x" : "y"
+            ]
+          : 0) +
         "px";
+      if (window.resizing.force)
+        el.style["min" + orientation.ucfirst()] =
+          e[isVertical ? "clientX" : "clientY"] -
+          (window.resizing.offset || 0) -
+          (document.querySelector("#toolbar")
+            ? document.querySelector("#toolbar").getBoundingClientRect()[
+                isVertical ? "x" : "y"
+              ]
+            : 0) +
+          "px";
     } else {
       el.style[orientation] = overrideSize + "px";
       el.style["min" + orientation.ucfirst()] = overrideSize + "px";
@@ -442,6 +460,8 @@ export function ResizeLine(props) {
       maxSize: props.maxSize,
       minSize: props.minSize,
       done,
+      offset: props.offset,
+      force: props.force,
       inverted: props.inverted,
       callback: props.onResize,
     };
@@ -1767,6 +1787,7 @@ const useStyles = makeStyles((theme) => ({
   resizeline: {
     transition: "all 0.3s ease-out",
     "&.resizing, &:hover": {
+      zIndex: "16!important",
       background: theme.palette.info.main,
     },
   },
