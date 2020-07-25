@@ -239,7 +239,7 @@ function ChatBox(props) {
       }, 0);
     }, 0);
   };
-  const sameSender = (convo, index) => {
+  const getBubbleShape = (convo, index) => {
     let i = 5;
     let { id } = convo[index].sender;
     let top = convo[index - 1];
@@ -342,7 +342,7 @@ function ChatBox(props) {
           <Typography style={{ marginLeft: 7 }}>
             {first_name} {last_name}
           </Typography>
-          {loading && <CircularProgress size={18} />}
+          {props.loading && <CircularProgress size={18} />}
         </Box>
         <Box>
           {isTablet && (
@@ -364,6 +364,7 @@ function ChatBox(props) {
         paddingTop={0}
         paddingBottom={0}
         overflow="auto"
+        position="relative"
       >
         {props.chat && props.chat.messages && (
           <Scrollbars autoHide>
@@ -385,8 +386,8 @@ function ChatBox(props) {
                       marginTop={index === 0 ? 2 : 0}
                     >
                       {c.sender.id !== props.userInfo.id &&
-                        (sameSender(props.chat.messages, index) === 3 ||
-                          sameSender(props.chat.messages, index) === 5) && (
+                        (getBubbleShape(props.chat.messages, index) === 3 ||
+                          getBubbleShape(props.chat.messages, index) === 5) && (
                           <Box
                             className="picture"
                             style={{
@@ -447,7 +448,9 @@ function ChatBox(props) {
                             (c.sender.id !== props.userInfo.id
                               ? "msg sender "
                               : "msg receiver ") +
-                            getClassName(sameSender(props.chat.messages, index))
+                            getClassName(
+                              getBubbleShape(props.chat.messages, index)
+                            )
                           }
                           onClick={() =>
                             document
@@ -638,9 +641,11 @@ function Chat(props) {
   const styles = useStyles();
   const [tail, setTail] = useState("");
   const history = useHistory();
+  const [loading, setLoading] = useState(false);
   const { onlineUsers, chat, recent = [] } = props;
 
   const getMessages = (start = 0, end = 10, callback = null) => {
+    setLoading(true);
     let receiver = onlineUsers.find((q) => q.username === chat_id);
     if (receiver) {
       let sender = props.userInfo;
@@ -677,6 +682,10 @@ function Chat(props) {
     seen();
   }, [chat]);
   useEffect(() => {
+    Messages.hooks["get message"] = () => {
+      window.clearTimeout(window.loadingmsg);
+      window.loadingmsg = setTimeout(() => setLoading(false), 500);
+    };
     Messages.getRecentMessages(props.userInfo);
   }, []);
   useEffect(() => {
@@ -709,6 +718,7 @@ function Chat(props) {
             loadMore={(callback) =>
               getMessages(chat.end, chat.end + 10, callback)
             }
+            loading={loading}
             onSend={(d) => {
               if (d) {
                 // setRecent([...recent, d]);

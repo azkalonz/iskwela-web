@@ -10,6 +10,7 @@ import {
   makeStyles,
   useTheme,
   useMediaQuery,
+  CircularProgress,
 } from "@material-ui/core";
 import LaunchIcon from "@material-ui/icons/Launch";
 import React, { useEffect, useState } from "react";
@@ -85,6 +86,49 @@ function FV(props) {
   ].concat(viewableLinks.map((l) => l.type));
 
   const customFileLoader = {
+    iskwela_file: {
+      load: () => {
+        setStatus("CUSTOM_LOADED");
+        setCustomLoader(
+          <Box
+            bgcolor="#282828"
+            width="100%"
+            height="100%"
+            justifyContent="center"
+            alignItems="flex-start"
+            overflow="auto"
+            display="flex"
+            position="relative"
+          >
+            <Box
+              justifyContent="center"
+              alignItems="center"
+              display="flex"
+              id="file-viewer-spinner"
+              style={{
+                position: "absolute",
+                left: 0,
+                right: 0,
+                bottom: 0,
+                top: 0,
+                background: "#fff",
+              }}
+            >
+              <CircularProgress />
+            </Box>
+            <img
+              id="iskwela-img"
+              src={props.file.url}
+              onLoad={() => {
+                zoomable(document.querySelector("#iskwela-img"));
+                let s = document.querySelector("#file-viewer-spinner");
+                if (s) s.parentNode.removeChild(s);
+              }}
+            />
+          </Box>
+        );
+      },
+    },
     audio: {
       load: () => {
         setStatus("CUSTOM_LOADED");
@@ -94,6 +138,7 @@ function FV(props) {
             justifyContent="center"
             alignItems="center"
             width="100%"
+            overflow="auto"
             height="100%"
           >
             <Recorder
@@ -142,14 +187,33 @@ function FV(props) {
         getCustomLoader(props.file.type).load();
       } else if (getCustomType(props.file.url)) {
         let f = getCustomType(props.file.url);
-        if (typeof f === "string") loadIframe();
+        if (getCustomLoader(typeof f === "string" ? f : f.type)) {
+          getCustomLoader(typeof f === "string" ? f : f.type).load();
+        } else if (typeof f === "string") loadIframe();
         else loadIframe(f.url);
       } else {
         setStatus("INVALID");
       }
     }
   };
-
+  const zoomable = (img) => {
+    if (!img) return;
+    img.style.transition = "all 0.7s cubic-bezier(0.85, -0.04, 0, 1.4) 0s";
+    img.style.cursor = "zoom-in";
+    img.style.width = "50%";
+    img.setAttribute("zoom", "in");
+    img.onclick = function () {
+      if (this.getAttribute("zoom") === "in") {
+        this.style.width = "100%";
+        this.style.cursor = "zoom-out";
+        this.setAttribute("zoom", "out");
+      } else {
+        this.style.width = "50%";
+        this.style.cursor = "zoom-in";
+        this.setAttribute("zoom", "in");
+      }
+    };
+  };
   const loadIframe = (url = props.file.url) => {
     setTimeout(() => {
       let i = document.getElementById("file-viewer");
@@ -164,22 +228,7 @@ function FV(props) {
             body.style.justifyContent = "center";
             body.style.alignItems = "center";
             let img = body.querySelector("img");
-            img.style.transition =
-              "all 0.7s cubic-bezier(0.85, -0.04, 0, 1.4) 0s";
-            img.style.cursor = "zoom-in";
-            img.style.width = "50%";
-            img.setAttribute("zoom", "in");
-            img.onclick = function () {
-              if (this.getAttribute("zoom") === "in") {
-                this.style.width = "100%";
-                this.style.cursor = "zoom-out";
-                this.setAttribute("zoom", "out");
-              } else {
-                this.style.width = "50%";
-                this.style.cursor = "zoom-in";
-                this.setAttribute("zoom", "in");
-              }
-            };
+            zoomable(img);
           } catch (e) {}
           setStatus("LOADED");
         };
@@ -266,7 +315,10 @@ function FV(props) {
               <Link
                 variant="body2"
                 style={{ cursor: "pointer" }}
-                href={props.file.url}
+                href={
+                  (props.file.url.indexOf("/") < 0 ? "http://" : "") +
+                  props.file.url
+                }
                 target="_blank"
               >
                 Open the file in new tab insted <LaunchIcon fontSize="small" />

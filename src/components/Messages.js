@@ -64,10 +64,11 @@ const Messages = {
       typeof Messages.hooks["new message"] === "function" &&
         Messages.hooks["new message"](data);
     });
-    socket.on(
-      "get messages",
-      (data) => dispatch && dispatch({ data, type: "SET_MESSAGES" })
-    );
+    socket.on("get messages", (data) => {
+      dispatch && dispatch({ data, type: "SET_MESSAGES" });
+      typeof Messages.hooks["get message"] === "function" &&
+        Messages.hooks["get message"](data);
+    });
   },
   vc: {
     call: (caller, receiver) => {

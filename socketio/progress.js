@@ -1,10 +1,10 @@
+const progress = {
+  quizzes: {},
+  periodical_tests: {},
+  assignments: {},
+};
 module.exports = {
-  progress: (socket) => {
-    const progress = {
-      quizzes: {},
-      periodical_tests: {},
-      assignments: {},
-    };
+  progress: (io, socket) => {
     socket.on("get progress", (data) => {
       let emitted = false;
       let s = progress[data.type][data.student_id];
