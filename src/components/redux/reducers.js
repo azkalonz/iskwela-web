@@ -132,7 +132,8 @@ const messages = (
     case "SET_MESSAGES":
       let added = payload.data.messages.length;
       let { messages, loaded, channel } = state.current;
-      if (payload.data.channel !== channel) loaded = 0;
+      if (payload.data.channel !== channel || payload.data.start <= 0)
+        loaded = 0;
       return {
         ...state,
         current: {
