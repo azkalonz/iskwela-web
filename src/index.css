@@ -134,3 +134,12 @@ fieldset {
 .size-cover {
   background-size: cover !important;
 }
+.search-input {
+  transition: all 0.16s ease-out;
+  transform-origin: right;
+  opacity: 1;
+}
+.search-input.hidden {
+  opacity: 0;
+  transform: scaleX(0);
+}

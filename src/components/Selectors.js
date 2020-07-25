@@ -130,6 +130,7 @@ function StatusSelector(props) {
 
 export function SearchInput(props) {
   const theme = useTheme();
+  const [isHidden, setIsHidden] = useState(true);
   const isTablet = useMediaQuery(theme.breakpoints.down("md"));
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const searchRef = useRef();
@@ -137,60 +138,79 @@ export function SearchInput(props) {
   const quickSearch =
     props.quickSearch === undefined ? true : props.quickSearch;
   return (
-    <Box
-      p={0.3}
-      paddingLeft={1}
-      borderRadius={4}
-      alignSelf="flex-end"
-      display="flex"
-      style={{
-        ...(isMobile
-          ? { width: "100%", ...(props.style ? props.style : {}) }
-          : props.style
-          ? props.style
-          : {}),
-        ...{ background: "#efe7ff", border: "1px solid #c9b8eb" },
-      }}
-    >
-      <InputBase
-        style={{ width: "100%" }}
-        placeholder="Search"
-        onKeyUp={(e) => {
-          if (!quickSearch) {
-            if (e.which === 13) props.onChange(e.target.value);
-          } else {
-            props.onChange(e.target.value);
-          }
-          setval(e.target.value);
+    <React.Fragment>
+      <Box
+        p={0.3}
+        className={
+          isHidden && props.minimized ? "search-input hidden" : "search-input"
+        }
+        paddingLeft={1}
+        borderRadius={4}
+        alignSelf="flex-end"
+        display="flex"
+        style={{
+          ...(isMobile
+            ? { width: "100%", ...(props.style ? props.style : {}) }
+            : props.style
+            ? props.style
+            : {}),
+          ...{ background: "#efe7ff", border: "1px solid #c9b8eb" },
+          ...(props.styles && props.styles.searchInput
+            ? props.styles.searchInput
+            : {}),
         }}
-        inputProps={{ "aria-label": "search activity" }}
-        ref={searchRef}
-      />
-      {val && (
+      >
+        <InputBase
+          style={{ width: "100%" }}
+          placeholder="Search"
+          onBlur={() => props.minimized && setIsHidden(true)}
+          onKeyUp={(e) => {
+            if (!quickSearch) {
+              if (e.which === 13) props.onChange(e.target.value);
+            } else {
+              props.onChange(e.target.value);
+            }
+            setval(e.target.value);
+          }}
+          inputProps={{ "aria-label": "search activity" }}
+          ref={searchRef}
+        />
+        {val && (
+          <IconButton
+            type="submit"
+            aria-label="search"
+            style={{ padding: 0 }}
+            onClick={(e) => {
+              searchRef.current.querySelector("input").value = "";
+              props.onChange("");
+              setval("");
+            }}
+          >
+            <Icon>close</Icon>
+          </IconButton>
+        )}
         <IconButton
           type="submit"
           aria-label="search"
           style={{ padding: 0 }}
-          onClick={(e) => {
-            searchRef.current.querySelector("input").value = "";
-            props.onChange("");
-            setval("");
-          }}
+          onClick={(e) =>
+            props.onChange(searchRef.current.querySelector("input").value)
+          }
         >
-          <Icon>close</Icon>
+          <SearchIcon color="primary" />
+        </IconButton>
+      </Box>
+      {isHidden && props.minimized && (
+        <IconButton
+          onClick={() => {
+            setIsHidden(!isHidden);
+          }}
+          style={props.styles?.searchBtn}
+        >
+          <Icon>search</Icon>
         </IconButton>
       )}
-      <IconButton
-        type="submit"
-        aria-label="search"
-        style={{ padding: 0 }}
-        onClick={(e) =>
-          props.onChange(searchRef.current.querySelector("input").value)
-        }
-      >
-        <SearchIcon color="primary" />
-      </IconButton>
-    </Box>
+    </React.Fragment>
   );
 }
 

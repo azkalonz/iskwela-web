@@ -78,6 +78,7 @@ function Users(props) {
       height="100%"
       className="users"
       display="flex"
+      position="relative"
       flexDirection="column"
     >
       <Toolbar style={{ background: "#fff" }}>
@@ -87,7 +88,23 @@ function Users(props) {
           </IconButton>
         )}
         <Box width="100%">
-          <SearchInput onChange={(e) => setSearch(e.toLowerCase())} />
+          <Typography style={{ fontWeight: "bold" }}>Friends</Typography>
+        </Box>
+        <Box>
+          <SearchInput
+            onChange={(e) => setSearch(e.toLowerCase())}
+            minimized={true}
+            styles={{
+              searchInput: {
+                position: "absolute",
+                right: 8,
+                left: 12,
+                width: "auto",
+                zIndex: 2,
+                top: 6,
+              },
+            }}
+          />
         </Box>
         {isTablet && (
           <IconButton

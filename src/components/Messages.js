@@ -121,6 +121,11 @@ function RecentMessages(props) {
           </Typography>
           <Divider />
         </Toolbar>
+        {!props.recent.length ? (
+          <Box p={3} style={{ opacity: 0.6 }}>
+            <Typography>Your inbox is clear!</Typography>
+          </Box>
+        ) : null}
         {props.recent
           .filter((q, i) => {
             let duplicateIndex = props.recent.findIndex(
