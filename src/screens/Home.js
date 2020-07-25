@@ -348,7 +348,8 @@ function Home(props) {
             return ans;
           })
       )
-      .sort((a, b) => (a.next_schedule.status === "ONGOING" ? -1 : 0));
+      .sort((a, b) => (a.next_schedule.status === "ONGOING" ? -1 : 0))
+      .sort((a, b) => a.id - b.id);
   };
   const meeting = {
     open: () => {

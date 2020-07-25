@@ -92,8 +92,12 @@ function RecentMessages(props) {
   const history = useHistory();
   React.useEffect(() => {
     props.onNotSeen(
-      props.recent.filter((q) => (q.seen[props.userInfo.id] ? false : true))
-        .length
+      props.recent
+        .filter((q) => (q.seen[props.userInfo.id] ? false : true))
+        .filter((q, i) => {
+          let duplicateIndex = props.recent.findIndex((qq) => qq.id === q.id);
+          return i > duplicateIndex ? false : true;
+        }).length
     );
   }, [props.recent]);
   return (

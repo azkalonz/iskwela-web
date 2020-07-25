@@ -36,7 +36,7 @@ function getRecentMessages(user, otheruser) {
         let latestNotSeen = chat.conversations[k].messages
           .reverse()
           .filter((q) => (q.seen[user.id] ? false : true));
-        if (latestNotSeen) {
+        if (latestNotSeen.length) {
           m.push(...latestNotSeen);
         } else {
           m.push(chat.conversations[k].messages.reverse()[0]);
