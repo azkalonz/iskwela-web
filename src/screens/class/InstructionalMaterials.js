@@ -612,6 +612,45 @@ function InstructionalMaterials(props) {
       "_blank"
     );
   };
+  const saveAudio = async (audio) => {
+    let title = prompt("Enter file name ");
+    let file = new File([audio], title + " 🎧" || "Audio 🎧", {
+      type: audio.type,
+    });
+    let body = new FormData();
+    body.append("class_id", class_id);
+    body.append("file", file);
+    body.append(
+      "schedule_id",
+      selectedSched >= 0 ? selectedSched : schedule_id
+    );
+    body.append("title", file.name || "Audio 🎧");
+    let res = await FileUpload.upload("/api/upload/class/material", {
+      body,
+      onUploadProgress: (event, source) =>
+        store.dispatch({
+          type: "SET_PROGRESS",
+          id: option_name,
+          data: {
+            title: file.name,
+            loaded: event.loaded,
+            total: event.total,
+            onCancel: source,
+          },
+        }),
+    });
+    if (!res.errors) {
+      let newScheduleDetails = await UserData.updateScheduleDetails(
+        class_id,
+        selectedSched >= 0 ? selectedSched : schedule_id
+      );
+      socket.emit("update schedule details", {
+        id: class_id,
+        details: newScheduleDetails,
+      });
+      setSuccess(true);
+    }
+  };
   return (
     <Box width="100%" alignSelf="flex-start">
       <RecorderDialog
@@ -629,7 +668,7 @@ function InstructionalMaterials(props) {
                 },
               })
         }
-        onSave={(a) => null}
+        onSave={(a) => saveAudio(a)}
       />
       <GooglePicker
         auth={(s) => (modals.OPEN_GDRIVE = s)}

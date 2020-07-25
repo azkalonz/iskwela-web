@@ -185,7 +185,7 @@ function Explore(props) {
       }
       o.classList.toggle("opened");
     };
-    return (
+    return !p.external || !p.shrink ? (
       <div
         key={p.id}
         id={"panel-option-" + p.id}
@@ -275,7 +275,7 @@ function Explore(props) {
               )}
         </div>
       </div>
-    );
+    ) : null;
   };
 
   const RightPanel = (opts = {}) => {

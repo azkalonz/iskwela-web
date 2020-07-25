@@ -419,7 +419,6 @@ function App(props) {
                   path="/chat/:chat_id?"
                   render={(p) => {
                     setTitle("Chat");
-
                     return <Chat {...p} />;
                   }}
                 />
@@ -468,7 +467,7 @@ function App(props) {
                 <Route
                   path="/class/:class_id/:schedule_id?/:option_name?/:room_name?"
                   render={(p) => {
-                    setTitle("Loading Class...");
+                    setTitle("Loading Class...", "iSkwela", false);
                     return <Class {...p} />;
                   }}
                 />

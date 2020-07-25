@@ -840,7 +840,10 @@ function Project(props) {
     window.open("/content-maker?callback=send_item&to=" + socket.id, "_blank");
   };
   const saveAudio = (audio) => {
-    let file = new File([audio], "Audio 🎧", { type: audio.type });
+    let title = prompt("Enter file name ");
+    let file = new File([audio], title + " 🎧" || "Audio 🎧", {
+      type: audio.type,
+    });
     getFiles("activity-materials").append("files[]", file);
     stageFiles("activity-materials", file);
     setFilesToUpload({ ...filesToUpload, ACTIVITY_MATERIALS: true });

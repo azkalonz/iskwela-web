@@ -65,7 +65,7 @@ function VideoCall(props) {
       </DialogContent>
       <DialogActions>
         <Button onClick={() => Messages.vc.decline(caller, receiver)}>
-          Decline
+          {isCaller ? "Cancel" : "Decline"}
         </Button>
         {!isCaller && (
           <Button onClick={() => Messages.vc.accept(caller, receiver)}>

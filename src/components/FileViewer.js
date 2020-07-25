@@ -202,7 +202,7 @@ function FV(props) {
     img.style.cursor = "zoom-in";
     img.style.width = "50%";
     img.setAttribute("zoom", "in");
-    img.onclick = function () {
+    img.onclick = function (e) {
       if (this.getAttribute("zoom") === "in") {
         this.style.width = "100%";
         this.style.cursor = "zoom-out";
@@ -295,7 +295,10 @@ function FV(props) {
             height="100%"
           >
             {!props.error ? (
-              <img src="/login/loader2.svg" alt="Loading..." width={130} />
+              <Box textAlign="center">
+                <img src="/login/loader2.svg" alt="Loading..." width={100} />
+                <div>Loading file...</div>
+              </Box>
             ) : (
               "Something went wrong" + props.error
             )}

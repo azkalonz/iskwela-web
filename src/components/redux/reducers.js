@@ -158,7 +158,6 @@ const messages = (
       );
       if (recentIndex >= 0) r.splice(recentIndex, 1);
       r = [...r, ...payload.data];
-      console.log("rr", r);
       return {
         ...state,
         recent_messages: r,

@@ -1,4 +1,10 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, {
+  useEffect,
+  useState,
+  useRef,
+  useMemo,
+  useCallback,
+} from "react";
 import Messages from "../components/Messages";
 import {
   Box,
@@ -37,6 +43,8 @@ import NavBar from "../components/NavBar";
 import Jitsi from "react-jitsi";
 import { ResizeLine } from "../components/content-creator";
 import { AvatarGroup } from "@material-ui/lab";
+import { setTitle } from "../App";
+import { makeLinkTo } from "../components/router-dom";
 
 function Users(props) {
   const theme = useTheme();
@@ -45,26 +53,12 @@ function Users(props) {
   const { onlineUsers } = props;
   const [search, setSearch] = useState("");
   const { chat_id } = props.match.params;
-  const students = onlineUsers;
-  const getSortedStudents = () =>
-    [...students]
-      .filter((q) => JSON.stringify(q).toLowerCase().indexOf(search) >= 0)
-      .filter((q) => q.id !== props.userInfo.id)
-      .sort((a, b) => {
-        a = props.recent.find(
-          (q) => q.receiver.id === a.id || q.sender.id === a.id
-        );
-        return a ? -1 : 0;
-      })
-      .sort((a, b) => {
-        a = props.recent.find(
-          (q) => q.receiver.id === a.id || q.sender.id === a.id
-        );
-        b = props.recent.find(
-          (q) => q.receiver.id === b.id || q.sender.id === b.id
-        );
-        return a && b ? new Date(b.date) - new Date(a.date) : 0;
-      });
+  const users = onlineUsers;
+  const getFilteredUsers = () =>
+    [...users].filter(
+      (q) => JSON.stringify(q).toLowerCase().indexOf(search) >= 0
+    );
+
   const getRecentMessage = (user) => {
     let r =
       props.recent.find(
@@ -127,9 +121,9 @@ function Users(props) {
       </Toolbar>
       <Box overflow="auto" height="100%">
         <Scrollbars autoHide>
-          {students &&
+          {users &&
             props.recent &&
-            getSortedStudents().map((s, index) => (
+            getFilteredUsers().map((s, index) => (
               <ButtonBase
                 key={index}
                 className={
@@ -724,7 +718,10 @@ function ChatDetails(props) {
               {chat_id && (
                 <List>
                   <ListItem
-                    onClick={() => Messages.vc.call(props.userInfo, props.user)}
+                    onClick={() => {
+                      Messages.vc.call(props.userInfo, props.user);
+                      props.history.push("#");
+                    }}
                   >
                     <ListItemIcon>
                       <span
@@ -828,6 +825,27 @@ function Chat(props) {
     }
     setTail(chat_id);
   };
+  const getSortedUsers = useCallback(
+    () =>
+      [...onlineUsers]
+        .filter((q) => q.id !== props.userInfo.id)
+        .sort((a, b) => {
+          a = recent.find(
+            (q) => q.receiver.id === a.id || q.sender.id === a.id
+          );
+          return a ? -1 : 0;
+        })
+        .sort((a, b) => {
+          a = recent.find(
+            (q) => q.receiver.id === a.id || q.sender.id === a.id
+          );
+          b = recent.find(
+            (q) => q.receiver.id === b.id || q.sender.id === b.id
+          );
+          return a && b ? new Date(b.date) - new Date(a.date) : 0;
+        }),
+    [onlineUsers, recent]
+  );
   const seen = () => {
     if (chat.messages.length) {
       if (props.userInfo.username + "-" + chat_id === chat.channel) {
@@ -866,8 +884,19 @@ function Chat(props) {
     Messages.getRecentMessages(props.userInfo);
   }, []);
   useEffect(() => {
-    if (chat_id === props.userInfo.username) history.push("/chat");
-    if (tail !== chat_id) getMessages();
+    if (
+      chat_id === props.userInfo.username ||
+      !onlineUsers.find((q) => q.username === chat_id)
+    ) {
+      history.push("/chat");
+      setTitle("Chat");
+    } else if (onlineUsers.find((q) => q.username === chat_id)) {
+      let u = onlineUsers.find((q) => q.username === chat_id);
+      setTitle(["Chat", u.first_name + " " + u.last_name]);
+    }
+    if (tail !== chat_id) {
+      getMessages();
+    }
   }, [chat_id, onlineUsers]);
   return (
     <Drawer {...props}>
@@ -897,7 +926,7 @@ function Chat(props) {
             {...props}
             recent={recent.sort((a, b) => new Date(b.date) - new Date(a.date))}
             selected={chat_id}
-            onlineUsers={onlineUsers}
+            onlineUsers={getSortedUsers()}
             onClick={(user) => {
               history.push("/chat/" + user.username);
             }}
@@ -928,7 +957,7 @@ function Chat(props) {
         <Box width="100%" height="100%">
           <MainChat
             {...props}
-            students={onlineUsers}
+            users={onlineUsers}
             loadMore={(callback) =>
               getMessages(chat.end, chat.end + 10, callback)
             }

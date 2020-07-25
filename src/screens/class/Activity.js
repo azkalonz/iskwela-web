@@ -73,6 +73,7 @@ import StudentRating from "../../components/StudentRating";
 import { Table as MTable } from "../../components/Table";
 import UserData, { asyncForEach } from "../../components/UserData";
 import { Rating as MuiRating } from "@material-ui/lab";
+import { setTitle, pageState } from "../../App";
 
 const queryString = require("query-string");
 function Alert(props) {
@@ -208,8 +209,14 @@ function Activity(props) {
       let offset = $("#video-conference-container");
       offset = offset[0] ? offset[0].offsetHeight : 0;
       document.querySelector("#right-panel").scrollTop = offset;
+      setTitle(
+        pageState.subtitles.concat([currentActivity.title]),
+        "iSkwela",
+        false
+      );
     } else {
       setAnswersSearch("");
+      setTitle(pageState.subtitles);
     }
   }, [currentActivity]);
   const _getActivities = () => {
@@ -838,7 +845,10 @@ function Activity(props) {
     window.open("/content-maker?callback=send_item&to=" + socket.id, "_blank");
   };
   const saveAudio = (audio) => {
-    let file = new File([audio], "Audio 🎧", { type: audio.type });
+    let title = prompt("Enter file name ");
+    let file = new File([audio], title + " 🎧" || "Audio 🎧", {
+      type: audio.type,
+    });
     getFiles("activity-materials").append("files[]", file);
     stageFiles("activity-materials", file);
     setFilesToUpload({ ...filesToUpload, ACTIVITY_MATERIALS: true });
