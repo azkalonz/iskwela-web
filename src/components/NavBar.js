@@ -137,24 +137,18 @@ function NavBar(props) {
     window.localStorage["mode"] = mode;
     store.dispatch({ type: "SET_THEME", theme: mode });
   };
-  const newMessageTitle = () =>
-    setTimeout(() => {
-      setTitle(`(${notSeen}) New Message`, "iSkwela", false);
-      window.clearTimeout(window.newmessage);
-      setTimeout(() => {
-        setTitle(pageState.subtitles, "iSkwela", false);
-        window.newmessage = newMessageTitle();
-      }, 1000);
-    }, 1000);
   useEffect(() => {
     Messages.getRecentMessages(props.userInfo);
   }, []);
   useEffect(() => {
-    if (notSeen) {
-      window.clearTimeout(window.newmessage);
-      window.newmessage = newMessageTitle();
+    window.clearInterval(window.newmessage);
+    if (notSeen > 0) {
+      window.newmessage = setInterval(() => {
+        if (new Date().getSeconds() % 2)
+          setTitle(`(${notSeen}) New Message`, "iSkwela", false);
+        else setTitle(pageState.subtitles, "iSkwela", false);
+      }, 1000);
     } else {
-      window.clearTimeout(window.newmessage);
       setTitle(pageState.subtitles, "iSkwela", false);
     }
   }, [notSeen]);
