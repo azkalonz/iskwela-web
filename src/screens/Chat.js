@@ -200,6 +200,7 @@ function ChatBox(props) {
   const editorRef = useRef();
   const [reset, setReset] = useState(1);
   const [message, setMessage] = useState("");
+  const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
   const { chat_id } = props.match.params;
@@ -309,6 +310,10 @@ function ChatBox(props) {
     setIsTyping(false);
   };
   useEffect(() => {
+    if (props.chat.messages) setMessages(props.chat.messages);
+  }, [props.chat]);
+  useEffect(() => {
+    setMessages([]);
     resetEditor();
   }, [chat_id]);
   return (
@@ -376,9 +381,9 @@ function ChatBox(props) {
         overflow="auto"
         position="relative"
       >
-        {props.chat && props.chat.messages && (
+        {props.chat && messages && (
           <Scrollbars autoHide>
-            {!loading && props.chat.loaded !== props.chat.total && chat_id && (
+            {!props.loading && props.chat.loaded < props.chat.total && chat_id && (
               <Box width="100%" display="flex" justifyContent="center">
                 <IconButton onClick={loadMore}>
                   <Icon>expand_less</Icon>
@@ -387,13 +392,7 @@ function ChatBox(props) {
             )}
             <Box p={2}>
               {chat_id &&
-                props.chat.messages
-                  .filter((q, i) => {
-                    let duplicateIndex = props.chat.messages.findIndex(
-                      (qq) => qq.id === q.id
-                    );
-                    return i > duplicateIndex ? false : true;
-                  })
+                messages
                   .sort((a, b) => new Date(a.date) - new Date(b.date))
                   .map((c, index) => (
                     <Box
@@ -402,8 +401,8 @@ function ChatBox(props) {
                       marginTop={index === 0 ? 2 : 0}
                     >
                       {c.sender.id !== props.userInfo.id &&
-                        (getBubbleShape(props.chat.messages, index) === 3 ||
-                          getBubbleShape(props.chat.messages, index) === 5) && (
+                        (getBubbleShape(messages, index) === 3 ||
+                          getBubbleShape(messages, index) === 5) && (
                           <Box
                             className="picture"
                             style={{
@@ -438,9 +437,9 @@ function ChatBox(props) {
                         }
                         flexWrap="wrap"
                       >
-                        {props.chat.messages[index - 1] &&
+                        {messages[index - 1] &&
                           moment(c.date).diff(
-                            props.chat.messages[index - 1].date,
+                            messages[index - 1].date,
                             "days"
                           ) > 1 && (
                             <Box
@@ -474,9 +473,7 @@ function ChatBox(props) {
                             (c.sender.id !== props.userInfo.id
                               ? "msg sender "
                               : "msg receiver ") +
-                            getClassName(
-                              getBubbleShape(props.chat.messages, index)
-                            )
+                            getClassName(getBubbleShape(messages, index))
                           }
                           onClick={() => {
                             let m = document
@@ -507,7 +504,7 @@ function ChatBox(props) {
                                     />
                                   </Tooltip>
                                 ) : (
-                                  index === props.chat.messages.length - 1 && (
+                                  index === messages.length - 1 && (
                                     <AvatarGroup max={3}>
                                       {props.chat.participants
                                         .filter(
@@ -823,7 +820,7 @@ function Chat(props) {
   useEffect(() => {
     Messages.hooks["get message"] = () => {
       window.clearTimeout(window.loadingmsg);
-      window.loadingmsg = setTimeout(() => setLoading(false), 500);
+      window.loadingmsg = setTimeout(() => setLoading(false), 1500);
     };
     Messages.getRecentMessages(props.userInfo);
   }, []);
