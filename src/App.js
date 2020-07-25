@@ -31,6 +31,14 @@ import { VideoCall } from "./components/dialogs";
 const primaryColor = "#7539ff";
 const secondaryColor = "#FFD026";
 
+export const setTitle = (subtitles = []) => {
+  if (typeof subtitles === "string") document.title = "iSkwela | " + subtitles;
+  else {
+    subtitles = subtitles.filter((q) => q !== undefined);
+    document.title = "iSkwela | " + subtitles.join(" | ");
+  }
+};
+
 Math.map = (n, start1, stop1, start2, stop2) => {
   return ((n - start1) / (stop1 - start1)) * (stop2 - start2) + start2;
 };
@@ -386,22 +394,64 @@ function App(props) {
           {!loading && (
             <BrowserRouter>
               <Switch>
-                <Route exact path="/white" component={WhiteBoard} />
-                <Route exact path="/record" component={Recorder} />
-                <Route exact path="/" component={Home} />
-                <Route exact path="/chat/:chat_id?" component={Chat} />
-                <Route exact path="/videocall" component={VideoChat} />
-                <Route exact path="/post" component={Posts} />
-                <Route exact path="/login">
-                  <Login setLoading={(l) => setLoading(l)} />
-                </Route>
-                <Route exact path="/answer/:quiz_id?" component={AnswerQuiz} />
-                <Route exact path="/content-maker" component={ContentMaker} />
-                <Route exact path="/picker" component={GooglePicker} />
+                <Route
+                  exact
+                  path="/"
+                  render={(p) => {
+                    setTitle("Dashboard");
+                    return <Home {...p} />;
+                  }}
+                />
+                <Route
+                  exact
+                  path="/chat/:chat_id?"
+                  render={(p) => {
+                    setTitle("Chat");
+
+                    return <Chat {...p} />;
+                  }}
+                />
+                <Route
+                  exact
+                  path="/videocall"
+                  render={(p) => {
+                    setTitle("Video Call");
+                    return <VideoChat {...p} />;
+                  }}
+                />
+                <Route
+                  exact
+                  path="/login"
+                  render={(p) => {
+                    setTitle("Login");
+                    return <Login setLoading={(l) => setLoading(l)} />;
+                  }}
+                />
+                <Route
+                  exact
+                  path="/answer/:quiz_id?"
+                  render={(p) => {
+                    const { quiz_id } = p.match.params;
+                    setTitle(["Chat"].concat([quiz_id]));
+                    return <AnswerQuiz {...p} />;
+                  }}
+                />
+                <Route
+                  exact
+                  path="/content-maker"
+                  render={(p) => {
+                    setTitle("Content Maker");
+                    return <ContentMaker {...p} />;
+                  }}
+                />
                 <Route
                   exact
                   path="/explore/:screen_name?"
-                  component={Explore}
+                  render={(p) => {
+                    const { screen_name } = p.match.params;
+                    setTitle(["Explore"].concat([screen_name]));
+                    return <Explore {...p} />;
+                  }}
                 />
                 <Route
                   path="/class/:class_id/:schedule_id?/:option_name?/:room_name?"

@@ -44,6 +44,7 @@ import socket from "../components/socket.io";
 import UserData from "../components/UserData";
 import VideoConference from "../containers/VideoConference";
 import { Scrollbars } from "react-custom-scrollbars";
+import { setTitle } from "../App";
 
 function setPanelIds(panel, i = 0) {
   panel.forEach((p) => {
@@ -62,7 +63,7 @@ const rightPanelOptionsStudents = setPanelIds(studentPanel);
 function ClassRightPanel(props) {
   const theme = useTheme();
   const isTablet = useMediaQuery(theme.breakpoints.down("md"));
-  const { option_name, class_id } = props.match.params;
+  const { option_name, class_id, room_name } = props.match.params;
   let [View, setView] = useState();
   const handleRefresh = async () => {
     props.loading(true);
@@ -71,8 +72,17 @@ function ClassRightPanel(props) {
     setView(getView(option_name.toLowerCase()));
   };
   useEffect(() => {
-    if (isValidOption(option_name)) setView(getView(option_name.toLowerCase()));
-    else props.loading(false);
+    if (isValidOption(option_name)) {
+      setView(getView(option_name.toLowerCase()));
+      setTitle(
+        [props.classDetails[class_id].name].concat([
+          isValidOption(option_name).navTitle
+            ? isValidOption(option_name).navTitle
+            : isValidOption(option_name).title,
+          room_name ? "Video Conference" : undefined,
+        ])
+      );
+    } else props.loading(false);
   }, [option_name]);
   return View ? (
     <Box width="100%" height={props.isConferencing ? "100vh" : "auto"}>
@@ -144,6 +154,16 @@ function Class(props) {
     try {
       if (props.classDetails[class_id]) {
         setCLASS(props.classDetails[class_id]);
+        setTitle(
+          [props.classDetails[class_id].name].concat([
+            isValidOption(option_name)
+              ? isValidOption(option_name).navTitle
+                ? isValidOption(option_name).navTitle
+                : isValidOption(option_name).title
+              : "",
+            room_name ? "Video Conference" : undefined,
+          ])
+        );
       } else {
         await UserData.updateClassDetails(class_id, null, (d) => {
           if (!schedule_id)
