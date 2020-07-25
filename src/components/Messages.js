@@ -190,7 +190,11 @@ function RecentMessages(props) {
                   <Typography style={{ fontWeight: "bold" }}>
                     {user.first_name + " " + user.last_name}
                   </Typography>
-                  <Typography>{message}</Typography>
+                  <Typography
+                    style={{ fontFamily: "Arial, Helvetica, sans-serif" }}
+                  >
+                    {message}
+                  </Typography>
                 </Box>
                 <Box>
                   <Typography color="textSecondary">

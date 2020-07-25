@@ -198,9 +198,19 @@ function Users(props) {
                   <Box textAlign="right">
                     <Typography color="textSecondary">
                       {getRecentMessage(s) &&
+                        getRecentMessage(s).date &&
                         moment(getRecentMessage(s).date).format("hh:mm A")}
                     </Typography>
-                    {/* <Badge badgeContent={2} color="error" /> */}
+                    <Typography key={index} color="textSecondary">
+                      {getRecentMessage(s) &&
+                      getRecentMessage(s)?.seen &&
+                      Object.keys(getRecentMessage(s).seen).length >= 2
+                        ? "Seen"
+                        : getRecentMessage(s).sender &&
+                          getRecentMessage(s).sender.id === props.userInfo.id
+                        ? "Sent"
+                        : ""}
+                    </Typography>
                   </Box>
                 </Box>
               </ButtonBase>
@@ -596,12 +606,17 @@ function ChatBox(props) {
                                 : "left",
                           }}
                         >
-                          Seen by {c.seen[props.userInfo.id] && " You "}
-                          {Object.keys(c.seen)
+                          {Object.keys(c.seen).filter(
+                            (q) => parseInt(q) !== props.userInfo.id
+                          ).length >=
+                          props.chat.participants.length - 1
+                            ? "Seen"
+                            : "Sent"}
+                          {/* {Object.keys(c.seen)
                             .filter((q) => parseInt(q) !== props.userInfo.id)
                             .map((k, index) => (
                               <React.Fragment key={index}>
-                                {index === 0 && "and "}
+                                {index === 0 && "Seen "}
                                 {c.seen[k].first_name +
                                   " " +
                                   c.seen[k].last_name}
@@ -611,7 +626,7 @@ function ChatBox(props) {
                                   ).length -
                                     1 && ", "}
                               </React.Fragment>
-                            ))}
+                            ))} */}
                         </Box>
                       </Box>
                     </Box>
