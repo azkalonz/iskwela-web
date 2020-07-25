@@ -42,7 +42,7 @@ import { makeLinkTo } from "./router-dom";
 import { useHistory } from "react-router-dom";
 import Messages, { RecentMessages } from "./Messages";
 import socket from "./socket.io";
-import { setTitle, pageState } from "../App";
+import { setTitle, pageState, _handleThemeType } from "../App";
 const styles = (theme) => ({
   root: {
     margin: 0,
@@ -130,13 +130,6 @@ function NavBar(props) {
     localStorage.removeItem("auth");
     window.location = "/login";
   };
-  const _handleThemeType = () => {
-    let mode = window.localStorage["mode"];
-    if (mode) mode = mode === "dark" ? "light" : "dark";
-    else mode = "dark";
-    window.localStorage["mode"] = mode;
-    store.dispatch({ type: "SET_THEME", theme: mode });
-  };
   useEffect(() => {
     Messages.getRecentMessages(props.userInfo);
   }, []);
@@ -191,7 +184,6 @@ function NavBar(props) {
                 onClose={() => setMessageAnchor(null)}
                 onNotSeen={(n) => setNotSeen(n)}
               />
-              {notSeen}
               <IconButton
                 onClick={(e) => setMessageAnchor(e.currentTarget)}
                 color={notSeen ? "primary" : "default"}
@@ -261,14 +253,14 @@ function NavBar(props) {
                 <MenuItem onClick={() => setchangePassDialog(true)}>
                   Preferences
                 </MenuItem>
-                {/* <MenuItem onClick={_handleThemeType}>
+                <MenuItem onClick={() => _handleThemeType()}>
                   Dark mode
                   <Switch
                     checked={props.theme === "dark"}
                     name="checkedA"
                     inputProps={{ "aria-label": "secondary checkbox" }}
                   />
-                </MenuItem> */}
+                </MenuItem>
                 <MenuItem
                   onClick={() =>
                     window.open("https://tinyurl.com/iSkwelaReport", "_blank")

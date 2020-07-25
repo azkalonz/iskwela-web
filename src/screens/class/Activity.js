@@ -1428,7 +1428,12 @@ function Activity(props) {
                           key={index}
                           style={{
                             ...(index % 2
-                              ? { background: "rgb(248, 248, 248)" }
+                              ? {
+                                  background:
+                                    props.theme === "dark"
+                                      ? "#171717"
+                                      : "rgb(248, 248, 248)",
+                                }
                               : {}),
                           }}
                         >
@@ -1784,7 +1789,10 @@ function Activity(props) {
                 },
               })
         }
-        onSave={(a) => saveAudio(a)}
+        onSave={(a, cb = null) => {
+          saveAudio(a);
+          cb && cb();
+        }}
       />
       <CreateDialog
         title={form.id ? "Edit Seatwork" : "Create Seatwork"}
@@ -1808,7 +1816,10 @@ function Activity(props) {
             <TextField
               label="Title"
               variant="outlined"
-              className={[styles.textField, "themed-input"].join(" ")}
+              className={[
+                styles.textField,
+                props.theme === "dark" ? "themed-input light" : "themed-input",
+              ].join(" ")}
               value={form.title}
               onChange={(e) => setForm({ ...form, title: e.target.value })}
               fullWidth
@@ -1830,7 +1841,11 @@ function Activity(props) {
                     format="MMM DD, YYYY"
                     margin="normal"
                     label="Due Date"
-                    className="themed-input date"
+                    className={
+                      (props.theme === "dark"
+                        ? "themed-input light"
+                        : "themed-input") + " date"
+                    }
                     value={form.date || new Date()}
                     onChange={(date) =>
                       setForm({
@@ -1858,7 +1873,11 @@ function Activity(props) {
                       flex: 1,
                       marginRight: isMobile ? 0 : theme.spacing(2),
                     }}
-                    className="themed-input date"
+                    className={
+                      (props.theme === "dark"
+                        ? "themed-input light"
+                        : "themed-input") + " date"
+                    }
                     onChange={(date) => {
                       setForm({
                         ...form,
@@ -1876,7 +1895,12 @@ function Activity(props) {
                   <TextField
                     label="Total Score"
                     variant="outlined"
-                    className={[styles.textField, "themed-input"].join(" ")}
+                    className={[
+                      styles.textField,
+                      props.theme === "dark"
+                        ? "themed-input light"
+                        : "themed-input",
+                    ].join(" ")}
                     defaultValue={form.total_score}
                     onChange={(e) =>
                       setForm({
@@ -1899,7 +1923,11 @@ function Activity(props) {
                   <FormControl
                     variant="outlined"
                     fullWidth
-                    className="themed-input select"
+                    className={
+                      (props.theme === "dark"
+                        ? "themed-input light"
+                        : "themed-input") + " select"
+                    }
                     style={{ flex: 1 }}
                   >
                     <InputLabel>Grading Category</InputLabel>
@@ -1928,7 +1956,10 @@ function Activity(props) {
             </MuiPickersUtilsProvider>
             <TextField
               label="Description"
-              className={[styles.textField, "themed-input"].join(" ")}
+              className={[
+                styles.textField,
+                props.theme === "dark" ? "themed-input light" : "themed-input",
+              ].join(" ")}
               variant="outlined"
               rows={10}
               style={{ marginTop: 13 }}

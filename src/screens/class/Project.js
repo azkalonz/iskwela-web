@@ -1784,7 +1784,10 @@ function Project(props) {
                 },
               })
         }
-        onSave={(a) => saveAudio(a)}
+        onSave={(a, cb = null) => {
+          saveAudio(a);
+          cb && cb();
+        }}
       />
       <CreateDialog
         title={form.id ? "Edit Project" : "Create Project"}
@@ -1808,7 +1811,10 @@ function Project(props) {
             <TextField
               label="Title"
               variant="outlined"
-              className={[styles.textField, "themed-input"].join(" ")}
+              className={[
+                styles.textField,
+                props.theme === "dark" ? "themed-input light" : "themed-input",
+              ].join(" ")}
               value={form.title}
               onChange={(e) => setForm({ ...form, title: e.target.value })}
               fullWidth
@@ -1830,7 +1836,11 @@ function Project(props) {
                     format="MMM DD, YYYY"
                     margin="normal"
                     label="Due Date"
-                    className="themed-input date"
+                    className={
+                      (props.theme === "dark"
+                        ? "themed-input light"
+                        : "themed-input") + " date"
+                    }
                     value={form.date || new Date()}
                     onChange={(date) =>
                       setForm({
@@ -1858,7 +1868,11 @@ function Project(props) {
                       flex: 1,
                       marginRight: isMobile ? 0 : theme.spacing(2),
                     }}
-                    className="themed-input date"
+                    className={
+                      (props.theme === "dark"
+                        ? "themed-input light"
+                        : "themed-input") + " date"
+                    }
                     onChange={(date) => {
                       setForm({
                         ...form,
@@ -1876,7 +1890,12 @@ function Project(props) {
                   <TextField
                     label="Total Score"
                     variant="outlined"
-                    className={[styles.textField, "themed-input"].join(" ")}
+                    className={[
+                      styles.textField,
+                      props.theme === "dark"
+                        ? "themed-input light"
+                        : "themed-input",
+                    ].join(" ")}
                     defaultValue={form.total_score}
                     onChange={(e) =>
                       setForm({
@@ -1899,7 +1918,11 @@ function Project(props) {
                   <FormControl
                     variant="outlined"
                     fullWidth
-                    className="themed-input select"
+                    className={
+                      (props.theme === "dark"
+                        ? "themed-input light"
+                        : "themed-input") + " select"
+                    }
                     style={{ flex: 1 }}
                   >
                     <InputLabel>Grading Category</InputLabel>
@@ -1928,7 +1951,10 @@ function Project(props) {
             </MuiPickersUtilsProvider>
             <TextField
               label="Description"
-              className={[styles.textField, "themed-input"].join(" ")}
+              className={[
+                styles.textField,
+                props.theme === "dark" ? "themed-input light" : "themed-input",
+              ].join(" ")}
               variant="outlined"
               rows={10}
               style={{ marginTop: 13 }}

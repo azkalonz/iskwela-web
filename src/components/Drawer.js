@@ -72,7 +72,7 @@ function Drawer(props) {
             left: 0,
             right: 0,
             zIndex: 1,
-            background: "#fff",
+            background: props.theme === "dark" ? "#1d1d1d" : "#ffffff",
           }}
         >
           <Typography
@@ -88,9 +88,16 @@ function Drawer(props) {
               style={{
                 width: "100%",
                 height: 50,
-                background: "url(/logo/logo-full-colored.svg) no-repeat",
-                backgroundSize: 200,
                 transform: "scale(0.7)",
+                ...(props.theme === "dark"
+                  ? {
+                      background: "url(/logo192.png) no-repeat",
+                      backgroundSize: "cover",
+                    }
+                  : {
+                      background: "url(/logo/logo-full-colored.svg) no-repeat",
+                      backgroundSize: 200,
+                    }),
               }}
             />
           </Typography>
@@ -116,7 +123,15 @@ function Drawer(props) {
             >
               <span
                 className="icon-classes"
-                style={{ color: "#38108d", fontSize: "2em" }}
+                style={{
+                  color:
+                    props.theme === "dark"
+                      ? isTablet
+                        ? "#282828"
+                        : "#f1f1f1"
+                      : "#38108d",
+                  fontSize: "2em",
+                }}
               />
             </Box>
           </Box>
@@ -220,7 +235,7 @@ function Drawer(props) {
                   onClick={() => setMore(true)}
                   style={{
                     position: "sticky",
-                    background: "#fff",
+                    background: props.theme === "dark" ? "#282828" : "#ffffff",
                     bottom: 0,
                     zIndex: 1,
                   }}
@@ -232,7 +247,7 @@ function Drawer(props) {
                   onClick={() => setMore(false)}
                   style={{
                     position: "sticky",
-                    background: "#fff",
+                    background: props.theme === "dark" ? "#282828" : "#ffffff",
                     bottom: 0,
                     zIndex: 1,
                   }}
@@ -263,7 +278,15 @@ function Drawer(props) {
             >
               <span
                 className="icon-explore"
-                style={{ color: "#38108d", fontSize: "2em" }}
+                style={{
+                  color:
+                    props.theme === "dark"
+                      ? isTablet
+                        ? "#282828"
+                        : "#f1f1f1"
+                      : "#38108d",
+                  fontSize: "2em",
+                }}
               />
             </Box>
           </Box>
@@ -279,7 +302,17 @@ function Drawer(props) {
               )
             }
           >
-            <Icon fontSize="inherit" style={{ color: "#38108d" }}>
+            <Icon
+              fontSize="inherit"
+              style={{
+                color:
+                  props.theme === "dark"
+                    ? isTablet
+                      ? "#282828"
+                      : "#f1f1f1"
+                    : "#38108d",
+              }}
+            >
               help_outline
             </Icon>
           </IconButton>
@@ -324,11 +357,14 @@ function Drawer(props) {
           mountOnEnter
           unmountOnExit
           style={{
-            boxShadow: "4px 0 10px rgba(143, 45, 253, 0.16)",
+            boxshadow:
+              props.theme === "dark"
+                ? "none"
+                : "4px 0 10px rgba(143, 45, 253, 0.16)",
             height: "100vh",
             zIndex: 30,
             overflow: "auto",
-            background: "#fff",
+            background: props.theme === "dark" ? "#282828" : "#ffffff",
             position: "fixed",
           }}
           id="mobile-drawer"
@@ -359,7 +395,7 @@ function Drawer(props) {
                 borderColor: "transparent",
                 left: 0,
                 right: 0,
-                background: "#fff",
+                background: props.theme === "dark" ? "#282828" : "#ffffff",
                 zIndex: 1,
                 justifyContent: "space-between",
               }}
@@ -392,10 +428,23 @@ function Drawer(props) {
               <Box className="tab-btn screen-btn">
                 <span
                   className="icon-classes"
-                  style={{ color: "#38108d", fontSize: "2em" }}
+                  style={{
+                    color:
+                      props.theme === "dark"
+                        ? isTablet
+                          ? "#282828"
+                          : "#f1f1f1"
+                        : "#38108d",
+                    fontSize: "2em",
+                  }}
                 />
               </Box>
-              <Typography style={{ color: "#38108d", fontWeight: "bold" }}>
+              <Typography
+                style={{
+                  color: props.theme === "dark" ? "#f1f1f1" : "#38108d",
+                  fontWeight: "bold",
+                }}
+              >
                 Classes
               </Typography>
             </Box>
@@ -442,7 +491,10 @@ function Drawer(props) {
                     </Box>
                   </Tooltip>
                   <Typography
-                    style={{ color: "#38108d", fontWeight: "bold" }}
+                    style={{
+                      color: props.theme === "dark" ? "#f1f1f1" : "#38108d",
+                      fontWeight: "bold",
+                    }}
                     onClick={() => {
                       history.push(
                         makeLinkTo(
@@ -512,7 +564,10 @@ function Drawer(props) {
                         </Box>
                       </Tooltip>
                       <Typography
-                        style={{ color: "#38108d", fontWeight: "bold" }}
+                        style={{
+                          color: props.theme === "dark" ? "#f1f1f1" : "#38108d",
+                          fontWeight: "bold",
+                        }}
                         onClick={() => {
                           history.push(
                             makeLinkTo(
@@ -573,11 +628,22 @@ function Drawer(props) {
               >
                 <span
                   className="icon-explore"
-                  style={{ color: "#38108d", fontSize: "2em" }}
+                  style={{
+                    color:
+                      props.theme === "dark"
+                        ? isTablet
+                          ? "#282828"
+                          : "#f1f1f1"
+                        : "#38108d",
+                    fontSize: "2em",
+                  }}
                 />
               </Box>
               <Typography
-                style={{ color: "#38108d", fontWeight: "bold" }}
+                style={{
+                  color: props.theme === "dark" ? "#f1f1f1" : "#38108d",
+                  fontWeight: "bold",
+                }}
                 onClick={() => {
                   history.push("/explore/jumpstart");
                 }}
@@ -595,11 +661,26 @@ function Drawer(props) {
               }}
             >
               <Box className="tab-btn screen-btn">
-                <Icon fontSize="large" style={{ color: "#38108d" }}>
+                <Icon
+                  fontSize="large"
+                  style={{
+                    color:
+                      props.theme === "dark"
+                        ? isTablet
+                          ? "#282828"
+                          : "#f1f1f1"
+                        : "#38108d",
+                  }}
+                >
                   help_outline
                 </Icon>
               </Box>
-              <Typography style={{ color: "#38108d", fontWeight: "bold" }}>
+              <Typography
+                style={{
+                  color: props.theme === "dark" ? "#f1f1f1" : "#38108d",
+                  fontWeight: "bold",
+                }}
+              >
                 Help
               </Typography>
             </Box>
@@ -646,15 +727,21 @@ const useStyles = makeStyles((theme) => ({
         "&.screen-btn": {
           borderRadius: 11,
           background: "rgb(231, 223, 250)",
-          boxShadow: "0 2px 10px rgb(224, 224, 224)",
+          boxshadow:
+            theme.palette.type === "dark"
+              ? "none"
+              : "0 2px 10px rgb(224, 224, 224)",
           color: "rgb(55, 19, 138)!important",
         },
       },
       "&:not(.screen-btn)": {
-        boxShadow: "0 2px 4px rgb(241, 230, 255)",
+        boxshadow:
+          theme.palette.type === "dark"
+            ? "none"
+            : "0 2px 4px rgb(241, 230, 255)",
         borderRadius: 6,
         opacity: 0.86,
-        color: "#fff",
+        color: "#ffffff",
       },
     },
     "& .tab": {
@@ -720,4 +807,5 @@ Drawer.propTypes = {
 
 export default connect((states) => ({
   classes: Object.keys(states.classes).map((k) => states.classes[k]),
+  theme: states.theme,
 }))(Drawer);

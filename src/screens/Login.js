@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { connect } from "react-redux";
 import {
   Button,
@@ -21,6 +21,7 @@ import actions from "../components/redux/actions";
 import Api from "../api";
 import { useTranslation } from "react-i18next";
 import { styles } from "@material-ui/pickers/views/Calendar/Calendar";
+import { _handleThemeType } from "../App";
 
 const queryString = require("query-string");
 function Alert(props) {
@@ -31,6 +32,7 @@ function Login(props) {
   const classes = useStyles();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  useEffect(() => _handleThemeType("light"), []);
   return (
     <div className={classes.root} style={{ minHeight: "100vh" }}>
       {!props.userInfo.isLoggedIn && (

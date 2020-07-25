@@ -109,7 +109,11 @@ function Table(props) {
               style={{
                 padding: 0,
                 marginBottom: -8,
-                background: !isMobile ? "#fff" : "",
+                background: !isMobile
+                  ? props.theme === "dark"
+                    ? "#282828"
+                    : "#fff"
+                  : "",
               }}
             >
               <ListItem
@@ -304,7 +308,14 @@ function Table(props) {
                       item.done !== "true"
                         ? theme.palette.success.main
                         : theme.palette.error.main,
-                    backgroundColor: index % 2 ? "#f8f8f8" : "#fff",
+                    backgroundColor:
+                      index % 2
+                        ? props.theme === "dark"
+                          ? "#1d1d1d"
+                          : "#f8f8f8"
+                        : props.theme === "dark"
+                        ? "#282828"
+                        : "#fff",
                   }}
                 >
                   {isTeacher && !props.noSelect && (
@@ -481,7 +492,8 @@ const useStyles = makeStyles((theme) => ({
     marginBottom: 7,
   },
 }));
-const ConnectedTable = connect((states) => ({ userInfo: states.userInfo }))(
-  Table
-);
+const ConnectedTable = connect((states) => ({
+  userInfo: states.userInfo,
+  theme: states.theme,
+}))(Table);
 export { ConnectedTable as Table };

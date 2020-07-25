@@ -87,7 +87,18 @@ export function RecorderDialog(props) {
   const [stream, setStream] = useState();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const handleClose = (e = false) => {
-    if (audio) props.onSave && props.onSave(audio);
+    if (audio) {
+      props.onSave &&
+        props.onSave(
+          audio,
+          stream
+            ? () =>
+                stream.getTracks().forEach(function (track) {
+                  track.stop();
+                })
+            : null
+        );
+    }
     if (stream)
       props.onClose(e, () =>
         stream.getTracks().forEach(function (track) {

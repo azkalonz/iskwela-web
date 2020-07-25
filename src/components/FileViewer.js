@@ -140,6 +140,9 @@ function FV(props) {
             width="100%"
             overflow="auto"
             height="100%"
+            maxWidth={600}
+            bgcolor="#282828"
+            style={{ margin: "0 auto" }}
           >
             <Recorder
               preview={true}
@@ -253,30 +256,44 @@ function FV(props) {
       >
         <Typography
           variant="body1"
-          color="textPrimary"
-          style={{ fontWeight: "bold", display: "block", flex: 1 }}
+          style={{
+            fontWeight: "bold",
+            color: "#fff",
+            display: "block",
+            flex: 1,
+          }}
         >
           {props.file.title}
         </Typography>
         <div>
           <IconButton onClick={() => setFullscreen(!fullscreen)}>
             {fullscreen ? (
-              <Icon fontSize="small">fullscreen_exit</Icon>
+              <Icon fontSize="small" style={{ color: "#fff" }}>
+                fullscreen_exit
+              </Icon>
             ) : (
-              <Icon fontSize="small">fullscreen</Icon>
+              <Icon fontSize="small" style={{ color: "#fff" }}>
+                fullscreen
+              </Icon>
             )}
           </IconButton>
           {!isMobile && (
             <IconButton onClick={() => setFloating(!floating)}>
               {floating ? (
-                <Icon fontSize="small">check_box_outline_blank</Icon>
+                <Icon fontSize="small" style={{ color: "#fff" }}>
+                  check_box_outline_blank
+                </Icon>
               ) : (
-                <Icon fontSize="small">minimize</Icon>
+                <Icon fontSize="small" style={{ color: "#fff" }}>
+                  minimize
+                </Icon>
               )}
             </IconButton>
           )}
           <IconButton onClick={handleClose}>
-            <Icon fontSize="small">close</Icon>
+            <Icon fontSize="small" style={{ color: "#fff" }}>
+              close
+            </Icon>
           </IconButton>
         </div>
       </Toolbar>
@@ -297,7 +314,7 @@ function FV(props) {
             {!props.error ? (
               <Box textAlign="center">
                 <img src="/login/loader2.svg" alt="Loading..." width={100} />
-                <div>Loading file...</div>
+                <div style={{ color: "#fff" }}>Loading file...</div>
               </Box>
             ) : (
               "Something went wrong" + props.error
@@ -356,7 +373,9 @@ function FV(props) {
             fullScreen={fullscreen}
             onClose={handleClose}
           >
-            <DialogContent style={{ height: "100vh" }}>{content}</DialogContent>
+            <DialogContent style={{ height: "100vh", background: "#282828" }}>
+              {content}
+            </DialogContent>
           </Dialog>
         ) : (
           <Box className="floating-file-viewer">{content}</Box>
@@ -369,7 +388,7 @@ const useStyles = makeStyles(() => ({
   toolbar: {
     position: "sticky",
     zIndex: 10,
-    background: "#fff",
+    background: "#1d1d1d",
     top: 0,
     height: "6%",
     right: 0,

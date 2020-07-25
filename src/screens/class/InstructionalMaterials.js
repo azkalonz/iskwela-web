@@ -668,7 +668,10 @@ function InstructionalMaterials(props) {
                 },
               })
         }
-        onSave={(a) => saveAudio(a)}
+        onSave={(a, cb = null) => {
+          saveAudio(a);
+          cb && cb();
+        }}
       />
       <GooglePicker
         auth={(s) => (modals.OPEN_GDRIVE = s)}

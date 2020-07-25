@@ -375,7 +375,7 @@ function StartADiscussion(props) {
         style={{
           position: "relative",
           borderRadius: 4,
-          background: "#fff",
+          background: props.theme === "dark" ? "#111" : "#fff",
           ...(states.DISCUSSION
             ? {
                 boxShadow: "none",
@@ -383,7 +383,10 @@ function StartADiscussion(props) {
               }
             : {
                 zIndex: 1,
-                border: "1px solid rgb(233, 228, 239)",
+                border:
+                  props.theme === "dark"
+                    ? "none"
+                    : "1px solid rgb(233, 228, 239)",
                 boxShadow: "0 2px 4px rgb(241, 230, 255)!important",
               }),
         }}
@@ -510,6 +513,7 @@ function StartADiscussion(props) {
 const ConnectedStartADiscussion = connect((states) => ({
   userInfo: states.userInfo,
   classes: states.classDetails,
+  theme: states.theme,
 }))(StartADiscussion);
 
 function WriteAComment(props) {
@@ -557,8 +561,14 @@ function WriteAComment(props) {
           borderRadius: 6,
           minHeight: 42,
           paddingLeft: theme.spacing(2),
+          background: "#1d1d1d",
+          ...(props.theme === "dark"
+            ? {
+                border: "1px solid rgba(255,255,255,0.22)",
+              }
+            : {}),
         }}
-        className="nonMui-themed-input"
+        className={props.theme !== "dark" && "nonMui-themed-input"}
       >
         <Editor
           toolbar={false}
@@ -801,6 +811,7 @@ function Posts(props) {
                   .sort((a, b) => b.id - a.id)
                   .map((p) => (
                     <Discussion
+                      {...props}
                       userInfo={props.userInfo}
                       class={props.classes[class_id]}
                       data={p}
@@ -870,6 +881,7 @@ const useStyles = makeStyles((theme) => ({
 }));
 export default connect((states) => ({
   userInfo: states.userInfo,
+  theme: states.theme,
   classes: states.classDetails,
 }))(Posts);
 export { ConnectedStartADiscussion as StartADiscussion };

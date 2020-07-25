@@ -36,7 +36,7 @@ function ScheduleSelector(props) {
 
       <Select
         label="Date"
-        style={{ background: "#efe7ff" }}
+        style={{ background: props.theme === "dark" ? "#1d1d1d" : "#efe7ff" }}
         value={props.schedule}
         onChange={(e) => {
           props.onChange(parseInt(e.target.value) !== -1 ? e.target.value : -1);
@@ -92,7 +92,7 @@ function StatusSelector(props) {
     >
       <InputLabel>Status</InputLabel>
       <Select
-        style={{ background: "#efe7ff" }}
+        style={{ background: props.theme === "dark" ? "#1d1d1d" : "#efe7ff" }}
         label="Status"
         value={props.status}
         onChange={(e) => {
@@ -128,7 +128,7 @@ function StatusSelector(props) {
   );
 }
 
-export function SearchInput(props) {
+function SearchInput(props) {
   const theme = useTheme();
   const [isHidden, setIsHidden] = useState(true);
   const isTablet = useMediaQuery(theme.breakpoints.down("md"));
@@ -154,7 +154,12 @@ export function SearchInput(props) {
             : props.style
             ? props.style
             : {}),
-          ...{ background: "#efe7ff", border: "1px solid #c9b8eb" },
+          ...{
+            background: props.theme === "dark" ? "#1d1d1d" : "#efe7ff",
+            border:
+              "1px solid " +
+              (props.theme === "dark" ? "rgba(255,255,255,0.22)" : "#c9b8eb"),
+          },
           ...(props.styles && props.styles.searchInput
             ? props.styles.searchInput
             : {}),
@@ -215,12 +220,19 @@ export function SearchInput(props) {
 }
 
 const ConnectedScheduleSelector = connect((states) => ({
+  theme: states.theme,
   classDetails: states.classDetails,
 }))(ScheduleSelector);
 const ConnectedStatusSelector = connect((states) => ({
+  theme: states.theme,
   classDetails: states.classDetails,
 }))(StatusSelector);
+const ConnectedSearchInput = connect((states) => ({
+  theme: states.theme,
+  classDetails: states.classDetails,
+}))(SearchInput);
 export {
   ConnectedScheduleSelector as ScheduleSelector,
+  ConnectedSearchInput as SearchInput,
   ConnectedStatusSelector as StatusSelector,
 };

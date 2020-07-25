@@ -30,6 +30,14 @@ import { VideoCall } from "./components/dialogs";
 
 const primaryColor = "#7539ff";
 const secondaryColor = "#FFD026";
+
+export const _handleThemeType = (m = null) => {
+  let mode = window.localStorage["mode"];
+  if (mode) mode = mode === "dark" ? "light" : "dark";
+  else mode = "dark";
+  window.localStorage["mode"] = m || mode;
+  store.dispatch({ type: "SET_THEME", theme: m || mode });
+};
 export const pageState = {};
 export const setTitle = (
   subtitles = [],
@@ -137,8 +145,10 @@ function App(props) {
       },
       MuiAppBar: {
         root: {
-          background: "#fff!important",
-          border: "1px solid rgb(233, 228, 239)",
+          background:
+            props.theme === "dark" ? "#1d1d1d!important" : "#fff!important",
+          border:
+            props.theme === "dark" ? "none" : "1px solid rgb(233, 228, 239)",
           borderRadius: 0,
           "& > div": {
             border: "none",
@@ -166,14 +176,23 @@ function App(props) {
       MuiOutlinedInput: {
         root: {
           paddingLeft: 10,
-          border: "1px solid #E9E4EF",
-          backgroundColor: "#EEE6FF!important",
+          border:
+            "1px solid " +
+            (props.theme === "dark" ? "rgba(255,255,255,0.22)" : "#E9E4EF"),
+          backgroundColor:
+            props.theme === "dark" ? "#1d1d1d!important" : "#EEE6FF!important",
           borderRadius: 4,
           "&:hover": {
-            backgroundColor: "#EEE6FF!important",
+            backgroundColor:
+              props.theme === "dark"
+                ? "#1d1d1d!important"
+                : "#EEE6FF!important",
           },
           "&:focus": {
-            backgroundColor: "#EEE6FF!important",
+            backgroundColor:
+              props.theme === "dark"
+                ? "#1d1d1d!important"
+                : "#EEE6FF!important",
           },
         },
       },
@@ -192,8 +211,12 @@ function App(props) {
         root: {
           ...(props.theme === "dark" ? { backgroundColor: "#111" } : {}),
           "&:not(.MuiCard-root):not(.MuiAppBar-root):not(.MuiDialog-paper):not(.MuiAlert-root):not(.box-container)": {
-            boxShadow: "0 2px 4px rgb(241, 230, 255)!important",
-            border: "1px solid rgb(233, 228, 239)",
+            ...(props.theme === "dark"
+              ? { backgroundColor: "#111" }
+              : {
+                  boxShadow: "0 2px 4px rgb(241, 230, 255)!important",
+                  border: "1px solid rgb(233, 228, 239)",
+                }),
             borderRadius: 4,
           },
         },
@@ -283,7 +306,10 @@ function App(props) {
                 margin: 0,
                 padding: 8,
                 height: 56,
-                backgroundColor: "#EEE6FF!important",
+                backgroundColor:
+                  props.theme === "dark"
+                    ? "#1d1d1d!important"
+                    : "#EEE6FF!important",
                 "&::before,&::after": {
                   display: "none",
                 },
@@ -496,15 +522,26 @@ function App(props) {
               >
                 <Box
                   style={{
-                    background:
-                      "url(/logo/logo-full-colored.svg) no-repeat left",
+                    ...(props.theme === "dark"
+                      ? {
+                          background: "url(/logo192.png) no-repeat",
+                          backgroundSize: "100%",
+                        }
+                      : {
+                          background:
+                            "url(/logo/logo-full-colored.svg) no-repeat left",
+                          backgroundSize: 200,
+                        }),
                     marginBottom: -65,
-                    backgroundSize: 200,
                     width: 50,
                     height: 100,
                   }}
                 />
-                <img src="/login/loader.svg" width={130} />
+                {props.theme === "dark" ? (
+                  <img src="/login/loader-light.svg" width={130} />
+                ) : (
+                  <img src="/login/loader.svg" width={130} />
+                )}
               </Box>
             </Box>
           )}

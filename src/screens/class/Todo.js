@@ -204,7 +204,10 @@ const useStyles = makeStyles((theme) => ({
       },
       "& .progress-title": {
         borderRadius: "4px 4px 0 0",
-        boxShadow: "0 2px 6px 0 rgb(241, 230, 255)",
+        boxShadow:
+          theme.palette.type === "dark"
+            ? "none"
+            : "0 2px 6px 0 rgb(241, 230, 255)",
         height: 44,
         position: "sticky",
         top: 0,

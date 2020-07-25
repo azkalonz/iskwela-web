@@ -75,7 +75,13 @@ function Users(props) {
       position="relative"
       flexDirection="column"
     >
-      <Toolbar style={{ background: "#fff" }}>
+      <Toolbar
+        style={{
+          background: props.theme === "dark" ? "#1d1d1d" : "#fff",
+          borderBottom: "1px solid rgba(0,0,0,0.17)",
+          minHeight: 49,
+        }}
+      >
         {isTablet && (
           <IconButton onClick={() => props.history.push("#menu")}>
             <Icon>menu</Icon>
@@ -345,7 +351,14 @@ function ChatBox(props) {
         p={2}
         display="flex"
         justifyContent="space-between"
-        style={{ background: "#fff" }}
+        style={{
+          background: props.theme === "dark" ? "#1d1d1d" : "#fff",
+          borderBottom:
+            "1px solid " +
+            (theme.palette.type === "dark"
+              ? "rgba(255, 255, 255, 0.12)"
+              : "rgba(0,0,0,0.17)"),
+        }}
         height={50}
         alignItems="center"
       >
@@ -639,7 +652,10 @@ function ChatBox(props) {
           width="100%"
           overflow="auto"
           style={{
-            background: "rgba(0,0,0,0.05)",
+            background:
+              props.theme === "dark"
+                ? "rgba(255,255,255,0.05)"
+                : "rgba(0,0,0,0.05)",
             borderRadius: 8,
             padding: "0 13px",
           }}
@@ -1017,7 +1033,7 @@ const ConnectedVideoChat = connect((states) => ({
 export { ConnectedVideoChat as VideoChat };
 const useStyles = makeStyles((theme) => ({
   root: {
-    background: "#fff",
+    background: theme.palette.type === "dark" ? "#282828" : "#fff",
     height: "100vh",
     "& p": {
       display: "inline-block",
@@ -1027,7 +1043,7 @@ const useStyles = makeStyles((theme) => ({
       transition:
         "left cubic-bezier(0, 0, 0.2, 1) 0.3s,right cubic-bezier(0, 0, 0.2, 1) 0.3s",
       "&.fixed-drawer": {
-        background: "#fff",
+        background: theme.palette.type === "dark" ? "#282828" : "#fff",
         position: "fixed",
         top: 0,
         bottom: 0,
@@ -1038,7 +1054,11 @@ const useStyles = makeStyles((theme) => ({
     },
     "& .users": {
       height: "100%",
-      borderRight: "1px solid rgba(0,0,0,0.17)",
+      borderRight:
+        "1px solid " +
+        (theme.palette.type === "dark"
+          ? "rgba(255, 255, 255, 0.12)"
+          : "rgba(0,0,0,0.17)"),
       "& .chat-user": {
         padding: theme.spacing(2),
         width: "100%",
@@ -1057,7 +1077,11 @@ const useStyles = makeStyles((theme) => ({
       },
     },
     "& .chat-box": {
-      borderRight: "1px solid rgba(0,0,0,0.17)",
+      borderRight:
+        "1px solid " +
+        (theme.palette.type === "dark"
+          ? "rgba(255, 255, 255, 0.12)"
+          : "rgba(0,0,0,0.17)"),
       "& .msg-container": {
         "& .details": {
           overflow: "hidden",
@@ -1079,7 +1103,10 @@ const useStyles = makeStyles((theme) => ({
         borderRadius: 18,
       },
       "& .sender": {
-        background: "rgba(0,0,0,0.05)",
+        background:
+          theme.palette.type === "dark"
+            ? "rgba(255,255,255,0.05)"
+            : "rgba(0,0,0,0.05)",
         "&.top-bottom": {
           borderRadius: "5px 15px 15px 5px",
         },
@@ -1112,7 +1139,7 @@ export const OnlineBadge = withStyles((theme) => ({
     backgroundColor: "#44b700",
     color: "#44b700",
     transform: "scale(1.5)",
-    border: "1px solid #fff",
+    border: "1px solid " + (theme.palette.type === "dark" ? "#282828" : "#fff"),
     zIndex: 10,
   },
 }))(Badge);
@@ -1121,7 +1148,7 @@ export const OfflineBadge = withStyles((theme) => ({
     backgroundColor: "#b5b5b5",
     color: "#44b700",
     transform: "scale(1.5)",
-    border: "1px solid #fff",
+    border: "1px solid " + (theme.palette.type === "dark" ? "#282828" : "#fff"),
     zIndex: 10,
   },
 }))(Badge);
@@ -1131,5 +1158,6 @@ export default connect((states) => ({
   classDetails: states.classDetails,
   onlineUsers: states.onlineUsers,
   chat: states.messages.current,
+  theme: states.theme,
   recent: states.messages.recent_messages,
 }))(Chat);
