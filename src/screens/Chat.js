@@ -818,7 +818,7 @@ function Chat(props) {
       if (document.hasFocus()) {
         seen();
       }
-    }, 1000);
+    }, 100);
   }, [chat]);
   useEffect(() => {
     Messages.hooks["get message"] = () => {
