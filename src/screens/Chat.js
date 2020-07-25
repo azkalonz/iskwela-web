@@ -200,6 +200,7 @@ function ChatBox(props) {
   const editorRef = useRef();
   const [reset, setReset] = useState(1);
   const [message, setMessage] = useState("");
+  const { onlineUsers } = props;
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
@@ -352,7 +353,23 @@ function ChatBox(props) {
         )}
         {chat_id && (
           <Box display="flex" alignItems="center" flex={1} overflow="hidden">
-            <Avatar src={preferences.profile_picture} alt={first_name} />
+            {React.createElement(
+              eval(
+                onlineUsers &&
+                  onlineUsers.find((q) => q.id === props.user.id)?.status ===
+                    "online"
+                  ? "OnlineBadge"
+                  : "OfflineBadge"
+              ),
+              {
+                anchorOrigin: {
+                  vertical: "bottom",
+                  horizontal: "right",
+                },
+                variant: "dot",
+              },
+              <Avatar src={preferences.profile_picture} alt={first_name} />
+            )}
             <Typography style={{ marginLeft: 7 }}>
               {first_name} {last_name}
             </Typography>
