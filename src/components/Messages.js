@@ -18,6 +18,15 @@ import { connect } from "react-redux";
 import { useHistory } from "react-router-dom";
 import moment from "moment";
 const { OnlineBadge, OfflineBadge } = require("../screens/Chat");
+
+const focusNewMessage = () => {
+  let c = document.querySelector("#chat-container");
+  if (c && c.firstElementChild) {
+    c = c.firstElementChild;
+    let height = c.firstElementChild.scrollHeight;
+    c.firstElementChild.scrollTop = height;
+  }
+};
 const Messages = {
   hooks: {},
   updateMessage: (id, { sender, receiver, update }, callback) => {
@@ -55,17 +64,13 @@ const Messages = {
     );
     socket.on("new message", (data) => {
       dispatch && dispatch({ data, type: "ADD_MESSAGE" });
-      let c = document.querySelector("#chat-container");
-      if (c && c.firstElementChild) {
-        c = c.firstElementChild;
-        let height = c.firstElementChild.scrollHeight;
-        c.firstElementChild.scrollTop = height;
-      }
+      focusNewMessage();
       typeof Messages.hooks["new message"] === "function" &&
         Messages.hooks["new message"](data);
     });
     socket.on("get messages", (data) => {
       dispatch && dispatch({ data, type: "SET_MESSAGES" });
+      if (data.start === 0) focusNewMessage();
       typeof Messages.hooks["get message"] === "function" &&
         Messages.hooks["get message"](data);
     });

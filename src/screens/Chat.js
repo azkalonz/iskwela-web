@@ -381,6 +381,12 @@ function ChatBox(props) {
             <Box p={2}>
               {chat_id &&
                 props.chat.messages
+                  .filter((q, i) => {
+                    let duplicateIndex = props.chat.messages.findIndex(
+                      (qq) => qq.id === q.id
+                    );
+                    return i > duplicateIndex ? false : true;
+                  })
                   .sort((a, b) => new Date(a.date) - new Date(b.date))
                   .map((c, index) => (
                     <Box
