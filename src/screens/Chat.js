@@ -21,6 +21,7 @@ import {
   ListItemText,
   useMediaQuery,
   Backdrop,
+  Tooltip,
 } from "@material-ui/core";
 import { connect } from "react-redux";
 import { SearchInput } from "../components/Selectors";
@@ -30,12 +31,12 @@ import MUIRichTextEditor from "mui-rte";
 import { useHistory } from "react-router-dom";
 import { convertToRaw, EditorState, ContentState } from "draft-js";
 import CheckCircleIcon from "@material-ui/icons/CheckCircle";
-import CheckCircleOutlineIcon from "@material-ui/icons/CheckCircleOutline";
 import socket from "../components/socket.io";
 import moment from "moment";
 import NavBar from "../components/NavBar";
 import Jitsi from "react-jitsi";
 import { ResizeLine } from "../components/content-creator";
+import { AvatarGroup } from "@material-ui/lab";
 
 function Users(props) {
   const theme = useTheme();
@@ -200,6 +201,7 @@ function ChatBox(props) {
   const [reset, setReset] = useState(1);
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
+  const [isTyping, setIsTyping] = useState(false);
   const { chat_id } = props.match.params;
   const sendMessage = (message, callback) => {
     if (!chat_id) return;
@@ -292,6 +294,7 @@ function ChatBox(props) {
         },
       },
     });
+    setIsTyping(true);
   };
   const doneTyping = () => {
     let status = { ...props.status };
@@ -303,6 +306,7 @@ function ChatBox(props) {
         status,
       },
     });
+    setIsTyping(false);
   };
   useEffect(() => {
     resetEditor();
@@ -487,30 +491,45 @@ function ChatBox(props) {
                         >
                           <Box
                             position="absolute"
-                            bottom={10}
+                            bottom={5}
                             display="flex"
                             alignItems="center"
                             style={{
                               ...(c.sender.id !== props.userInfo.id
                                 ? {
-                                    right: -25,
+                                    right: -30,
                                   }
                                 : { left: -25 }),
                             }}
                           >
                             {index === props.chat.messages.length - 1 && (
                               <React.Fragment>
-                                {Object.keys(c.seen).length >=
+                                {Object.keys(c.seen).length <
                                 props.chat.participants.length ? (
-                                  <CheckCircleIcon
-                                    color="primary"
-                                    fontSize="small"
-                                  />
+                                  <Tooltip title="Delivered">
+                                    <CheckCircleIcon
+                                      color="primary"
+                                      fontSize="small"
+                                    />
+                                  </Tooltip>
                                 ) : (
-                                  <CheckCircleOutlineIcon
-                                    color="primary"
-                                    fontSize="small"
-                                  />
+                                  <AvatarGroup max={3}>
+                                    {props.chat.participants
+                                      .filter((q) => q.id !== props.userInfo.id)
+                                      .map((s) => (
+                                        <Tooltip
+                                          title={
+                                            s.first_name + " " + s.last_name
+                                          }
+                                        >
+                                          <Avatar
+                                            alt={s.first_name}
+                                            src={s.preferences.profile_picture}
+                                            style={{ height: 25, width: 25 }}
+                                          />
+                                        </Tooltip>
+                                      ))}
+                                  </AvatarGroup>
                                 )}
                               </React.Fragment>
                             )}
@@ -604,11 +623,13 @@ function ChatBox(props) {
                 sendMessage(data);
               }}
               onChange={(state) => {
+                window.clearTimeout(window.doneTyping);
                 if (state.getCurrentContent().getPlainText()) {
-                  typing();
+                  if (!isTyping) typing();
                 } else {
                   doneTyping();
                 }
+                window.doneTyping = setTimeout(() => doneTyping(), 5000);
                 if (
                   state.getCurrentContent().getPlainText().indexOf("\n") >= 0
                 ) {
@@ -693,7 +714,7 @@ function MainChat(props) {
   const [isResizing, setIsResizing] = useState({});
   return (
     <Box width="100%" display="flex" height="100%">
-      <Box width="100%" height="100%">
+      <Box width="100%" height="100%" maxWidth="100%">
         <ChatBox {...props} status={props.chat?.status} />
       </Box>
       <Box

@@ -157,7 +157,10 @@ module.exports = {
         }
         if (!chat.online_users[userIndex].socket.length)
           chat.online_users[userIndex].status = "offline";
-        // chat.online_users.splice(userIndex, 1);
+        Object.keys(chat.conversations).forEach((k) => {
+          let convo = chat.conversations[k];
+          convo.status[chat.online_users[userIndex].id] = {};
+        });
       }
       io.emit("get online users", chat.online_users);
     });
