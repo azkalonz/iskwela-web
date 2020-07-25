@@ -3,7 +3,7 @@ let messageCounter = 0;
 function createChatData({ sender, receiver }) {
   return {
     messages: [],
-    people: [sender, receiver],
+    participants: [sender, receiver],
     status: "",
   };
 }
@@ -11,7 +11,7 @@ function getMessages({ channel, start, end }) {
   let convo = chat.conversations[channel] || {};
   let messages = convo.messages || [];
   let total = messages.length;
-  let participants = convo.people || [];
+  let participants = convo.participants || [];
   if (convo && messages) {
     messages = messages
       .sort((a, b) => new Date(b.date) - new Date(a.date))
@@ -33,7 +33,14 @@ function getRecentMessages(user, otheruser) {
     let isUsersChannel = k.indexOf(user.username) === 0;
     if (!otheruser) {
       if (isUsersChannel && chat.conversations[k].messages.length > 0) {
-        m.push(chat.conversations[k].messages[0]);
+        let latestNotSeen = chat.conversations[k].messages
+          .reverse()
+          .filter((q) => (q.seen[user.id] ? false : true));
+        if (latestNotSeen) {
+          m.push(...latestNotSeen);
+        } else {
+          m.push(chat.conversations[k].messages.reverse()[0]);
+        }
       }
     } else {
       if (

@@ -95,7 +95,7 @@ function RecentMessages(props) {
       props.recent.filter((q) => (q.seen[props.userInfo.id] ? false : true))
         .length
     );
-  }, [props.recent, props.onNotSeen]);
+  }, [props.recent]);
   return (
     <Popover
       anchorEl={props.anchor}
@@ -212,7 +212,9 @@ function RecentMessages(props) {
 }
 
 const ConnectedRecentMessages = connect((states) => ({
-  recent: states.messages.recent_messages,
+  recent: states.messages.recent_messages.sort(
+    (a, b) => new Date(b.date) - new Date(a.date)
+  ),
   userInfo: states.userInfo,
   onlineUsers: states.onlineUsers,
 }))(RecentMessages);

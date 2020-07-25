@@ -149,6 +149,7 @@ function NavBar(props) {
         else setTitle(pageState.subtitles, "iSkwela", false);
       }, 1000);
     } else {
+      window.clearInterval(window.notfocused);
       window.notfocused = setInterval(() => {
         if (document.hasFocus()) {
           window.clearInterval(window.newmessage);
@@ -190,6 +191,7 @@ function NavBar(props) {
                 onClose={() => setMessageAnchor(null)}
                 onNotSeen={(n) => setNotSeen(n)}
               />
+              {notSeen}
               <IconButton
                 onClick={(e) => setMessageAnchor(e.currentTarget)}
                 color={notSeen ? "primary" : "default"}
