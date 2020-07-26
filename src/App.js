@@ -492,10 +492,7 @@ function App(props) {
                 />
                 <Route
                   path="/class/:class_id/:schedule_id?/:option_name?/:room_name?"
-                  render={(p) => {
-                    setTitle("Loading Class...", "iSkwela", false);
-                    return <Class {...p} />;
-                  }}
+                  component={Class}
                 />
                 <Route path="*">
                   <Redirect to="/" />
