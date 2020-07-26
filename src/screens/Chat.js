@@ -128,7 +128,11 @@ function Users(props) {
           </IconButton>
         )}
       </Toolbar>
-      <Box overflow="auto" height="100%">
+      <Box
+        overflow="auto"
+        height="100%"
+        style={props.theme === "dark" ? { background: "#111" } : {}}
+      >
         <Scrollbar autoHide>
           {users &&
             props.recent &&
@@ -436,6 +440,7 @@ function ChatBox(props) {
         paddingBottom={0}
         overflow="auto"
         position="relative"
+        style={props.theme === "dark" ? { background: "#111" } : {}}
       >
         {props.chat && messages && (
           <Scrollbar autoHide>
@@ -660,6 +665,7 @@ function ChatBox(props) {
         alignItems="center"
         justifyContent="space-between"
         maxHeight={500}
+        style={props.theme === "dark" ? { background: "#111" } : {}}
       >
         <Box
           height="100%"
@@ -732,6 +738,7 @@ function ChatDetails(props) {
             props.theme === "dark"
               ? "1px solid rgba(255, 255, 255, 0.12)"
               : "1px solid rgba(0,0,0,0.17)",
+          ...(props.theme === "dark" ? { background: "#111" } : {}),
         }}
       >
         <NavBar
