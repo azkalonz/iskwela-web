@@ -34,6 +34,7 @@ import {
 import { connect } from "react-redux";
 import { DialogTitle } from "./dialogs";
 import { makeLinkTo } from "./router-dom";
+import Scrollbar from "./Scrollbar";
 
 addStyles();
 
@@ -431,7 +432,7 @@ function BoardsList(props) {
       <Toolbar>
         <Typography style={{ fontWeight: "bold" }}>White Boards</Typography>
       </Toolbar>
-      <Scrollbars autoHide>
+      <Scrollbar autoHide>
         {boards.map((b, index) => (
           <Box p={isMobile ? 0 : 2} key={index}>
             <Board
@@ -441,7 +442,7 @@ function BoardsList(props) {
             />
           </Box>
         ))}
-      </Scrollbars>
+      </Scrollbar>
     </Box>
   ) : null;
 }

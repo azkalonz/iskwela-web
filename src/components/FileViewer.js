@@ -15,9 +15,11 @@ import {
 import LaunchIcon from "@material-ui/icons/Launch";
 import React, { useEffect, useState } from "react";
 import Recorder from "./Recorder";
+import Scrollbar from "./Scrollbar";
 
 function FV(props) {
   const theme = useTheme();
+  const mode = theme.palette.type;
   const [open, setOpen] = useState(false);
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const styles = useStyles();
@@ -91,7 +93,7 @@ function FV(props) {
         setStatus("CUSTOM_LOADED");
         setCustomLoader(
           <Box
-            bgcolor="#282828"
+            bgcolor={mode === "dark" ? "#282828" : "#ebebeb"}
             width="100%"
             height="100%"
             justifyContent="center"
@@ -116,15 +118,17 @@ function FV(props) {
             >
               <CircularProgress />
             </Box>
-            <img
-              id="iskwela-img"
-              src={props.file.url}
-              onLoad={() => {
-                zoomable(document.querySelector("#iskwela-img"));
-                let s = document.querySelector("#file-viewer-spinner");
-                if (s) s.parentNode.removeChild(s);
-              }}
-            />
+            <Scrollbar autoHide style={{ textAlign: "center" }}>
+              <img
+                id="iskwela-img"
+                src={props.file.url}
+                onLoad={() => {
+                  zoomable(document.querySelector("#iskwela-img"));
+                  let s = document.querySelector("#file-viewer-spinner");
+                  if (s) s.parentNode.removeChild(s);
+                }}
+              />
+            </Scrollbar>
           </Box>
         );
       },
@@ -141,7 +145,7 @@ function FV(props) {
             overflow="auto"
             height="100%"
             maxWidth={600}
-            bgcolor="#282828"
+            bgcolor={mode === "dark" ? "#282828" : "#ebebeb"}
             style={{ margin: "0 auto" }}
           >
             <Recorder
@@ -226,7 +230,7 @@ function FV(props) {
         i.onload = function () {
           try {
             let body = this.contentDocument.body;
-            body.style.background = "#282828";
+            body.style.background = mode === "dark" ? "#282828" : "#ebebeb";
             body.style.display = "flex";
             body.style.justifyContent = "center";
             body.style.alignItems = "center";
@@ -278,7 +282,12 @@ function FV(props) {
             )}
           </IconButton>
           {!isMobile && (
-            <IconButton onClick={() => setFloating(!floating)}>
+            <IconButton
+              onClick={() => {
+                setFloating(!floating);
+                setFullscreen(false);
+              }}
+            >
               {floating ? (
                 <Icon fontSize="small" style={{ color: "#fff" }}>
                   check_box_outline_blank
@@ -313,8 +322,14 @@ function FV(props) {
           >
             {!props.error ? (
               <Box textAlign="center">
-                <img src="/login/loader2.svg" alt="Loading..." width={100} />
-                <div style={{ color: "#fff" }}>Loading file...</div>
+                <img
+                  src={"/login/file-loader-" + mode + ".svg"}
+                  alt="Loading..."
+                  width={100}
+                />
+                <div style={{ color: mode === "dark" ? "#fff" : "#222" }}>
+                  Loading file...
+                </div>
               </Box>
             ) : (
               "Something went wrong" + props.error
@@ -373,22 +388,36 @@ function FV(props) {
             fullScreen={fullscreen}
             onClose={handleClose}
           >
-            <DialogContent style={{ height: "100vh", background: "#282828" }}>
+            <DialogContent
+              style={{
+                height: "100vh",
+                background: mode === "dark" ? "#282828" : "#ebebeb",
+                overflow: "hidden",
+              }}
+            >
               {content}
             </DialogContent>
           </Dialog>
         ) : (
-          <Box className="floating-file-viewer">{content}</Box>
+          <Box
+            className={"floating-file-viewer " + mode}
+            style={{
+              background: mode === "dark" ? "#282828" : "#ebebeb",
+            }}
+          >
+            {content}
+          </Box>
         )}
       </React.Fragment>
     )
   );
 }
-const useStyles = makeStyles(() => ({
+const useStyles = makeStyles((theme) => ({
   toolbar: {
     position: "sticky",
     zIndex: 10,
-    background: "#1d1d1d",
+    background:
+      theme.palette.type === "dark" ? "#1d1d1d" : theme.palette.primary.main,
     top: 0,
     height: "6%",
     right: 0,

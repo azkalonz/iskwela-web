@@ -31,7 +31,6 @@ import {
 } from "@material-ui/core";
 import { connect } from "react-redux";
 import { SearchInput } from "../components/Selectors";
-import Scrollbars from "react-custom-scrollbars";
 import Drawer from "../components/Drawer";
 import MUIRichTextEditor from "mui-rte";
 import { useHistory } from "react-router-dom";
@@ -45,6 +44,7 @@ import { ResizeLine } from "../components/content-creator";
 import { AvatarGroup } from "@material-ui/lab";
 import { setTitle } from "../App";
 import { makeLinkTo } from "../components/router-dom";
+import Scrollbar from "../components/Scrollbar";
 
 function Users(props) {
   const theme = useTheme();
@@ -78,8 +78,11 @@ function Users(props) {
       <Toolbar
         style={{
           background: props.theme === "dark" ? "#1d1d1d" : "#fff",
-          borderBottom: "1px solid rgba(0,0,0,0.17)",
-          minHeight: 49,
+          borderBottom:
+            props.theme === "dark"
+              ? "1px solid rgba(255, 255, 255, 0.12)"
+              : "1px solid rgba(0,0,0,0.17)",
+          minHeight: 50,
         }}
       >
         {isTablet && (
@@ -126,7 +129,7 @@ function Users(props) {
         )}
       </Toolbar>
       <Box overflow="auto" height="100%">
-        <Scrollbars autoHide>
+        <Scrollbar autoHide>
           {users &&
             props.recent &&
             getFilteredUsers().map((s, index) => (
@@ -215,7 +218,7 @@ function Users(props) {
                 </Box>
               </ButtonBase>
             ))}
-        </Scrollbars>
+        </Scrollbar>
       </Box>
     </Box>
   );
@@ -363,13 +366,9 @@ function ChatBox(props) {
         justifyContent="space-between"
         style={{
           background: props.theme === "dark" ? "#1d1d1d" : "#fff",
-          borderBottom:
-            "1px solid " +
-            (theme.palette.type === "dark"
-              ? "rgba(255, 255, 255, 0.12)"
-              : "rgba(0,0,0,0.17)"),
         }}
         height={50}
+        minHeight={50}
         alignItems="center"
       >
         {isTablet && (
@@ -439,7 +438,7 @@ function ChatBox(props) {
         position="relative"
       >
         {props.chat && messages && (
-          <Scrollbars autoHide>
+          <Scrollbar autoHide>
             {!props.loading && props.chat.loaded < props.chat.total && chat_id && (
               <Box width="100%" display="flex" justifyContent="center">
                 <IconButton onClick={loadMore}>
@@ -632,7 +631,7 @@ function ChatBox(props) {
                     </Box>
                   ))}
             </Box>
-          </Scrollbars>
+          </Scrollbar>
         )}
         {props.status &&
           props.user &&
@@ -728,6 +727,12 @@ function ChatDetails(props) {
         justifyContent="stretch"
         height="100%"
         flexDirection="column"
+        style={{
+          borderBottom:
+            props.theme === "dark"
+              ? "1px solid rgba(255, 255, 255, 0.12)"
+              : "1px solid rgba(0,0,0,0.17)",
+        }}
       >
         <NavBar
           left={
@@ -743,8 +748,16 @@ function ChatDetails(props) {
             )
           }
         />
-        <Scrollbars autoHide>
-          <Box width="100%">
+        <Scrollbar autoHide>
+          <Box
+            width="100%"
+            style={{
+              borderTop:
+                props.theme === "dark"
+                  ? "1px solid rgba(255, 255, 255, 0.12)"
+                  : "1px solid rgba(0,0,0,0.17)",
+            }}
+          >
             <Box width="100%">
               {chat_id && (
                 <List>
@@ -769,7 +782,7 @@ function ChatDetails(props) {
               )}
             </Box>
           </Box>
-        </Scrollbars>
+        </Scrollbar>
       </Box>
     </Box>
   );

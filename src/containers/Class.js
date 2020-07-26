@@ -43,8 +43,8 @@ import {
 import socket from "../components/socket.io";
 import UserData from "../components/UserData";
 import VideoConference from "../containers/VideoConference";
-import { Scrollbars } from "react-custom-scrollbars";
 import { setTitle } from "../App";
+import Scrollbar from "../components/Scrollbar";
 
 function setPanelIds(panel, i = 0) {
   panel.forEach((p) => {
@@ -464,11 +464,21 @@ function Class(props) {
                 <React.Fragment>
                   <Paper
                     className="box-container"
-                    style={{ background: props.classes[class_id].color }}
+                    style={{
+                      background:
+                        props.theme === "dark"
+                          ? "#111"
+                          : props.classes[class_id].color,
+                    }}
                   >
                     <Toolbar
                       className={styles.toolbar}
-                      style={{ background: props.classes[class_id].color }}
+                      style={{
+                        background:
+                          props.theme === "dark"
+                            ? "#111"
+                            : props.classes[class_id].color,
+                      }}
                     >
                       {isTablet && (
                         <IconButton
@@ -614,7 +624,12 @@ function Class(props) {
                   </Paper>
                   <Paper
                     className="box-container"
-                    style={{ background: props.classes[class_id].color }}
+                    style={{
+                      background:
+                        props.theme === "dark"
+                          ? "#111"
+                          : props.classes[class_id].color,
+                    }}
                   >
                     <Box
                       p={2.2}
@@ -739,10 +754,13 @@ function Class(props) {
                   height: "100%",
                   overflow: "auto",
                   marginBottom: 0,
-                  background: props.classes[class_id].color,
+                  background:
+                    props.theme === "dark"
+                      ? "#111"
+                      : props.classes[class_id].color,
                 }}
               >
-                <Scrollbars autoHide>
+                <Scrollbar autoHide>
                   {opts.mini && !collapsePanel && (
                     <Tooltip title="Hide class panel" placement="bottom-start">
                       <IconButton
@@ -778,7 +796,7 @@ function Class(props) {
                             })
                           )}
                   </List>
-                </Scrollbars>
+                </Scrollbar>
               </Paper>
             </React.Fragment>
           ) : (
@@ -786,7 +804,10 @@ function Class(props) {
               className="box-container"
               style={{
                 minHeight: "100vh",
-                background: props.classes[class_id].color,
+                background:
+                  props.theme === "dark"
+                    ? "#111"
+                    : props.classes[class_id].color,
               }}
             >
               {collapsePanel || isMobile ? (
@@ -850,7 +871,7 @@ function Class(props) {
               height="100%"
               justifyContent="center"
             >
-              <Scrollbars
+              <Scrollbar
                 autoHide
                 onScroll={(e) => {
                   let d = document.querySelector("#react-jitsi-container");
@@ -986,7 +1007,7 @@ function Class(props) {
                     error={file.error}
                   />
                 )}
-              </Scrollbars>
+              </Scrollbar>
             </Box>
           </Box>
         </Box>
@@ -1100,5 +1121,6 @@ export default connect((states) => ({
   classDetails: states.classDetails,
   pics: states.pics,
   classes: states.classes,
+  theme: states.theme,
   dataProgress: states.dataProgress,
 }))(Class);

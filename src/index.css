@@ -78,11 +78,15 @@ fieldset {
   display: flex;
   justify-content: stretch;
   align-items: stretch;
-  box-shadow: 0 2px 4px rgb(241, 230, 255) !important;
+  border: 2px solid;
+  border-color: #7539ff;
+  border-radius: 7px;
   flex-direction: column;
   overflow: auto;
-  background: #fff;
   z-index: 99999;
+}
+.floating-file-viewer.dark {
+  border-color: #1d1d1d;
 }
 .call-animation {
   background: #7539ff;
@@ -142,4 +146,26 @@ fieldset {
 .search-input.hidden {
   opacity: 0;
   transform: scaleX(0);
+}
+.vertical-thumb {
+  width: 7px !important;
+  background: black;
+  opacity: 0.2;
+  cursor: pointer;
+  border-radius: 10px;
+  transition: width 0.2s ease-out, margin-left 0.2s ease-out,
+    opacity 0.4s ease-out;
+}
+.vertical-thumb.dark {
+  background: #fff;
+}
+.vertical-thumb:hover,
+.vertical-thumb:active {
+  opacity: 0.6;
+  margin-left: -3px;
+  width: 10px !important;
+}
+
+.horizontal-thumb {
+  opacity: 0;
 }

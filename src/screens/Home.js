@@ -34,8 +34,8 @@ import Drawer from "../components/Drawer";
 import NavBar from "../components/NavBar";
 import Pagination, { getPageItems } from "../components/Pagination";
 import { makeLinkTo } from "../components/router-dom";
-import { Scrollbars } from "react-custom-scrollbars";
 import { SearchInput } from "../components/Selectors";
+import Scrollbar from "../components/Scrollbar";
 
 function Alert(props) {
   return <MuiAlert elevation={6} variant="filled" {...props} />;
@@ -495,7 +495,7 @@ function Home(props) {
       </Dialog>
       <div style={{ height: "100vh", overflow: "hidden auto" }}>
         <Drawer {...props}>
-          <Scrollbars autoHide>
+          <Scrollbar autoHide>
             <NavBar
               title="Classes"
               left={
@@ -553,7 +553,7 @@ function Home(props) {
                 onChange={(p) => setPage(p)}
               />
             </Box>
-          </Scrollbars>
+          </Scrollbar>
         </Drawer>
         <Backdrop
           open={props.location.hash === "#menu" && isMobile ? true : false}

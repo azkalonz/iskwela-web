@@ -70,7 +70,9 @@ const Messages = {
     });
     socket.on("get messages", (data) => {
       dispatch && dispatch({ data, type: "SET_MESSAGES" });
-      if (data.start === 0) focusNewMessage();
+      setTimeout(() => {
+        if (data.start === 0) focusNewMessage();
+      }, 1600);
       typeof Messages.hooks["get message"] === "function" &&
         Messages.hooks["get message"](data);
     });

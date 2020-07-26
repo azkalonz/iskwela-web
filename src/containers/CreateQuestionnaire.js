@@ -21,7 +21,6 @@ import {
 import moment from "moment";
 import PropTypes from "prop-types";
 import React, { useEffect, useState } from "react";
-import { Scrollbars } from "react-custom-scrollbars";
 import { connect } from "react-redux";
 import { useHistory } from "react-router-dom";
 import Api from "../api";
@@ -29,6 +28,7 @@ import Pagination, { getPageItems } from "../components/Pagination";
 import SlideContainer, { Slide, SlideRenderer } from "../components/quiz/Slide";
 import Toolbar from "../components/quiz/Toolbar";
 import { makeLinkTo } from "../components/router-dom";
+import Scrollbar from "../components/Scrollbar";
 import { SearchInput } from "../components/Selectors";
 import socket from "../components/socket.io";
 import AnswerQuiz from "../screens/class/AnswerQuiz";
@@ -430,7 +430,7 @@ function CreateQuestionnaire(props) {
             {...props}
           />
           <Box height="100%" overflow="auto">
-            <Scrollbars autoHide>
+            <Scrollbar autoHide>
               <SlideRenderer
                 {...props}
                 slide={quiz.slides[currentSlide]}
@@ -446,7 +446,7 @@ function CreateQuestionnaire(props) {
                   });
                 }}
               />
-            </Scrollbars>
+            </Scrollbar>
           </Box>
         </Box>
       </Box>
