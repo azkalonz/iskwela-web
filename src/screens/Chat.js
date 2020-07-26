@@ -28,6 +28,7 @@ import {
   useMediaQuery,
   Backdrop,
   Tooltip,
+  Grow,
 } from "@material-ui/core";
 import { connect } from "react-redux";
 import { SearchInput } from "../components/Selectors";
@@ -137,90 +138,92 @@ function Users(props) {
           {users &&
             props.recent &&
             getFilteredUsers().map((s, index) => (
-              <ButtonBase
-                key={index}
-                className={
-                  "chat-user " +
-                  (props.selected === s.username ? "selected" : "")
-                }
-                onClick={() => props.onClick(s)}
-              >
-                {React.createElement(
-                  eval(
-                    onlineUsers &&
-                      onlineUsers.find((q) => q.id === s.id)?.status ===
-                        "online"
-                      ? "OnlineBadge"
-                      : "OfflineBadge"
-                  ),
-                  {
-                    anchorOrigin: {
-                      vertical: "bottom",
-                      horizontal: "right",
-                    },
-                    variant: "dot",
-                  },
-                  <Avatar
-                    src={s.preferences.profile_picture}
-                    alt={s.first_name}
-                  />
-                )}
-                <Box
-                  width="85%"
-                  display="flex"
-                  alignItems="flex-start"
-                  justifyContent="space-between"
+              <Grow in={true}>
+                <ButtonBase
+                  key={index}
+                  className={
+                    "chat-user " +
+                    (props.selected === s.username ? "selected" : "")
+                  }
+                  onClick={() => props.onClick(s)}
                 >
+                  {React.createElement(
+                    eval(
+                      onlineUsers &&
+                        onlineUsers.find((q) => q.id === s.id)?.status ===
+                          "online"
+                        ? "OnlineBadge"
+                        : "OfflineBadge"
+                    ),
+                    {
+                      anchorOrigin: {
+                        vertical: "bottom",
+                        horizontal: "right",
+                      },
+                      variant: "dot",
+                    },
+                    <Avatar
+                      src={s.preferences.profile_picture}
+                      alt={s.first_name}
+                    />
+                  )}
                   <Box
-                    width="70%"
-                    marginLeft={1}
-                    className={
-                      getRecentMessage(s)?.seen &&
-                      Object.keys(getRecentMessage(s).seen).length &&
-                      getRecentMessage(s)?.seen[props.userInfo.id]
-                        ? "seen"
-                        : "not-seen"
-                    }
+                    width="85%"
+                    display="flex"
+                    alignItems="flex-start"
+                    justifyContent="space-between"
                   >
-                    <Typography color="primary">
-                      {s.first_name + " " + s.last_name}
-                    </Typography>
-                    <Typography
-                      component="div"
-                      color="textSecondary"
-                      style={{
-                        marginTop: -10,
-                        maxHeight: 38,
-                      }}
-                      component="div"
+                    <Box
+                      width="70%"
+                      marginLeft={1}
+                      className={
+                        getRecentMessage(s)?.seen &&
+                        Object.keys(getRecentMessage(s).seen).length &&
+                        getRecentMessage(s)?.seen[props.userInfo.id]
+                          ? "seen"
+                          : "not-seen"
+                      }
                     >
-                      <MUIRichTextEditor
-                        readOnly={true}
-                        value={getRecentMessage(s).message}
-                        toolbar={false}
-                        inlineToolbar={false}
-                      />
-                    </Typography>
+                      <Typography color="primary">
+                        {s.first_name + " " + s.last_name}
+                      </Typography>
+                      <Typography
+                        component="div"
+                        color="textSecondary"
+                        style={{
+                          marginTop: -10,
+                          maxHeight: 38,
+                        }}
+                        component="div"
+                      >
+                        <MUIRichTextEditor
+                          readOnly={true}
+                          value={getRecentMessage(s).message}
+                          toolbar={false}
+                          inlineToolbar={false}
+                        />
+                      </Typography>
+                    </Box>
+                    <Box textAlign="right">
+                      <Typography color="textSecondary">
+                        {getRecentMessage(s) &&
+                          getRecentMessage(s).date &&
+                          moment(getRecentMessage(s).date).format("hh:mm A")}
+                      </Typography>
+                      <Typography key={index} color="textSecondary">
+                        {getRecentMessage(s) &&
+                        getRecentMessage(s)?.seen &&
+                        Object.keys(getRecentMessage(s).seen).length >= 2
+                          ? "Seen"
+                          : getRecentMessage(s).sender &&
+                            getRecentMessage(s).sender.id === props.userInfo.id
+                          ? "Sent"
+                          : ""}
+                      </Typography>
+                    </Box>
                   </Box>
-                  <Box textAlign="right">
-                    <Typography color="textSecondary">
-                      {getRecentMessage(s) &&
-                        getRecentMessage(s).date &&
-                        moment(getRecentMessage(s).date).format("hh:mm A")}
-                    </Typography>
-                    <Typography key={index} color="textSecondary">
-                      {getRecentMessage(s) &&
-                      getRecentMessage(s)?.seen &&
-                      Object.keys(getRecentMessage(s).seen).length >= 2
-                        ? "Seen"
-                        : getRecentMessage(s).sender &&
-                          getRecentMessage(s).sender.id === props.userInfo.id
-                        ? "Sent"
-                        : ""}
-                    </Typography>
-                  </Box>
-                </Box>
-              </ButtonBase>
+                </ButtonBase>
+              </Grow>
             ))}
         </Scrollbar>
       </Box>
