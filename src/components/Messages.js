@@ -40,6 +40,8 @@ const Messages = {
   },
   sendMessage: (channel, message) => {
     socket.emit("send message", { channel, message });
+    typeof Messages.hooks["send message"] === "function" &&
+      Messages.hooks["send message"](message);
   },
   getMessages: (channel, { start, end }, callback = null) => {
     socket.emit("get messages", { channel, start, end });

@@ -502,10 +502,9 @@ function ChatBox(props) {
                         flexWrap="wrap"
                       >
                         {messages[index - 1] &&
-                          moment(c.date).diff(
-                            messages[index - 1].date,
-                            "days"
-                          ) >= 1 && (
+                          new Date(c.date).getDate() -
+                            new Date(messages[index - 1].date).getDate() >
+                            0 && (
                             <Box
                               display="flex"
                               alignItems="center"
@@ -516,7 +515,9 @@ function ChatBox(props) {
                                 <Divider />
                               </Box>
                               <Box p={2} style={{ whiteSpace: "pre" }}>
-                                {moment(c.date).format("MMMM DD, YYYY hh:mm A")}
+                                {moment(c.date).format(
+                                  "ddd - MMMM DD, YYYY hh:mm A"
+                                )}
                               </Box>
                               <Box width="100%">
                                 <Divider />

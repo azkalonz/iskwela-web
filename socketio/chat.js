@@ -7,7 +7,7 @@ function createChatData({ sender, receiver }) {
     status: "",
   };
 }
-function getMessages({ channel, start, end }) {
+function getMessages({ channel, start = 0, end = 10 }) {
   let convo = chat.conversations[channel] || {};
   let messages = convo.messages || [];
   let total = messages.length;
@@ -37,7 +37,15 @@ function getRecentMessages(user, otheruser) {
           .reverse()
           .filter((q) => (q.seen[user.id] ? false : true));
         if (latestNotSeen.length) {
-          m.push(...latestNotSeen);
+          latestNotSeen.push(chat.conversations[k].messages.reverse()[0]);
+          m.push(
+            ...latestNotSeen.filter((q, i) => {
+              let duplicateIndex = latestNotSeen.findIndex(
+                (qq) => qq.id === q.id
+              );
+              return i > duplicateIndex ? false : true;
+            })
+          );
         } else {
           m.push(chat.conversations[k].messages.reverse()[0]);
         }

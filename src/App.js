@@ -395,6 +395,7 @@ function App(props) {
             if (!notifsound) {
               let notifAudio = document.createElement("audio");
               notifAudio.setAttribute("id", "notif-sound");
+              notifAudio.setAttribute("autoplay", "");
               notifAudio.src = "/chat/notification.mp3";
               notifAudio.style.display = "none";
               document.body.appendChild(notifAudio);
