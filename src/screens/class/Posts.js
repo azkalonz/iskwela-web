@@ -824,8 +824,14 @@ function Posts(props) {
                 <Pagination
                   count={posts.length}
                   itemsPerPage={10}
-                  icon="sms_outline"
-                  emptyTitle="There are no posts in this Class yet."
+                  icon={
+                    <img
+                      src="/hero-img/no-posts.svg"
+                      width={180}
+                      style={{ padding: "50px 0" }}
+                    />
+                  }
+                  emptyTitle="No discussions yet"
                   emptyMessage={
                     <Button
                       onClick={() => {
@@ -833,7 +839,7 @@ function Posts(props) {
                         document.querySelector("#start-a-discussion").click();
                       }}
                     >
-                      Start a Discussion
+                      Start one
                     </Button>
                   }
                   nolink

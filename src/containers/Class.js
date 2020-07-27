@@ -74,14 +74,15 @@ function ClassRightPanel(props) {
   useEffect(() => {
     if (isValidOption(option_name)) {
       setView(getView(option_name.toLowerCase()));
-      setTitle(
-        [props.classDetails[class_id].name].concat([
-          isValidOption(option_name).navTitle
-            ? isValidOption(option_name).navTitle
-            : isValidOption(option_name).title,
-          room_name ? "Video Conference" : undefined,
-        ])
-      );
+      if (props.classes[class_id])
+        setTitle(
+          [props.classes[class_id].name].concat([
+            isValidOption(option_name).navTitle
+              ? isValidOption(option_name).navTitle
+              : isValidOption(option_name).title,
+            room_name ? "Video Conference" : undefined,
+          ])
+        );
     } else props.loading(false);
   }, [option_name]);
   return View ? (

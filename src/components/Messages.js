@@ -94,6 +94,22 @@ const Messages = {
 
 function RecentMessages(props) {
   const history = useHistory();
+  const getFilteredMessages = () =>
+    props.recent
+      .filter((q, i) => {
+        let duplicateIndex = props.recent.findIndex(
+          (qq) => qq.channel === q.channel
+        );
+        return i > duplicateIndex ? false : true;
+      })
+      .filter((q, i) => {
+        let isSender = q.sender.id === props.userInfo.id;
+        let user = isSender ? q.receiver : q.sender;
+        let duplicateIndex = props.recent.findIndex((qq) =>
+          isSender ? qq.receiver.id === user.id : qq.sender.id === user.id
+        );
+        return i > duplicateIndex ? false : true;
+      });
   React.useEffect(() => {
     props.onNotSeen(
       props.recent
@@ -126,90 +142,75 @@ function RecentMessages(props) {
           <Divider />
         </Toolbar>
         {!props.recent.length ? (
-          <Box p={3} style={{ opacity: 0.6 }}>
+          <Box p={3} style={{ opacity: 0.6 }} textAlign="center">
+            <img width="70%" alt="Messages" src="/chat/chat.svg" />
             <Typography>Your inbox is clear!</Typography>
           </Box>
         ) : null}
-        {props.recent
-          .filter((q, i) => {
-            let duplicateIndex = props.recent.findIndex(
-              (qq) => qq.channel === q.channel
-            );
-            return i > duplicateIndex ? false : true;
-          })
-          .filter((q, i) => {
-            let isSender = q.sender.id === props.userInfo.id;
-            let user = isSender ? q.receiver : q.sender;
-            let duplicateIndex = props.recent.findIndex((qq) =>
-              isSender ? qq.receiver.id === user.id : qq.sender.id === user.id
-            );
-            return i > duplicateIndex ? false : true;
-          })
-          .map((r) => {
-            let user =
-              r.sender.id === props.userInfo.id ? r.receiver : r.sender;
-            let message = JSON.parse(r.message).blocks[0].text;
-            return (
-              <ButtonBase
-                className={r.seen[props.userInfo.id] ? "seen" : "not-seen"}
-                onClick={() => {
-                  history.push("/chat/" + user.username);
-                  props.onClose && props.onClose();
-                }}
-                style={{
-                  textAlign: "left",
-                  padding: 13,
-                  alignItems: "flex-start",
-                  width: "100%",
-                }}
-              >
-                <Box marginRight={1}>
-                  {React.createElement(
-                    eval(
-                      props.onlineUsers &&
-                        props.onlineUsers.find((q) => q.id === user.id)
-                          ?.status === "online"
-                        ? "OnlineBadge"
-                        : "OfflineBadge"
-                    ),
-                    {
-                      anchorOrigin: {
-                        vertical: "bottom",
-                        horizontal: "right",
-                      },
-                      variant: "dot",
+        {getFilteredMessages().map((r) => {
+          let user = r.sender.id === props.userInfo.id ? r.receiver : r.sender;
+          let message = JSON.parse(r.message).blocks[0].text;
+          return (
+            <ButtonBase
+              className={r.seen[props.userInfo.id] ? "seen" : "not-seen"}
+              onClick={() => {
+                history.push("/chat/" + user.username);
+                props.onClose && props.onClose();
+              }}
+              style={{
+                textAlign: "left",
+                padding: 13,
+                alignItems: "flex-start",
+                width: "100%",
+              }}
+            >
+              <Box marginRight={1}>
+                {React.createElement(
+                  eval(
+                    props.onlineUsers &&
+                      props.onlineUsers.find((q) => q.id === user.id)
+                        ?.status === "online"
+                      ? "OnlineBadge"
+                      : "OfflineBadge"
+                  ),
+                  {
+                    anchorOrigin: {
+                      vertical: "bottom",
+                      horizontal: "right",
                     },
-                    <Avatar
-                      src={user.preferences.profile_picture}
-                      alt={user.first_name}
-                    />
-                  )}
-                </Box>
-                <Box
-                  flex={1}
-                  overflow="hidden"
-                  className={r.seen[props.userInfo.id] ? "seen" : "not-seen"}
-                  width="80%"
+                    variant: "dot",
+                  },
+                  <Avatar
+                    src={user.preferences.profile_picture}
+                    alt={user.first_name}
+                  />
+                )}
+              </Box>
+              <Box
+                flex={1}
+                overflow="hidden"
+                className={r.seen[props.userInfo.id] ? "seen" : "not-seen"}
+                width="80%"
+              >
+                <Typography style={{ fontWeight: "bold" }}>
+                  {user.first_name + " " + user.last_name}
+                </Typography>
+                <Typography
+                  style={{ fontFamily: "Arial, Helvetica, sans-serif" }}
                 >
-                  <Typography style={{ fontWeight: "bold" }}>
-                    {user.first_name + " " + user.last_name}
-                  </Typography>
-                  <Typography
-                    style={{ fontFamily: "Arial, Helvetica, sans-serif" }}
-                  >
-                    {message}
-                  </Typography>
-                </Box>
-                <Box>
-                  <Typography color="textSecondary">
-                    {moment(new Date()).diff(r.date, "days") > 1
-                      ? moment(r.date).format("ddd")
-                      : moment(r.date).fromNow()}
-                  </Typography>
-                </Box>
-              </ButtonBase>
-            );
-          })}
+                  {message}
+                </Typography>
+              </Box>
+              <Box>
+                <Typography color="textSecondary">
+                  {moment(new Date()).diff(r.date, "days") > 1
+                    ? moment(r.date).format("ddd")
+                    : moment(r.date).fromNow()}
+                </Typography>
+              </Box>
+            </ButtonBase>
+          );
+        })}
         <Box width="100%" textAlign="left">
           <Divider />
           <Toolbar>

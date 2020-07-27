@@ -62,10 +62,15 @@ export default function Pagination(props) {
         justifyContent="center"
         display="flex"
         flexDirection="column"
+        style={{ userSelect: "none" }}
       >
-        <Icon color="disabled" style={{ fontSize: 140 }}>
-          {props.icon ? props.icon : "class"}
-        </Icon>
+        {typeof props.icon === "string" ? (
+          <Icon color="disabled" style={{ fontSize: 140 }}>
+            {props.icon ? props.icon : "class"}
+          </Icon>
+        ) : (
+          props.icon
+        )}
         <Typography variant="h6" component="h2" color="textPrimary">
           {props.emptyTitle ? props.emptyTitle : "All clear!"}
         </Typography>

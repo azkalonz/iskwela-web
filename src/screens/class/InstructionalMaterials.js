@@ -867,7 +867,21 @@ function InstructionalMaterials(props) {
           pagination={{
             render: (
               <Pagination
-                icon={search ? "search" : "library_books"}
+                icon={
+                  search ? (
+                    <img
+                      src="/hero-img/search.svg"
+                      width={180}
+                      style={{ padding: "50px 0" }}
+                    />
+                  ) : (
+                    <img
+                      src="/hero-img/undraw_Progress_tracking_re_ulfg.svg"
+                      width={180}
+                      style={{ padding: "50px 0" }}
+                    />
+                  )
+                }
                 emptyTitle={search ? "Nothing Found" : false}
                 emptyMessage={
                   search

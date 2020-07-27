@@ -700,7 +700,21 @@ function Quizzes(props) {
                 <Pagination
                   page={page}
                   match={props.match}
-                  icon={search ? "search" : ""}
+                  icon={
+                    search ? (
+                      <img
+                        src="/hero-img/search.svg"
+                        width={180}
+                        style={{ padding: "50px 0" }}
+                      />
+                    ) : (
+                      <img
+                        src="/hero-img/undraw_Progress_tracking_re_ulfg.svg"
+                        width={180}
+                        style={{ padding: "50px 0" }}
+                      />
+                    )
+                  }
                   emptyTitle={search ? "Nothing Found" : false}
                   emptyMessage={
                     search ? "Try a different keyword." : "There's no Quiz yet."
