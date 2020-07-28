@@ -400,7 +400,20 @@ function FV(props) {
             </DialogContent>
           </Dialog>
         ) : (
-          <Draggable bounds="#root">
+          <Draggable
+            bounds="#root"
+            onDrag={() => {
+              let f = document.querySelector(".floating-file-viewer");
+              if (f)
+                if (f.children[1]) f.children[1].style.pointerEvents = "none";
+            }}
+            onStop={() => {
+              let f = document.querySelector(".floating-file-viewer");
+              if (f)
+                if (f.children[1])
+                  f.children[1].style.pointerEvents = "initial";
+            }}
+          >
             <Box
               className={"floating-file-viewer " + mode}
               style={{

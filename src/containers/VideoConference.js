@@ -193,6 +193,16 @@ function VideoConference(props) {
                 }
               : {
                   bounds: "#root",
+                  onDrag: () => {
+                    document.querySelector(
+                      "#react-jitsi-container"
+                    ).style.pointerEvents = "none";
+                  },
+                  onStop: () => {
+                    document.querySelector(
+                      "#react-jitsi-container"
+                    ).style.pointerEvents = "initial";
+                  },
                 },
             <Box
               id="draggable-jitsi-container"
@@ -204,9 +214,24 @@ function VideoConference(props) {
               style={!props.draggable ? { transform: "none!important" } : {}}
             >
               {props.draggable && (
-                <Icon style={{ color: "#000", opacity: 0.2 }}>
-                  drag_indicator
-                </Icon>
+                <Box display="flex" alignItems="center">
+                  <IconButton
+                    onClick={() => {
+                      try {
+                        document
+                          .getElementById("react-jitsi-container")
+                          .requestFullscreen();
+                      } catch (e) {}
+                    }}
+                  >
+                    <Icon style={{ color: "#000", opacity: 0.2 }}>
+                      fullscreen
+                    </Icon>
+                  </IconButton>
+                  <Icon style={{ color: "#000", opacity: 0.2 }}>
+                    drag_indicator
+                  </Icon>
+                </Box>
               )}
               <Jitsi
                 domain="jts.iskwela.net"

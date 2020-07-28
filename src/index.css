@@ -53,9 +53,9 @@ code {
   left: 8px;
   bottom: 8px;
   background: #7539ff !important;
-  width: 325px !important;
+  width: 345px !important;
   z-index: 1300;
-  height: 215px !important;
+  height: 245px !important;
   border-radius: 10px;
   cursor: move;
   padding: 3px;
@@ -63,9 +63,6 @@ code {
   align-items: flex-end;
   justify-content: flex-end;
   flex-direction: column;
-}
-#draggable-jitsi-container.floating > #react-jitsi-container {
-  pointer-events: none;
 }
 #react-jitsi-container {
   height: 90% !important;
@@ -83,8 +80,8 @@ fieldset {
   position: fixed;
   right: 10px;
   bottom: 10px;
-  width: 320px;
-  height: 215px;
+  width: 345px;
+  height: 245px;
   display: flex;
   justify-content: stretch;
   align-items: stretch;
