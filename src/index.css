@@ -172,3 +172,6 @@ fieldset {
 #mui-rte-editor span {
   word-break: break-all;
 }
+input[type="file"] {
+  display: none;
+}

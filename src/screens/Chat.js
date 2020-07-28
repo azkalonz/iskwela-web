@@ -999,7 +999,7 @@ function Chat(props) {
           {!isTablet && (
             <ResizeLine
               orientation="vertical"
-              minSize={100}
+              minSize={210}
               maxSize={400}
               resizing={isResizing.USERS || false}
               ready={() => setIsResizing({ ...isResizing, ...{ USERS: true } })}
