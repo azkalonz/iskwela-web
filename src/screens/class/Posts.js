@@ -192,6 +192,7 @@ function Editor(props) {
   );
 }
 function Comment(props) {
+  const theme = useTheme().palette.type;
   const serializeComment = (data) => {
     let parsed;
     try {
@@ -216,7 +217,11 @@ function Comment(props) {
       <Box
         width="100%"
         marginLeft={1}
-        style={{ borderRadius: 6, background: "rgb(249, 245, 254)" }}
+        style={{
+          borderRadius: 6,
+          background:
+            theme === "dark" ? "rgba(255,255,255,0.03)" : "rgb(249, 245, 254)",
+        }}
       >
         <Box p={1}>
           <Box display="flex" alignItems="center">
@@ -667,8 +672,7 @@ function WriteAComment(props) {
 function Discussion(props) {
   const [expanded, setExpanded] = useState(false);
   const styles = useStyles();
-  const count = 5;
-  const [commentsPerPage, setCommentsPerPage] = useState(count);
+  const [commentsPerPage, setCommentsPerPage] = useState(1);
   const [saving, setSaving] = useState();
   return (
     <Paper style={{ marginTop: 13 }} id={"discussion-" + props.post.id}>
@@ -755,15 +759,12 @@ function Discussion(props) {
           {props.post.comments &&
             props.post.comments
               .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
-              .slice(0, commentsPerPage)
+              .slice(0, commentsPerPage + 1)
               .map((c, index) => <Comment key={index} {...c} />)}
           {props.post.comments &&
           props.post.comments.length &&
           commentsPerPage < props.post.comments.length - 1 ? (
-            <a
-              href="#"
-              onClick={() => setCommentsPerPage(commentsPerPage + count)}
-            >
+            <a href="#" onClick={() => setCommentsPerPage(commentsPerPage + 5)}>
               Show more comments
             </a>
           ) : null}

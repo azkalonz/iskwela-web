@@ -701,7 +701,7 @@ const useStyles = makeStyles((theme) => ({
       },
     },
     "& .boards-list": {
-      background: "#fff",
+      background: theme.palette.type === "dark" ? "#111" : "#fff",
       borderLeft: "1px solid rgba(0, 0, 0, 0.17)",
       minWidth: 250,
       overflow: "auto",

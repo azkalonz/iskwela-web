@@ -1469,7 +1469,10 @@ export function Canvas(props) {
           <Box position="relative">
             <Toolbar
               id="right-panel-toolbar"
-              style={{ background: "#fff", height: 51 }}
+              style={{
+                background: theme.palette.type === "dark" ? "#111" : "#fff",
+                height: 51,
+              }}
             >
               <Box
                 marginRight={1}
@@ -1626,6 +1629,7 @@ export function Canvas(props) {
   );
 }
 export function CreatorToolbar(props) {
+  const theme = useTheme();
   const [isResizing, setIsResizing] = useState({});
   const [modals, setModals] = useState(props.controls.map((c) => false));
   const styles = useStyles();
@@ -1657,7 +1661,7 @@ export function CreatorToolbar(props) {
       <Box
         style={{
           height: "100%",
-          background: "#fff",
+          background: theme.palette.type === "dark" ? "#111" : "#fff",
         }}
       >
         <div
@@ -1814,7 +1818,7 @@ const useStyles = makeStyles((theme) => ({
     },
   },
   atomicComponent: {
-    background: "#fff",
+    background: theme.palette.type === "dark" ? "#111" : "#fff",
     width: "100%",
   },
 }));

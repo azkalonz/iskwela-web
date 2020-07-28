@@ -568,8 +568,9 @@ function ChatBox(props) {
                                         .filter(
                                           (q) => q.id !== props.userInfo.id
                                         )
-                                        .map((s) => (
+                                        .map((s, index) => (
                                           <Tooltip
+                                            key={index}
                                             title={
                                               s.first_name + " " + s.last_name
                                             }
@@ -809,7 +810,13 @@ function MainChat(props) {
   const [isResizing, setIsResizing] = useState({});
   return (
     <Box width="100%" display="flex" height="100%">
-      <Box width="100%" height="100%" maxWidth="100%" overflow="auto">
+      <Box
+        width="100%"
+        marginRight="-3px"
+        height="100%"
+        maxWidth="100%"
+        overflow="auto"
+      >
         <ChatBox {...props} status={props.chat?.status} />
       </Box>
       <Box

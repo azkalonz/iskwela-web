@@ -82,6 +82,13 @@ function App(props) {
     overrides: {
       MuiCssBaseline: {
         "@global": {
+          "*": {
+            ...(props.theme === "dark"
+              ? {
+                  borderColor: "rgba(255,255,255,0.16)!important",
+                }
+              : {}),
+          },
           "::selection": {
             backgroundColor: primaryColor,
             color: "#fff",
@@ -205,6 +212,7 @@ function App(props) {
         root: {
           fontSize: "1em",
           zIndex: "10!important",
+          background: "#fff",
         },
       },
       MuiPaper: {
@@ -520,7 +528,7 @@ function App(props) {
                   style={{
                     ...(props.theme === "dark"
                       ? {
-                          background: "url(/logo192.png) no-repeat",
+                          background: "url(/logo/logo192.png) no-repeat",
                           backgroundSize: "100%",
                         }
                       : {

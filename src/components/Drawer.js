@@ -91,7 +91,7 @@ function Drawer(props) {
                 transform: "scale(0.7)",
                 ...(props.theme === "dark"
                   ? {
-                      background: "url(/logo192.png) no-repeat",
+                      background: "url(/logo/logo192.png) no-repeat",
                       backgroundSize: "cover",
                     }
                   : {
