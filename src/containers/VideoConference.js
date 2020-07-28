@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import NavBar from "../components/NavBar";
 import FullscreenIcon from "@material-ui/icons/Fullscreen";
+import Draggable from "react-draggable";
 import {
   IconButton,
   Box,
@@ -13,11 +14,13 @@ import {
   Button,
   useTheme,
   useMediaQuery,
+  Icon,
 } from "@material-ui/core";
 import ShareOutlinedIcon from "@material-ui/icons/ShareOutlined";
 import Jitsi from "react-jitsi";
 import store from "../components/redux/store";
 import { safeURLChange } from "../components/safeUrl";
+import { connect } from "react-redux";
 
 const resize = (e) => {
   let v = document.querySelector("#video-conference-container");
@@ -32,21 +35,36 @@ const useStyles = makeStyles((theme) => ({
     // },
   },
 }));
+const jState = {};
 function VideoConference(props) {
   const theme = useTheme();
   const { room_name } = props.match.params;
-  const { getRoom } = props;
   const styles = useStyles();
-  const room = getRoom();
+  const room = props.room;
   const [loading, setLoading] = useState(false);
   const [isResizing, setisResizing] = useState(false);
   const [confirmed, setConfirmed] = useState();
+  const [jApi, setjApi] = useState();
   const handleAPI = (JitsiApi) => {
     JitsiApi.executeCommand("toggleVideo");
     JitsiApi.on("readyToClose", () => {
       setLoading(true);
       props.updateClass("PENDING");
     });
+    if (props.userInfo)
+      JitsiApi.executeCommand(
+        "avatarUrl",
+        props.userInfo.preferences.profile_picture
+      );
+    JitsiApi.addEventListener(
+      "filmstripDisplayChanged",
+      (event) => (jState.filmStrip = event)
+    );
+    JitsiApi.addEventListener(
+      "tileViewChanged",
+      (event) => (jState.tileView = event)
+    );
+    if (!jApi) setjApi(JitsiApi);
   };
   const doneResizing = () => {
     document.body.style.userSelect = "initial";
@@ -97,7 +115,16 @@ function VideoConference(props) {
       },
     });
   };
-
+  useEffect(() => {
+    if (props.draggable && jApi) {
+      if (jState.filmStrip) {
+        if (jState.filmStrip.visible) jApi.executeCommand("toggleFilmStrip");
+      } else jApi.executeCommand("toggleFilmStrip");
+      if (jState.tileView) {
+        if (jState.tileView.enabled) jApi.executeCommand("toggleTileView");
+      } else jApi.executeCommand("toggleTileView");
+    }
+  }, [props.draggable, jApi]);
   return loading ? null : (
     <Box
       width="100%"
@@ -150,33 +177,59 @@ function VideoConference(props) {
         }
         left={props.left}
       />
-      <Box
-        width="100%"
+      {/* width="100%"
         height="100%"
         justifyContent="center"
-        alignItems="center"
-      >
-        {room.name && (
-          <Jitsi
-            domain="jts.iskwela.net"
-            jwt={
-              true || store.getState().userInfo.user_type === "t"
-                ? "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJqaXRzaSIsImlzcyI6InNjaG9vbGh1YiIsInN1YiI6Imp0cy5pc2t3ZWxhLm5ldCIsInJvb20iOiIqIn0.3BQBpXgHFM51Al1qjPz-sCFDPEnuKwKb47-h2Dctsqg"
-                : null
-            }
-            displayName={room.displayName}
-            roomName={room.name}
-            onAPILoad={handleAPI}
-            containerStyle={{
-              margin: "0 auto",
-              width: "100%",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          />
-        )}
-      </Box>
+        alignItems="center" */}
+
+      {room.name && (
+        <React.Fragment>
+          {React.createElement(
+            Draggable,
+            !props.draggable
+              ? {
+                  position: { x: 0, y: 0 },
+                  disabled: true,
+                }
+              : {
+                  bounds: "#root",
+                },
+            <Box
+              id="draggable-jitsi-container"
+              height="100%"
+              width="100%"
+              bgcolor="#7539ff"
+              color="#fff"
+              className={props.draggable ? "floating" : ""}
+              style={!props.draggable ? { transform: "none!important" } : {}}
+            >
+              {props.draggable && (
+                <Icon style={{ color: "#000", opacity: 0.2 }}>
+                  drag_indicator
+                </Icon>
+              )}
+              <Jitsi
+                domain="jts.iskwela.net"
+                jwt={
+                  true || store.getState().userInfo.user_type === "t"
+                    ? "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJqaXRzaSIsImlzcyI6InNjaG9vbGh1YiIsInN1YiI6Imp0cy5pc2t3ZWxhLm5ldCIsInJvb20iOiIqIn0.3BQBpXgHFM51Al1qjPz-sCFDPEnuKwKb47-h2Dctsqg"
+                    : null
+                }
+                displayName={room.displayName}
+                roomName={room.name}
+                onAPILoad={handleAPI}
+                containerStyle={{
+                  margin: "0 auto",
+                  width: "100%",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              />
+            </Box>
+          )}
+        </React.Fragment>
+      )}
       <div
         id="voverlay"
         style={{
@@ -207,5 +260,6 @@ function VideoConference(props) {
     </Box>
   );
 }
-
-export default VideoConference;
+export default connect((states) => ({ userInfo: states.userInfo }))(
+  VideoConference
+);

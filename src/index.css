@@ -47,7 +47,7 @@ code {
   background: #7539ffa6;
   border-right: 3px solid #7539ff !important;
 }
-#react-jitsi-container.floating {
+#draggable-jitsi-container.floating {
   position: fixed;
   z-index: 99999 !important;
   left: 8px;
@@ -56,6 +56,16 @@ code {
   width: 325px !important;
   z-index: 1300;
   height: 215px !important;
+  border-radius: 10px;
+  cursor: move;
+  padding: 3px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+  flex-direction: column;
+}
+#draggable-jitsi-container.floating > #react-jitsi-container {
+  pointer-events: none;
 }
 #react-jitsi-container {
   height: 90% !important;
@@ -84,6 +94,9 @@ fieldset {
   flex-direction: column;
   overflow: auto;
   z-index: 99999;
+}
+.floating-file-viewer > .MuiToolbar-root {
+  cursor: move;
 }
 .floating-file-viewer.dark {
   border-color: #1d1d1d;

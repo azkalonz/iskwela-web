@@ -1,3 +1,4 @@
+import React, { useEffect, useState } from "react";
 import {
   Box,
   Dialog,
@@ -13,7 +14,7 @@ import {
   CircularProgress,
 } from "@material-ui/core";
 import LaunchIcon from "@material-ui/icons/Launch";
-import React, { useEffect, useState } from "react";
+import Draggable from "react-draggable";
 import Recorder from "./Recorder";
 import Scrollbar from "./Scrollbar";
 
@@ -399,14 +400,16 @@ function FV(props) {
             </DialogContent>
           </Dialog>
         ) : (
-          <Box
-            className={"floating-file-viewer " + mode}
-            style={{
-              background: mode === "dark" ? "#282828" : "#ebebeb",
-            }}
-          >
-            {content}
-          </Box>
+          <Draggable bounds="#root">
+            <Box
+              className={"floating-file-viewer " + mode}
+              style={{
+                background: mode === "dark" ? "#282828" : "#ebebeb",
+              }}
+            >
+              {content}
+            </Box>
+          </Draggable>
         )}
       </React.Fragment>
     )

@@ -25,7 +25,7 @@ import {
 import CreateOutlined from "@material-ui/icons/CreateOutlined";
 import VideocamOutlinedIcon from "@material-ui/icons/VideocamOutlined";
 import moment from "moment";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import Skeleton from "react-loading-skeleton";
 import { connect } from "react-redux";
 import { useHistory } from "react-router-dom";
@@ -102,6 +102,7 @@ function Class(props) {
   const query = require("query-string").parse(window.location.search);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  const [draggable, setDraggable] = useState(false);
   const isTablet = useMediaQuery(theme.breakpoints.down("md"));
   const { room_name, class_id, schedule_id, option_name } = props.match.params;
   const history = useHistory();
@@ -402,14 +403,6 @@ function Class(props) {
         if (isMobile) setCollapsePanel(false);
       }
     }
-  };
-
-  const getRoom = () => {
-    console.log(CLASS);
-    return {
-      name: CLASS.room_number,
-      displayName: props.userInfo.first_name + " " + props.userInfo.last_name,
-    };
   };
 
   const editClassPicture = () => {
@@ -877,28 +870,31 @@ function Class(props) {
                 autoHide
                 onScroll={(e) => {
                   let d = document.querySelector("#react-jitsi-container");
-                  if (!d) return;
-                  if (isMobile) {
-                    d.classList.remove("floating");
-                    return;
-                  }
+                  if (!d || isMobile) return;
                   if (!d.getAttribute("data-initial-height"))
                     d.setAttribute("data-initial-height", d.clientHeight);
                   if (
                     e.target.scrollTop >=
                     parseFloat(d.getAttribute("data-initial-height"))
                   ) {
-                    d.classList.add("floating");
+                    setDraggable(true);
                   } else {
-                    d.classList.remove("floating");
+                    setDraggable(false);
                   }
                 }}
               >
                 {isConferencing() && (
                   <VideoConference
+                    draggable={!isMobile ? draggable : false}
                     match={props.match}
                     location={props.location}
-                    getRoom={() => getRoom()}
+                    room={{
+                      name: CLASS.room_number,
+                      displayName:
+                        props.userInfo.first_name +
+                        " " +
+                        props.userInfo.last_name,
+                    }}
                     updateClass={(e) => {
                       if (isTeacher) updateClass(e);
                     }}
