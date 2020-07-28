@@ -309,9 +309,12 @@ function Home(props) {
   useEffect(() => {
     let cardPerPage = () => {
       if (props.location.hash === "#meeting") return;
-      let m = document.querySelector("main").clientWidth;
-      let p = (Math.round(m / 300) - 1) * 3;
-      setItemsPerPage(p >= 8 ? p : 10);
+      let m = document.querySelector("main");
+      if (m) {
+        m = m.clientWidth;
+        let p = (Math.round(m / 300) - 1) * 3;
+        setItemsPerPage(p >= 8 ? p : 10);
+      }
     };
     cardPerPage();
     window.onresize = () => cardPerPage();
