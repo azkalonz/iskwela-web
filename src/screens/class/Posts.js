@@ -896,7 +896,9 @@ function Posts(props) {
                     onChange={(p) => setDiscussionPage(p)}
                   />
                 ) : (
-                  <CircularProgress />
+                  <Box width="100%" display="flex" justifyContent="center">
+                    <CircularProgress />
+                  </Box>
                 )}
               </Box>
             </Box>

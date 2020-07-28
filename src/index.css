@@ -169,3 +169,6 @@ fieldset {
 .horizontal-thumb {
   opacity: 0;
 }
+#mui-rte-editor span {
+  word-break: break-all;
+}

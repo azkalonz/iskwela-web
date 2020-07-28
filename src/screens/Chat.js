@@ -47,6 +47,27 @@ import { setTitle } from "../App";
 import { makeLinkTo } from "../components/router-dom";
 import Scrollbar from "../components/Scrollbar";
 
+function getAbsoluteHeight(el) {
+  el = typeof el === "string" ? document.querySelector(el) : el;
+  var styles = window.getComputedStyle(el);
+  var margin =
+    parseFloat(styles["marginTop"]) + parseFloat(styles["marginBottom"]);
+  return Math.ceil(el.offsetHeight + margin);
+}
+const fixChatBoxHeight = () => {
+  let c = document.querySelector("#chat-container");
+  if (c) {
+    let b = c.previousElementSibling;
+    let a = c.nextElementSibling;
+    if (b && a) {
+      c.style.height =
+        window.innerHeight -
+        (getAbsoluteHeight(b) + getAbsoluteHeight(a)) +
+        "px";
+    }
+  }
+};
+
 function Users(props) {
   const theme = useTheme();
   const isTablet = useMediaQuery(theme.breakpoints.down("md"));
@@ -360,80 +381,74 @@ function ChatBox(props) {
     resetEditor();
   }, [chat_id]);
   return (
-    <Box
-      width="100%"
-      className="chat-box"
-      display="flex"
-      height="100%"
-      flexDirection="column"
-    >
-      <Box
-        p={2}
-        display="flex"
-        justifyContent="space-between"
-        style={{
-          background: props.theme === "dark" ? "#1d1d1d" : "#fff",
-        }}
-        height={50}
-        minHeight={50}
-        alignItems="center"
-      >
-        {isTablet && (
-          <IconButton
-            color="primary"
-            onClick={() =>
-              props.history.push(
-                props.location.hash === "#users" ? "#" : "#users"
-              )
-            }
-          >
-            <Icon>
-              {props.location.hash === "#users" ? (
-                <span className="icon-menu-close"></span>
-              ) : (
-                <span className="icon-menu-open"></span>
-              )}
-            </Icon>
-          </IconButton>
-        )}
-        {chat_id && (
-          <Box display="flex" alignItems="center" flex={1} overflow="hidden">
-            {React.createElement(
-              eval(
-                onlineUsers &&
-                  onlineUsers.find(
-                    (q) => q && props.user && q.id === props.user.id
-                  )?.status === "online"
-                  ? "OnlineBadge"
-                  : "OfflineBadge"
-              ),
-              {
-                anchorOrigin: {
-                  vertical: "bottom",
-                  horizontal: "right",
-                },
-                variant: "dot",
-              },
-              <Avatar src={preferences.profile_picture} alt={first_name} />
-            )}
-            <Typography style={{ marginLeft: 7 }}>
-              {first_name} {last_name}
-            </Typography>
-            {props.loading && <CircularProgress size={18} />}
-          </Box>
-        )}
-        <Box>
+    <Box width="100%" className="chat-box" height="100%">
+      <Box width="100%" position="sticky" top={0} left={0} right={0} zIndex={1}>
+        <Box
+          p={2}
+          display="flex"
+          justifyContent="space-between"
+          style={{
+            background: props.theme === "dark" ? "#1d1d1d" : "#fff",
+          }}
+          height={50}
+          minHeight={50}
+          alignItems="center"
+        >
           {isTablet && (
             <IconButton
               color="primary"
-              onClick={() => props.history.push("#user-details")}
+              onClick={() =>
+                props.history.push(
+                  props.location.hash === "#users" ? "#" : "#users"
+                )
+              }
             >
-              <Icon>info</Icon>
+              <Icon>
+                {props.location.hash === "#users" ? (
+                  <span className="icon-menu-close"></span>
+                ) : (
+                  <span className="icon-menu-open"></span>
+                )}
+              </Icon>
             </IconButton>
           )}
+          {chat_id && (
+            <Box display="flex" alignItems="center" flex={1} overflow="hidden">
+              {React.createElement(
+                eval(
+                  onlineUsers &&
+                    onlineUsers.find(
+                      (q) => q && props.user && q.id === props.user.id
+                    )?.status === "online"
+                    ? "OnlineBadge"
+                    : "OfflineBadge"
+                ),
+                {
+                  anchorOrigin: {
+                    vertical: "bottom",
+                    horizontal: "right",
+                  },
+                  variant: "dot",
+                },
+                <Avatar src={preferences.profile_picture} alt={first_name} />
+              )}
+              <Typography style={{ marginLeft: 7 }}>
+                {first_name} {last_name}
+              </Typography>
+              {props.loading && <CircularProgress size={18} />}
+            </Box>
+          )}
+          <Box>
+            {isTablet && (
+              <IconButton
+                color="primary"
+                onClick={() => props.history.push("#user-details")}
+              >
+                <Icon>info</Icon>
+              </IconButton>
+            )}
+          </Box>
         </Box>
-      </Box>
-      <Box width="100%">
         <Divider />
       </Box>
       <Box
@@ -659,67 +674,80 @@ function ChatBox(props) {
             }
           })}
       </Box>
-      <Box width="100%">
-        <Divider />
-      </Box>
       <Box
-        p={2}
-        minHeight={70}
-        display="flex"
-        alignItems="center"
-        justifyContent="space-between"
-        maxHeight={500}
-        style={props.theme === "dark" ? { background: "#111" } : {}}
+        width="100%"
+        position="sticky"
+        bottom={0}
+        left={0}
+        right={0}
+        zIndex={1}
+        style={
+          props.theme === "dark"
+            ? { background: "#111" }
+            : { background: "#fff" }
+        }
       >
+        <Divider />
         <Box
-          height="100%"
+          p={2}
+          minHeight={70}
           width="100%"
-          overflow="auto"
-          style={{
-            background:
-              props.theme === "dark"
-                ? "rgba(255,255,255,0.05)"
-                : "rgba(0,0,0,0.05)",
-            borderRadius: 8,
-            padding: "0 13px",
-          }}
+          display="flex"
+          alignItems="center"
+          justifyContent="space-between"
         >
-          {reset && (
-            <MUIRichTextEditor
-              ref={editorRef}
-              value={message}
-              toolbar={true}
-              controls={[]}
-              label="Write Something"
-              onSave={(data) => {
-                sendMessage(data);
-              }}
-              onChange={(state) => {
-                window.clearTimeout(window.doneTyping);
-                if (state.getCurrentContent().getPlainText()) {
-                  if (!isTyping) typing();
-                } else {
-                  doneTyping();
-                }
-                window.doneTyping = setTimeout(() => doneTyping(), 5000);
-                if (
-                  state.getCurrentContent().getPlainText().indexOf("\n") >= 0
-                ) {
-                  if (editorRef.current) editorRef.current.save();
-                }
-              }}
-            />
-          )}
-        </Box>
-        <Box>
-          <IconButton
-            color="primary"
-            onClick={() => {
-              if (editorRef.current) editorRef.current.save();
+          <Box
+            height="100%"
+            width="100%"
+            minHeight={37}
+            overflow="auto"
+            style={{
+              background:
+                props.theme === "dark"
+                  ? "rgba(255,255,255,0.05)"
+                  : "rgba(0,0,0,0.05)",
+              borderRadius: 8,
+              padding: "0 13px",
             }}
           >
-            <Icon>send</Icon>
-          </IconButton>
+            {reset && (
+              <MUIRichTextEditor
+                ref={editorRef}
+                value={message}
+                toolbar={true}
+                controls={[]}
+                label="Write Something"
+                onSave={(data) => {
+                  sendMessage(data);
+                }}
+                onChange={(state) => {
+                  fixChatBoxHeight();
+                  window.clearTimeout(window.doneTyping);
+                  if (state.getCurrentContent().getPlainText()) {
+                    if (!isTyping) typing();
+                  } else {
+                    doneTyping();
+                  }
+                  window.doneTyping = setTimeout(() => doneTyping(), 5000);
+                  if (
+                    state.getCurrentContent().getPlainText().indexOf("\n") >= 0
+                  ) {
+                    if (editorRef.current) editorRef.current.save();
+                  }
+                }}
+              />
+            )}
+          </Box>
+          <Box>
+            <IconButton
+              color="primary"
+              onClick={() => {
+                if (editorRef.current) editorRef.current.save();
+              }}
+            >
+              <Icon>send</Icon>
+            </IconButton>
+          </Box>
         </Box>
       </Box>
     </Box>
@@ -804,7 +832,7 @@ function MainChat(props) {
   const [isResizing, setIsResizing] = useState({});
   return (
     <Box width="100%" display="flex" height="100%">
-      <Box width="100%" height="100%" maxWidth="100%">
+      <Box width="100%" height="100%" maxWidth="100%" overflow="auto">
         <ChatBox {...props} status={props.chat?.status} />
       </Box>
       <Box
@@ -937,6 +965,8 @@ function Chat(props) {
       window.loadingmsg = setTimeout(() => setLoading(false), 1500);
     };
     Messages.getRecentMessages(props.userInfo);
+    window.removeEventListener("resize", fixChatBoxHeight);
+    window.addEventListener("resize", fixChatBoxHeight);
   }, []);
   useEffect(() => {
     if (
@@ -1116,11 +1146,6 @@ const useStyles = makeStyles((theme) => ({
       },
     },
     "& .chat-box": {
-      borderRight:
-        "1px solid " +
-        (theme.palette.type === "dark"
-          ? "rgba(255, 255, 255, 0.12)"
-          : "rgba(0,0,0,0.17)"),
       "& .msg-container": {
         "& .details": {
           overflow: "hidden",
@@ -1170,7 +1195,13 @@ const useStyles = makeStyles((theme) => ({
         },
       },
     },
-    "& .chat-details": {},
+    "& .chat-details": {
+      borderLeft:
+        "1px solid " +
+        (theme.palette.type === "dark"
+          ? "rgba(255, 255, 255, 0.12)"
+          : "rgba(0,0,0,0.17)"),
+    },
   },
 }));
 export const OnlineBadge = withStyles((theme) => ({
