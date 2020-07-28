@@ -121,6 +121,35 @@ const onlineUsers = (state = [], payload) => {
       return state;
   }
 };
+const posts = (state = { current: [] }, payload) => {
+  let postIndex;
+  if (payload.post) {
+    postIndex = state.current.findIndex((q) => q.id === payload.post.id);
+  }
+  switch (payload.type) {
+    case "SET_POSTS":
+      return { ...state, current: payload.posts, class_id: payload.class_id };
+    case "ADD_POST":
+      return { ...state, current: [...state.current, payload.post] };
+    case "ADD_COMMENT": {
+      if (postIndex >= 0) {
+        let posts = [...state.current];
+        if (typeof posts[postIndex].comments === "object")
+          posts[postIndex].comments.push(payload.comment);
+        else posts[postIndex].comments = [payload.comment];
+        return { ...state, current: posts };
+      }
+    }
+    case "DELETE_POST":
+      if (postIndex >= 0) {
+        let posts = [...state.current];
+        posts.splice(postIndex, 1);
+        return { ...state, current: posts };
+      }
+    default:
+      return state;
+  }
+};
 const messages = (
   state = {
     recent_messages: [],
@@ -235,6 +264,7 @@ export default combineReducers({
   dataProgress,
   questionnaires,
   classDetails,
+  posts,
   theme,
   pics,
   gradingCategories,

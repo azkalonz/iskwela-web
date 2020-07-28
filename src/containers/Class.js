@@ -114,6 +114,7 @@ function Class(props) {
   const [openFileViewer, setOpenFileViewer] = useState();
   const isTeacher = userInfo.user_type === "t" ? true : false;
   const [saving, setSaving] = useState(false);
+  const [savingImg, setSavingImg] = useState(false);
   const [currentID, setCurrentID] = useState(class_id);
   const [rightPanelLoading, setRightPanelLoading] = useState(true);
   useEffect(() => {
@@ -424,7 +425,7 @@ function Class(props) {
     let newinput = input.cloneNode(true);
     newinput.addEventListener("change", async () => {
       if (newinput.files.length && class_id !== undefined) {
-        setSaving(true);
+        setSavingImg(true);
         try {
           let body = new FormData();
           body.append("image", newinput.files[0]);
@@ -439,7 +440,7 @@ function Class(props) {
           );
         } catch (e) {}
       }
-      setSaving(false);
+      setSavingImg(false);
     });
     input.parentNode.replaceChild(newinput, input);
     input = document.querySelector("#edit-class-pic-input");
@@ -521,7 +522,7 @@ function Class(props) {
                       position="relative"
                       overflow="hidden"
                     >
-                      {saving && (
+                      {savingImg && (
                         <Box
                           style={{
                             position: "absolute",
@@ -955,7 +956,7 @@ function Class(props) {
                     ) : null
                   }
                 />
-                {rightPanelLoading && (
+                {(!CLASS || rightPanelLoading) && (
                   <Box
                     width="100%"
                     display="flex"

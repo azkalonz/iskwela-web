@@ -1,6 +1,7 @@
 import store from "./redux/store";
 import Api from "../api";
 import moment from "moment";
+import socket from "./socket.io";
 
 export async function asyncForEach(array, callback) {
   for (let index = 0; index < array.length; index++) {
@@ -8,6 +9,21 @@ export async function asyncForEach(array, callback) {
   }
 }
 const UserData = {
+  setPosts: (class_id, posts) => {
+    store.dispatch({
+      type: "SET_POSTS",
+      class_id,
+      posts,
+    });
+  },
+  updatePosts: (class_id, payload, action) => {
+    if (store.getState().posts.class_id + "" === class_id + "") {
+      store.dispatch({
+        type: action,
+        ...payload,
+      });
+    }
+  },
   updateUserDetails: async () => {
     let u = await Api.auth();
     store.dispatch({
@@ -193,6 +209,26 @@ const UserData = {
       user,
     });
     setProgress(100);
+  },
+};
+UserData.posts = {
+  subscribe: (callback = () => {}) => {
+    socket.on("new post", ({ class_id, post }) => {
+      if (!class_id || !post) return;
+      callback({
+        class_id,
+        payload: { post },
+        action: "ADD_POST",
+      });
+    });
+    socket.on("new comment", ({ class_id, post, comment }) => {
+      if (!class_id || !post || !comment) return;
+      callback({
+        class_id,
+        payload: { post, comment },
+        action: "ADD_COMMENT",
+      });
+    });
   },
 };
 export default UserData;

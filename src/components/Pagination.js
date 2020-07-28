@@ -69,7 +69,7 @@ export default function Pagination(props) {
             {props.icon ? props.icon : "class"}
           </Icon>
         ) : (
-          props.icon
+          <Box style={{ pointerEvents: "none" }}>{props.icon}</Box>
         )}
         <Typography variant="h6" component="h2" color="textPrimary">
           {props.emptyTitle ? props.emptyTitle : "All clear!"}

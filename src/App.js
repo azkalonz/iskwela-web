@@ -351,6 +351,11 @@ function App(props) {
         data: resp.data,
       });
     });
+    UserData.posts.subscribe((res) => {
+      const { class_id, payload, action } = res;
+      console.log(class_id, payload, action);
+      UserData.updatePosts(class_id, payload, action);
+    });
     socket.on("videocall", ({ caller, receiver, status }) => {
       setVideocall({
         open: true,

@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from "react";
+import React, { useRef, useState, useEffect, useCallback } from "react";
 import {
   Paper,
   Box,
@@ -26,6 +26,7 @@ import {
   Menu,
   MenuItem,
   Popover,
+  CircularProgress,
 } from "@material-ui/core";
 import { connect } from "react-redux";
 import MUIRichTextEditor from "mui-rte";
@@ -34,7 +35,7 @@ import { makeLinkTo } from "../../components/router-dom";
 import UserData from "../../components/UserData";
 import socket from "../../components/socket.io";
 import PopupState, { bindMenu, bindTrigger } from "material-ui-popup-state";
-import { EditorState, convertToRaw } from "draft-js";
+import { EditorState, convertToRaw, ContentState } from "draft-js";
 import Pagination, { getPageItems } from "../../components/Pagination";
 import Api from "../../api";
 import { List } from "immutable";
@@ -191,6 +192,16 @@ function Editor(props) {
   );
 }
 function Comment(props) {
+  const serializeComment = (data) => {
+    let parsed;
+    try {
+      parsed = JSON.parse(data);
+    } catch (e) {
+      parsed = convertToRaw(ContentState.createFromText(data));
+    }
+    if (typeof parsed === "object") return JSON.stringify(parsed);
+    else return "";
+  };
   return (
     <Box
       width="100%"
@@ -200,10 +211,7 @@ function Comment(props) {
       className={"comment-container " + "comment-" + props.id}
     >
       <Box>
-        <Avatar
-          src={props.author.preferences.profile_picture}
-          alt={props.author.first_name}
-        />
+        <Avatar src="/" alt={props.added_by.first_name} />
       </Box>
       <Box
         width="100%"
@@ -211,14 +219,17 @@ function Comment(props) {
         style={{ borderRadius: 6, background: "rgb(249, 245, 254)" }}
       >
         <Box p={1}>
-          <Typography style={{ fontWeight: "bold" }}>
-            {props.author.first_name + " " + props.author.last_name}
-          </Typography>
+          <Box display="flex" alignItems="center">
+            <Typography style={{ fontWeight: "bold", marginRight: 13 }}>
+              {props.added_by.first_name + " " + props.added_by.last_name}
+            </Typography>
+            {props.saving && <CircularProgress size={18} />}
+          </Box>
           <Editor
             toolbar={false}
             inlineToolbar={false}
             readOnly={true}
-            value={props.comment}
+            value={serializeComment(props.body)}
           />
         </Box>
       </Box>
@@ -263,15 +274,31 @@ function StartADiscussion(props) {
       handleOpen("DISCUSSION");
     }
   };
-  const handleSave = (data) => {
-    let x = JSON.parse(data);
-    socket.emit("save post", {
-      class_id: props.class.id,
-      value: data,
-      author: props.userInfo,
-      date: new Date().toString(),
-    });
+  const handleSave = async (data) => {
     handleClose("DISCUSSION");
+    props.onSaving({
+      id: -1,
+      body: data,
+      created_at: new Date().toString(),
+      updated_at: new Date().toString(),
+      added_by: props.userInfo,
+    });
+    let post = await Api.post("/api/post/save", {
+      body: {
+        body: data,
+        itemable_type: "class",
+        itemable_id: props.class.id,
+      },
+    });
+    socket.emit("new post", { class_id: props.class.id, post });
+    console.log("post", post);
+    // socket.emit("save post", {
+    //   class_id: props.class.id,
+    //   value: data,
+    //   author: props.userInfo,
+    //   date: new Date().toString(),
+    // });
+    props.onSaving(null);
   };
   const handleOpen = (name) => {
     let m = { ...states };
@@ -520,7 +547,7 @@ function WriteAComment(props) {
   const theme = useTheme();
   const [editorRef, setEditorRef] = useState();
   const [content, setContent] = useState("");
-  const handleAddComment = (class_id, post_id, comment) => {
+  const handleAddComment = async (class_id, post_id, comment) => {
     let x = JSON.parse(comment);
     if (!x.blocks[0].text) {
       setContent(
@@ -539,12 +566,40 @@ function WriteAComment(props) {
         convertToRaw(EditorState.createEmpty().getCurrentContent())
       )
     );
-    socket.emit("add comment", {
-      class_id,
-      post_id,
-      comment,
-      author: props.userInfo,
+    props.onSaving({
+      body: comment,
+      created_at: new Date().toString(),
+      updated_at: new Date().toString(),
+      added_by: props.userInfo,
     });
+    let r = document.querySelector("#right-panel");
+    let p = document.querySelector("#discussion-" + post_id);
+    if (p && r) {
+      r = r.firstElementChild.firstElementChild.firstElementChild;
+      r.scrollTop = r.scrollTop + p.getBoundingClientRect().top - 50;
+    }
+    try {
+      let c = await Api.post("/api/comment/save", {
+        body: {
+          body: comment,
+          post_id,
+        },
+      });
+      socket.emit("add comment", {
+        class_id,
+        post: props.post,
+        comment: c,
+      });
+    } catch (e) {
+      console.error(e);
+    }
+    props.onSaving(null);
+    // socket.emit("add comment", {
+    //   class_id,
+    //   post_id,
+    //   comment,
+    //   author: props.userInfo,
+    // });
   };
   return (
     <Box width="100%" display="flex" alignItems="flex-start">
@@ -577,7 +632,7 @@ function WriteAComment(props) {
           label="Write a comment"
           value={content}
           onSave={(data) => {
-            handleAddComment(props.class.id, props.data.id, data);
+            handleAddComment(props.class.id, props.post.id, data);
           }}
           onChange={(state) => {
             if (state.getCurrentContent().getPlainText().indexOf("\n") >= 0) {
@@ -614,17 +669,9 @@ function Discussion(props) {
   const styles = useStyles();
   const count = 5;
   const [commentsPerPage, setCommentsPerPage] = useState(count);
-  const [date, setDate] = useState(moment(props.data.date).fromNow());
-  const tick = () =>
-    setInterval(() => setDate(moment(props.data.date).fromNow()), 60000);
-  const handleDelete = (class_id, id) => {
-    socket.emit("delete post", { class_id, id });
-  };
-  useEffect(() => {
-    tick();
-  }, []);
+  const [saving, setSaving] = useState();
   return (
-    <Paper style={{ marginTop: 13 }} id={"discussion-" + props.data.id}>
+    <Paper style={{ marginTop: 13 }} id={"discussion-" + props.post.id}>
       <Box>
         <Box
           width="100%"
@@ -635,23 +682,21 @@ function Discussion(props) {
           paddingBottom={0}
         >
           <Box display="flex" alignItems="center">
-            <Avatar
-              src={props.data.author.preferences.profile_picture}
-              alt="Profile pic"
-            />
+            <Avatar src="/" alt="Profile pic" />
             <Box marginLeft={2}>
               <Typography style={{ fontWeight: "bold" }}>
-                {props.data.author.first_name +
+                {props.post.added_by.first_name +
                   " " +
-                  props.data.author.last_name}
+                  props.post.added_by.last_name}
               </Typography>
               <Typography color="textSecondary" style={{ marginTop: -6 }}>
-                {date}
+                {moment(props.post.created_at).fromNow()}
               </Typography>
             </Box>
           </Box>
           <Box>
-            {props.data.author.id === props.userInfo.id ||
+            {props.saving && <CircularProgress size={18} />}
+            {/* {props.post.added_by.id === props.userInfo.id ||
             props.userInfo.user_type === "t" ? (
               <PopupState variant="popover" popupId="publish-btn">
                 {(popupState) => (
@@ -662,7 +707,7 @@ function Discussion(props) {
                     <Menu {...bindMenu(popupState)}>
                       <MenuItem
                         onClick={() => {
-                          handleDelete(props.data.class_id, props.data.id);
+                          handleDelete(props.post.class_id, props.post.id);
                           popupState.close();
                         }}
                       >
@@ -672,7 +717,7 @@ function Discussion(props) {
                   </React.Fragment>
                 )}
               </PopupState>
-            ) : null}
+            ) : null} */}
           </Box>
         </Box>
         <Box
@@ -688,7 +733,7 @@ function Discussion(props) {
             toolbar={false}
             inlineToolbar={false}
             readOnly={true}
-            value={props.data.value}
+            value={props.post.body}
           />
           {/* {!expanded && (
             <Box className="show-more">
@@ -701,19 +746,20 @@ function Discussion(props) {
         <Divider />
         <Box p={2}>
           <Typography style={{ fontWeight: "bold" }}>
-            {(props.data.comments && props.data.comments.length) || 0} comments
+            {(props.post.comments && props.post.comments.length) || 0} comments
           </Typography>
         </Box>
         <Divider />
         <Box p={2}>
-          {props.data.comments &&
-            props.data.comments
-              .reverse()
+          {saving && <Comment {...saving} saving={true} />}
+          {props.post.comments &&
+            props.post.comments
+              .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
               .slice(0, commentsPerPage)
-              .map((c) => <Comment {...c} />)}
-          {props.data.comments &&
-          props.data.comments.length &&
-          commentsPerPage < props.data.comments.length - 1 ? (
+              .map((c, index) => <Comment key={index} {...c} />)}
+          {props.post.comments &&
+          props.post.comments.length &&
+          commentsPerPage < props.post.comments.length - 1 ? (
             <a
               href="#"
               onClick={() => setCommentsPerPage(commentsPerPage + count)}
@@ -723,7 +769,7 @@ function Discussion(props) {
           ) : null}
         </Box>
         <Box p={2}>
-          <WriteAComment {...props} />
+          <WriteAComment onSaving={(c) => setSaving(c)} {...props} />
         </Box>
       </Box>
     </Paper>
@@ -746,42 +792,31 @@ function WhatsDue(props) {
 function Posts(props) {
   const { class_id } = props.match.params;
   const theme = useTheme();
+  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState();
   const styles = useStyles();
   const isTablet = useMediaQuery(theme.breakpoints.down("md"));
-  const [posts, setPosts] = useState([]);
   const [discussionPage, setDiscussionPage] = useState(1);
+  const isLoading = (l) => {
+    props.onLoad(l);
+    setLoading(l);
+  };
+  const getPosts = async () => {
+    if (!class_id) return;
+    props.onLoad(false);
+    try {
+      let p = await Api.get(
+        "/api/post/class/" + class_id + "?include=comments"
+      );
+      UserData.setPosts(class_id, p);
+      isLoading(false);
+    } catch (e) {}
+  };
   useEffect(() => {
-    props.onLoad(true);
-    socket.on("get post", (posts) => {
-      props.onLoad(false);
-      setPosts(posts || []);
-    });
-    socket.emit("get post", class_id);
-  }, []);
-  useEffect(() => {
-    if (posts) {
-      socket.off("add items");
-      socket.off("delete items");
-      socket.off("update post");
-      socket.on("update post", (data) => {
-        let p = [...posts];
-        let index = p.findIndex((q) => q.id === data.id);
-        p[index] = data;
-        setPosts(p);
-      });
-      socket.on("delete items", (data) => {
-        if (data.type === "POST")
-          setPosts(posts.filter((q) => q.id !== data.id));
-      });
-      socket.on("add items", (data) => {
-        if (
-          data.type === "POST" &&
-          parseInt(data.items.class_id) === parseInt(class_id)
-        )
-          setPosts([...posts, data.items]);
-      });
-    }
-  }, [posts]);
+    UserData.setPosts(class_id, []);
+    isLoading(true);
+    getPosts();
+  }, [class_id]);
   return (
     <React.Fragment>
       {props.classes[class_id] && props.classes[class_id].students && (
@@ -796,6 +831,7 @@ function Posts(props) {
                 class={props.classes[class_id]}
                 author={props.userInfo}
                 onPost={() => setDiscussionPage(1)}
+                onSaving={(post) => setSaving(post)}
               >
                 {/* <IconButton>
                   <Icon color="primary">insert_photo_outline</Icon>
@@ -806,46 +842,62 @@ function Posts(props) {
                   <WhatsDue />
                 </Box>
               )}
+              {saving && (
+                <Discussion
+                  {...props}
+                  userInfo={props.userInfo}
+                  class={props.classes[class_id]}
+                  post={saving}
+                  saving={true}
+                />
+              )}
               {getPageItems(
-                posts
-                  .sort((a, b) => b.id - a.id)
-                  .map((p) => (
+                props.posts.current
+                  .sort(
+                    (a, b) => new Date(b.created_at) - new Date(a.created_at)
+                  )
+                  .map((p, index) => (
                     <Discussion
+                      key={index}
                       {...props}
                       userInfo={props.userInfo}
                       class={props.classes[class_id]}
-                      data={p}
+                      post={p}
                     />
                   )),
                 discussionPage,
                 10
               )}
               <Box marginTop={2} marginBottom={2}>
-                <Pagination
-                  count={posts.length}
-                  itemsPerPage={10}
-                  icon={
-                    <img
-                      src="/hero-img/no-posts.svg"
-                      width={180}
-                      style={{ padding: "50px 0" }}
-                    />
-                  }
-                  emptyTitle="No discussions yet"
-                  emptyMessage={
-                    <Button
-                      onClick={() => {
-                        document.querySelector("#right-panel").scrollTop = 0;
-                        document.querySelector("#start-a-discussion").click();
-                      }}
-                    >
-                      Start one
-                    </Button>
-                  }
-                  nolink
-                  page={discussionPage}
-                  onChange={(p) => setDiscussionPage(p)}
-                />
+                {!loading ? (
+                  <Pagination
+                    count={props.posts.current.length}
+                    itemsPerPage={10}
+                    icon={
+                      <img
+                        src="/hero-img/no-posts.svg"
+                        width={180}
+                        style={{ padding: "50px 0" }}
+                      />
+                    }
+                    emptyTitle="No discussions yet"
+                    emptyMessage={
+                      <Button
+                        onClick={() => {
+                          document.querySelector("#right-panel").scrollTop = 0;
+                          document.querySelector("#start-a-discussion").click();
+                        }}
+                      >
+                        Start one
+                      </Button>
+                    }
+                    nolink
+                    page={discussionPage}
+                    onChange={(p) => setDiscussionPage(p)}
+                  />
+                ) : (
+                  <CircularProgress />
+                )}
               </Box>
             </Box>
             {!isTablet && (
@@ -888,6 +940,7 @@ const useStyles = makeStyles((theme) => ({
 export default connect((states) => ({
   userInfo: states.userInfo,
   theme: states.theme,
+  posts: states.posts,
   classes: states.classDetails,
 }))(Posts);
 export { ConnectedStartADiscussion as StartADiscussion };

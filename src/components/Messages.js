@@ -147,11 +147,12 @@ function RecentMessages(props) {
             <Typography>Your inbox is clear!</Typography>
           </Box>
         ) : null}
-        {getFilteredMessages().map((r) => {
+        {getFilteredMessages().map((r, index) => {
           let user = r.sender.id === props.userInfo.id ? r.receiver : r.sender;
           let message = JSON.parse(r.message).blocks[0].text;
           return (
             <ButtonBase
+              key={index}
               className={r.seen[props.userInfo.id] ? "seen" : "not-seen"}
               onClick={() => {
                 history.push("/chat/" + user.username);
