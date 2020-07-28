@@ -446,14 +446,7 @@ function App(props) {
                     return <Home {...p} />;
                   }}
                 />
-                <Route
-                  exact
-                  path="/chat/:chat_id?"
-                  render={(p) => {
-                    setTitle("Chat");
-                    return <Chat {...p} />;
-                  }}
-                />
+                <Route exact path="/chat/:chat_id?" component={Chat} />
                 <Route
                   exact
                   path="/videocall"

@@ -158,6 +158,11 @@ const messages = (
   payload
 ) => {
   switch (payload.type) {
+    case "CLEAR_MESSAGES":
+      return {
+        recent_messages: [],
+        current: { messages: [], loaded: 0 },
+      };
     case "SET_MESSAGES":
       let added = payload.data.messages.length;
       let { messages, loaded, channel } = state.current;

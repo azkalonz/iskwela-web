@@ -17,6 +17,7 @@ import socket from "./socket.io";
 import { connect } from "react-redux";
 import { useHistory } from "react-router-dom";
 import moment from "moment";
+import store from "./redux/store";
 const { OnlineBadge, OfflineBadge } = require("../screens/Chat");
 
 const focusNewMessage = () => {
@@ -29,6 +30,9 @@ const focusNewMessage = () => {
 };
 const Messages = {
   hooks: {},
+  clear: () => {
+    store.dispatch({ type: "CLEAR_MESSAGES" });
+  },
   updateMessage: (id, { sender, receiver, update }, callback) => {
     socket.emit("update message", { id, sender, receiver, update });
   },
@@ -219,7 +223,7 @@ function RecentMessages(props) {
           <Toolbar>
             <Button
               onClick={() => {
-                history.push("/chat/");
+                history.push("/chat#users");
                 props.onClose && props.onClose();
               }}
             >

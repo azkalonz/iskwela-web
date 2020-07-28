@@ -113,7 +113,9 @@ function Users(props) {
           </IconButton>
         )}
         <Box width="100%">
-          <Typography style={{ fontWeight: "bold" }}>Friends</Typography>
+          <Typography style={{ fontWeight: "bold" }}>
+            Recent Messages
+          </Typography>
         </Box>
         <Box>
           <SearchInput
@@ -131,24 +133,6 @@ function Users(props) {
             }}
           />
         </Box>
-        {isTablet && (
-          <IconButton
-            color="primary"
-            onClick={() =>
-              props.history.push(
-                props.location.hash === "#users" ? "#" : "#users"
-              )
-            }
-          >
-            <Icon>
-              {props.location.hash === "#users" ? (
-                <span className="icon-menu-close"></span>
-              ) : (
-                <span className="icon-menu-open"></span>
-              )}
-            </Icon>
-          </IconButton>
-        )}
       </Toolbar>
       <Box
         overflow="auto"
@@ -398,18 +382,10 @@ function ChatBox(props) {
           {isTablet && (
             <IconButton
               color="primary"
-              onClick={() =>
-                props.history.push(
-                  props.location.hash === "#users" ? "#" : "#users"
-                )
-              }
+              onClick={() => props.history.push("#users")}
             >
               <Icon>
-                {props.location.hash === "#users" ? (
-                  <span className="icon-menu-close"></span>
-                ) : (
-                  <span className="icon-menu-open"></span>
-                )}
+                <span className="icon-menu-open"></span>
               </Icon>
             </IconButton>
           )}
@@ -850,7 +826,7 @@ function MainChat(props) {
             : {
                 ...(isTablet
                   ? {
-                      right: -325,
+                      right: "-100vw",
                     }
                   : {
                       right: 0,
@@ -900,6 +876,7 @@ function Chat(props) {
   const [isResizing, setIsResizing] = useState({});
 
   const getMessages = (start = 0, end = 10, callback = null) => {
+    if (!chat_id) return;
     setLoading(true);
     let receiver = onlineUsers.find((q) => q.username === chat_id);
     if (receiver) {
@@ -961,6 +938,7 @@ function Chat(props) {
     }, 100);
   }, [chat]);
   useEffect(() => {
+    Messages.clear();
     Messages.hooks["get message"] = () => {
       window.clearTimeout(window.loadingmsg);
       window.loadingmsg = setTimeout(() => setLoading(false), 1500);
@@ -974,11 +952,12 @@ function Chat(props) {
       chat_id === props.userInfo.username ||
       !onlineUsers.find((q) => q.username === chat_id)
     ) {
-      history.push("/chat");
-      setTitle("Chat");
+      history.push("/chat#users");
+      if (!chat_id) setTitle("Chat");
     } else if (onlineUsers.find((q) => q.username === chat_id)) {
       let u = onlineUsers.find((q) => q.username === chat_id);
-      setTitle(["Chat", u.first_name + " " + u.last_name]);
+      if (tail !== chat_id)
+        setTitle(["Chat", u.first_name + " " + u.last_name]);
     }
     if (tail !== chat_id) {
       getMessages();
@@ -999,7 +978,7 @@ function Chat(props) {
               : {
                   ...(isTablet
                     ? {
-                        left: -325,
+                        left: "-100vw",
                       }
                     : {
                         left: 0,
@@ -1117,8 +1096,8 @@ const useStyles = makeStyles((theme) => ({
         position: "fixed",
         top: 0,
         bottom: 0,
-        width: "325px!important",
-        minWidth: "325px!important",
+        width: "100vw!important",
+        minWidth: "100vw!important",
         zIndex: 15,
       },
     },
