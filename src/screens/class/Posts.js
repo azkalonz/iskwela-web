@@ -790,13 +790,16 @@ function WhatsDue(props) {
   );
 }
 function Posts(props) {
-  const { class_id } = props.match.params;
+  const query = require("query-string").parse(window.location.search);
+  const { class_id, schedule_id, room_name } = props.match.params;
   const theme = useTheme();
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState();
   const styles = useStyles();
   const isTablet = useMediaQuery(theme.breakpoints.down("md"));
-  const [discussionPage, setDiscussionPage] = useState(1);
+  const [discussionPage, setDiscussionPage] = useState(
+    (!isNaN(parseInt(query.page)) && parseInt(query.page)) || 1
+  );
   const isLoading = (l) => {
     props.onLoad(l);
     setLoading(l);
@@ -893,7 +896,26 @@ function Posts(props) {
                     }
                     nolink
                     page={discussionPage}
-                    onChange={(p) => setDiscussionPage(p)}
+                    onChange={(p) => {
+                      setDiscussionPage(p);
+                      props.history.push(
+                        makeLinkTo([
+                          "class",
+                          class_id,
+                          schedule_id,
+                          "posts",
+                          room_name || "",
+                          "?page=" + p,
+                        ])
+                      );
+                      let r = document.querySelector("#right-panel");
+                      if (r) {
+                        r =
+                          r.firstElementChild.firstElementChild
+                            .firstElementChild;
+                        r.scrollTop = 0;
+                      }
+                    }}
                   />
                 ) : (
                   <Box width="100%" display="flex" justifyContent="center">
