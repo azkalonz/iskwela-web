@@ -181,22 +181,6 @@ export const rightPanelOptionsStudents = [
         title: "Quizzes",
         link: "quizzes",
         icon: null,
-        children: [
-          {
-            title: "Quizzes",
-            link: "quiz",
-            icon: null,
-            screen: AnswerQuiz,
-            hidden: true,
-          },
-          {
-            title: "Scores",
-            link: "scores",
-            icon: null,
-            screen: Scores,
-            hidden: true,
-          },
-        ],
         screen: Quizzes,
       },
       {
@@ -230,6 +214,22 @@ export const rightPanelOptionsStudents = [
     link: "instructional-materials",
     icon: "icon-instructional-materials",
     screen: InstructionalMaterials,
+  },
+  {
+    title: "Reports",
+    icon: "icon-attendance",
+    children: [
+      {
+        title: "Attendance",
+        link: "attendance",
+        screen: Attendance,
+      },
+      {
+        title: "Scores",
+        link: "scores",
+        screen: Scores,
+      },
+    ],
   },
   {
     title: "Schedules",
