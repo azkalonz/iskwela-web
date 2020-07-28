@@ -24,7 +24,7 @@ const focusNewMessage = () => {
   if (c && c.firstElementChild) {
     c = c.firstElementChild;
     let height = c.firstElementChild.scrollHeight;
-    c.firstElementChild.scrollTop = height;
+    c.firstElementChild.scrollTop = height + window.outerHeight;
   }
 };
 const Messages = {
@@ -66,7 +66,9 @@ const Messages = {
     );
     socket.on("new message", (data) => {
       dispatch && dispatch({ data, type: "ADD_MESSAGE" });
-      focusNewMessage();
+      setTimeout(() => {
+        focusNewMessage();
+      }, 0);
       typeof Messages.hooks["new message"] === "function" &&
         Messages.hooks["new message"](data);
     });

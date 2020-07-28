@@ -294,6 +294,7 @@ function ChatBox(props) {
       )
     );
     setReset(null);
+    fixChatBoxHeight();
     setTimeout(() => {
       setReset(1);
       doneTyping();
