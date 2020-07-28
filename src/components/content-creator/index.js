@@ -449,11 +449,14 @@ export function ResizeLine(props) {
   const done = () => {
     window.resizing && window.resizing.el.classList.remove("resizing");
     window.resizing = null;
-    document.querySelector("body").style.userSelect = "initial";
+    document.body.style.userSelect = "initial";
+    document.body.style.cursor = "default";
     props.done();
   };
   const start = () => {
-    document.querySelector("body").style.userSelect = "none";
+    document.body.style.userSelect = "none";
+    document.body.style.cursor =
+      (props.orientation === "vertical" ? "ew" : "ns") + "-resize";
     window.resizing = {
       el: resizeRef.current,
       orientation: props.orientation,

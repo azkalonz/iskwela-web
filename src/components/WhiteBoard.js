@@ -324,34 +324,6 @@ function Board(props) {
 
   return (
     <React.Fragment>
-      {false && (
-        <Dialog
-          fullWidth
-          maxWidth="lg"
-          open={currentBoard || false}
-          onClose={() => setCurrentBoard(null)}
-        >
-          <DialogTitle onClose={() => setCurrentBoard(null)}>
-            <Box display="flex" alignItems="center">
-              <Avatar
-                src={currentBoard.info.preferences.profile_picture || ""}
-                alt="Test"
-              />
-              <Typography style={{ marginLeft: 8 }}>
-                {currentBoard.info.first_name +
-                  " " +
-                  currentBoard.info.last_name}
-                's Board
-              </Typography>
-            </Box>
-          </DialogTitle>
-          <DialogContent>
-            {currentBoard.b64 && (
-              <img src={currentBoard.b64} alt="preview" width="100%" />
-            )}
-          </DialogContent>
-        </Dialog>
-      )}
       <Box key={props.key} className="board">
         <Box display="flex" alignItems="center">
           <Avatar
@@ -363,12 +335,36 @@ function Board(props) {
           </Typography>
         </Box>
         <Box className="board-preview">
+          {props.board && props.preview && props.board.id === props.preview.id && (
+            <Box
+              style={{
+                background: "rgba(117,57,255,0.83)",
+                position: "absoslute",
+                left: 0,
+                right: 0,
+                position: "absolute",
+                bottom: 0,
+                top: 0,
+                zIndex: 1,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <Button
+                onClick={() => props.onPreview(false)}
+                style={{ color: "#fff", fontWeight: "bold" }}
+              >
+                Exit Preview
+              </Button>
+            </Box>
+          )}
           <ButtonBase
             style={{ width: "100%", height: "100%" }}
             onClick={() => {
               props.onClick(props.board);
               if (!isMobile) {
-                props.onPreview(true);
+                props.onPreview(props.board);
               }
             }}
           >
@@ -450,7 +446,7 @@ function BoardsList(props) {
 function WhiteBoard(props) {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
-  const { class_id, schedule_id } = props.match.params;
+  const { class_id, schedule_id, room_name } = props.match.params;
   const styles = useStyles();
   const [whiteBoard, setWhiteBoard] = useState();
   const [isMenu, setIsMenu] = useState(false);
@@ -466,7 +462,7 @@ function WhiteBoard(props) {
   };
   const hostWhiteBoard = (id, callback = () => {}) => {
     if (!isTeacher) {
-      alert("You are eligible to host the White Board");
+      alert("You are not eligible to host the White Board");
       return;
     }
     setLoading(true);
@@ -498,7 +494,7 @@ function WhiteBoard(props) {
     socket.on("delete boards", (id) => {
       if (id === class_id)
         props.history.push(
-          makeLinkTo(["class", class_id, schedule_id, "todo"])
+          makeLinkTo(["class", class_id, schedule_id, "todo", room_name || ""])
         );
     });
     getWhiteBoard(class_id, (whiteboard) => {
@@ -537,7 +533,7 @@ function WhiteBoard(props) {
   useEffect(() => {
     setUp();
     props.history.push("?hidepanel=true&full_width=true");
-  }, []);
+  }, [isMobile]);
   return (
     <React.Fragment>
       {isMobile && (
@@ -567,8 +563,12 @@ function WhiteBoard(props) {
             <BoardsList
               {...props}
               onPreview={(p) => setPreview(p)}
+              preview={preview}
               onCopy={(board) => {
-                if (board.json) window.creator.canvas.loadFromJSON(board.json);
+                if (board.json) {
+                  window.creator.canvas.loadFromJSON(board.json);
+                  setPreview(false);
+                }
               }}
               onClose={
                 isMobile && (
@@ -605,7 +605,13 @@ function WhiteBoard(props) {
                 color="primary"
                 onClick={() => {
                   props.history.push(
-                    makeLinkTo(["class", class_id, schedule_id, "todo"])
+                    makeLinkTo([
+                      "class",
+                      class_id,
+                      schedule_id,
+                      "todo",
+                      room_name || "",
+                    ])
                   );
                 }}
               >
@@ -717,6 +723,7 @@ const useStyles = makeStyles((theme) => ({
         },
         "& .board-preview": {
           display: "flex",
+          position: "relative",
           justifyContent: "center",
           alignItems: "center",
           overflow: "hidden",

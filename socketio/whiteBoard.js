@@ -99,19 +99,19 @@ module.exports = {
         io.emit("delete boards", id);
       }
     });
-    socket.on("disconnect", function () {
-      Object.keys(whiteBoard).map((k) => {
-        whiteBoard[k].clients.forEach((client, index) => {
-          if (client.socket === socket.id) {
-            let boardIndex = whiteBoard[k].boards.findIndex(
-              (q) => q.socket === socket.id
-            );
-            whiteBoard[k].clients.splice(index, 1);
-            whiteBoard[k].boards.splice(boardIndex, 1);
-            updateWhiteBoard(k);
-          }
-        });
-      });
-    });
+    // socket.on("disconnect", function () {
+    //   Object.keys(whiteBoard).map((k) => {
+    //     whiteBoard[k].clients.forEach((client, index) => {
+    //       if (client.socket === socket.id) {
+    //         let boardIndex = whiteBoard[k].boards.findIndex(
+    //           (q) => q.socket === socket.id
+    //         );
+    //         whiteBoard[k].clients.splice(index, 1);
+    //         whiteBoard[k].boards.splice(boardIndex, 1);
+    //         updateWhiteBoard(k);
+    //       }
+    //     });
+    //   });
+    // });
   },
 };
