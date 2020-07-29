@@ -352,8 +352,8 @@ function Quizzes(props) {
         {file && (
           <DialogContent style={{ height: "100vh" }}>
             <Toolbar
+              className="sticky"
               style={{
-                position: "sticky",
                 zIndex: 10,
                 background: "#fff",
                 height: "6%",

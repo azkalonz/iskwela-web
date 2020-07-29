@@ -926,7 +926,7 @@ function Posts(props) {
               </Box>
             </Box>
             {!isTablet && (
-              <Box minWidth={350} marginLeft={3} position="sticky" top={60}>
+              <Box minWidth={350} marginLeft={3} className="sticky" top={60}>
                 <WhatsDue />
               </Box>
             )}

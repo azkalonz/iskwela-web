@@ -312,7 +312,7 @@ function Home(props) {
       let m = document.querySelector("main");
       if (m) {
         m = m.clientWidth;
-        let p = (Math.round(m / 300) - 1) * 3;
+        let p = (Math.round(m / 300) - 1) * 2;
         setItemsPerPage(p >= 8 ? p : 10);
       }
     };

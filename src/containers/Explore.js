@@ -299,7 +299,7 @@ function Explore(props) {
                   style={{ background: themeColor, height: 440 }}
                 >
                   <Toolbar
-                    className={styles.toolbar}
+                    className={[styles.toolbar, "sticky"].join(" ")}
                     style={{ background: themeColor }}
                   >
                     {isTablet && (
@@ -565,7 +565,6 @@ const useStyles = makeStyles((theme) => ({
     },
   },
   toolbar: {
-    position: "sticky",
     top: 0,
     left: 0,
     right: 0,

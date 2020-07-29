@@ -43,6 +43,9 @@ function Scrollbar(props) {
       universal={true}
       renderThumbVertical={handleRenderThumbVertical}
       renderThumbHorizontal={handleRenderThumbHorizontal}
+      renderTrackVertical={({ style, ...props }) => {
+        return <div {...props} style={style} className="track-vertical" />;
+      }}
       renderView={({ style, ...props }) => {
         return (
           <div

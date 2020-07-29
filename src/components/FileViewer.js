@@ -256,7 +256,7 @@ function FV(props) {
       <Toolbar
         className={[
           styles.toolbar,
-          ...(fullscreen && !isMobile ? ["fullscreen"] : []),
+          ...(fullscreen && !isMobile ? ["fullscreen sticky"] : ["sticky"]),
         ].join(" ")}
       >
         <Typography
@@ -430,7 +430,6 @@ function FV(props) {
 }
 const useStyles = makeStyles((theme) => ({
   toolbar: {
-    position: "sticky",
     zIndex: 10,
     background:
       theme.palette.type === "dark" ? "#1d1d1d" : theme.palette.primary.main,

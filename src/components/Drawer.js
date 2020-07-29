@@ -16,6 +16,7 @@ import {
   useMediaQuery,
   Slide,
   Button,
+  Paper,
 } from "@material-ui/core";
 import DashboardOutlined from "@material-ui/icons/DashboardOutlined";
 import { connect } from "react-redux";
@@ -23,6 +24,7 @@ import { useHistory } from "react-router-dom";
 import { makeLinkTo } from "./router-dom";
 import ExpandLessOutlinedIcon from "@material-ui/icons/ExpandLessOutlined";
 import ExpandMoreOutlinedIcon from "@material-ui/icons/ExpandMoreOutlined";
+import Scrollbar from "./Scrollbar";
 
 function Drawer(props) {
   const styles = useStyles();
@@ -66,8 +68,8 @@ function Drawer(props) {
         <Box
           p={1}
           id="logo-drawer"
+          className="sticky"
           style={{
-            position: "sticky",
             top: 0,
             left: 0,
             right: 0,
@@ -233,8 +235,8 @@ function Drawer(props) {
               {!more ? (
                 <IconButton
                   onClick={() => setMore(true)}
+                  className="sticky"
                   style={{
-                    position: "sticky",
                     background: props.theme === "dark" ? "#282828" : "#ffffff",
                     bottom: 0,
                     zIndex: 1,
@@ -245,8 +247,8 @@ function Drawer(props) {
               ) : (
                 <IconButton
                   onClick={() => setMore(false)}
+                  className="sticky"
                   style={{
-                    position: "sticky",
                     background: props.theme === "dark" ? "#282828" : "#ffffff",
                     bottom: 0,
                     zIndex: 1,
@@ -325,30 +327,37 @@ function Drawer(props) {
     <div className={styles.root}>
       {!isTablet ? (
         <nav className={styles.drawer}>
-          <MuiDrawer
+          <Box
             id="drawer-container"
-            styles={{
-              paper: styles.drawerPaper,
+            style={{
+              height: "100%",
+              zIndex: 1200,
+              position: "relative",
             }}
             variant="permanent"
-            open
-            onScroll={() => {
-              let $ = (a) => document.querySelector(a);
-              if ($("#drawer-container > div").scrollTop > 0)
-                $("#logo-drawer").style.borderBottom =
-                  "1px solid rgba(0,0,0,0.17)";
-              else $("#logo-drawer").style.borderBottom = "none";
-            }}
           >
-            <Box
-              height="100%"
-              display="flex"
-              justifyContent="space-between"
-              flexDirection="column"
-            >
-              {drawer}
-            </Box>
-          </MuiDrawer>
+            <Paper style={{ height: "100%", width: "100%" }}>
+              <Scrollbar
+                autoHide
+                onScroll={() => {
+                  let $ = (a) => document.querySelector(a);
+                  if ($("#drawer-container > div").scrollTop > 0)
+                    $("#logo-drawer").style.borderBottom =
+                      "1px solid rgba(0,0,0,0.17)";
+                  else $("#logo-drawer").style.borderBottom = "none";
+                }}
+              >
+                <Box
+                  height="100%"
+                  display="flex"
+                  justifyContent="space-between"
+                  flexDirection="column"
+                >
+                  {drawer}
+                </Box>
+              </Scrollbar>
+            </Paper>
+          </Box>
         </nav>
       ) : (
         <Slide
@@ -387,10 +396,10 @@ function Drawer(props) {
           >
             <Toolbar
               id="mobile-drawer-toolbar"
+              className="sticky"
               style={{
                 display: "flex",
                 alignItems: "center",
-                position: "sticky",
                 top: 0,
                 borderColor: "transparent",
                 left: 0,
@@ -704,7 +713,6 @@ const useStyles = makeStyles((theme) => ({
     paddingLeft: 0,
     paddingRight: 0,
     background: theme.palette.grey[100],
-    position: "sticky",
     zIndex: 2,
     top: 0,
     left: 0,
@@ -788,6 +796,7 @@ const useStyles = makeStyles((theme) => ({
   },
   drawerPaper: {
     width: drawerWidth,
+    height: "100%",
     overflow: "hidden",
   },
   content: {

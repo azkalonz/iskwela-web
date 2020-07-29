@@ -129,7 +129,7 @@ function ProgressTracker(props) {
   } = props;
   return (
     <Box className="progress-container">
-      <Box className="progress-title" style={{ background }}>
+      <Box className="progress-title sticky" style={{ background }}>
         <Typography
           style={{ fontWeight: "bold", fontSize: 14, color, padding: 12 }}
         >
@@ -209,7 +209,6 @@ const useStyles = makeStyles((theme) => ({
             ? "none"
             : "0 2px 6px 0 rgb(241, 230, 255)",
         height: 44,
-        position: "sticky",
         top: 0,
         zIndex: 11,
         display: "flex",

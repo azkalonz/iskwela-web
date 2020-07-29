@@ -367,7 +367,14 @@ function ChatBox(props) {
   }, [chat_id]);
   return (
     <Box width="100%" className="chat-box" height="100%">
-      <Box width="100%" position="sticky" top={0} left={0} right={0} zIndex={1}>
+      <Box
+        width="100%"
+        className="sticky"
+        top={0}
+        left={0}
+        right={0}
+        zIndex={1}
+      >
         <Box
           p={2}
           display="flex"
@@ -653,8 +660,8 @@ function ChatBox(props) {
           })}
       </Box>
       <Box
+        className="sticky"
         width="100%"
-        position="sticky"
         bottom={0}
         left={0}
         right={0}
@@ -1183,11 +1190,13 @@ const useStyles = makeStyles((theme) => ({
       },
     },
     "& .chat-details": {
+      zIndex: 1,
       borderLeft:
         "1px solid " +
         (theme.palette.type === "dark"
           ? "rgba(255, 255, 255, 0.12)"
           : "rgba(0,0,0,0.17)"),
+      background: theme.palette.type === "dark" ? "#111" : "#fff",
     },
   },
 }));

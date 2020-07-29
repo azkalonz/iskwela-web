@@ -204,8 +204,8 @@ export function SlideRenderer(props) {
         </DialogTitle>
         <DialogContent>
           <div
+            className="sticky"
             style={{
-              position: "sticky",
               top: 0,
               right: 0,
               left: 0,
@@ -683,8 +683,8 @@ function SlideContainer(props) {
       {...props}
     >
       <Toolbar
+        className="sticky"
         style={{
-          position: "sticky",
           top: 0,
           display: "flex",
           alignItems: "center",
@@ -696,8 +696,8 @@ function SlideContainer(props) {
         }}
       >
         <div
+          className="sticky"
           style={{
-            position: "sticky",
             display: "flex",
             alignItems: "center",
             color: theme.palette.primary.main,

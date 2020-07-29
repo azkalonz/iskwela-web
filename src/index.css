@@ -16,10 +16,10 @@ code {
 #slide-container {
   scroll-behavior: smooth;
 }
-
+/* 
 *::-webkit-scrollbar {
   width: 4px;
-}
+} */
 
 #file-viewer-container .MuiDialogContent-root {
   padding: 0;
@@ -157,6 +157,12 @@ fieldset {
   opacity: 0;
   transform: scaleX(0);
 }
+.track-vertical {
+  right: 2px;
+  top: 0px;
+  bottom: 0px;
+  z-index: 16;
+}
 .vertical-thumb {
   width: 7px !important;
   background: black;
@@ -184,4 +190,14 @@ fieldset {
 }
 input[type="file"] {
   display: none;
+}
+.sticky {
+  position: sticky !important;
+  position: -webkit-sticky !important;
+  position: -moz-sticky !important;
+  position: -ms-sticky !important;
+  position: -o-sticky !important;
+}
+#mui-rte-root img {
+  cursor: default;
 }

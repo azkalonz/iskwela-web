@@ -398,8 +398,8 @@ function CreateQuestionnaire(props) {
             alignItems="space-between"
             width="100%"
             id="add-slide"
+            className="sticky"
             style={{
-              position: "sticky",
               left: 0,
               display: "none",
               right: 0,

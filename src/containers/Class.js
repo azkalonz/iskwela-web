@@ -453,21 +453,13 @@ function Class(props) {
         }}
       >
         <Box className={styles.panel} width="100vw">
-          {CLASS !== undefined && props.classDetails[class_id] ? (
-            <React.Fragment>
-              {!opts.mini && (
-                <React.Fragment>
-                  <Paper
-                    className="box-container"
-                    style={{
-                      background:
-                        props.theme === "dark"
-                          ? "#111"
-                          : props.classes[class_id].color,
-                    }}
-                  >
-                    <Toolbar
-                      className={styles.toolbar}
+          <Scrollbar autoHide>
+            {CLASS !== undefined && props.classDetails[class_id] ? (
+              <React.Fragment>
+                {!opts.mini && (
+                  <React.Fragment>
+                    <Paper
+                      className="box-container"
                       style={{
                         background:
                           props.theme === "dark"
@@ -475,358 +467,380 @@ function Class(props) {
                             : props.classes[class_id].color,
                       }}
                     >
-                      {isTablet && (
-                        <IconButton
-                          aria-label="Collapse Panel"
-                          onClick={() => {
-                            props.history.push("#menu");
-                          }}
-                          style={{ color: "#fff", marginLeft: -15 }}
-                        >
-                          <Icon>menu</Icon>
-                        </IconButton>
-                      )}
-                      <Typography
-                        variant="body1"
-                        style={{ fontWeight: "bold" }}
+                      <Toolbar
+                        className={[styles.toolbar, "sticky"].join(" ")}
+                        style={{
+                          background:
+                            props.theme === "dark"
+                              ? "#111"
+                              : props.classes[class_id].color,
+                        }}
                       >
-                        {CLASS.name}
-                      </Typography>
+                        {isTablet && (
+                          <IconButton
+                            aria-label="Collapse Panel"
+                            onClick={() => {
+                              props.history.push("#menu");
+                            }}
+                            style={{ color: "#fff", marginLeft: -15 }}
+                          >
+                            <Icon>menu</Icon>
+                          </IconButton>
+                        )}
+                        <Typography
+                          variant="body1"
+                          style={{ fontWeight: "bold" }}
+                        >
+                          {CLASS.name}
+                        </Typography>
+                        <Tooltip
+                          title="Hide class panel"
+                          placement="bottom-start"
+                        >
+                          <IconButton
+                            style={{
+                              position: "absolute",
+                              right: 0,
+                              color: "#fff",
+                            }}
+                            aria-label="Collapse Panel"
+                            onClick={() => setCollapsePanel(!collapsePanel)}
+                          >
+                            <span className="icon-menu-close"></span>
+                          </IconButton>
+                        </Tooltip>
+                      </Toolbar>
+                      <Box
+                        width="100%"
+                        height={219}
+                        position="relative"
+                        overflow="hidden"
+                      >
+                        {savingImg && (
+                          <Box
+                            style={{
+                              position: "absolute",
+                              left: 0,
+                              right: 0,
+                              top: 0,
+                              bottom: 0,
+                              background: "rgba(255,255,255,0.5)",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                            }}
+                          >
+                            <CircularProgress />
+                          </Box>
+                        )}
+                        <Box
+                          className="size-cover"
+                          style={{
+                            background: `url(${
+                              props.classes[class_id].bg_image ||
+                              props.classes[class_id].image ||
+                              "https://www.iskwela.net/img/on-iskwela.svg"
+                            }) no-repeat`,
+                            backgroundPosition: props.classes[class_id].bg_image
+                              ? "right top"
+                              : "center",
+                            width: "100%",
+                            height: "100%",
+                            backgroundSize: "cover",
+                          }}
+                        />
+                        {isTeacher && (
+                          <Tooltip
+                            title="Edit class picture"
+                            placement="left-start"
+                          >
+                            <IconButton
+                              style={{
+                                position: "absolute",
+                                bottom: 10,
+                                right: 10,
+                              }}
+                              onClick={editClassPicture}
+                            >
+                              <CreateOutlined />
+                            </IconButton>
+                          </Tooltip>
+                        )}
+                      </Box>
+                      <Box p={2.2} className={styles.centered}>
+                        <Box
+                          flex={1}
+                          className={[styles.centered, styles.start].join(" ")}
+                          width="50%"
+                        >
+                          <Typography
+                            variant="body2"
+                            style={{
+                              fontSize: "0.8rem",
+                              marginLeft: 5,
+                              color: "rgba(255,255,255,0.75)",
+                            }}
+                          >
+                            {moment(
+                              props.classDetails[class_id].schedules[
+                                schedule_id
+                              ].from
+                            ).format("LL")}
+                          </Typography>
+                        </Box>
+                        <Divider
+                          orientation="vertical"
+                          style={{ marginRight: 5 }}
+                          flexItem
+                        />
+                        <Box
+                          flex={1}
+                          className={[styles.centered, styles.start].join(" ")}
+                          width="50%"
+                        >
+                          <Typography
+                            variant="body2"
+                            style={{
+                              fontSize: "0.75rem",
+                              marginLeft: 5,
+                              color: "rgba(255,255,255,0.75)",
+                            }}
+                          >
+                            {moment(
+                              props.classDetails[class_id].schedules[
+                                schedule_id
+                              ].from
+                            ).format("hh:mm A")}
+                            {" - "}
+                            {moment(
+                              props.classDetails[class_id].schedules[
+                                schedule_id
+                              ].to
+                            ).format("hh:mm A")}
+                          </Typography>
+                        </Box>
+                      </Box>
+                    </Paper>
+                    <Paper
+                      className="box-container"
+                      style={{
+                        background:
+                          props.theme === "dark"
+                            ? "#111"
+                            : props.classes[class_id].color,
+                      }}
+                    >
+                      <Box
+                        p={2.2}
+                        className={[styles.centered, styles.start].join(" ")}
+                        style={{ paddingBottom: 0 }}
+                      >
+                        <Box
+                          width={50}
+                          height={50}
+                          borderRadius="50%"
+                          bgcolor="grey.500"
+                          overflow="hidden"
+                        >
+                          <Avatar
+                            src={CLASS.teacher.profile_picture}
+                            alt={
+                              CLASS.teacher.first_name +
+                              " " +
+                              CLASS.teacher.last_name
+                            }
+                            style={{
+                              width: "100%",
+                              height: "100%",
+                              background: "#fff",
+                            }}
+                          />
+                        </Box>
+                        <Box p={1}>
+                          <Typography
+                            variant="body1"
+                            style={{ fontWeight: "bold" }}
+                          >
+                            {CLASS.teacher.first_name} {CLASS.teacher.last_name}
+                          </Typography>
+                          <Typography
+                            variant="body1"
+                            style={{ color: "rgba(255,255,255,0.75)" }}
+                          >
+                            {CLASS.subject.name} Teacher
+                          </Typography>
+                        </Box>
+                      </Box>
+                      <Box
+                        p={4}
+                        className={styles.centered}
+                        style={{ paddingTop: 0 }}
+                        paddingBottom={2}
+                      >
+                        <Box
+                          flex={1}
+                          style={{ width: "100%", margin: "0 13px" }}
+                        >
+                          <div className={styles.wrapper}>
+                            <Button
+                              style={{
+                                width: "100%",
+                                fontWeight: "bold",
+                              }}
+                              className={
+                                isTeacher &&
+                                props.classDetails[class_id].schedules[
+                                  schedule_id
+                                ].status === "ONGOING"
+                                  ? room_name
+                                    ? styles.endClass
+                                    : styles.startClass
+                                  : styles.startClass
+                              }
+                              size="small"
+                              variant="contained"
+                              disabled={
+                                saving
+                                  ? true
+                                  : isTeacher
+                                  ? false
+                                  : room_name
+                                  ? true
+                                  : props.classDetails[class_id].schedules[
+                                      schedule_id
+                                    ].status !== "ONGOING"
+                              }
+                              onClick={() => _handleJoinClass()}
+                            >
+                              <span
+                                className={
+                                  props.classDetails[class_id].schedules[
+                                    schedule_id
+                                  ].status === "ONGOING"
+                                    ? "icon-stop-conference"
+                                    : "icon-start-conference"
+                                }
+                                style={{
+                                  marginRight: 8,
+                                  color: "inherit",
+                                  fontSize: "2em",
+                                }}
+                              ></span>
+
+                              {isTeacher
+                                ? props.classDetails[class_id].schedules[
+                                    schedule_id
+                                  ].status === "ONGOING"
+                                  ? room_name
+                                    ? "End Class"
+                                    : "Return to Class"
+                                  : "Start Class"
+                                : "Join Class"}
+                            </Button>
+                            {saving && (
+                              <CircularProgress
+                                className={styles.buttonProgress}
+                                size={24}
+                              />
+                            )}
+                          </div>
+                        </Box>
+                      </Box>
+                    </Paper>
+                  </React.Fragment>
+                )}
+
+                <Paper
+                  className="box-container"
+                  style={{
+                    height: "100%",
+                    overflow: "auto",
+                    marginBottom: 0,
+                    background:
+                      props.theme === "dark"
+                        ? "#111"
+                        : props.classes[class_id].color,
+                  }}
+                >
+                  <Scrollbar autoHide>
+                    {opts.mini && !collapsePanel && (
                       <Tooltip
                         title="Hide class panel"
                         placement="bottom-start"
                       >
                         <IconButton
                           style={{
-                            position: "absolute",
-                            right: 0,
+                            width: "100%",
                             color: "#fff",
                           }}
                           aria-label="Collapse Panel"
                           onClick={() => setCollapsePanel(!collapsePanel)}
                         >
-                          <span className="icon-menu-close"></span>
+                          <span className="icon-menu-open"></span>
                         </IconButton>
                       </Tooltip>
-                    </Toolbar>
-                    <Box
-                      width="100%"
-                      height={219}
-                      position="relative"
-                      overflow="hidden"
+                    )}
+                    <List
+                      component="nav"
+                      aria-labelledby="nested-list-subheader"
                     >
-                      {savingImg && (
-                        <Box
-                          style={{
-                            position: "absolute",
-                            left: 0,
-                            right: 0,
-                            top: 0,
-                            bottom: 0,
-                            background: "rgba(255,255,255,0.5)",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                          }}
-                        >
-                          <CircularProgress />
-                        </Box>
-                      )}
-                      <Box
-                        className="size-cover"
-                        style={{
-                          background: `url(${
-                            props.classes[class_id].bg_image ||
-                            props.classes[class_id].image ||
-                            "https://www.iskwela.net/img/on-iskwela.svg"
-                          }) no-repeat`,
-                          backgroundPosition: props.classes[class_id].bg_image
-                            ? "right top"
-                            : "center",
-                          width: "100%",
-                          height: "100%",
-                          backgroundSize: "cover",
-                        }}
-                      />
-                      {isTeacher && (
-                        <Tooltip
-                          title="Edit class picture"
-                          placement="left-start"
-                        >
-                          <IconButton
-                            style={{
-                              position: "absolute",
-                              bottom: 10,
-                              right: 10,
-                            }}
-                            onClick={editClassPicture}
-                          >
-                            <CreateOutlined />
-                          </IconButton>
-                        </Tooltip>
-                      )}
-                    </Box>
-                    <Box p={2.2} className={styles.centered}>
-                      <Box
-                        flex={1}
-                        className={[styles.centered, styles.start].join(" ")}
-                        width="50%"
-                      >
-                        <Typography
-                          variant="body2"
-                          style={{
-                            fontSize: "0.8rem",
-                            marginLeft: 5,
-                            color: "rgba(255,255,255,0.75)",
-                          }}
-                        >
-                          {moment(
-                            props.classDetails[class_id].schedules[schedule_id]
-                              .from
-                          ).format("LL")}
-                        </Typography>
-                      </Box>
-                      <Divider
-                        orientation="vertical"
-                        style={{ marginRight: 5 }}
-                        flexItem
-                      />
-                      <Box
-                        flex={1}
-                        className={[styles.centered, styles.start].join(" ")}
-                        width="50%"
-                      >
-                        <Typography
-                          variant="body2"
-                          style={{
-                            fontSize: "0.75rem",
-                            marginLeft: 5,
-                            color: "rgba(255,255,255,0.75)",
-                          }}
-                        >
-                          {moment(
-                            props.classDetails[class_id].schedules[schedule_id]
-                              .from
-                          ).format("hh:mm A")}
-                          {" - "}
-                          {moment(
-                            props.classDetails[class_id].schedules[schedule_id]
-                              .to
-                          ).format("hh:mm A")}
-                        </Typography>
-                      </Box>
-                    </Box>
-                  </Paper>
-                  <Paper
-                    className="box-container"
-                    style={{
-                      background:
-                        props.theme === "dark"
-                          ? "#111"
-                          : props.classes[class_id].color,
-                    }}
-                  >
-                    <Box
-                      p={2.2}
-                      className={[styles.centered, styles.start].join(" ")}
-                      style={{ paddingBottom: 0 }}
-                    >
-                      <Box
-                        width={50}
-                        height={50}
-                        borderRadius="50%"
-                        bgcolor="grey.500"
-                        overflow="hidden"
-                      >
-                        <Avatar
-                          src={CLASS.teacher.profile_picture}
-                          alt={
-                            CLASS.teacher.first_name +
-                            " " +
-                            CLASS.teacher.last_name
-                          }
-                          style={{
-                            width: "100%",
-                            height: "100%",
-                            background: "#fff",
-                          }}
-                        />
-                      </Box>
-                      <Box p={1}>
-                        <Typography
-                          variant="body1"
-                          style={{ fontWeight: "bold" }}
-                        >
-                          {CLASS.teacher.first_name} {CLASS.teacher.last_name}
-                        </Typography>
-                        <Typography
-                          variant="body1"
-                          style={{ color: "rgba(255,255,255,0.75)" }}
-                        >
-                          {CLASS.subject.name} Teacher
-                        </Typography>
-                      </Box>
-                    </Box>
-                    <Box
-                      p={4}
-                      className={styles.centered}
-                      style={{ paddingTop: 0 }}
-                      paddingBottom={2}
-                    >
-                      <Box flex={1} style={{ width: "100%", margin: "0 13px" }}>
-                        <div className={styles.wrapper}>
-                          <Button
-                            style={{
-                              width: "100%",
-                              fontWeight: "bold",
-                            }}
-                            className={
-                              isTeacher &&
-                              props.classDetails[class_id].schedules[
-                                schedule_id
-                              ].status === "ONGOING"
-                                ? room_name
-                                  ? styles.endClass
-                                  : styles.startClass
-                                : styles.startClass
-                            }
-                            size="small"
-                            variant="contained"
-                            disabled={
-                              saving
-                                ? true
-                                : isTeacher
-                                ? false
-                                : room_name
-                                ? true
-                                : props.classDetails[class_id].schedules[
-                                    schedule_id
-                                  ].status !== "ONGOING"
-                            }
-                            onClick={() => _handleJoinClass()}
-                          >
-                            <span
-                              className={
-                                props.classDetails[class_id].schedules[
-                                  schedule_id
-                                ].status === "ONGOING"
-                                  ? "icon-stop-conference"
-                                  : "icon-start-conference"
-                              }
-                              style={{
-                                marginRight: 8,
-                                color: "inherit",
-                                fontSize: "2em",
-                              }}
-                            ></span>
-
-                            {isTeacher
-                              ? props.classDetails[class_id].schedules[
-                                  schedule_id
-                                ].status === "ONGOING"
-                                ? room_name
-                                  ? "End Class"
-                                  : "Return to Class"
-                                : "Start Class"
-                              : "Join Class"}
-                          </Button>
-                          {saving && (
-                            <CircularProgress
-                              className={styles.buttonProgress}
-                              size={24}
-                            />
-                          )}
-                        </div>
-                      </Box>
-                    </Box>
-                  </Paper>
-                </React.Fragment>
-              )}
-
+                      {isTeacher
+                        ? rightPanelOptions
+                            .filter((s) => !s.hidden)
+                            .map((r, id) =>
+                              panelOption({
+                                ...r,
+                                isChild: false,
+                                ...(opts.mini ? { shrink: true } : {}),
+                              })
+                            )
+                        : rightPanelOptionsStudents
+                            .filter((s) => !s.hidden)
+                            .map((r, id) =>
+                              panelOption({
+                                ...r,
+                                isChild: false,
+                                ...(opts.mini ? { shrink: true } : {}),
+                              })
+                            )}
+                    </List>
+                  </Scrollbar>
+                </Paper>
+              </React.Fragment>
+            ) : (
               <Paper
                 className="box-container"
                 style={{
-                  height: "100%",
-                  overflow: "auto",
-                  marginBottom: 0,
+                  minHeight: "100vh",
                   background:
                     props.theme === "dark"
                       ? "#111"
                       : props.classes[class_id].color,
                 }}
               >
-                <Scrollbar autoHide>
-                  {opts.mini && !collapsePanel && (
-                    <Tooltip title="Hide class panel" placement="bottom-start">
-                      <IconButton
-                        style={{
-                          width: "100%",
-                          color: "#fff",
-                        }}
-                        aria-label="Collapse Panel"
-                        onClick={() => setCollapsePanel(!collapsePanel)}
-                      >
-                        <span className="icon-menu-open"></span>
-                      </IconButton>
-                    </Tooltip>
-                  )}
-                  <List component="nav" aria-labelledby="nested-list-subheader">
-                    {isTeacher
-                      ? rightPanelOptions
-                          .filter((s) => !s.hidden)
-                          .map((r, id) =>
-                            panelOption({
-                              ...r,
-                              isChild: false,
-                              ...(opts.mini ? { shrink: true } : {}),
-                            })
-                          )
-                      : rightPanelOptionsStudents
-                          .filter((s) => !s.hidden)
-                          .map((r, id) =>
-                            panelOption({
-                              ...r,
-                              isChild: false,
-                              ...(opts.mini ? { shrink: true } : {}),
-                            })
-                          )}
-                  </List>
-                </Scrollbar>
-              </Paper>
-            </React.Fragment>
-          ) : (
-            <Paper
-              className="box-container"
-              style={{
-                minHeight: "100vh",
-                background:
-                  props.theme === "dark"
-                    ? "#111"
-                    : props.classes[class_id].color,
-              }}
-            >
-              {collapsePanel || isMobile ? (
-                <React.Fragment>
-                  <Skeleton width="100%" height={170} />
-                  <Box m={2}>
-                    <Skeleton width="100%" height={20} />
-                  </Box>
-                  <Box m={2}>
-                    <Skeleton circle={true} width={70} height={70} />
-                    <Skeleton width={100} height={20} />
-                  </Box>
-                </React.Fragment>
-              ) : (
-                <React.Fragment>
-                  {[1, 1, 1, 1, 1, 1].map(() => (
-                    <Box p={0.7}>
-                      <Skeleton width="100%" height={45} />
+                {collapsePanel || isMobile ? (
+                  <React.Fragment>
+                    <Skeleton width="100%" height={170} />
+                    <Box m={2}>
+                      <Skeleton width="100%" height={20} />
                     </Box>
-                  ))}
-                </React.Fragment>
-              )}
-            </Paper>
-          )}
+                    <Box m={2}>
+                      <Skeleton circle={true} width={70} height={70} />
+                      <Skeleton width={100} height={20} />
+                    </Box>
+                  </React.Fragment>
+                ) : (
+                  <React.Fragment>
+                    {[1, 1, 1, 1, 1, 1].map(() => (
+                      <Box p={0.7}>
+                        <Skeleton width="100%" height={45} />
+                      </Box>
+                    ))}
+                  </React.Fragment>
+                )}
+              </Paper>
+            )}
+          </Scrollbar>
         </Box>
       </Slide>
     );
@@ -1084,7 +1098,6 @@ const useStyles = makeStyles((theme) => ({
     },
   },
   toolbar: {
-    position: "sticky",
     top: 0,
     left: 0,
     right: 0,

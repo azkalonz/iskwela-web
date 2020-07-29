@@ -81,7 +81,6 @@ function Alert(props) {
 const useStyles = makeStyles((theme) => ({
   root: {
     flexGrow: 1,
-    position: "sticky",
     top: 0,
     right: 0,
     zIndex: 15,
@@ -153,7 +152,7 @@ function NavBar(props) {
     }
   }, [notSeen]);
   return (
-    <div className={classes.root} id="nav-bar">
+    <div className={[classes.root, "sticky"].join(" ")} id="nav-bar">
       <ProfilePicDialog
         open={changeProfileDialog}
         onClose={() => setChangeProfileDialog(false)}

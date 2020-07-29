@@ -19,7 +19,7 @@ function CheckBoxAction(props) {
   const theme = useTheme();
   return isTeacher ? (
     <AppBar
-      position="sticky"
+      className="sticky"
       style={{ top: 65, background: theme.palette.grey[200] }}
       variant="outlined"
     >
