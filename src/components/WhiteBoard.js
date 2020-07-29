@@ -104,8 +104,8 @@ function MainBoard(props) {
   };
   const eventListeners = () => {
     window.creator.canvas.on("object:modified", updateBoard);
-    window.creator.canvas.on("object:moving", updateBoard);
-    window.creator.canvas.on("object:scaling", updateBoard);
+    // window.creator.canvas.on("object:moving", updateBoard);
+    // window.creator.canvas.on("object:scaling", updateBoard);
     window.creator.canvas.on("object:added", updateBoard);
     window.creator.canvas.on("object:removed", updateBoard);
   };
@@ -415,20 +415,20 @@ function BoardsList(props) {
           bottom: 0,
         }}
       />
-      {props.onClose && (
-        <Toolbar>
-          {props.onClose}
-          <Typography
-            style={{ fontWeight: "bold", color: "#fff", marginLeft: 7 }}
-          >
-            White Boards
-          </Typography>
-        </Toolbar>
-      )}
-      <Toolbar>
-        <Typography style={{ fontWeight: "bold" }}>White Boards</Typography>
-      </Toolbar>
       <Scrollbar autoHide>
+        {props.onClose && (
+          <Toolbar>
+            {props.onClose}
+            <Typography
+              style={{ fontWeight: "bold", color: "#fff", marginLeft: 7 }}
+            >
+              White Boards
+            </Typography>
+          </Toolbar>
+        )}
+        <Toolbar>
+          <Typography style={{ fontWeight: "bold" }}>White Boards</Typography>
+        </Toolbar>
         {boards.map((b, index) => (
           <Box p={isMobile ? 0 : 2} key={index}>
             <Board
