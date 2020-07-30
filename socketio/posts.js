@@ -4,6 +4,10 @@ module.exports = {
       if (!post || !class_id) return;
       io.emit("new post", { post, class_id });
     });
+    socket.on("update post", ({ post, class_id }) => {
+      if (!post || !class_id) return;
+      io.emit("update post", { post, class_id });
+    });
     socket.on("add comment", ({ class_id, post, comment }) => {
       if (!class_id || !post || !comment) return;
       io.emit("new comment", { class_id, post, comment });

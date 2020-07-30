@@ -119,10 +119,10 @@ function App(props) {
       MuiCard: {
         root: {
           "&.class-card-tag": {
-            width: 225,
+            width: "100%",
             position: "relative",
             "& .media": {
-              height: 70,
+              height: 215,
             },
             "& .title-container": {
               position: "absolute",
@@ -361,7 +361,7 @@ function App(props) {
     });
     UserData.posts.subscribe((res) => {
       const { class_id, payload, action } = res;
-      console.log(class_id, payload, action);
+      // console.log(class_id, payload, action);
       UserData.updatePosts(class_id, payload, action);
     });
     socket.on("videocall", ({ caller, receiver, status }) => {

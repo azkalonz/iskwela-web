@@ -131,6 +131,12 @@ const posts = (state = { current: [] }, payload) => {
       return { ...state, current: payload.posts, class_id: payload.class_id };
     case "ADD_POST":
       return { ...state, current: [...state.current, payload.post] };
+    case "UPDATE_POST":
+      if (postIndex >= 0) {
+        let posts = [...state.current];
+        posts[postIndex] = payload.post;
+        return { ...state, current: posts };
+      }
     case "ADD_COMMENT": {
       if (postIndex >= 0) {
         let posts = [...state.current];

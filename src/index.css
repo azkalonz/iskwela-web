@@ -20,7 +20,9 @@ code {
 *::-webkit-scrollbar {
   width: 4px;
 } */
-
+h6.title {
+  color: #fff;
+}
 #file-viewer-container .MuiDialogContent-root {
   padding: 0;
 }

@@ -27,6 +27,7 @@ import {
   MenuItem,
   Popover,
   CircularProgress,
+  ButtonGroup,
 } from "@material-ui/core";
 import { connect } from "react-redux";
 import MUIRichTextEditor from "mui-rte";
@@ -40,6 +41,24 @@ import Pagination, { getPageItems } from "../../components/Pagination";
 import Api from "../../api";
 import { List } from "immutable";
 
+const getAutocomplete = (classes) =>
+  Object.keys(classes).map((k) => {
+    let c = classes[k];
+    return {
+      keys: [
+        "class",
+        c.name.toLowerCase(),
+        c.name.toUpperCase(),
+        c.name,
+        c.id + "",
+      ],
+      value: c,
+      content: `${c.name} (${moment(c.next_schedule.from).format(
+        "ddd hh:mm A"
+      )} - ${moment(c.next_schedule.to).format("hh:mm A")})`,
+    };
+  });
+
 function ClassCard(props) {
   const { blockProps } = props;
   const { value } = blockProps;
@@ -47,10 +66,22 @@ function ClassCard(props) {
     <Card className="class-card-tag">
       <CardActionArea
         onClick={() =>
-          window.open(makeLinkTo(["class", value.id, value.next_schedule.id]))
+          window.open(
+            makeLinkTo([
+              "class",
+              value.id,
+              value.next_schedule.id,
+              "posts",
+              "video-conference",
+            ])
+          )
         }
       >
-        <CardMedia image="/bg.jpg" title={value.name} className="media" />
+        <CardMedia
+          image={value.bg_image || value.image}
+          title={value.name}
+          className="media"
+        />
         <CardContent className="content">
           {Object.keys(value.next_schedule).length ? (
             <React.Fragment>
@@ -134,6 +165,7 @@ function TagSomeone(props) {
 }
 const ConnectedTagSomeone = connect((states) => ({
   classes: states.classDetails,
+  allClasses: states.classes,
 }))(TagSomeone);
 function HashTag(props) {
   const theme = useTheme();
@@ -176,6 +208,7 @@ function Editor(props) {
   }, [editorRef]);
   return (
     <MUIRichTextEditor
+      value={props.value}
       {...props}
       ref={editorRef}
       decorators={[
@@ -253,28 +286,7 @@ function StartADiscussion(props) {
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const [editorRef, setEditorRef] = useState({});
   const [uploadAnchor, setUploadAnchor] = useState();
-  let classesAutocomplete = Object.keys(props.classes)
-    .filter((k, i) => {
-      let c = Object.keys(props.classes);
-      let index = c.findIndex(
-        (key) => props.classes[key].subject.id === props.classes[k].subject.id
-      );
-      return index === i;
-    })
-    .map((k) => {
-      let c = props.classes[k];
-      return {
-        keys: [
-          "class",
-          c.name.toLowerCase(),
-          c.name.toUpperCase(),
-          c.name,
-          c.id + "",
-        ],
-        value: c,
-        content: c.name,
-      };
-    });
+  const classesAutocomplete = getAutocomplete(props.allClasses);
   const [states, setStates] = useState({
     DISCUSSION: false,
   });
@@ -303,7 +315,6 @@ function StartADiscussion(props) {
       },
     });
     socket.emit("new post", { class_id: props.class.id, post });
-    console.log("post", post);
     // socket.emit("save post", {
     //   class_id: props.class.id,
     //   value: data,
@@ -552,6 +563,7 @@ function StartADiscussion(props) {
 const ConnectedStartADiscussion = connect((states) => ({
   userInfo: states.userInfo,
   classes: states.classDetails,
+  allClasses: states.classes,
   theme: states.theme,
 }))(StartADiscussion);
 
@@ -675,13 +687,16 @@ function WriteAComment(props) {
     </Box>
   );
 }
-
 function Discussion(props) {
   const [expanded, setExpanded] = useState(false);
   const styles = useStyles();
   const [commentsPerPage, setCommentsPerPage] = useState(1);
   const [saving, setSaving] = useState();
   const [deleting, setDeleting] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const classesAutocomplete = getAutocomplete(props.allClasses);
+  const [postValue, setPostValue] = useState(props.post.body);
+  const [editorRef, setEditorRef] = useState();
   const handleDelete = async (post) => {
     setDeleting(true);
     try {
@@ -690,6 +705,32 @@ function Discussion(props) {
     } catch (e) {}
     setDeleting(false);
   };
+  const handleEdit = (post) => {
+    setEditing(post);
+  };
+  const handleSave = async (data) => {
+    setSaving(true);
+    if (!editing) return;
+    let post = await Api.post("/api/post/save", {
+      body: {
+        id: editing.id,
+        body: data,
+        itemable_type: "class",
+        itemable_id: props.class.id,
+      },
+    });
+    socket.emit("update post", { class_id: props.class.id, post });
+    setSaving(null);
+    setEditing(null);
+  };
+  const handleCancel = () => {
+    setPostValue("");
+    setTimeout(() => setPostValue(props.post.body), 0);
+    setEditing(null);
+  };
+  useEffect(() => {
+    setPostValue(props.post.body);
+  }, [props.post]);
   return (
     <Paper style={{ marginTop: 13 }} id={"discussion-" + props.post.id}>
       <Box>
@@ -718,9 +759,28 @@ function Discussion(props) {
             </Box>
           </Box>
           <Box>
-            {props.saving || (deleting && <CircularProgress size={18} />)}
-            {props.post.added_by.id === props.userInfo.id ||
-            props.userInfo.user_type === "t" ? (
+            {editing && !saving && (
+              <ButtonGroup color="primary" variant="contained">
+                <Button
+                  disabled={saving}
+                  onClick={() => editorRef?.current && editorRef.current.save()}
+                >
+                  Save
+                </Button>
+                <Button
+                  disabled={saving}
+                  color="default"
+                  onClick={() => handleCancel()}
+                >
+                  Cancel
+                </Button>
+              </ButtonGroup>
+            )}
+            {(props.saving || deleting || (editing && saving)) && (
+              <CircularProgress size={18} />
+            )}
+            {(props.post.added_by.id === props.userInfo.id ||
+              props.userInfo.user_type === "t") && (
               <PopupState variant="popover" popupId="publish-btn">
                 {(popupState) => (
                   <React.Fragment>
@@ -736,11 +796,21 @@ function Discussion(props) {
                       >
                         Delete
                       </MenuItem>
+                      {props.post.added_by.id === props.userInfo.id && (
+                        <MenuItem
+                          onClick={() => {
+                            handleEdit(props.post);
+                            popupState.close();
+                          }}
+                        >
+                          Edit
+                        </MenuItem>
+                      )}
                     </Menu>
                   </React.Fragment>
                 )}
               </PopupState>
-            ) : null}
+            )}
           </Box>
         </Box>
         <Box
@@ -751,12 +821,56 @@ function Discussion(props) {
           //   styles.discussionPost,
           //   expanded ? "expanded" : "not-expanded",
           // ].join(" ")}
+          style={
+            editing
+              ? {
+                  paddingTop: 16,
+                  background: "rgba(255, 207, 36, 0.12)",
+                }
+              : {}
+          }
         >
           <Editor
-            toolbar={false}
-            inlineToolbar={false}
-            readOnly={true}
-            value={props.post.body}
+            toolbar={editing}
+            inlineToolbar={editing}
+            readOnly={!editing}
+            value={postValue}
+            controls={toolbarcontrols}
+            inlineToolbarControls={inlinetoolbarcontrols}
+            inlineToolbar={true}
+            onSave={handleSave}
+            getRef={(ref) => setEditorRef(ref)}
+            customControls={[
+              {
+                name: "class",
+                type: "atomic",
+                atomicComponent: ClassCard,
+              },
+            ]}
+            autocomplete={{
+              strategies: [
+                {
+                  items: classesAutocomplete,
+                  triggerChar: ":",
+                  atomicBlockName: "class",
+                },
+                {
+                  items: props.class.students.map((c) => ({
+                    keys: [
+                      "students",
+                      c.first_name,
+                      c.last_name,
+                      c.last_name.toLowerCase(),
+                      c.first_name.toLowerCase(),
+                      c.username,
+                    ],
+                    value: "@" + c.username,
+                    content: <TagItem user={c} />,
+                  })),
+                  triggerChar: "@",
+                },
+              ],
+            }}
           />
           {/* {!expanded && (
             <Box className="show-more">
@@ -774,7 +888,9 @@ function Discussion(props) {
         </Box>
         <Divider />
         <Box p={2}>
-          {saving && <Comment {...saving} saving={true} />}
+          {saving && typeof saving === "object" && (
+            <Comment {...saving} saving={true} />
+          )}
           {props.post.comments &&
             props.post.comments
               .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
@@ -986,6 +1102,7 @@ export default connect((states) => ({
   theme: states.theme,
   posts: states.posts,
   classes: states.classDetails,
+  allClasses: states.classes,
 }))(Posts);
 export { ConnectedStartADiscussion as StartADiscussion };
 

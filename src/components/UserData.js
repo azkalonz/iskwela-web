@@ -221,6 +221,14 @@ UserData.posts = {
         action: "ADD_POST",
       });
     });
+    socket.on("update post", ({ class_id, post }) => {
+      if (!class_id || !post) return;
+      callback({
+        class_id,
+        payload: { post },
+        action: "UPDATE_POST",
+      });
+    });
     socket.on("delete post", ({ class_id, post }) => {
       if (!class_id || !post) return;
       callback({
