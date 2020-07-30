@@ -80,7 +80,11 @@ function ClassCard(props) {
 function TagItem(props) {
   return (
     <React.Fragment>
-      <Avatar src="/" alt={props.user.first_name} style={{ marginRight: 10 }} />
+      <Avatar
+        src={props.user.preferences.profile_picture}
+        alt={props.user.first_name}
+        style={{ marginRight: 10 }}
+      />
       <ListItemText
         primary={props.user.first_name + " " + props.user.last_name}
         secondary={"@" + props.user.username}
@@ -212,7 +216,10 @@ function Comment(props) {
       className={"comment-container " + "comment-" + props.id}
     >
       <Box>
-        <Avatar src="/" alt={props.added_by.first_name} />
+        <Avatar
+          src={props.added_by.profile_picture}
+          alt={props.added_by.first_name}
+        />
       </Box>
       <Box
         width="100%"
@@ -674,6 +681,15 @@ function Discussion(props) {
   const styles = useStyles();
   const [commentsPerPage, setCommentsPerPage] = useState(1);
   const [saving, setSaving] = useState();
+  const [deleting, setDeleting] = useState(false);
+  const handleDelete = async (post) => {
+    setDeleting(true);
+    try {
+      await Api.delete("/api/post/remove/" + post.id);
+      socket.emit("delete post", { class_id: props.class.id, post });
+    } catch (e) {}
+    setDeleting(false);
+  };
   return (
     <Paper style={{ marginTop: 13 }} id={"discussion-" + props.post.id}>
       <Box>
@@ -686,7 +702,10 @@ function Discussion(props) {
           paddingBottom={0}
         >
           <Box display="flex" alignItems="center">
-            <Avatar src="/" alt="Profile pic" />
+            <Avatar
+              src={props.post.added_by.profile_picture}
+              alt="Profile pic"
+            />
             <Box marginLeft={2}>
               <Typography style={{ fontWeight: "bold" }}>
                 {props.post.added_by.first_name +
@@ -699,8 +718,8 @@ function Discussion(props) {
             </Box>
           </Box>
           <Box>
-            {props.saving && <CircularProgress size={18} />}
-            {/* {props.post.added_by.id === props.userInfo.id ||
+            {props.saving || (deleting && <CircularProgress size={18} />)}
+            {props.post.added_by.id === props.userInfo.id ||
             props.userInfo.user_type === "t" ? (
               <PopupState variant="popover" popupId="publish-btn">
                 {(popupState) => (
@@ -711,7 +730,7 @@ function Discussion(props) {
                     <Menu {...bindMenu(popupState)}>
                       <MenuItem
                         onClick={() => {
-                          handleDelete(props.post.class_id, props.post.id);
+                          handleDelete(props.post);
                           popupState.close();
                         }}
                       >
@@ -721,7 +740,7 @@ function Discussion(props) {
                   </React.Fragment>
                 )}
               </PopupState>
-            ) : null} */}
+            ) : null}
           </Box>
         </Box>
         <Box
