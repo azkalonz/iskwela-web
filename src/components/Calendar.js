@@ -50,7 +50,9 @@ function Calendar(props) {
   );
 }
 export function Weekdays(props) {
-  const weekDays = moment.weekdaysMin();
+  const weekDays = moment
+    .weekdaysMin()
+    .map((q) => (props.variant === "small" ? q[0] : q));
   return (
     <div className="weekdays-container">
       {weekDays.map((day, index) => (

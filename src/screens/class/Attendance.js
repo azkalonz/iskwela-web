@@ -342,6 +342,7 @@ function Attendance(props) {
               <CalendarProvider
                 events={[].concat(...eventSchedules)}
                 style={{ minWidth: 240 }}
+                variant="small"
               >
                 <Weekdays />
                 <Dates />
