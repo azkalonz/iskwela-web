@@ -428,8 +428,6 @@ function Home(props) {
   }
   return (
     <React.Fragment>
-      {tailPage}
-      {page}
       <Snackbar
         open={success}
         autoHideDuration={6000}
