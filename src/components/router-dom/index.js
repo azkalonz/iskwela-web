@@ -8,6 +8,7 @@ import LessonPlan from "../../screens/class/LessonPlan";
 import Kahoot from "../../screens/class/Kahoot";
 import WhiteBoard from "../../components/WhiteBoard";
 import Todo from "../../screens/class/Todo";
+import MyTodo from "../../screens/Student/Todo";
 import Periodical from "../../screens/class/Periodical";
 import Posts from "../../screens/class/Posts";
 import Project from "../../screens/class/Project";
@@ -16,6 +17,7 @@ import Quizzes from "../../screens/class/Quizzes";
 import Schedule from "../../screens/class/Schedule";
 import Scores from "../../screens/class/Scores";
 import Students from "../../screens/class/Students";
+import Calendar from "../Calendar";
 export function makeLinkTo(path, options = {}, relative = false) {
   path = path.map((p) => (options[p] != null ? options[p] : p));
   return (
@@ -161,8 +163,8 @@ export const rightPanelOptionsStudents = [
     title: "Student Activities",
     icon: "icon-activities",
     navTitle: "Due this week",
-    link: "todo",
-    screen: Activity,
+    link: "my-todo",
+    screen: MyTodo,
     children: [
       {
         title: "Seat Works",
@@ -221,8 +223,8 @@ export const rightPanelOptionsStudents = [
     children: [
       {
         title: "Attendance",
-        link: "attendance",
-        screen: Attendance,
+        link: "my-attendance",
+        screen: Calendar,
       },
       {
         title: "Scores",
@@ -238,18 +240,32 @@ export const rightPanelOptionsStudents = [
     screen: Schedule,
   },
 ];
-export function getView(name) {
-  let screen;
-  rightPanelOptions.concat(rightPanelOptionsStudents).forEach((i) => {
-    if (screen) return;
-    if (i.link === name) screen = i.screen;
-    if (i.children)
-      i.children.forEach((c) => {
-        if (screen) return;
-        if (c.link === name) screen = c.screen;
-      });
-  });
-  return screen;
+export function getView(name, isTeacher = false) {
+  if (isTeacher) {
+    let screen;
+    rightPanelOptions.concat(rightPanelOptionsStudents).forEach((i) => {
+      if (screen) return;
+      if (i.link === name) screen = i.screen;
+      if (i.children)
+        i.children.forEach((c) => {
+          if (screen) return;
+          if (c.link === name) screen = c.screen;
+        });
+    });
+    return screen;
+  } else {
+    let screen;
+    rightPanelOptionsStudents.forEach((i) => {
+      if (screen) return;
+      if (i.link === name) screen = i.screen;
+      if (i.children)
+        i.children.forEach((c) => {
+          if (screen) return;
+          if (c.link === name) screen = c.screen;
+        });
+    });
+    return screen;
+  }
 }
 
 export function isValidOption(name) {

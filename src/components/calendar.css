@@ -1,0 +1,94 @@
+.mkj-calendar > div:last-of-type {
+  background: rgba(255, 255, 255, 0.699);
+}
+.mkj-calendar.dark > div:last-of-type {
+  background: #111;
+}
+.mkj-calendar.large .day {
+  height: 80px;
+}
+.mkj-calendar.large {
+  margin: 16px;
+}
+.weekdays-container,
+.week {
+  display: flex;
+}
+.day {
+  flex: 1;
+  align-items: center;
+  border-right: 0.5px solid rgba(0, 0, 0, 0.1);
+  display: flex;
+  justify-content: center;
+  height: 50px;
+  user-select: none;
+  position: relative;
+  border-radius: 9px;
+  margin: 5px;
+}
+.day:hover {
+  opacity: 0.7;
+}
+.mkj-calendar.dark .weekdays-container {
+  background: #000;
+}
+.weekdays-container {
+  background: rgba(0, 0, 0, 0.03);
+}
+.weekdays-container > .day {
+  font-weight: bold;
+  border-right: none;
+  margin: 0 5px;
+  height: auto !important;
+  padding: 10px 0;
+  border-right: 1px solid rgba(0, 0, 0, 0.16);
+}
+.weekdays-container > .day p {
+  font-weight: bold;
+}
+.day > div {
+  transition: height 0.3s ease-out;
+  overflow: hidden;
+  word-break: break-all;
+}
+.absent,
+.present {
+  cursor: pointer;
+  justify-content: center;
+  border-radius: 9px;
+  color: #fff;
+}
+.absent {
+  background: rgb(255, 220, 220);
+  color: rgb(82, 0, 0);
+  border: 1px dashed red;
+}
+.present {
+  background: rgb(234, 255, 234);
+  color: green;
+  border: 1px dashed green;
+}
+.month {
+  padding: 20px 0;
+  text-transform: uppercase;
+  font-size: 1.5rem;
+}
+.day .date.large {
+  color: #fff;
+  background: rgb(40, 153, 245);
+  width: 35px;
+  height: 35px;
+  left: 0px;
+  top: 0px;
+  border-radius: 50%;
+}
+.date.small,
+.date.large {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.date.small {
+  width: 100%;
+  height: 100%;
+}

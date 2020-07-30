@@ -64,16 +64,17 @@ function ClassRightPanel(props) {
   const theme = useTheme();
   const isTablet = useMediaQuery(theme.breakpoints.down("md"));
   const { option_name, class_id, room_name } = props.match.params;
+  const isTeacher = props.userInfo.user_type === "t";
   let [View, setView] = useState();
   const handleRefresh = async () => {
     props.loading(true);
     setView(null);
     await UserData.updateScheduleDetails(class_id, props.classSched);
-    setView(getView(option_name.toLowerCase()));
+    setView(getView(option_name.toLowerCase(), isTeacher));
   };
   useEffect(() => {
     if (isValidOption(option_name)) {
-      setView(getView(option_name.toLowerCase()));
+      setView(getView(option_name.toLowerCase(), isTeacher));
       if (props.classes[class_id])
         setTitle(
           [props.classes[class_id].name].concat([

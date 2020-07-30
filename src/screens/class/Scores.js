@@ -92,32 +92,38 @@ function Scores(props) {
   useEffect(() => {
     setTable({
       ...table,
-      data: props.classDetails[class_id].students.map((s) => ({
-        id: s.id,
-        image_url: s.preferences.profile_picture,
-        image: <Avatar src={s.preferences.profile_picture} alt={s.last_name} />,
-        name: s.last_name + ", " + s.first_name,
-        quizzes: <ScoreSummaryLink s={s} title="Quizzes" activity="Quiz" />,
-        assignments: (
-          <ScoreSummaryLink s={s} title="Assignments" activity="Assignment" />
-        ),
-        activities: (
-          <ScoreSummaryLink s={s} title="Activities" activity="Activity" />
-        ),
-        periodical_exams: (
-          <ScoreSummaryLink s={s} title="Periodical Exams" activity="Exam" />
-        ),
-        performance_tasks: (
-          <ScoreSummaryLink s={s} title="Performance Tasks" activity="Task" />
-        ),
-        grades: randomScore(),
-        nquizzes: randomScore(),
-        nassignments: randomScore(),
-        nactivities: randomScore(),
-        nperiodical_exams: randomScore(),
-        nperformance_tasks: randomScore(),
-        ngrades: randomScore(),
-      })),
+      data: props.classDetails[class_id].students
+        .filter((q) =>
+          props.userInfo.user_type === "t" ? true : q.id === props.userInfo.id
+        )
+        .map((s) => ({
+          id: s.id,
+          image_url: s.preferences.profile_picture,
+          image: (
+            <Avatar src={s.preferences.profile_picture} alt={s.last_name} />
+          ),
+          name: s.last_name + ", " + s.first_name,
+          quizzes: <ScoreSummaryLink s={s} title="Quizzes" activity="Quiz" />,
+          assignments: (
+            <ScoreSummaryLink s={s} title="Assignments" activity="Assignment" />
+          ),
+          activities: (
+            <ScoreSummaryLink s={s} title="Activities" activity="Activity" />
+          ),
+          periodical_exams: (
+            <ScoreSummaryLink s={s} title="Periodical Exams" activity="Exam" />
+          ),
+          performance_tasks: (
+            <ScoreSummaryLink s={s} title="Performance Tasks" activity="Task" />
+          ),
+          grades: randomScore(),
+          nquizzes: randomScore(),
+          nassignments: randomScore(),
+          nactivities: randomScore(),
+          nperiodical_exams: randomScore(),
+          nperformance_tasks: randomScore(),
+          ngrades: randomScore(),
+        })),
     });
   }, []);
   useEffect(() => {
@@ -275,7 +281,11 @@ function Scores(props) {
       )}
       {!currentStudent ? (
         <MaterialTable
-          title="Students Scores"
+          title={
+            props.userInfo.user_type === "t"
+              ? "Students Scores"
+              : "Score Summary"
+          }
           columns={table.columns}
           data={table.data}
           options={{
@@ -295,16 +305,20 @@ function Scores(props) {
               }
             },
           }}
-          actions={[
-            {
-              icon: "compare_arrows",
-              tooltip: "Compare",
-              onClick: (e, row) => {
-                setCurrentData(row);
-                handleOpen("COMPARE");
-              },
-            },
-          ]}
+          actions={
+            props.userInfo.user_type === "t"
+              ? [
+                  {
+                    icon: "compare_arrows",
+                    tooltip: "Compare",
+                    onClick: (e, row) => {
+                      setCurrentData(row);
+                      handleOpen("COMPARE");
+                    },
+                  },
+                ]
+              : []
+          }
         />
       ) : (
         <MaterialTable
@@ -336,4 +350,5 @@ const table2headers = [
 ];
 export default connect((states) => ({
   classDetails: states.classDetails,
+  userInfo: states.userInfo,
 }))(Scores);

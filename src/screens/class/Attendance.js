@@ -34,6 +34,12 @@ import { CheckBoxAction } from "../../components/CheckBox";
 import MoreHorizOutlinedIcon from "@material-ui/icons/MoreHorizOutlined";
 import store from "../../components/redux/store";
 import { Calendar } from "react-calendar";
+import {
+  CalendarProvider,
+  Weekdays,
+  Dates,
+  eventSchedules,
+} from "../../components/Calendar";
 
 const useStyles = makeStyles((theme) => ({
   calendar: {
@@ -326,16 +332,6 @@ function Attendance(props) {
           </Paper>
         </Box>
         <Box m={2} style={{ marginLeft: 0 }} width={330}>
-          <Paper style={{ marginBottom: theme.spacing(2) }}>
-            <Box p={4}>
-              <Typography
-                style={{ fontWeight: "bold", marginBottom: theme.spacing(2) }}
-              >
-                Total Students
-              </Typography>
-              <Doughnut data={data} />
-            </Box>
-          </Paper>
           <Paper>
             <Box p={4} className={styles.calendar}>
               <Typography
@@ -343,7 +339,14 @@ function Attendance(props) {
               >
                 Schedule
               </Typography>
-              <Calendar style={{ margin: "0 auto" }} />
+              <CalendarProvider
+                events={[].concat(...eventSchedules)}
+                style={{ minWidth: 240 }}
+              >
+                <Weekdays />
+                <Dates />
+              </CalendarProvider>
+              {/* <Calendar style={{ margin: "0 auto" }} /> */}
             </Box>
           </Paper>
         </Box>

@@ -27,6 +27,7 @@ import Login from "./screens/Login";
 import Posts from "./screens/class/Posts";
 import Messages from "./components/Messages";
 import { VideoCall } from "./components/dialogs";
+import Calendar from "./components/Calendar";
 
 const primaryColor = "#7539ff";
 const secondaryColor = "#FFD026";
@@ -455,6 +456,7 @@ function App(props) {
                   }}
                 />
                 <Route exact path="/chat/:chat_id?" component={Chat} />
+                <Route exact path="/calendar" component={Calendar} />
                 <Route
                   exact
                   path="/videocall"
