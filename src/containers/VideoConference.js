@@ -42,6 +42,7 @@ function VideoConference(props) {
   const styles = useStyles();
   const room = props.room;
   const [loading, setLoading] = useState(false);
+  const [muted, setMuted] = useState();
   const [isResizing, setisResizing] = useState(false);
   const [confirmed, setConfirmed] = useState();
   const [jApi, setjApi] = useState();
@@ -61,10 +62,6 @@ function VideoConference(props) {
       "filmstripDisplayChanged",
       (event) => (jState.filmStrip = event)
     );
-    JitsiApi.addEventListener("audioMuteStatusChanged", (event) => {
-      if (event.muted && isTeacher) JitsiApi.executeCommand("toggleAudio");
-      jState.audio = event;
-    });
     JitsiApi.addEventListener(
       "tileViewChanged",
       (event) => (jState.tileView = event)
@@ -83,6 +80,10 @@ function VideoConference(props) {
   const highLightVresize = () =>
     document.querySelector("#v-resize") &&
     (document.querySelector("#v-resize").style.backgroundColor = "#7539ff");
+  const muteSelf = () => {
+    setMuted(true);
+    jApi && jApi.executeCommand("toggleAudio");
+  };
   useEffect(() => {
     if (isResizing) {
       document.body.style.userSelect = "none";
@@ -103,6 +104,17 @@ function VideoConference(props) {
   useEffect(() => {
     safeURLChange(room_name, HandleURLChange);
   }, [props.location]);
+  useEffect(() => {
+    if (jApi) {
+      jApi.removeEventListener("audioMuteStatusChanged");
+      jApi.addEventListener("audioMuteStatusChanged", (event) => {
+        if (muted === undefined && event.muted && isTeacher)
+          jApi.executeCommand("toggleAudio");
+        jState.audio = event;
+        setMuted(undefined);
+      });
+    }
+  }, [muted]);
   const HandleURLChange = (x) => {
     setConfirmed({
       title: "You are about to leave the Video Conference.",
@@ -167,6 +179,15 @@ function VideoConference(props) {
         title="Video Conference"
         right={
           <Box display="flex" alignItems="center">
+            {isTeacher && (
+              <IconButton onClick={() => muteSelf()}>
+                <Icon>
+                  {jState.audio && jState.audio.muted
+                    ? "volume_mute"
+                    : "volume_up"}
+                </Icon>
+              </IconButton>
+            )}
             <IconButton
               onClick={() => {
                 try {
