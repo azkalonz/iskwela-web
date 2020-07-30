@@ -25,7 +25,6 @@ import { makeLinkTo } from "./router-dom";
 import ExpandLessOutlinedIcon from "@material-ui/icons/ExpandLessOutlined";
 import ExpandMoreOutlinedIcon from "@material-ui/icons/ExpandMoreOutlined";
 import Scrollbar from "./Scrollbar";
-import { motion } from "framer-motion";
 
 function Drawer(props) {
   const styles = useStyles();
@@ -150,40 +149,35 @@ function Drawer(props) {
                 style={{ cursor: "pointer" }}
               >
                 <Tooltip title={item.name} placement="right">
-                  <motion.div
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.9 }}
+                  <Box
+                    {...item.props}
+                    className="tab-btn"
+                    style={{
+                      backgroundColor: item.color,
+                    }}
+                    onClick={() => {
+                      history.push(
+                        makeLinkTo(
+                          ["class", item.id, item.next_schedule.id, "opt"],
+                          {
+                            opt: item.next_schedule.id ? "posts" : "",
+                          }
+                        )
+                      );
+                    }}
                   >
-                    <Box
-                      {...item.props}
-                      className="tab-btn"
-                      style={{
-                        backgroundColor: item.color,
-                      }}
-                      onClick={() => {
-                        history.push(
-                          makeLinkTo(
-                            ["class", item.id, item.next_schedule.id, "opt"],
-                            {
-                              opt: item.next_schedule.id ? "posts" : "",
-                            }
-                          )
-                        );
-                      }}
-                    >
-                      <Typography variant="body1" component="h2">
-                        <span style={{ fontWeight: "bold" }}>
-                          {item.name[0].toUpperCase()}
-                        </span>
-                        <span style={{ fontSize: "0.8em" }}>
-                          {item.name.substr(
-                            item.name.search(/\d/),
-                            item.name.length
-                          )}
-                        </span>
-                      </Typography>
-                    </Box>
-                  </motion.div>
+                    <Typography variant="body1" component="h2">
+                      <span style={{ fontWeight: "bold" }}>
+                        {item.name[0].toUpperCase()}
+                      </span>
+                      <span style={{ fontSize: "0.8em" }}>
+                        {item.name.substr(
+                          item.name.search(/\d/),
+                          item.name.length
+                        )}
+                      </span>
+                    </Typography>
+                  </Box>
                 </Tooltip>
               </Box>
             );
@@ -712,7 +706,7 @@ function Drawer(props) {
   );
 }
 
-const drawerWidth = 67;
+const drawerWidth = 66;
 const useStyles = makeStyles((theme) => ({
   toolbar: {
     minHeight: 50,
