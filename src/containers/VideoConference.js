@@ -45,6 +45,7 @@ function VideoConference(props) {
   const [isResizing, setisResizing] = useState(false);
   const [confirmed, setConfirmed] = useState();
   const [jApi, setjApi] = useState();
+  const isTeacher = props.userInfo.user_type === "t";
   const handleAPI = (JitsiApi) => {
     JitsiApi.executeCommand("toggleVideo");
     JitsiApi.on("readyToClose", () => {
@@ -60,6 +61,10 @@ function VideoConference(props) {
       "filmstripDisplayChanged",
       (event) => (jState.filmStrip = event)
     );
+    JitsiApi.addEventListener("audioMuteStatusChanged", (event) => {
+      if (event.muted && isTeacher) JitsiApi.executeCommand("toggleAudio");
+      jState.audio = event;
+    });
     JitsiApi.addEventListener(
       "tileViewChanged",
       (event) => (jState.tileView = event)

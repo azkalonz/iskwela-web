@@ -911,6 +911,15 @@ function Class(props) {
                     }}
                     updateClass={(e) => {
                       if (isTeacher) updateClass(e);
+                      else if (e === "PENDING")
+                        history.push(
+                          makeLinkTo([
+                            "class",
+                            class_id,
+                            schedule_id,
+                            option_name || "posts",
+                          ])
+                        );
                     }}
                     left={
                       !collapsePanel && !isMobile ? (
