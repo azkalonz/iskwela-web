@@ -333,7 +333,7 @@ function Attendance(props) {
         </Box>
         <Box m={2} style={{ marginLeft: 0 }} width={330}>
           <Paper>
-            <Box p={4} className={styles.calendar}>
+            <Box p={2} className={styles.calendar}>
               <Typography
                 style={{ fontWeight: "bold", marginBottom: theme.spacing(2) }}
               >

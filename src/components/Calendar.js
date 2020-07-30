@@ -144,7 +144,7 @@ export function Dates({ month, variant, year, events = [] }) {
         <div className={"week " + "no-" + (index + 1)} key={index}>
           {week.map((day, i) => {
             let event = getEvent(day.date);
-            return event ? (
+            return event && i !== 0 ? (
               <div key={i} className={"day"}>
                 <Box width="100%" height="100%" className={event.status}>
                   <Tooltip
@@ -170,7 +170,7 @@ export function Dates({ month, variant, year, events = [] }) {
                 </Box>
               </div>
             ) : (
-              <div key={i} className="day">
+              <div key={i} className={"day " + (i === 0 ? "weekend" : "")}>
                 {day.value}
               </div>
             );

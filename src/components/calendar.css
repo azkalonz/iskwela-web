@@ -20,11 +20,14 @@
   border-right: 0.5px solid rgba(0, 0, 0, 0.1);
   display: flex;
   justify-content: center;
-  height: 50px;
+  height: 20px;
   user-select: none;
   position: relative;
   border-radius: 9px;
   margin: 5px;
+}
+.day > div[opened="true"] {
+  box-shadow: 0 10px 15px rgba(0, 0, 0, 0.2);
 }
 .day:hover {
   opacity: 0.7;
@@ -91,4 +94,7 @@
 .date.small {
   width: 100%;
   height: 100%;
+}
+.day.weekend {
+  color: red;
 }
