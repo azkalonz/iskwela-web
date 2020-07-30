@@ -40,6 +40,7 @@ import { EditorState, convertToRaw, ContentState } from "draft-js";
 import Pagination, { getPageItems } from "../../components/Pagination";
 import Api from "../../api";
 import { List } from "immutable";
+import { motion } from "framer-motion";
 
 const getAutocomplete = (classes) =>
   Object.keys(classes).map((k) => {
@@ -473,9 +474,14 @@ function StartADiscussion(props) {
                 </Box>
               </React.Fragment>
             ) : (
-              <Box
-                width="100%"
-                style={{ position: "relative", minHeight: isMobile ? 125 : 90 }}
+              <motion.div
+                initial={{ scaleX: 0.8, scaleY: 0.5, opacity: 0 }}
+                animate={{ scaleX: 1, scaleY: 1, opacity: 1 }}
+                style={{
+                  width: "100%",
+                  position: "relative",
+                  minHeight: isMobile ? 125 : 90,
+                }}
               >
                 <Editor
                   focused={true}
@@ -525,7 +531,7 @@ function StartADiscussion(props) {
                     ],
                   }}
                 />
-              </Box>
+              </motion.div>
             )}
           </Box>
           <Box
@@ -536,18 +542,24 @@ function StartADiscussion(props) {
           >
             <Box width="100%">{!states.DISCUSSION && props.children}</Box>
             <Box>
-              <Button
-                color="secondary"
-                variant="contained"
-                style={{
-                  boxShadow: "none",
-                  marginLeft: 13,
-                  fontWeight: "bold",
-                }}
-                onClick={handlePost}
+              <motion.button
+                style={{ background: "none", border: "none", padding: 0 }}
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
               >
-                POST
-              </Button>
+                <Button
+                  color="secondary"
+                  variant="contained"
+                  style={{
+                    boxShadow: "none",
+                    marginLeft: 13,
+                    fontWeight: "bold",
+                  }}
+                  onClick={handlePost}
+                >
+                  POST
+                </Button>
+              </motion.button>
             </Box>
           </Box>
         </Box>
@@ -990,23 +1002,25 @@ function Posts(props) {
                   saving={true}
                 />
               )}
-              {getPageItems(
-                props.posts.current
-                  .sort(
-                    (a, b) => new Date(b.created_at) - new Date(a.created_at)
-                  )
-                  .map((p, index) => (
-                    <Discussion
-                      key={index}
-                      {...props}
-                      userInfo={props.userInfo}
-                      class={props.classes[class_id]}
-                      post={p}
-                    />
-                  )),
-                discussionPage,
-                10
-              )}
+              <motion.div layout>
+                {getPageItems(
+                  props.posts.current
+                    .sort(
+                      (a, b) => new Date(b.created_at) - new Date(a.created_at)
+                    )
+                    .map((p, index) => (
+                      <Discussion
+                        key={index}
+                        {...props}
+                        userInfo={props.userInfo}
+                        class={props.classes[class_id]}
+                        post={p}
+                      />
+                    )),
+                  discussionPage,
+                  10
+                )}
+              </motion.div>
               <Box marginTop={2} marginBottom={2}>
                 {!loading ? (
                   <Pagination

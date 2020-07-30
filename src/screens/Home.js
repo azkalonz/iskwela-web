@@ -36,6 +36,7 @@ import Pagination, { getPageItems } from "../components/Pagination";
 import { makeLinkTo } from "../components/router-dom";
 import { SearchInput } from "../components/Selectors";
 import Scrollbar from "../components/Scrollbar";
+import { motion } from "framer-motion";
 
 function Alert(props) {
   return <MuiAlert elevation={6} variant="filled" {...props} />;
@@ -119,7 +120,7 @@ function Home(props) {
       </CardActions>
     </Card>
   );
-  const classItem = (c) => {
+  const classItem = (c, index) => {
     let message = "";
     switch (c.next_schedule.status) {
       case "ONGOING":
@@ -146,164 +147,167 @@ function Home(props) {
       "video-conference",
     ]);
     return (
-      <Grow in={true} key={c.id}>
-        <div
-          className={styles.root}
+      <motion.div
+        initial={{ translateY: 100, opacity: 0 }}
+        animate={{ translateY: 0, opacity: 1 }}
+        key={c.id}
+        className={styles.root}
+        whileHover={{ scale: 1.1 }}
+        whileTap={{ scale: 0.9 }}
+        style={{
+          flex: 1,
+          marginBottom: Object.keys(c.next_schedule).length
+            ? !c.next_schedule.nosched && message
+              ? 60
+              : 0
+            : 0,
+          minWidth: 300,
+        }}
+      >
+        <Card
           style={{
-            flex: 1,
-            marginBottom: Object.keys(c.next_schedule).length
-              ? !c.next_schedule.nosched && message
-                ? 60
-                : 0
-              : 0,
-            minWidth: 300,
+            position: "relative",
+            zIndex: 2,
+            borderRadius: 17,
+            width: "100%",
           }}
         >
-          <Card
-            style={{
-              position: "relative",
-              zIndex: 2,
-              borderRadius: 17,
-              width: "100%",
-            }}
+          <CardActionArea
+            style={{ position: "relative" }}
+            onClick={() =>
+              history.push(
+                makeLinkTo(["class", c.id, c.next_schedule.id, "opt"], {
+                  opt: c.next_schedule.id ? "posts" : "",
+                })
+              )
+            }
           >
-            <CardActionArea
-              style={{ position: "relative" }}
-              onClick={() =>
-                history.push(
-                  makeLinkTo(["class", c.id, c.next_schedule.id, "opt"], {
-                    opt: c.next_schedule.id ? "posts" : "",
-                  })
-                )
-              }
+            <div
+              style={{
+                position: "relative",
+                cursor: "pointer",
+                width: "100%",
+              }}
             >
-              <div
+              <Box
+                className={styles.media}
                 style={{
-                  position: "relative",
-                  cursor: "pointer",
-                  width: "100%",
+                  background: `url(${c.bg_image || c.image}) no-repeat`,
+                  backgroundColor: c.color,
+                  backgroundPosition: "top",
                 }}
+              />
+              {/* <div className={styles.mediaOverlay} /> */}
+            </div>
+            <CardContent style={{ position: "absolute", top: 0, left: 0 }}>
+              <Typography
+                gutterBottom
+                variant="h5"
+                component="h2"
+                style={{ color: "#fff", fontWeight: "bold" }}
+              >
+                {c.name}
+              </Typography>
+              <Typography
+                gutterBottom
+                variant="body2"
+                component="h3"
+                style={{ color: "#fff" }}
+              >
+                {c.description}
+              </Typography>
+            </CardContent>
+
+            <CardActions style={{ background: "grey.300" }}>
+              <Box
+                p={1}
+                className={styles.start}
+                width="100%"
+                flexDirection="column"
+                position="relative"
               >
                 <Box
-                  className={styles.media}
-                  style={{
-                    background: `url(${c.bg_image || c.image}) no-repeat`,
-                    backgroundColor: c.color,
-                    backgroundPosition: "top",
-                  }}
-                />
-                {/* <div className={styles.mediaOverlay} /> */}
-              </div>
-              <CardContent style={{ position: "absolute", top: 0, left: 0 }}>
-                <Typography
-                  gutterBottom
-                  variant="h5"
-                  component="h2"
-                  style={{ color: "#fff", fontWeight: "bold" }}
+                  flex={1}
+                  className={[styles.centered, styles.start].join(" ")}
                 >
-                  {c.name}
-                </Typography>
-                <Typography
-                  gutterBottom
-                  variant="body2"
-                  component="h3"
-                  style={{ color: "#fff" }}
-                >
-                  {c.description}
-                </Typography>
-              </CardContent>
-
-              <CardActions style={{ background: "grey.300" }}>
+                  <Typography
+                    variant="body2"
+                    style={{ fontSize: "0.75rem", marginLeft: 5 }}
+                  >
+                    {moment(c.next_schedule.from).format("hh:mm A") +
+                      " - " +
+                      moment(c.next_schedule.to).format("hh:mm A")}
+                  </Typography>
+                </Box>
                 <Box
-                  p={1}
-                  className={styles.start}
-                  width="100%"
-                  flexDirection="column"
-                  position="relative"
+                  flex={1}
+                  className={[styles.centered, styles.start].join(" ")}
+                  style={{ marginBottom: 6 }}
                 >
-                  <Box
-                    flex={1}
-                    className={[styles.centered, styles.start].join(" ")}
+                  <Typography
+                    variant="body2"
+                    style={{ fontSize: "0.8rem", marginLeft: 5 }}
                   >
-                    <Typography
-                      variant="body2"
-                      style={{ fontSize: "0.75rem", marginLeft: 5 }}
-                    >
-                      {moment(c.next_schedule.from).format("hh:mm A") +
-                        " - " +
-                        moment(c.next_schedule.to).format("hh:mm A")}
-                    </Typography>
-                  </Box>
-                  <Box
-                    flex={1}
-                    className={[styles.centered, styles.start].join(" ")}
-                    style={{ marginBottom: 6 }}
-                  >
-                    <Typography
-                      variant="body2"
-                      style={{ fontSize: "0.8rem", marginLeft: 5 }}
-                    >
-                      {moment(c.next_schedule.from).format("MMM D, YYYY")}
-                    </Typography>
-                  </Box>
+                    {moment(c.next_schedule.from).format("MMM D, YYYY")}
+                  </Typography>
+                </Box>
 
-                  <div style={{ position: "absolute", top: -40, right: 0 }}>
-                    <Box
-                      borderRadius="50%"
-                      width={60}
-                      height={60}
-                      bgcolor="grey.500"
-                      overflow="hidden"
-                    >
-                      <Avatar
-                        alt={c.teacher.first_name}
-                        style={{
-                          width: "100%",
-                          height: "100%",
-                          background: "#fff",
-                        }}
-                        src={c.teacher.profile_picture}
-                      />
-                      {/* <img
+                <div style={{ position: "absolute", top: -40, right: 0 }}>
+                  <Box
+                    borderRadius="50%"
+                    width={60}
+                    height={60}
+                    bgcolor="grey.500"
+                    overflow="hidden"
+                  >
+                    <Avatar
+                      alt={c.teacher.first_name}
+                      style={{
+                        width: "100%",
+                        height: "100%",
+                        background: "#fff",
+                      }}
+                      src={c.teacher.profile_picture}
+                    />
+                    {/* <img
                         src="https://source.unsplash.com/random/500x500"
                         width="100%"
                         height="auto"
                       /> */}
-                    </Box>
-                  </div>
-                  <div style={{ position: "absolute", right: 0, bottom: 6 }}>
-                    <Typography variant="body1" style={{ fontWeight: "bold" }}>
-                      {c.teacher.first_name} {c.teacher.last_name}
-                    </Typography>
-                  </div>
-                </Box>
-              </CardActions>
-            </CardActionArea>
-          </Card>
-          {Object.keys(c.next_schedule).length
-            ? !c.next_schedule.nosched &&
-              message && (
-                <Paper
-                  onClick={() =>
-                    history.push(
-                      c.next_schedule.status === "ONGOING"
-                        ? videoConferenceLink
-                        : "/"
-                    )
-                  }
-                  className={[
-                    styles.classStatus,
-                    styles[c.next_schedule.status],
-                  ].join(" ")}
-                  style={{ borderRadius: 13 }}
-                >
-                  <Typography variant="body1">{message}</Typography>
-                  {c.next_schedule.status === "ONGOING" && <VideocamIcon />}
-                </Paper>
-              )
-            : ""}
-        </div>
-      </Grow>
+                  </Box>
+                </div>
+                <div style={{ position: "absolute", right: 0, bottom: 6 }}>
+                  <Typography variant="body1" style={{ fontWeight: "bold" }}>
+                    {c.teacher.first_name} {c.teacher.last_name}
+                  </Typography>
+                </div>
+              </Box>
+            </CardActions>
+          </CardActionArea>
+        </Card>
+        {Object.keys(c.next_schedule).length
+          ? !c.next_schedule.nosched &&
+            message && (
+              <Paper
+                onClick={() =>
+                  history.push(
+                    c.next_schedule.status === "ONGOING"
+                      ? videoConferenceLink
+                      : "/"
+                  )
+                }
+                className={[
+                  styles.classStatus,
+                  styles[c.next_schedule.status],
+                ].join(" ")}
+                style={{ borderRadius: 13 }}
+              >
+                <Typography variant="body1">{message}</Typography>
+                {c.next_schedule.status === "ONGOING" && <VideocamIcon />}
+              </Paper>
+            )
+          : ""}
+      </motion.div>
     );
   };
   useEffect(() => {
@@ -540,9 +544,11 @@ function Home(props) {
               {loading && [1, 1, 1].map((c, i) => fakeLoader(i))}
               {!loading &&
                 props.classes &&
-                getPageItems(getFilteredClass(), page, itemsPerPage).map((c) =>
-                  classItem(c)
-                )}
+                getPageItems(
+                  getFilteredClass(),
+                  page,
+                  itemsPerPage
+                ).map((c, index) => classItem(c, index))}
             </Box>
             <Box m={2}>
               <Pagination
