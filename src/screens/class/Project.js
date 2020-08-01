@@ -810,7 +810,6 @@ function Project(props) {
     setErrors(null);
     setSaving(true);
     let answers = getFiles("activity-answer").getAll("files[]");
-    console.log(answers);
     if (answers.length) {
       try {
         await asyncForEach(answers, async (file) => {
