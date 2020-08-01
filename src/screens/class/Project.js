@@ -116,7 +116,7 @@ function Project(props) {
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const [saving, setSaving] = useState(false);
   const [filesToUpload, setFilesToUpload] = useState({
-    UPLOAD_ANSWER: false,
+    ACTIVITY_ANSWER: false,
     ACTIVITY_MATERIALS: false,
   });
   const { room_name, class_id, option_name, schedule_id } = props.match.params;
@@ -809,44 +809,61 @@ function Project(props) {
   const _handleAnswerUpload = async () => {
     setErrors(null);
     setSaving(true);
-    let body = new FormData();
-    body.append("file", FileUpload.files["answers"][0]);
-    body.append("assignment_id", currentActivity.id);
-    let a = await FileUpload.upload("/api/upload/project/answer", {
-      body,
-      onUploadProgress: (event, source) =>
-        store.dispatch({
-          type: "SET_PROGRESS",
-          id: option_name,
-          data: {
-            title: FileUpload.files["answers"][0].name,
-            loaded: event.loaded,
-            total: event.total,
-            onCancel: source,
-          },
-        }),
-    });
-    if (a.errors) {
-      setErrors(["Oops! Something went wrong. Please try again."]);
-    } else {
-      setSuccess(true);
-      removeFiles("answers", "#activity-answer");
+    let answers = getFiles("activity-answer").getAll("files[]");
+    console.log(answers);
+    if (answers.length) {
+      try {
+        await asyncForEach(answers, async (file) => {
+          let body = new FormData();
+          body.append("file", file);
+          body.append("assignment_id", currentActivity.id);
+          let a = await FileUpload.upload("/api/upload/project/answer", {
+            body,
+            onUploadProgress: (event, source) =>
+              store.dispatch({
+                type: "SET_PROGRESS",
+                id: option_name,
+                data: {
+                  title: file.name,
+                  loaded: event.loaded,
+                  total: event.total,
+                  onCancel: source,
+                },
+              }),
+          });
+        });
+        setDragover(false);
+        removeFiles("activity-answer", "#activity-answer");
+      } catch (e) {}
+      getAnswers();
     }
-    getAnswers();
     setSavingId([]);
     setSaving(false);
   };
   const handleCreateContent = () => {
     window.open("/content-maker?callback=send_item&to=" + socket.id, "_blank");
   };
-  const saveAudio = (audio) => {
+  const createContentAnswer = () => {
+    window.open(
+      "/content-maker?origin=ACTIVITY_ANSWER&callback=send_item&to=" +
+        socket.id,
+      "_blank"
+    );
+  };
+  const saveAudio = (audio, fileId = "", fileStage = "") => {
     let title = prompt("Enter file name ");
     let file = new File([audio], title + " 🎧" || "Audio 🎧", {
       type: audio.type,
     });
-    getFiles("activity-materials").append("files[]", file);
-    stageFiles("activity-materials", file);
-    setFilesToUpload({ ...filesToUpload, ACTIVITY_MATERIALS: true });
+    if (fileId) {
+      getFiles(fileId).append("files[]", file);
+      stageFiles(fileId, file);
+      if (fileStage) {
+        let f = { ...filesToUpload };
+        f[fileStage] = true;
+        setFilesToUpload(f);
+      }
+    }
   };
 
   const getFilteredActivities = (ac = activities) =>
@@ -871,13 +888,17 @@ function Project(props) {
     _getActivities();
   }, [props.classDetails]);
   const getItem = async (details) => {
+    const parsed = JSON.parse(details.data.b64);
+    const blob = await fetch(parsed.blob).then((res) => res.blob());
+    let file = new File([blob], details.data.title, { type: blob.type });
     if (details.type === "ATTACH_CONTENTCREATOR") {
-      const parsed = JSON.parse(details.data.b64);
-      const blob = await fetch(parsed.blob).then((res) => res.blob());
-      let file = new File([blob], details.data.title, { type: blob.type });
       getFiles("activity-materials").append("files[]", file);
       stageFiles("activity-materials", file);
       setFilesToUpload({ ...filesToUpload, ACTIVITY_MATERIALS: true });
+    } else if (details.type === "ACTIVITY_ANSWER") {
+      getFiles("activity-answer").append("files[]", file);
+      stageFiles("activity-answer", file);
+      setFilesToUpload({ ...filesToUpload, ACTIVITY_ANSWER: true });
     }
   };
   const addNewMaterial = (material) => {
@@ -1212,16 +1233,23 @@ function Project(props) {
                         }}
                         onDrop={(e) => {
                           e.preventDefault();
-                          stageFiles(
-                            "answers",
-                            e.dataTransfer.files,
-                            (files) => {
-                              setFilesToUpload({
-                                ...filesToUpload,
-                                UPLOAD_ANSWER: true,
-                              });
+                          let isfiles = e.dataTransfer.files.length
+                            ? true
+                            : false;
+                          let answerFiles = e.dataTransfer.files;
+                          if (isfiles && answerFiles.length) {
+                            stageFiles("activity-answer", answerFiles);
+                            setFilesToUpload({
+                              ...filesToUpload,
+                              ACTIVITY_ANSWER: isfiles,
+                            });
+                            for (let i = 0; i < answerFiles.length; i++) {
+                              getFiles("activity-answer").append(
+                                "files[]",
+                                answerFiles[i]
+                              );
                             }
-                          );
+                          }
                           return false;
                         }}
                         onDragLeave={(e) => {
@@ -1240,19 +1268,26 @@ function Project(props) {
                             ).files.length
                               ? true
                               : false;
-                            stageFiles(
-                              "answers",
-                              document.querySelector("#activity-answer").files
-                            );
-                            setFilesToUpload({
-                              ...filesToUpload,
-                              UPLOAD_ANSWER: isfiles,
-                            });
-                            if (!isfiles) removeFiles("activity-answer");
+                            let answerFiles = document.querySelector(
+                              "#activity-answer"
+                            ).files;
+                            if (isfiles && answerFiles.length) {
+                              stageFiles("activity-answer", answerFiles);
+                              setFilesToUpload({
+                                ...filesToUpload,
+                                ACTIVITY_ANSWER: isfiles,
+                              });
+                              for (let i = 0; i < answerFiles.length; i++) {
+                                getFiles("activity-answer").append(
+                                  "files[]",
+                                  answerFiles[i]
+                                );
+                              }
+                            }
                           }}
                         />
                         <Box className={styles.upload}>
-                          {!filesToUpload.UPLOAD_ANSWER ? (
+                          {!filesToUpload.ACTIVITY_ANSWER ? (
                             <div>
                               {!dragover ? (
                                 <div
@@ -1261,23 +1296,58 @@ function Project(props) {
                                     alignItems: "center",
                                   }}
                                 >
-                                  <Link
-                                    component="div"
-                                    style={{
-                                      display: "flex",
-                                      alignItems: "center",
-                                      cursor: "pointer",
-                                      fontWeight: "bold",
-                                    }}
-                                    onClick={() =>
-                                      document
-                                        .querySelector("#activity-answer")
-                                        .click()
-                                    }
+                                  <PopupState
+                                    variant="popover"
+                                    popupId="add-file-btn"
                                   >
-                                    <AttachFileOutlinedIcon fontSize="small" />
-                                    Add file&nbsp;
-                                  </Link>
+                                    {(popupState) => (
+                                      <React.Fragment>
+                                        <Link
+                                          {...bindTrigger(popupState)}
+                                          component="div"
+                                          style={{
+                                            display: "flex",
+                                            alignItems: "center",
+                                            cursor: "pointer",
+                                            fontWeight: "bold",
+                                          }}
+                                        >
+                                          <AttachFileOutlinedIcon fontSize="small" />
+                                          Add file&nbsp;
+                                        </Link>
+                                        <Menu {...bindMenu(popupState)}>
+                                          <MenuItem
+                                            onClick={() => {
+                                              document
+                                                .querySelector(
+                                                  "#activity-answer"
+                                                )
+                                                .click();
+                                              popupState.close();
+                                            }}
+                                          >
+                                            Files
+                                          </MenuItem>
+                                          <MenuItem
+                                            onClick={() => {
+                                              createContentAnswer();
+                                              popupState.close();
+                                            }}
+                                          >
+                                            Content Maker
+                                          </MenuItem>
+                                          <MenuItem
+                                            onClick={() => {
+                                              handleOpen("AUDIO_ANSWER");
+                                              popupState.close();
+                                            }}
+                                          >
+                                            Audio
+                                          </MenuItem>
+                                        </Menu>
+                                      </React.Fragment>
+                                    )}
+                                  </PopupState>
                                   or drag file in here
                                 </div>
                               ) : (
@@ -1311,7 +1381,7 @@ function Project(props) {
                                   </div>
                                 )}
                                 <div>
-                                  {FileUpload.getFiles("answers").map(
+                                  {FileUpload.getFiles("activity-answer").map(
                                     (f, i) => (
                                       <Typography
                                         variant="body1"
@@ -1329,11 +1399,11 @@ function Project(props) {
                                   </Button>
                                   <Button
                                     onClick={() => {
-                                      FileUpload.removeFiles("answers");
+                                      FileUpload.removeFiles("activity-answer");
                                       setDragover(false);
                                       setFilesToUpload({
                                         ...filesToUpload,
-                                        UPLOAD_ANSWER: false,
+                                        ACTIVITY_ANSWER: false,
                                       });
                                     }}
                                   >
@@ -1432,85 +1502,109 @@ function Project(props) {
                               : {}),
                           }}
                         >
-                          <Box p={2} display="flex" alignItems="flex-start">
+                          <Box
+                            p={2}
+                            display="flex"
+                            alignItems="flex-start"
+                            position="relative"
+                          >
+                            <Box
+                              style={{
+                                position: "absolute",
+                                left: 0,
+                                right: 0,
+                                top: 0,
+                                bottom: 0,
+                                cursor: "pointer",
+                                zIndex: 11,
+                              }}
+                              onClick={() =>
+                                i.answers.length &&
+                                _handleOpenAnswer({
+                                  id: i.answers.sort((a, b) => b.id - a.id)[0]
+                                    .id,
+                                  name:
+                                    i.student.first_name +
+                                    " " +
+                                    i.student.last_name,
+                                })
+                              }
+                            />
                             <Avatar
-                              src="/profile-pic"
+                              src={i.student.preferences.profile_picture}
                               alt={i.student.first_name}
                               style={{ marginRight: theme.spacing(2) }}
                             />
                             <Box maxWidth="80%">
                               {i.score && (
-                                <MuiRating
-                                  readOnly
-                                  value={Math.map(
-                                    i.score.score,
-                                    0,
-                                    currentActivity.total_score,
-                                    0,
-                                    5
-                                  )}
-                                />
-                              )}
-                              <PopupState
-                                variant="popover"
-                                popupId="publish-btn"
-                              >
-                                {(popupState) => (
-                                  <React.Fragment>
-                                    {i.answers.length > 1 ? (
-                                      <Typography
-                                        {...bindTrigger(popupState)}
-                                        style={{
-                                          fontWeight: "bold",
-                                          cursor: "pointer",
-                                        }}
-                                      >
-                                        {i.student.first_name +
-                                          " " +
-                                          i.student.last_name}
-                                      </Typography>
-                                    ) : (
-                                      <Typography
-                                        onClick={() =>
-                                          i.answers.length &&
-                                          _handleOpenAnswer({
-                                            id: i.answers[0].id,
-                                            name:
-                                              i.student.first_name +
-                                              " " +
-                                              i.student.last_name,
-                                          })
-                                        }
-                                        style={{
-                                          fontWeight: "bold",
-                                          cursor: "pointer",
-                                        }}
-                                      >
-                                        {i.student.first_name +
-                                          " " +
-                                          i.student.last_name}
-                                      </Typography>
+                                <React.Fragment>
+                                  <MuiRating
+                                    readOnly
+                                    value={Math.map(
+                                      i.score.score,
+                                      0,
+                                      currentActivity.total_score,
+                                      0,
+                                      5
                                     )}
-                                    <Menu {...bindMenu(popupState)}>
-                                      {i.answers.map((a, ii) => (
-                                        <MenuItem
-                                          onClick={() =>
-                                            _handleOpenAnswer({
-                                              id: a.id,
-                                              name:
-                                                i.student.first_name +
-                                                " " +
-                                                i.student.last_name,
-                                            })
-                                          }
-                                        >
-                                          {`Answer (ver. ${ii + 1})`}
-                                        </MenuItem>
-                                      ))}
-                                    </Menu>
-                                  </React.Fragment>
-                                )}
-                              </PopupState>
+                                  />
+                                  ({i.score.score})
+                                </React.Fragment>
+                              )}
+                              <Typography
+                                style={{
+                                  fontWeight: "bold",
+                                  cursor: "pointer",
+                                }}
+                              >
+                                {i.student.first_name +
+                                  " " +
+                                  i.student.last_name}
+                              </Typography>
+                              {i.answers.length > 1 && (
+                                <PopupState
+                                  variant="popover"
+                                  popupId="view-answers"
+                                >
+                                  {(popupState) => (
+                                    <React.Fragment>
+                                      <IconButton
+                                        {...bindTrigger(popupState)}
+                                        id={"view-answer-" + index}
+                                        style={{
+                                          position: "absolute",
+                                          right: 0,
+                                          top: 0,
+                                          zIndex: 12,
+                                        }}
+                                      >
+                                        <Icon>expand_more</Icon>
+                                      </IconButton>
+                                      <Menu {...bindMenu(popupState)}>
+                                        {i.answers
+                                          .sort((a, b) => b.id - a.id)
+                                          .map((a, ii) => (
+                                            <MenuItem
+                                              onClick={() =>
+                                                _handleOpenAnswer({
+                                                  id: a.id,
+                                                  name:
+                                                    i.student.first_name +
+                                                    " " +
+                                                    i.student.last_name,
+                                                })
+                                              }
+                                            >
+                                              {`Answer (ver. ${
+                                                i.answers.length - ii
+                                              })`}
+                                            </MenuItem>
+                                          ))}
+                                      </Menu>
+                                    </React.Fragment>
+                                  )}
+                                </PopupState>
+                              )}
                               <Chip
                                 size="small"
                                 style={{
@@ -1538,6 +1632,7 @@ function Project(props) {
                                         },
                                       })
                                     }
+                                    style={{ position: "relative", zIndex: 12 }}
                                   >
                                     ADD SCORE
                                   </Button>
@@ -1809,7 +1904,27 @@ function Project(props) {
               })
         }
         onSave={(a, cb = null) => {
-          saveAudio(a);
+          saveAudio(a, "activity-materials", "ACTIVITY_MATERIALS");
+          cb && cb();
+        }}
+      />
+      <RecorderDialog
+        open={modals.AUDIO_ANSWER}
+        onClose={(done, cb = null) =>
+          done
+            ? handleClose("AUDIO_ANSWER")
+            : setConfirmed({
+                title: "Cancel",
+                message: "Do you want to cancel the voice recording?",
+                yes: () => {
+                  cb && cb();
+                  handleClose("AUDIO_ANSWER");
+                  setConfirmed(null);
+                },
+              })
+        }
+        onSave={(a, cb = null) => {
+          saveAudio(a, "activity-answer", "ACTIVITY_ANSWER");
           cb && cb();
         }}
       />

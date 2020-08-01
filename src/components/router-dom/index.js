@@ -212,7 +212,7 @@ export const rightPanelOptionsStudents = [
     ],
   },
   {
-    title: "Lesson Materials",
+    title: "Instructional Materials",
     link: "instructional-materials",
     icon: "icon-instructional-materials",
     screen: InstructionalMaterials,
