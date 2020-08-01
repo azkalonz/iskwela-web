@@ -78,10 +78,8 @@ function Home(props) {
   const query = require("query-string").parse(window.location.search);
   const [loading, setLoading] = useState(true);
   const history = useHistory();
-  const [dir, setDir] = useState("right");
   const [greeting, setGreeting] = useState(true);
   const [search, setSearch] = useState("");
-  const [tailPage, setTailPage] = useState(1);
   const [page, setPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(6);
   const [errors, setErrors] = useState([]);
@@ -312,11 +310,6 @@ function Home(props) {
       </motion.div>
     );
   };
-  useEffect(() => {
-    if (tailPage < page) setDir("right");
-    else setDir("left");
-    setTailPage(page);
-  }, [page]);
   useEffect(() => {
     let cardPerPage = () => {
       if (props.location.hash === "#meeting") return;

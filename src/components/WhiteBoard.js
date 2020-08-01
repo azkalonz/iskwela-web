@@ -23,6 +23,7 @@ import {
   Backdrop,
 } from "@material-ui/core";
 import Scrollbars from "react-custom-scrollbars";
+import moment from "moment";
 import {
   Canvas,
   getControls,
@@ -30,11 +31,19 @@ import {
   blobToBase64,
   scaleContainer,
   ResizeLine,
+  dataURItoBlob,
 } from "./content-creator";
 import { connect } from "react-redux";
 import { DialogTitle } from "./dialogs";
 import { makeLinkTo } from "./router-dom";
 import Scrollbar from "./Scrollbar";
+import { saveAs } from "file-saver";
+import SavingButton from "./SavingButton";
+import FileUpload from "./FileUpload";
+import store from "./redux/store";
+import UserData from "./UserData";
+import Api from "../api";
+import { createImagePost } from "../screens/class/Posts";
 
 addStyles();
 
@@ -46,10 +55,12 @@ const updateWhiteBoard = (id, data = {}) => {
 };
 function MainBoard(props) {
   const theme = useTheme();
-  const { class_id } = props.match.params;
+  const { class_id, schedule_id, option_name } = props.match.params;
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const [configControl, setConfigControl] = useState();
+  const [saving, setSaving] = useState({});
   const [latex, setLatex] = useState("");
+  const isTeacher = props.userInfo.user_type === "t";
   const [infoDialog, setInfoDialog] = useState(false);
   const mqToolbar = [
     "\\frac{i}{j}",
@@ -59,6 +70,84 @@ function MainBoard(props) {
     "\\sum_{j=0}^3",
     "\\int_{j=0}^3,dx",
   ];
+  const getData = (title = "") => {
+    let url = window.creator.canvas.toDataURL();
+    let blob = dataURItoBlob(url);
+    let file = new File(
+      [blob],
+      title || "White Board " + moment(new Date()).format("MMM DD, YYYY"),
+      { type: blob.type }
+    );
+    return { url, blob, file };
+  };
+  const handleSaveImage = () => {
+    saveAs(
+      getData().blob,
+      "White Board " + moment(new Date()).format("MMM DD, YYYY")
+    );
+  };
+  const postToClass = async () => {
+    setSaving({ POST: true });
+    let description = prompt("Enter description");
+    try {
+      let body = new FormData();
+      body.append("file", getData().file);
+      let uploadedFile = await Api.post("/api/public/upload", { body });
+      let url = uploadedFile.url;
+      if (url) {
+        await Api.post("/api/post/save", {
+          body: {
+            body: createImagePost(url, description),
+            itemable_type: "class",
+            itemable_id: class_id,
+          },
+        });
+      }
+    } catch (e) {
+      console.log(e);
+    }
+    setSaving({ POST: false });
+  };
+  const handleSaveInstructionalMaterial = async () => {
+    setSaving({ INSTRUCTIONAL_MATERIAL: true });
+    let title = prompt("Enter title");
+    if (title) {
+      try {
+        if (!title)
+          title = "White Board " + moment(new Date()).format("MMM DD, YYYY");
+        let body = new FormData();
+        body.append("class_id", class_id);
+        body.append("file", getData().file);
+        body.append("schedule_id", schedule_id);
+        body.append("title", title);
+        await FileUpload.upload("/api/upload/class/material", {
+          body,
+          onUploadProgress: (event, source) =>
+            store.dispatch({
+              type: "SET_PROGRESS",
+              id: option_name,
+              data: {
+                title,
+                loaded: event.loaded,
+                total: event.total,
+                onCancel: source,
+              },
+            }),
+        });
+        let newScheduleDetails = await UserData.updateScheduleDetails(
+          class_id,
+          schedule_id
+        );
+        socket.emit("update schedule details", {
+          id: class_id,
+          details: newScheduleDetails,
+        });
+      } catch (e) {
+        console.log(e);
+      }
+    }
+    setSaving({ INSTRUCTIONAL_MATERIAL: false });
+  };
   const boardConfigs = [
     // <Button fullWidth variant="contained" color="primary">
     //   SHARE BOARD TO EVERYONE
@@ -66,17 +155,48 @@ function MainBoard(props) {
     // <Button fullWidth variant="contained" color="primary">
     //   HIDE BOARD
     // </Button>,
-    // <Button fullWidth variant="contained" color="primary">
-    //   SAVE
-    // </Button>,
     <Button
-      onClick={props.onStop}
       fullWidth
       variant="contained"
-      style={{ background: theme.palette.error.main, color: "#fff" }}
+      color="primary"
+      onClick={handleSaveImage}
     >
-      EXIT ROOM
+      SAVE AS IMAGE
     </Button>,
+    <React.Fragment>
+      {isTeacher && (
+        <SavingButton
+          fullWidth
+          variant="contained"
+          color="primary"
+          onClick={handleSaveInstructionalMaterial}
+          saving={saving.INSTRUCTIONAL_MATERIAL || false}
+        >
+          IMPORT TO CLASS
+        </SavingButton>
+      )}
+    </React.Fragment>,
+    <SavingButton
+      fullWidth
+      variant="contained"
+      color="primary"
+      onClick={postToClass}
+      saving={saving.POST || false}
+    >
+      POST TO CLASS
+    </SavingButton>,
+    <React.Fragment>
+      {isTeacher && (
+        <Button
+          onClick={props.onStop}
+          fullWidth
+          variant="contained"
+          style={{ background: theme.palette.error.main, color: "#fff" }}
+        >
+          EXIT ROOM
+        </Button>
+      )}
+    </React.Fragment>,
   ];
   const addMath = () => {
     domtoimage
@@ -494,7 +614,13 @@ function WhiteBoard(props) {
     socket.on("delete boards", (id) => {
       if (id === class_id)
         props.history.push(
-          makeLinkTo(["class", class_id, schedule_id, "todo", room_name || ""])
+          makeLinkTo([
+            "class",
+            class_id,
+            schedule_id,
+            isTeacher ? "todo" : "my-todo",
+            room_name || "",
+          ])
         );
     });
     getWhiteBoard(class_id, (whiteboard) => {
@@ -609,7 +735,7 @@ function WhiteBoard(props) {
                       "class",
                       class_id,
                       schedule_id,
-                      "todo",
+                      isTeacher ? "todo" : "my-todo",
                       room_name || "",
                     ])
                   );

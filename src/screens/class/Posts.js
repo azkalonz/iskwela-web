@@ -229,18 +229,18 @@ function Editor(props) {
     />
   );
 }
+const serializeBody = (data) => {
+  let parsed;
+  try {
+    parsed = JSON.parse(data);
+  } catch (e) {
+    parsed = convertToRaw(ContentState.createFromText(data));
+  }
+  if (typeof parsed === "object") return parsed;
+  else return {};
+};
 function Comment(props) {
   const theme = useTheme().palette.type;
-  const serializeComment = (data) => {
-    let parsed;
-    try {
-      parsed = JSON.parse(data);
-    } catch (e) {
-      parsed = convertToRaw(ContentState.createFromText(data));
-    }
-    if (typeof parsed === "object") return JSON.stringify(parsed);
-    else return "";
-  };
   return (
     <Box
       width="100%"
@@ -275,7 +275,7 @@ function Comment(props) {
             toolbar={false}
             inlineToolbar={false}
             readOnly={true}
-            value={serializeComment(props.body)}
+            value={JSON.stringify(serializeBody(props.body))}
           />
         </Box>
       </Box>
@@ -842,48 +842,52 @@ function Discussion(props) {
               : {}
           }
         >
-          <Editor
-            toolbar={editing}
-            inlineToolbar={editing}
-            readOnly={!editing}
-            value={postValue}
-            controls={toolbarcontrols}
-            inlineToolbarControls={inlinetoolbarcontrols}
-            inlineToolbar={true}
-            onSave={handleSave}
-            getRef={(ref) => setEditorRef(ref)}
-            customControls={[
-              {
-                name: "class",
-                type: "atomic",
-                atomicComponent: ClassCard,
-              },
-            ]}
-            autocomplete={{
-              strategies: [
+          {serializeBody(postValue).blocks ? (
+            <Editor
+              toolbar={editing}
+              inlineToolbar={editing}
+              readOnly={!editing}
+              value={JSON.stringify(serializeBody(postValue))}
+              controls={toolbarcontrols}
+              inlineToolbarControls={inlinetoolbarcontrols}
+              inlineToolbar={true}
+              onSave={handleSave}
+              getRef={(ref) => setEditorRef(ref)}
+              customControls={[
                 {
-                  items: classesAutocomplete,
-                  triggerChar: ":",
-                  atomicBlockName: "class",
+                  name: "class",
+                  type: "atomic",
+                  atomicComponent: ClassCard,
                 },
-                {
-                  items: props.class.students.map((c) => ({
-                    keys: [
-                      "students",
-                      c.first_name,
-                      c.last_name,
-                      c.last_name.toLowerCase(),
-                      c.first_name.toLowerCase(),
-                      c.username,
-                    ],
-                    value: "@" + c.username,
-                    content: <TagItem user={c} />,
-                  })),
-                  triggerChar: "@",
-                },
-              ],
-            }}
-          />
+              ]}
+              autocomplete={{
+                strategies: [
+                  {
+                    items: classesAutocomplete,
+                    triggerChar: ":",
+                    atomicBlockName: "class",
+                  },
+                  {
+                    items: props.class.students.map((c) => ({
+                      keys: [
+                        "students",
+                        c.first_name,
+                        c.last_name,
+                        c.last_name.toLowerCase(),
+                        c.first_name.toLowerCase(),
+                        c.username,
+                      ],
+                      value: "@" + c.username,
+                      content: <TagItem user={c} />,
+                    })),
+                    triggerChar: "@",
+                  },
+                ],
+              }}
+            />
+          ) : serializeBody(postValue).type === "image" ? (
+            <img src={serializeBody(postValue).src} width="100%" />
+          ) : null}
           {/* {!expanded && (
             <Box className="show-more">
               <Button onClick={() => setExpanded(true)} fullWidth>
@@ -1139,3 +1143,49 @@ const inlinetoolbarcontrols = [
   "strikethrough",
   "highlight",
 ];
+export const createImagePost = (url, description = null) => {
+  return JSON.stringify({
+    blocks: [
+      {
+        key: "ev6vu",
+        text: description || "",
+        type: "unstyled",
+        depth: 0,
+        inlineStyleRanges: [],
+        entityRanges: [],
+        data: {},
+      },
+      {
+        key: "414mj",
+        text: " ",
+        type: "atomic",
+        depth: 0,
+        inlineStyleRanges: [],
+        entityRanges: [{ offset: 0, length: 1, key: 0 }],
+        data: {},
+      },
+      {
+        key: "4j6no",
+        text: "",
+        type: "unstyled",
+        depth: 0,
+        inlineStyleRanges: [],
+        entityRanges: [],
+        data: {},
+      },
+    ],
+    entityMap: {
+      "0": {
+        type: "IMAGE",
+        mutability: "IMMUTABLE",
+        data: {
+          url: url,
+          width: "100%",
+          height: "auto",
+          alignment: "left",
+          type: "image",
+        },
+      },
+    },
+  });
+};
