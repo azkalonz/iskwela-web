@@ -43,7 +43,7 @@ import NavBar from "../components/NavBar";
 import Jitsi from "react-jitsi";
 import { ResizeLine } from "../components/content-creator";
 import { AvatarGroup } from "@material-ui/lab";
-import { setTitle } from "../App";
+import { setTitle, isMobileDevice } from "../App";
 import { makeLinkTo } from "../components/router-dom";
 import Scrollbar from "../components/Scrollbar";
 
@@ -262,7 +262,6 @@ function ChatBox(props) {
       if (x.blocks[i].text) c++;
     }
     if (!c) {
-      resetEditor();
       return;
     }
     if (!x.blocks[Object.keys(x.blocks).length - 1].text)
@@ -731,7 +730,7 @@ function ChatBox(props) {
                     doneTyping();
                   }
                   window.doneTyping = setTimeout(() => doneTyping(), 5000);
-                  if (!key.shiftKey && key.which === 13 && !isTablet) {
+                  if (!key.shiftKey && key.which === 13 && !isMobileDevice()) {
                     if (editorRef.current) editorRef.current.save();
                   }
                 }}

@@ -37,6 +37,14 @@ import Pagination, { getPageItems } from "../../components/Pagination";
 import { makeLinkTo } from "../../components/router-dom";
 import socket from "../../components/socket.io";
 import UserData from "../../components/UserData";
+import { isMobileDevice } from "../../App";
+
+const key = {};
+function keyPress(e) {
+  const { shiftKey, which, keyCode } = e;
+  key.which = which || keyCode;
+  key.shiftKey = shiftKey;
+}
 
 const getAutocomplete = (classes) =>
   Object.keys(classes).map((k) => {
@@ -581,12 +589,11 @@ function WriteAComment(props) {
   const [content, setContent] = useState("");
   const handleAddComment = async (class_id, post_id, comment) => {
     let x = JSON.parse(comment);
-    if (!x.blocks[0].text) {
-      setContent(
-        JSON.stringify(
-          convertToRaw(EditorState.createEmpty().getCurrentContent())
-        )
-      );
+    let c = 0;
+    for (let i = 0; i < x.blocks.length; i++) {
+      if (x.blocks[i].text) c++;
+    }
+    if (!c) {
       return;
     }
     if (!x.blocks[Object.keys(x.blocks).length - 1].text)
@@ -642,55 +649,85 @@ function WriteAComment(props) {
         />
       </Box>
       <Box
+        display="flex"
+        justifyContent="space-between"
+        alignItems="center"
         width="100%"
-        marginLeft={1}
-        style={{
-          borderRadius: 6,
-          minHeight: 42,
-          paddingLeft: theme.spacing(2),
-          background: "#1d1d1d",
-          ...(props.theme === "dark"
-            ? {
-                border: "1px solid rgba(255,255,255,0.22)",
-              }
-            : {}),
-        }}
-        className={props.theme !== "dark" && "nonMui-themed-input"}
       >
-        <Editor
-          toolbar={false}
-          getRef={(ref) => setEditorRef(ref)}
-          inlineToolbar={false}
-          label="Write a comment"
-          value={content}
-          onSave={(data) => {
-            handleAddComment(props.class.id, props.post.id, data);
+        <Box
+          flex={1}
+          id={"writeacomment-" + props.post.id}
+          width="100%"
+          marginLeft={1}
+          marginRight={1}
+          style={{
+            borderRadius: 6,
+            minHeight: 42,
+            maxHeight: 150,
+            overflow: "auto",
+            paddingLeft: theme.spacing(2),
+            background: "#1d1d1d",
+            ...(props.theme === "dark"
+              ? {
+                  border: "1px solid rgba(255,255,255,0.22)",
+                }
+              : {}),
           }}
-          onChange={(state) => {
-            if (state.getCurrentContent().getPlainText().indexOf("\n") >= 0) {
-              if (editorRef.current) editorRef.current.save();
-            }
-          }}
-          autocomplete={{
-            strategies: [
-              {
-                items: props.class.students.map((c) => ({
-                  keys: [
-                    "students",
-                    c.first_name,
-                    c.last_name,
-                    c.last_name.toLowerCase(),
-                    c.first_name.toLowerCase(),
-                    c.username,
-                  ],
-                  value: "@" + c.username,
-                  content: <TagItem user={c} />,
-                })),
-                triggerChar: "@",
-              },
-            ],
-          }}
-        />
+          className={props.theme !== "dark" && "nonMui-themed-input"}
+        >
+          <Editor
+            toolbar={false}
+            getRef={(ref) => setEditorRef(ref)}
+            inlineToolbar={false}
+            label="Write a comment"
+            value={content}
+            onSave={(data) => {
+              handleAddComment(props.class.id, props.post.id, data);
+              key.which = -1;
+            }}
+            onChange={(state) => {
+              if (!key.shiftKey && key.which === 13 && !isMobileDevice()) {
+                if (editorRef.current) editorRef.current.save();
+              } else if (key.shiftKey && key.which === 13) {
+                let c = document.querySelector(
+                  "#writeacomment-" + props.post.id
+                );
+                if (c) c.scrollTop = c.scrollHeight;
+              }
+            }}
+            autocomplete={{
+              strategies: [
+                {
+                  items: props.class.students.map((c) => ({
+                    keys: [
+                      "students",
+                      c.first_name,
+                      c.last_name,
+                      c.last_name.toLowerCase(),
+                      c.first_name.toLowerCase(),
+                      c.username,
+                    ],
+                    value: "@" + c.username,
+                    content: <TagItem user={c} />,
+                  })),
+                  triggerChar: "@",
+                },
+              ],
+            }}
+          />
+        </Box>
+        {isMobileDevice() && (
+          <Box>
+            <IconButton
+              onClick={() => {
+                if (editorRef.current) editorRef.current.save();
+              }}
+              color="primary"
+            >
+              <Icon>send</Icon>
+            </IconButton>
+          </Box>
+        )}
       </Box>
     </Box>
   );
@@ -752,7 +789,11 @@ function Discussion(props) {
         >
           <Box display="flex" alignItems="center">
             <Avatar
-              src={props.post.added_by.profile_picture}
+              src={
+                props.saving
+                  ? props.userInfo.preferences.profile_picture
+                  : props.post.added_by.profile_picture
+              }
               alt="Profile pic"
             />
             <Box marginLeft={2}>
@@ -968,6 +1009,10 @@ function Posts(props) {
     isLoading(true);
     getPosts();
   }, [class_id]);
+  useEffect(() => {
+    window.removeEventListener("keydown", keyPress);
+    window.addEventListener("keydown", keyPress);
+  }, []);
   return (
     <React.Fragment>
       {props.classes[class_id] && props.classes[class_id].students && (
@@ -996,7 +1041,6 @@ function Posts(props) {
               {saving && (
                 <Discussion
                   {...props}
-                  userInfo={props.userInfo}
                   class={props.classes[class_id]}
                   post={saving}
                   saving={true}
@@ -1011,7 +1055,6 @@ function Posts(props) {
                     <Discussion
                       key={index}
                       {...props}
-                      userInfo={props.userInfo}
                       class={props.classes[class_id]}
                       post={p}
                     />
