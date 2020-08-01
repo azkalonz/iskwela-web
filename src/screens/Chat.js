@@ -47,6 +47,13 @@ import { setTitle } from "../App";
 import { makeLinkTo } from "../components/router-dom";
 import Scrollbar from "../components/Scrollbar";
 
+const key = {};
+function keyPress(e) {
+  const { shiftKey, which, keyCode } = e;
+  key.which = which || keyCode;
+  key.shiftKey = shiftKey;
+}
+
 function getAbsoluteHeight(el) {
   el = typeof el === "string" ? document.querySelector(el) : el;
   var styles = window.getComputedStyle(el);
@@ -250,7 +257,11 @@ function ChatBox(props) {
   const sendMessage = (message, callback) => {
     if (!chat_id) return;
     let x = JSON.parse(message);
-    if (!x.blocks[0].text) {
+    let c = 0;
+    for (let i = 0; i < x.blocks.length; i++) {
+      if (x.blocks[i].text) c++;
+    }
+    if (!c) {
       resetEditor();
       return;
     }
@@ -359,6 +370,10 @@ function ChatBox(props) {
     setIsTyping(false);
   };
   useEffect(() => {
+    window.removeEventListener("keydown", keyPress);
+    window.addEventListener("keydown", keyPress);
+  }, []);
+  useEffect(() => {
     if (props.chat.messages) setMessages(props.chat.messages);
   }, [props.chat]);
   useEffect(() => {
@@ -366,7 +381,7 @@ function ChatBox(props) {
     resetEditor();
   }, [chat_id]);
   return (
-    <Box width="100%" className="chat-box" height="100%">
+    <Box width="100%" className="chat-box" height="100%" overflow="hidden">
       <Box
         width="100%"
         className="sticky"
@@ -685,6 +700,7 @@ function ChatBox(props) {
             height="100%"
             width="100%"
             minHeight={37}
+            maxHeight={200}
             overflow="auto"
             style={{
               background:
@@ -704,6 +720,7 @@ function ChatBox(props) {
                 label="Write Something"
                 onSave={(data) => {
                   sendMessage(data);
+                  key.which = -1;
                 }}
                 onChange={(state) => {
                   fixChatBoxHeight();
@@ -714,9 +731,7 @@ function ChatBox(props) {
                     doneTyping();
                   }
                   window.doneTyping = setTimeout(() => doneTyping(), 5000);
-                  if (
-                    state.getCurrentContent().getPlainText().indexOf("\n") >= 0
-                  ) {
+                  if (!key.shiftKey && key.which === 13 && !isTablet) {
                     if (editorRef.current) editorRef.current.save();
                   }
                 }}
