@@ -31,7 +31,7 @@ import Calendar from "./components/Calendar";
 
 const primaryColor = "#7539ff";
 const secondaryColor = "#FFD026";
-//testt
+
 export const _handleThemeType = (m = null) => {
   let mode = window.localStorage["mode"];
   if (mode) mode = mode === "dark" ? "light" : "dark";

@@ -1,46 +1,42 @@
-import React, { useRef, useState, useEffect, useCallback } from "react";
 import {
-  Paper,
-  Box,
   Avatar,
-  TextField,
-  Button,
-  IconButton,
-  Icon,
   Backdrop,
+  Box,
+  Button,
+  ButtonGroup,
   Card,
-  CardMedia,
   CardActionArea,
   CardContent,
-  Typography,
-  useTheme,
-  Chip,
-  Tooltip,
-  Toolbar,
+  CardMedia,
+  CircularProgress,
   Divider,
-  makeStyles,
-  useMediaQuery,
-  ListItem,
-  ListItemAvatar,
+  Icon,
+  IconButton,
   ListItemText,
+  makeStyles,
   Menu,
   MenuItem,
+  Paper,
   Popover,
-  CircularProgress,
-  ButtonGroup,
+  TextField,
+  Toolbar,
+  Tooltip,
+  Typography,
+  useMediaQuery,
+  useTheme,
 } from "@material-ui/core";
-import { connect } from "react-redux";
-import MUIRichTextEditor from "mui-rte";
-import moment from "moment";
-import { makeLinkTo } from "../../components/router-dom";
-import UserData from "../../components/UserData";
-import socket from "../../components/socket.io";
-import PopupState, { bindMenu, bindTrigger } from "material-ui-popup-state";
-import { EditorState, convertToRaw, ContentState } from "draft-js";
-import Pagination, { getPageItems } from "../../components/Pagination";
-import Api from "../../api";
-import { List } from "immutable";
+import { ContentState, convertToRaw, EditorState } from "draft-js";
 import { motion } from "framer-motion";
+import PopupState, { bindMenu, bindTrigger } from "material-ui-popup-state";
+import moment from "moment";
+import MUIRichTextEditor from "mui-rte";
+import React, { useEffect, useRef, useState } from "react";
+import { connect } from "react-redux";
+import Api from "../../api";
+import Pagination, { getPageItems } from "../../components/Pagination";
+import { makeLinkTo } from "../../components/router-dom";
+import socket from "../../components/socket.io";
+import UserData from "../../components/UserData";
 
 const getAutocomplete = (classes) =>
   Object.keys(classes).map((k) => {
@@ -1006,25 +1002,23 @@ function Posts(props) {
                   saving={true}
                 />
               )}
-              <motion.div layout>
-                {getPageItems(
-                  props.posts.current
-                    .sort(
-                      (a, b) => new Date(b.created_at) - new Date(a.created_at)
-                    )
-                    .map((p, index) => (
-                      <Discussion
-                        key={index}
-                        {...props}
-                        userInfo={props.userInfo}
-                        class={props.classes[class_id]}
-                        post={p}
-                      />
-                    )),
-                  discussionPage,
-                  10
-                )}
-              </motion.div>
+              {getPageItems(
+                props.posts.current
+                  .sort(
+                    (a, b) => new Date(b.created_at) - new Date(a.created_at)
+                  )
+                  .map((p, index) => (
+                    <Discussion
+                      key={index}
+                      {...props}
+                      userInfo={props.userInfo}
+                      class={props.classes[class_id]}
+                      post={p}
+                    />
+                  )),
+                discussionPage,
+                10
+              )}
               <Box marginTop={2} marginBottom={2}>
                 {!loading ? (
                   <Pagination
