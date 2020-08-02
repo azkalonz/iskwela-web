@@ -168,7 +168,7 @@ function Scores(props) {
                 type="date"
                 defaultValue={dateFrom}
                 variant="outlined"
-                className="themed-input no-margin"
+                className="themed-input no-margin small"
                 InputLabelProps={{
                   shrink: true,
                 }}
@@ -184,7 +184,7 @@ function Scores(props) {
                 type="date"
                 defaultValue={dateTo}
                 variant="outlined"
-                className="themed-input no-margin"
+                className="themed-input no-margin small"
                 InputLabelProps={{
                   shrink: true,
                 }}
@@ -478,7 +478,7 @@ function ScoreDetails(props) {
             type="date"
             defaultValue={dateFrom}
             variant="outlined"
-            className="themed-input no-margin"
+            className="themed-input no-margin small"
             InputLabelProps={{
               shrink: true,
             }}
@@ -498,7 +498,7 @@ function ScoreDetails(props) {
             type="date"
             defaultValue={dateTo}
             variant="outlined"
-            className="themed-input no-margin"
+            className="themed-input no-margin small"
             InputLabelProps={{
               shrink: true,
             }}

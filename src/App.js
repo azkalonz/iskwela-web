@@ -323,7 +323,7 @@ function App(props) {
             "&.light .MuiInputLabel-shrink": {
               color: "#fff",
             },
-            "& > div": {
+            "&.small > div": {
               height: 46,
             },
             "&.date": {
