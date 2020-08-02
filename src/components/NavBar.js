@@ -77,7 +77,6 @@ const DialogTitle = withStyles(styles)((props) => {
 function Alert(props) {
   return <MuiAlert elevation={6} variant="filled" {...props} />;
 }
-
 const useStyles = makeStyles((theme) => ({
   root: {
     flexGrow: 1,
@@ -108,17 +107,18 @@ function NavBar(props) {
   const [changeProfileDialog, setChangeProfileDialog] = useState(false);
   const [changePassDialog, setchangePassDialog] = useState(false);
   const [pageTitle, setPageTitle] = useState([]);
+  const [meetingDialog, setMeetingDialog] = useState(false);
   const meeting = {
-    open: () => {
+    join: () => {
       let id = document.querySelector("#room-name");
-      history.push(
-        makeLinkTo(["id"], {
-          id: id && id.value ? "?id=" + id.value + "#meeting" : "#meeting",
-        })
+      window.open(
+        "https://meet.jit.si/" + id.value.replace(" ", "-"),
+        "_blank"
       );
+      setMeetingDialog(false);
     },
+    close: () => setMeetingDialog(false),
   };
-
   const handleMenu = (event) => {
     setAnchorEl(event.currentTarget);
   };
@@ -153,6 +153,27 @@ function NavBar(props) {
   }, [notSeen]);
   return (
     <div className={[classes.root, "sticky"].join(" ")} id="nav-bar">
+      <Dialog open={meetingDialog} onClose={meeting.close}>
+        <DialogTitle onClose={meeting.close}>Start a meeting</DialogTitle>
+        <DialogContent>
+          <TextField
+            variant="outlined"
+            fullWidth
+            id="room-name"
+            className="themed-input"
+            fullWidth
+            type="text"
+            label="Meeting ID"
+            style={{ marginTop: 15 }}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button variant="contained" color="primary" onClick={meeting.join}>
+            Join
+            <Icon style={{ marginLeft: 7 }}>videocam</Icon>
+          </Button>
+        </DialogActions>
+      </Dialog>
       <ProfilePicDialog
         open={changeProfileDialog}
         onClose={() => setChangeProfileDialog(false)}
@@ -241,10 +262,7 @@ function NavBar(props) {
               >
                 {props.userInfo.user_type === "t" && (
                   <MenuItem>
-                    <Box
-                      className="warn-to-leave"
-                      onClick={() => meeting.open()}
-                    >
+                    <Box onClick={() => setMeetingDialog(true)}>
                       Start a Meeting
                     </Box>
                   </MenuItem>

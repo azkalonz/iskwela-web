@@ -197,7 +197,7 @@ function App(props) {
       },
       MuiOutlinedInput: {
         root: {
-          paddingLeft: 10,
+          // paddingLeft: 10,
           border:
             "1px solid " +
             (props.theme === "dark" ? "rgba(255,255,255,0.22)" : "#E9E4EF"),
@@ -322,6 +322,9 @@ function App(props) {
             },
             "&.light .MuiInputLabel-shrink": {
               color: "#fff",
+            },
+            "& > div": {
+              height: 46,
             },
             "&.date": {
               margin: 0,

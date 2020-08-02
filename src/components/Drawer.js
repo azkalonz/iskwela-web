@@ -526,7 +526,7 @@ function Drawer(props) {
             {more &&
               classes.slice(5, props.classes.length).map((item, index) => {
                 return (
-                  <Grow in={more}>
+                  <Grow in={more} key={index}>
                     <Box
                       className={
                         class_id && parseInt(class_id) === parseInt(item.id)

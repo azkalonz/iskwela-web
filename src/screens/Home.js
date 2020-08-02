@@ -358,67 +358,6 @@ function Home(props) {
       .sort((a, b) => (a.next_schedule.status === "ONGOING" ? -1 : 0))
       .sort((a, b) => a.id - b.id);
   };
-  const meeting = {
-    open: () => {
-      let id = document.querySelector("#room-name");
-      if (id.value && id.value.length >= 7) {
-        props.history.push(
-          makeLinkTo(["id"], {
-            id:
-              id && id.value
-                ? "?id=" + id.value.replace(" ", "-") + "#meeting"
-                : "#meeting",
-          })
-        );
-      } else {
-        setErrors(["Room ID must be at least 7 characters long."]);
-      }
-    },
-    close: () => props.history.push("/"),
-    create: () => {
-      let id = document.querySelector("#room-name");
-      if (id.value && id.value.length >= 7) {
-        history.push(
-          makeLinkTo(["id"], {
-            id: "?id=" + id.value.replace(" ", "-") + "#meeting",
-          })
-        );
-      } else {
-        setErrors(["Room ID must be at least 7 characters long."]);
-      }
-    },
-  };
-  function Conference(pp) {
-    const { name, id } = pp;
-    return (
-      <Box
-        m={2}
-        display="flex"
-        justifyContent="space-between"
-        alignItems="flex-start"
-        height="90%"
-      >
-        <Box width="100%" height="100%">
-          <Jitsi
-            domain="jts.iskwela.net"
-            jwt={
-              "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJqaXRzaSIsImlzcyI6InNjaG9vbGh1YiIsInN1YiI6Imp0cy5pc2t3ZWxhLm5ldCIsInJvb20iOiIqIn0.3BQBpXgHFM51Al1qjPz-sCFDPEnuKwKb47-h2Dctsqg"
-            }
-            displayName={name}
-            roomName={id}
-            containerStyle={{
-              margin: "0 auto",
-              width: "100%",
-              display: "flex",
-              height: "100%",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          />
-        </Box>
-      </Box>
-    );
-  }
   return (
     <React.Fragment>
       <Snackbar
@@ -456,50 +395,6 @@ function Home(props) {
             </Grow>
           </Snackbar>
         ))}
-      <Dialog
-        fullScreen
-        open={props.location.hash === "#meeting"}
-        onClose={meeting.close}
-      >
-        <DialogTitle onClose={meeting.close}>iSkwela Meeting</DialogTitle>
-        <DialogContent>
-          {query.id ? (
-            <Conference
-              id={query.id}
-              name={props.userInfo.first_name + " " + props.userInfo.last_name}
-            />
-          ) : (
-            <Box m={2}>
-              <TextField
-                variant="filled"
-                fullWidth
-                id="room-name"
-                fullWidth
-                type="text"
-                label="Meeting ID"
-              />
-              <Box display="flex" marginTop={2} alignItems="center">
-                <Button
-                  fullWidth
-                  variant="outlined"
-                  color="primary"
-                  onClick={meeting.open}
-                >
-                  Join
-                </Button>
-                <Button
-                  fullWidth
-                  variant="contained"
-                  color="primary"
-                  onClick={meeting.create}
-                >
-                  Create
-                </Button>
-              </Box>
-            </Box>
-          )}
-        </DialogContent>
-      </Dialog>
       <div style={{ height: "100vh", overflow: "hidden auto" }}>
         <Drawer {...props}>
           <Scrollbar autoHide>

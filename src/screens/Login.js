@@ -139,36 +139,38 @@ function LoginContainer(props) {
           </Alert>
         </Snackbar>
       )}
-      <TextField
-        variant="outlined"
-        onChange={(e) => setUsername(e.target.value)}
-        onKeyDown={(event, value) => {
-          if (event.keyCode == 13) _handleLogin(event);
-        }}
-        margin="normal"
-        fullWidth
-        className={!isMobile ? "themed-input" : "themed-input light"}
-        id="email"
-        label="Username"
-        name="email"
-        autoComplete="email"
-        autoFocus
-      />
-      <TextField
-        variant="outlined"
-        onChange={(e) => setPassword(e.target.value)}
-        margin="normal"
-        onKeyDown={(event, value) => {
-          if (event.keyCode == 13) _handleLogin(event);
-        }}
-        fullWidth
-        className={!isMobile ? "themed-input" : "themed-input light"}
-        name="password"
-        label="Password"
-        type="password"
-        id="password"
-        autoComplete="current-password"
-      />
+      <form action="#" onSubmit={() => false}>
+        <TextField
+          variant="outlined"
+          onChange={(e) => setUsername(e.target.value)}
+          onKeyDown={(event, value) => {
+            if (event.keyCode == 13) _handleLogin(event);
+          }}
+          margin="normal"
+          fullWidth
+          className={!isMobile ? "themed-input" : "themed-input light"}
+          id="email"
+          label="Username"
+          name="email"
+          autoComplete="email"
+          autoFocus
+        />
+        <TextField
+          variant="outlined"
+          onChange={(e) => setPassword(e.target.value)}
+          margin="normal"
+          onKeyDown={(event, value) => {
+            if (event.keyCode == 13) _handleLogin(event);
+          }}
+          fullWidth
+          className={!isMobile ? "themed-input" : "themed-input light"}
+          name="password"
+          label="Password"
+          type="password"
+          id="password"
+          autoComplete="current-password"
+        />
+      </form>
       <Typography variant="body2" align="right">
         <Link
           href="#"
