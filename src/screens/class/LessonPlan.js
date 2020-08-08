@@ -114,7 +114,7 @@ function LessonPlan(props) {
           allMaterials.push({ ...ss, schedule_id: s.id });
         });
       });
-      setMaterials(allMaterials);
+      setMaterials(allMaterials.sort((a, b) => a.id - b.id));
     } catch (e) {
       //handle invalid schedule
     }

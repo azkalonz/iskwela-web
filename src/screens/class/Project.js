@@ -224,7 +224,7 @@ function Project(props) {
           });
         }
       });
-      setActivities(allActivities);
+      setActivities(allActivities.sort((a, b) => a.id - b.id));
       if (currentActivity) {
         let newAct = allActivities.find((act) => act.id === currentActivity.id);
         if (!newAct) setCurrentActivity(null);
