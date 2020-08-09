@@ -80,6 +80,41 @@ function Attendance(props) {
       return attendance.find((q) => q.id === parseInt(query.id));
     } else return null;
   }, [attendance, query.id]);
+  const _handleFileOption = (option, file) => {
+    switch (option) {
+      case "update":
+        setCurrentEvent({
+          opened: true,
+          date: props.classDetails[class_id]?.schedules[schedule_id]?.from,
+          reason: (
+            <React.Fragment>
+              <TextField
+                id="reason"
+                className="themed-input"
+                variant="outlined"
+                label="Reason"
+                type="text"
+                fullWidth
+              />
+            </React.Fragment>
+          ),
+          actions: (
+            <ButtonGroup variant="contained">
+              <Button onClick={() => addAttendance(2, file.id, null)}>
+                Absent
+              </Button>
+              <Button onClick={() => addAttendance(1, file.id, null)}>
+                Present
+              </Button>
+            </ButtonGroup>
+          ),
+          status: "unmarked",
+        });
+        return;
+      default:
+        return;
+    }
+  };
   const addAttendance = async (
     status,
     student_id,
@@ -139,47 +174,44 @@ function Attendance(props) {
         isLoading={saving}
         onClose={() => setCurrentEvent({ ...currentEvent, opened: false })}
       />
-      <Box
-        display="flex"
-        width="100%"
-        justifyContent="center"
-        alignItems="stretch"
-      >
-        <Box p={2} width="100%" marginTop={2}>
-          <Box
-            flexDirection="row"
-            display="flex"
-            justifyContent="space-between"
-            alignItems="center"
-          >
-            <div>
-              {!currentStudent ? (
-                <FormControl variant="outlined">
-                  <InputLabel>Status</InputLabel>
-                  <Select label="Status" value="present" padding={10}>
-                    <MenuItem value="all">All</MenuItem>
-                    <MenuItem value="present">Present</MenuItem>
-                    <MenuItem value="absent">Absent</MenuItem>
-                  </Select>
-                </FormControl>
-              ) : (
-                <IconButton
-                  color="primary"
-                  onClick={() => props.history.goBack()}
-                >
-                  <Icon>arrow_back</Icon>
-                </IconButton>
+      {!currentStudent && (
+        <Box
+          display="flex"
+          width="100%"
+          justifyContent="center"
+          alignItems="stretch"
+        >
+          <Box p={2} width="100%" marginTop={2}>
+            <Box
+              flexDirection="row"
+              display="flex"
+              justifyContent="space-between"
+              alignItems="center"
+            >
+              <div>
+                {!currentStudent && (
+                  <FormControl variant="outlined">
+                    <InputLabel>Status</InputLabel>
+                    <Select label="Status" value="present" padding={10}>
+                      <MenuItem value="all">All</MenuItem>
+                      <MenuItem value="present">Present</MenuItem>
+                      <MenuItem value="absent">Absent</MenuItem>
+                    </Select>
+                  </FormControl>
+                )}
+              </div>
+              {!currentStudent && (
+                <SearchInput
+                  style={{ marginLeft: 16 }}
+                  onChange={(e) => {
+                    _handleSearch(e);
+                  }}
+                />
               )}
-            </div>
-            <SearchInput
-              style={{ marginLeft: 16 }}
-              onChange={(e) => {
-                _handleSearch(e);
-              }}
-            />
+            </Box>
           </Box>
         </Box>
-      </Box>
+      )}
       <Box width="100%" display="flex" flexWrap={isMobile ? "wrap" : "nowrap"}>
         {!currentStudent && (
           <Box width="100%" alignSelf="flex-start" order={isMobile ? 2 : 0}>
@@ -289,22 +321,10 @@ function Attendance(props) {
                     })();
                   }
                 },
-                _handleFileOption: (opt, file) => null,
+                _handleFileOption: (opt, file) => _handleFileOption(opt, file),
               }}
-              options={[
-                {
-                  name: "View",
-                  value: "view",
-                },
-              ]}
-              teacherOptions={[
-                { name: "Close Activity", value: "close-activity" },
-                { name: "Open Activity", value: "open-activity" },
-                { name: "Edit", value: "edit" },
-                { name: "Publish", value: "publish" },
-                { name: "Unpublish", value: "unpublish" },
-                { name: "Delete", value: "delete" },
-              ]}
+              options={[]}
+              teacherOptions={[{ name: "Mark Attendance", value: "update" }]}
               filtered={(a) => getFilteredAttendance(a)}
               rowRenderMobile={(item, { disabled = false }) => (
                 <Box
@@ -431,6 +451,14 @@ function Attendance(props) {
           <Paper>
             <Box p={2} className={styles.calendar}>
               <Box display="flex" alignItems="center" marginBottom={2}>
+                {currentStudent && (
+                  <IconButton
+                    color="primary"
+                    onClick={() => props.history.goBack()}
+                  >
+                    <Icon>arrow_back</Icon>
+                  </IconButton>
+                )}
                 {currentStudent && (
                   <Avatar
                     src={currentStudent.preferences.profile_picture}
