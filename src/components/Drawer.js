@@ -379,9 +379,9 @@ function Drawer(props) {
           id="mobile-drawer"
         >
           <Box
-            width={315}
-            minWidth={315}
-            maxWidth={315}
+            width={345}
+            minWidth={345}
+            maxWidth={345}
             height="100%"
             onScroll={() => {
               let t = document.querySelector("#mobile-drawer-toolbar");

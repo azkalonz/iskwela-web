@@ -1,33 +1,26 @@
+import {
+  Box,
+  CircularProgress,
+  MenuItem,
+  Select,
+  Tooltip,
+  Typography,
+  useMediaQuery,
+  useTheme,
+} from "@material-ui/core";
+import moment from "moment";
 import React, {
-  useState,
-  useEffect,
-  isValidElement,
   Children,
   cloneElement,
-  useMemo,
+  isValidElement,
   useCallback,
+  useEffect,
+  useMemo,
+  useState,
 } from "react";
-import moment from "moment";
-import {
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  Tooltip,
-  Box,
-  Typography,
-  useTheme,
-  useMediaQuery,
-  CircularProgress,
-  Dialog,
-  DialogContent,
-  DialogActions,
-  Button,
-} from "@material-ui/core";
-import { getWeek } from "date-fns";
 import { connect } from "react-redux";
 import { AttendanceProvider } from "../screens/class/Attendance";
-import { DialogTitle, SetAttendanceDialog } from "./dialogs";
+import { SetAttendanceDialog } from "./dialogs";
 
 const reasons = [
   "Sickness/doctor’s appointment",

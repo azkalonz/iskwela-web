@@ -360,7 +360,7 @@ const styles = (theme) => ({
     color: theme.palette.grey[500],
   },
 });
-export function SetAttendanceDialog(props) {
+function SetAttendanceDialog(props) {
   const { onClose, isLoading, eventSchedule } = props;
   return onClose && eventSchedule ? (
     <Dialog open={eventSchedule.opened || false} onClose={onClose}>
@@ -380,16 +380,21 @@ export function SetAttendanceDialog(props) {
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose}>Close</Button>
-        {Children.map(eventSchedule.actions, (child) => {
-          if (isValidElement(child)) {
-            return cloneElement(child, { disabled: isLoading || false });
-          }
-          return child;
-        })}
+        {props.userInfo.user_type === "t" &&
+          Children.map(eventSchedule.actions, (child) => {
+            if (isValidElement(child)) {
+              return cloneElement(child, { disabled: isLoading || false });
+            }
+            return child;
+          })}
       </DialogActions>
     </Dialog>
   ) : null;
 }
+const ConnectedSetAttendanceDialog = connect((states) => ({
+  userInfo: states.userInfo,
+}))(SetAttendanceDialog);
+export { ConnectedSetAttendanceDialog as SetAttendanceDialog };
 export const DialogTitle = withStyles(styles)((props) => {
   const { children, classes, onClose, ...other } = props;
   return (
