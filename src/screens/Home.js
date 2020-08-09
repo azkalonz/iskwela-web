@@ -428,7 +428,20 @@ function Home(props) {
                 )
               }
             />
-            <Box m={2} display="flex" flexWrap="wrap" justifyContent={"center"}>
+            <Box
+              m={2}
+              display="flex"
+              flexWrap="wrap"
+              justifyContent={isTablet || isMobile ? "center" : "flex-start"}
+              style={
+                !isMobile && !isTablet
+                  ? {
+                      width: "1140px",
+                      margin: "16px auto",
+                    }
+                  : {}
+              }
+            >
               <Box
                 width="100%"
                 display={isMobile ? "block" : "flex"}
@@ -458,18 +471,18 @@ function Home(props) {
                   page,
                   itemsPerPage
                 ).map((c, index) => classItem(c, index))}
-            </Box>
-            <Box m={2}>
-              <Pagination
-                match={props.match}
-                count={getFilteredClass().length}
-                itemsPerPage={itemsPerPage}
-                nolink
-                emptyTitle={"Nothing Found"}
-                emptyMessage={"Try a different keyword."}
-                page={page}
-                onChange={(p) => setPage(p)}
-              />
+              <Box m={2} width="100%">
+                <Pagination
+                  match={props.match}
+                  count={getFilteredClass().length}
+                  itemsPerPage={itemsPerPage}
+                  nolink
+                  emptyTitle={"Nothing Found"}
+                  emptyMessage={"Try a different keyword."}
+                  page={page}
+                  onChange={(p) => setPage(p)}
+                />
+              </Box>
             </Box>
           </Scrollbar>
         </Drawer>
