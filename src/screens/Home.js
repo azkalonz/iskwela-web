@@ -172,6 +172,7 @@ function Home(props) {
             zIndex: 2,
             borderRadius: 17,
             width: "100%",
+            overflow: "visible",
           }}
           className="shadowed card"
         >
@@ -190,6 +191,8 @@ function Home(props) {
                 position: "relative",
                 cursor: "pointer",
                 width: "100%",
+                overflow: "hidden",
+                borderRadius: "20px 20px 0 0",
               }}
             >
               <Box
@@ -226,7 +229,14 @@ function Home(props) {
             </CardContent>
 
             <CardActions
-              style={{ background: "grey.300", padding: "8px 20px" }}
+              style={{
+                background: "grey.300",
+                padding: "8px 20px",
+                position: "relative",
+                zIndex: 1,
+                background: theme.palette.type === "dark" ? "#222" : "#fff",
+                borderRadius: "0 0 20px 20px",
+              }}
             >
               <Box
                 p={1}
@@ -241,7 +251,7 @@ function Home(props) {
                 >
                   <Typography
                     variant="body2"
-                    style={{ fontSize: "0.75rem", marginLeft: 5 }}
+                    style={{ fontSize: 14, fontWeight: 400 }}
                   >
                     {moment(c.next_schedule.from).format("hh:mm A") +
                       " - " +
@@ -295,31 +305,31 @@ function Home(props) {
                 </div>
               </Box>
             </CardActions>
+            {Object.keys(c.next_schedule).length
+              ? (!c.next_schedule.nosched ||
+                  c.next_schedule.status === "ONGOING") &&
+                message && (
+                  <Paper
+                    onClick={() =>
+                      history.push(
+                        c.next_schedule.status === "ONGOING"
+                          ? videoConferenceLink
+                          : "/"
+                      )
+                    }
+                    className={[
+                      styles.classStatus,
+                      styles[c.next_schedule.status],
+                    ].join(" ")}
+                    style={{ borderRadius: 13, zIndex: 0 }}
+                  >
+                    <Typography variant="body1">{message}</Typography>
+                    {c.next_schedule.status === "ONGOING" && <VideocamIcon />}
+                  </Paper>
+                )
+              : ""}
           </CardActionArea>
         </Card>
-        {Object.keys(c.next_schedule).length
-          ? (!c.next_schedule.nosched ||
-              c.next_schedule.status === "ONGOING") &&
-            message && (
-              <Paper
-                onClick={() =>
-                  history.push(
-                    c.next_schedule.status === "ONGOING"
-                      ? videoConferenceLink
-                      : "/"
-                  )
-                }
-                className={[
-                  styles.classStatus,
-                  styles[c.next_schedule.status],
-                ].join(" ")}
-                style={{ borderRadius: 13 }}
-              >
-                <Typography variant="body1">{message}</Typography>
-                {c.next_schedule.status === "ONGOING" && <VideocamIcon />}
-              </Paper>
-            )
-          : ""}
       </Box>
     );
   };

@@ -179,6 +179,14 @@ export default function getTheme() {
             "&,& .card-media": {
               transition: "all 0.7s cubic-bezier(0.05, 0.94, 0.55, 1.01)",
             },
+            "&.card": {
+              "& button.MuiButtonBase-root.MuiCardActionArea-root:hover": {
+                backgroundColor: "rgba(0,0,0,0)!important",
+              },
+              "& .MuiCardActionArea-focusHighlight, & .MuiTouchRipple-root": {
+                borderRadius: 20,
+              },
+            },
             "&.card:hover": {
               transform: "translateY(-3px)",
               boxShadow:

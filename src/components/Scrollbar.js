@@ -52,7 +52,7 @@ function Scrollbar(props) {
             {...props}
             style={{
               ...style,
-              marginBottom: -15,
+              marginBottom: -17,
             }}
           />
         );

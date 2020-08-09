@@ -12,6 +12,8 @@ import {
   ListItemText,
   ButtonBase,
   Button,
+  useTheme,
+  useMediaQuery,
 } from "@material-ui/core";
 import socket from "./socket.io";
 import { connect } from "react-redux";
@@ -99,6 +101,8 @@ const Messages = {
 };
 
 function RecentMessages(props) {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const history = useHistory();
   const getFilteredMessages = () =>
     props.recent
@@ -140,7 +144,7 @@ function RecentMessages(props) {
         horizontal: "right",
       }}
     >
-      <Box maxWidth={400}>
+      <Box width={isMobile ? "100vw" : 400}>
         <Toolbar>
           <Typography style={{ fontWeight: "bold" }}>
             Recent Messages

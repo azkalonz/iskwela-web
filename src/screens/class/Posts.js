@@ -1012,7 +1012,6 @@ function WhatsDue(props) {
           style={{
             fontWeight: 600,
             fontSize: 18,
-            color: "#060606",
             opacity: 0.6,
           }}
         >
