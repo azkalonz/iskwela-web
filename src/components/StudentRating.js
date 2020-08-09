@@ -56,7 +56,7 @@ export default function StudenRating(props) {
           </Typography>
           <Box display="flex" alignItems="center" p={2}>
             <Avatar
-              src={props.activity.student.pic}
+              src={props.activity.student.preferences?.profile_picture || "/"}
               alt={props.activity.student.first_name}
             />
             <div style={{ marginLeft: 13 }}>
