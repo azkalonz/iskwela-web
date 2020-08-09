@@ -89,6 +89,15 @@ function AnswerQuiz(props) {
   useEffect(() => {
     setCurrentSlide(query.question ? parseInt(query.question) : 0);
   }, [query.question]);
+  useEffect(() => {
+    if (quiz) {
+      let i = document.querySelector("#question-image");
+      if (i) {
+        i.src = "";
+        i.src = quiz.slides[currentSlide]?.media?.large;
+      }
+    }
+  }, [currentSlide]);
   const getQuiz = (savedState = {}) => {
     let quiz = props.questionsSet.find((q) => q.id === parseInt(quiz_id));
     if (!quiz) return;
@@ -310,7 +319,7 @@ function AnswerQuiz(props) {
         display="flex"
         alignItems="flex-start"
         flexWrap={isMobile ? "wrap" : ""}
-        justifyContent="space-between"
+        justifyContent="center"
         height={
           props.fullHeight === undefined && !query.height ? "100vh" : "auto"
         }
@@ -318,7 +327,7 @@ function AnswerQuiz(props) {
       >
         {quiz && (
           <React.Fragment>
-            <Box width="100%">
+            <Box width={isMobile ? "100%" : "70%"}>
               {isMobile && (
                 <Box textAlign="right" m={3}>
                   <Paper>
@@ -353,6 +362,17 @@ function AnswerQuiz(props) {
                       overflow="hidden"
                     >
                       <img
+                        id="question-image"
+                        onError={() =>
+                          (document.querySelector(
+                            "#question-image"
+                          ).parentElement.style.display = "none")
+                        }
+                        onLoad={() =>
+                          (document.querySelector(
+                            "#question-image"
+                          ).parentElement.style.display = "flex")
+                        }
                         src={quiz.slides[currentSlide].media.large}
                         height="100%"
                         style={{ position: "relative", zIndex: 2 }}
@@ -462,6 +482,7 @@ function AnswerQuiz(props) {
                   </Box>
                   <Box p={2} display="flex" justifyContent="space-between">
                     <Button
+                      style={{ width: "auto" }}
                       variant="outlined"
                       disabled={currentSlide <= 0 || !isAvailable}
                       onClick={() => navigateSlide(currentSlide - 1)}
@@ -484,6 +505,7 @@ function AnswerQuiz(props) {
                         props.questionsSet.length - 1 &&
                       currentSlide === quiz.slides.length - 1 ? (
                       <Button
+                        style={{ width: "auto" }}
                         variant="outlined"
                         color="primary"
                         onClick={() => {
@@ -509,6 +531,7 @@ function AnswerQuiz(props) {
                       </Button>
                     ) : (
                       <Button
+                        style={{ width: "auto" }}
                         variant="outlined"
                         onClick={() => navigateSlide(currentSlide + 1)}
                       >
