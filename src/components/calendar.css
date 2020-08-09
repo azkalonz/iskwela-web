@@ -13,9 +13,14 @@
 .weekdays-container,
 .week {
   display: flex;
+  overflow: auto;
+}
+.mkj-calendar.large .day {
+  min-width: 11%;
 }
 .day {
   flex: 1;
+  cursor: pointer;
   align-items: center;
   border-right: 0.5px solid rgba(0, 0, 0, 0.1);
   display: flex;
@@ -55,11 +60,23 @@
   word-break: break-all;
 }
 .absent,
+.unmarked,
+.schedule,
 .present {
   cursor: pointer;
   justify-content: center;
   border-radius: 9px;
   color: #fff;
+}
+.unmarked {
+  background: rgb(255, 237, 187);
+  color: rgb(82, 67, 0);
+  border: 1px dashed rgb(255, 251, 0);
+}
+.schedule {
+  background: rgb(187, 222, 255);
+  color: rgb(0, 19, 82);
+  border: 1px dashed rgb(0, 47, 255);
 }
 .absent {
   background: rgb(255, 220, 220);

@@ -176,8 +176,8 @@ function Table(props) {
                         {!props.noSelect && isTeacher ? (
                           <Typography
                             style={{
-                              fontWeight: "bold",
-                              fontSize: "1em",
+                              fontWeight: 600,
+                              fontSize: 18,
                             }}
                             onClick={_selectAll}
                           >
@@ -228,11 +228,11 @@ function Table(props) {
                             style={{
                               userSelect: "none",
                               marginRight: 10,
-                              fontWeight: "bold",
-                              fontSize: "1em",
+                              fontWeight: 600,
+                              fontSize: 18,
                             }}
                           >
-                            {c.title.toUpperCase()}
+                            {c.title.ucfirst()}
                           </Typography>
 
                           <div
@@ -289,6 +289,7 @@ function Table(props) {
                       )
                   : null
               }
+              labels={props.labels || {}}
             />
           ) : null}
           <Grow in={items ? true : false}>

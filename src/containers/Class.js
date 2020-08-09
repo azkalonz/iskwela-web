@@ -1097,7 +1097,7 @@ const useStyles = makeStyles((theme) => ({
       paddingBottom: 15,
       "& .panel-icon": {
         color: "rgba(255,255,255,0.75)",
-        fontSize: "2rem",
+        fontSize: "1.4rem",
       },
       "&.selected + div span, &.selected svg": {
         color: "#fff!important",

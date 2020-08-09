@@ -8,6 +8,7 @@ import {
   IconButton,
   Button,
   useTheme,
+  Icon,
 } from "@material-ui/core";
 import DeleteOutlineOutlinedIcon from "@material-ui/icons/DeleteOutlineOutlined";
 import VisibilityOffOutlinedIcon from "@material-ui/icons/VisibilityOffOutlined";
@@ -40,27 +41,48 @@ function CheckBoxAction(props) {
           />
           {props.onDelete && (
             <Grow in={true}>
-              <Tooltip title="Delete" placement="bottom">
+              <Tooltip
+                title={props.labels.onDelete?.title || "Delete"}
+                placement="bottom"
+              >
                 <IconButton onClick={props.onDelete}>
-                  <DeleteOutlineOutlinedIcon />
+                  {!props.labels.onDelete?.icon ? (
+                    <DeleteOutlineOutlinedIcon />
+                  ) : (
+                    <Icon>{props.labels.onDelete?.icon}</Icon>
+                  )}
                 </IconButton>
               </Tooltip>
             </Grow>
           )}
           {props.onUnpublish && (
             <Grow in={true}>
-              <Tooltip title="Unpublish" placement="bottom">
+              <Tooltip
+                title={props.labels.onUnpublish?.title || "Unpublish"}
+                placement="bottom"
+              >
                 <IconButton onClick={props.onUnpublish}>
-                  <span className="icon-unpublish"></span>
+                  {!props.labels.onUnpublish?.icon ? (
+                    <span className="icon-unpublish"></span>
+                  ) : (
+                    <Icon>{props.labels.onUnpublish?.icon}</Icon>
+                  )}
                 </IconButton>
               </Tooltip>
             </Grow>
           )}
           {props.onPublish && (
             <Grow in={true}>
-              <Tooltip title="Publish" placement="bottom">
+              <Tooltip
+                title={props.labels.onPublish?.title || "Publish"}
+                placement="bottom"
+              >
                 <IconButton onClick={props.onPublish}>
-                  <span className="icon-publish"></span>
+                  {!props.labels.onPublish?.icon ? (
+                    <span className="icon-publish"></span>
+                  ) : (
+                    <Icon>{props.labels.onPublish?.icon}</Icon>
+                  )}
                 </IconButton>
               </Tooltip>
             </Grow>

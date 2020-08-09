@@ -156,6 +156,9 @@ export default function getTheme() {
       MuiDialog: {
         paper: {
           minWidth: 500,
+          [defaultTheme.breakpoints.down("sm")]: {
+            minWidth: "auto",
+          },
         },
       },
       MuiAvatar: {

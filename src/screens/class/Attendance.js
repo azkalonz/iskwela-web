@@ -1,45 +1,44 @@
-import React, { useState } from "react";
-import { Doughnut } from "react-chartjs-2";
 import {
-  useTheme,
-  Box,
-  Paper,
-  FormControl,
-  InputLabel,
-  List,
-  CircularProgress,
-  withStyles,
-  Menu,
-  Button,
-  ListItem,
-  ListItemIcon,
-  IconButton,
-  ListItemSecondaryAction,
-  Checkbox,
-  ListItemText,
-  Select,
-  Grow,
-  MenuItem,
-  Typography,
-  makeStyles,
   Avatar,
+  Box,
+  FormControl,
+  Icon,
+  IconButton,
+  InputLabel,
+  ListItemText,
+  makeStyles,
+  MenuItem,
+  Paper,
+  Select,
+  Typography,
+  useMediaQuery,
+  useTheme,
+  ButtonGroup,
+  Button,
+  TextField,
 } from "@material-ui/core";
+import moment from "moment";
+import React, {
+  Children,
+  cloneElement,
+  isValidElement,
+  useEffect,
+  useMemo,
+  useState,
+  useRef,
+} from "react";
 import "react-calendar/dist/Calendar.css";
 import { connect } from "react-redux";
-import { SearchInput } from "../../components/Selectors";
-import Pagination, { getPageItems } from "../../components/Pagination";
-import ArrowDownwardOutlinedIcon from "@material-ui/icons/ArrowDownwardOutlined";
-import ArrowUpwardOutlinedIcon from "@material-ui/icons/ArrowUpwardOutlined";
-import { CheckBoxAction } from "../../components/CheckBox";
-import MoreHorizOutlinedIcon from "@material-ui/icons/MoreHorizOutlined";
+import Api from "../../api";
+import { CalendarProvider, Dates, Weekdays } from "../../components/Calendar";
+import Pagination from "../../components/Pagination";
 import store from "../../components/redux/store";
-import { Calendar } from "react-calendar";
-import {
-  CalendarProvider,
-  Weekdays,
-  Dates,
-  eventSchedules,
-} from "../../components/Calendar";
+import { makeLinkTo } from "../../components/router-dom";
+import { SearchInput } from "../../components/Selectors";
+import { Table } from "../../components/Table";
+import SavingButton from "../../components/SavingButton";
+import { SetAttendanceDialog } from "../../components/dialogs";
+import { asyncForEach } from "../../components/UserData";
 
 const useStyles = makeStyles((theme) => ({
   calendar: {
@@ -57,18 +56,17 @@ const useStyles = makeStyles((theme) => ({
 
 function Attendance(props) {
   const theme = useTheme();
-  const { class_id } = props.match.params;
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+  const { class_id, schedule_id, option_name, room_name } = props.match.params;
   const query = require("query-string").parse(window.location.search);
   const styles = useStyles();
-  const [anchorEl, setAnchorEl] = useState(null);
   const [saving, setSaving] = useState(false);
   const [savingId, setSavingId] = useState([]);
-  const [selectedSched, setSelectedSched] = useState(
-    query.date && query.date !== -1 ? parseInt(query.date) : -1
-  );
+  const [currentEvent, setCurrentEvent] = useState();
   const [attendance, setAttendance] = useState(
-    store.getState().classDetails[class_id].students.map((q) => ({
+    store.getState().classDetails[class_id]?.students.map((q) => ({
       ...q,
+      name: q.first_name + " " + q.last_name,
       absences: Math.round(Math.random())
         ? Math.floor(Math.random() * (5 - 1) + 1) + " absences"
         : "",
@@ -76,71 +74,71 @@ function Attendance(props) {
   );
   const [page, setPage] = useState(query.page ? parseInt(query.page) : 1);
   const [search, setSearch] = useState("");
-  const [selectedItems, setSelectedItems] = useState({});
-  const isTeacher = props.userInfo.user_type === "t" ? true : false;
-  const [sortType, setSortType] = useState("DESCENDING");
 
-  const data = {
-    labels: ["Attendees", "Absentees"],
-    datasets: [
-      {
-        data: [20, 2],
-        backgroundColor: [
-          theme.palette.primary.main,
-          theme.palette.secondary.main,
-        ],
-      },
-    ],
-  };
-  const getFilteredAttendance = () =>
-    attendance.filter(
-      (a) => JSON.stringify(a).toLowerCase().indexOf(search) >= 0
-    );
-  const _selectAll = () => {
-    let filtered = getPageItems(getFilteredAttendance(), page);
-    if (Object.keys(selectedItems).length === filtered.length) {
-      setSelectedItems({});
+  const currentStudent = useMemo(() => {
+    if (attendance && !isNaN(parseInt(query.id))) {
+      return attendance.find((q) => q.id === parseInt(query.id));
+    } else return null;
+  }, [attendance, query.id]);
+  const addAttendance = async (
+    status,
+    student_id,
+    callback,
+    multiple = false
+  ) => {
+    if (typeof status !== "number" || !student_id || !class_id || !schedule_id)
       return;
-    }
-    let b = {};
-    filtered.forEach((a) => {
-      b[a.id] = a;
-    });
-    setSelectedItems(b);
-  };
-  const _handleSort = () => {
-    if (sortType === "ASCENDING") {
-      setAttendance(
-        attendance.sort((a, b) =>
-          ("" + a.first_name).localeCompare(b.first_name)
-        )
-      );
-      setSortType("DESCENDING");
-    } else {
-      setAttendance(
-        attendance.sort((a, b) =>
-          ("" + b.first_name).localeCompare(a.first_name)
-        )
-      );
-      setSortType("ASCENDING");
+    setSaving(true);
+    try {
+      await Api.post("/api/class/attendance/save", {
+        body: {
+          student_id,
+          schedule_id: parseInt(schedule_id),
+          class_id: parseInt(class_id),
+          status,
+          reason: document.querySelector("#reason")?.value || "--",
+        },
+      });
+      if (!multiple) await getAttendance();
+    } catch (e) {}
+    if (!multiple) {
+      setSavingId([]);
+      setSaving(false);
+      setCurrentEvent({ ...currentEvent, opened: false });
+      callback && callback();
     }
   };
+  const getFilteredAttendance = (a = attendance) =>
+    a
+      .filter((a) => JSON.stringify(a).toLowerCase().indexOf(search) >= 0)
+      .map((q) => ({ ...q, name: q.first_name + " " + q.last_name }));
   const _handleSearch = (e) => {
     setSearch(e.toLowerCase());
+    if (!e) setPage(query.page ? parseInt(query.page) : 1);
+    else setPage(1);
   };
-  const _handleSelectOption = (item) => {
-    if (selectedItems[item.id]) {
-      let b = { ...selectedItems };
-      delete b[item.id];
-      setSelectedItems(b);
-      return;
-    }
-    let newitem = {};
-    newitem[item.id] = item;
-    setSelectedItems({ ...selectedItems, ...newitem });
+  const getAttendance = async () => {
+    try {
+      let res = await Api.get("/api/class/attendance/" + class_id);
+      if (res.students) {
+        let attendanceRecords = [...attendance].map((q) => {
+          let a = res.students.find((qq) => qq.id === q.id);
+          return { ...q, attendance: a, total_attendance: a.attendance };
+        });
+        setAttendance(attendanceRecords);
+      }
+    } catch (e) {}
   };
+  useEffect(() => {
+    if (class_id && !currentStudent) getAttendance();
+  }, [class_id, currentStudent]);
   return (
     <Box>
+      <SetAttendanceDialog
+        eventSchedule={currentEvent}
+        isLoading={saving}
+        onClose={() => setCurrentEvent({ ...currentEvent, opened: false })}
+      />
       <Box
         display="flex"
         width="100%"
@@ -150,28 +148,31 @@ function Attendance(props) {
         <Box p={2} width="100%" marginTop={2}>
           <Box
             flexDirection="row"
-            flexWrap="wrap"
             display="flex"
             justifyContent="space-between"
             alignItems="center"
           >
             <div>
-              {/* <ScheduleSelector
-                onChange={(schedId) => setSelectedSched(schedId)}
-                schedule={selectedSched >= 0 ? selectedSched : schedule_id}
-                match={props.match}
-              />
-              &nbsp; */}
-              <FormControl variant="outlined">
-                <InputLabel>Status</InputLabel>
-                <Select label="Status" value="present" padding={10}>
-                  <MenuItem value="all">All</MenuItem>
-                  <MenuItem value="present">Present</MenuItem>
-                  <MenuItem value="absent">Absent</MenuItem>
-                </Select>
-              </FormControl>
+              {!currentStudent ? (
+                <FormControl variant="outlined">
+                  <InputLabel>Status</InputLabel>
+                  <Select label="Status" value="present" padding={10}>
+                    <MenuItem value="all">All</MenuItem>
+                    <MenuItem value="present">Present</MenuItem>
+                    <MenuItem value="absent">Absent</MenuItem>
+                  </Select>
+                </FormControl>
+              ) : (
+                <IconButton
+                  color="primary"
+                  onClick={() => props.history.goBack()}
+                >
+                  <Icon>arrow_back</Icon>
+                </IconButton>
+              )}
             </div>
             <SearchInput
+              style={{ marginLeft: 16 }}
               onChange={(e) => {
                 _handleSearch(e);
               }}
@@ -179,175 +180,287 @@ function Attendance(props) {
           </Box>
         </Box>
       </Box>
-      <Box width="100%" display="flex">
-        <Box width="100%" alignSelf="flex-start" m={2}>
-          <Paper>
-            <Box p={2}>
-              {!Object.keys(selectedItems).length ? (
-                <List>
-                  <ListItem
-                    ContainerComponent="li"
-                    style={{
-                      display: "flex",
-                      flexDirection: "row",
-                      justifyContent: "space-between",
-                      backgroundColor: "transparent",
-                    }}
-                  >
-                    <div style={{ display: "flex", alignItems: "center" }}>
-                      {isTeacher && (
-                        <ListItemIcon>
-                          <Checkbox
-                            checked={
-                              Object.keys(selectedItems).length ===
-                              getPageItems(getFilteredAttendance(), page).length
-                                ? getPageItems(getFilteredAttendance(), page)
-                                    .length > 0
-                                  ? true
-                                  : false
-                                : false
-                            }
-                            onChange={() => {
-                              _selectAll();
-                            }}
-                          />
-                        </ListItemIcon>
-                      )}
-
-                      <Button size="small" onClick={_handleSort}>
-                        <ListItemText primary="Name" />
-                        {sortType === "ASCENDING" ? (
-                          <ArrowUpwardOutlinedIcon />
-                        ) : (
-                          <ArrowDownwardOutlinedIcon />
-                        )}
-                      </Button>
-                    </div>
-
-                    <Typography variant="body1" style={{ marginRight: 10 }}>
-                      REMARKS
-                    </Typography>
-                    <ListItemSecondaryAction></ListItemSecondaryAction>
-                  </ListItem>
-                </List>
-              ) : (
-                <CheckBoxAction
-                  checked={
-                    Object.keys(selectedItems).length ===
-                    getPageItems(getFilteredAttendance(), page).length
-                  }
-                  onSelect={_selectAll}
-                  onCancel={() => setSelectedItems({})}
-                />
-              )}
-              <Grow in={attendance ? true : false}>
-                <List>
-                  {getPageItems(getFilteredAttendance(), page).map(
-                    (item, index) => (
-                      <ListItem
-                        key={index}
-                        className={styles.listItem}
-                        style={{
-                          borderColor:
-                            item.status === "published"
-                              ? theme.palette.success.main
-                              : "#fff",
-                        }}
-                      >
-                        {isTeacher && (
-                          <ListItemIcon>
-                            <Checkbox
-                              onClick={() => _handleSelectOption(item)}
-                              checked={selectedItems[item.id] ? true : false}
-                            />
-                          </ListItemIcon>
-                        )}
-                        {saving && savingId.indexOf(item.id) >= 0 && (
-                          <div className={styles.itemLoading}>
-                            <CircularProgress />
-                          </div>
-                        )}
-                        <ListItemIcon>
-                          <Avatar alt={item.first_name} src="" />
-                        </ListItemIcon>
-                        <ListItemText
-                          style={{ marginRight: 10 }}
-                          primary={item.first_name + " " + item.last_name}
-                          secondary={item.absences}
+      <Box width="100%" display="flex" flexWrap={isMobile ? "wrap" : "nowrap"}>
+        {!currentStudent && (
+          <Box width="100%" alignSelf="flex-start" order={isMobile ? 2 : 0}>
+            <Table
+              headers={[
+                { id: "name", title: "Name", width: "50%" },
+                {
+                  id: "total_attendance",
+                  title: "Attendance",
+                  align: "flex-end",
+                  width: "50%",
+                },
+              ]}
+              data={attendance}
+              saving={saving}
+              savingId={savingId}
+              pagination={{
+                render: (
+                  <Pagination
+                    page={page}
+                    match={props.match}
+                    icon={
+                      search ? (
+                        <img
+                          src="/hero-img/search.svg"
+                          width={180}
+                          style={{ padding: "50px 0" }}
                         />
-                        <Typography
-                          variant="body1"
-                          style={{ marginRight: 10 }}
-                        ></Typography>
-                        <ListItemSecondaryAction>
-                          <IconButton
-                            onClick={(event) =>
-                              setAnchorEl(() => {
-                                let a = {};
-                                a[item.id] = event.currentTarget;
-                                return { ...anchorEl, ...a };
-                              })
-                            }
-                          >
-                            <MoreHorizOutlinedIcon />
-                          </IconButton>
-                          {anchorEl && (
-                            <StyledMenu
-                              id="customized-menu"
-                              anchorEl={anchorEl[item.id]}
-                              keepMounted
-                              open={Boolean(anchorEl[item.id])}
-                              onClose={() =>
-                                setAnchorEl(() => {
-                                  let a = {};
-                                  a[item.id] = null;
-                                  return { ...anchorEl, ...a };
-                                })
-                              }
-                            ></StyledMenu>
-                          )}
-                        </ListItemSecondaryAction>
-                      </ListItem>
+                      ) : (
+                        <img
+                          src="/hero-img/undraw_Progress_tracking_re_ulfg.svg"
+                          width={180}
+                          style={{ padding: "50px 0" }}
+                        />
+                      )
+                    }
+                    emptyTitle={search ? "Nothing Found" : false}
+                    emptyMessage={search ? "Try a different keyword." : false}
+                    onChange={(p) => setPage(p)}
+                    count={getFilteredAttendance().length}
+                  />
+                ),
+                page,
+                onChangePage: (p) => setPage(p),
+              }}
+              labels={{
+                onPublish: {
+                  title: "Mark Present",
+                  icon: "done_all",
+                },
+                onUnpublish: {
+                  title: "Mark Absent",
+                  icon: "close",
+                },
+              }}
+              actions={{
+                onUpdate: (a, s, done = null) => {
+                  let k = Object.keys(a);
+                  let id = a[k[0]]?.id;
+                  if (k.length === 1) {
+                    setSavingId([id]);
+                    setCurrentEvent({
+                      opened: true,
+                      date:
+                        props.classDetails[class_id]?.schedules[schedule_id]
+                          ?.from,
+                      reason: (
+                        <React.Fragment>
+                          <TextField
+                            id="reason"
+                            className="themed-input"
+                            variant="outlined"
+                            label="Reason"
+                            type="text"
+                            fullWidth
+                          />
+                        </React.Fragment>
+                      ),
+                      actions: (
+                        <ButtonGroup variant="contained">
+                          <Button onClick={() => addAttendance(2, id, done)}>
+                            Absent
+                          </Button>
+                          <Button onClick={() => addAttendance(1, id, done)}>
+                            Present
+                          </Button>
+                        </ButtonGroup>
+                      ),
+                      status: "unmarked",
+                    });
+                  } else if (k.length > 1) {
+                    (async () => {
+                      let ids = [];
+                      k.map((kk) => {
+                        ids.push(a[kk]?.id);
+                      });
+                      setSavingId(ids);
+                      await asyncForEach(k, async (key) => {
+                        id = a[key]?.id;
+                        await addAttendance(!s ? 2 : 1, id, done, true);
+                      });
+                      await getAttendance();
+                      setSavingId([]);
+                      setSaving(false);
+                      setCurrentEvent({ ...currentEvent, opened: false });
+                      done && done();
+                    })();
+                  }
+                },
+                _handleFileOption: (opt, file) => null,
+              }}
+              options={[
+                {
+                  name: "View",
+                  value: "view",
+                },
+              ]}
+              teacherOptions={[
+                { name: "Close Activity", value: "close-activity" },
+                { name: "Open Activity", value: "open-activity" },
+                { name: "Edit", value: "edit" },
+                { name: "Publish", value: "publish" },
+                { name: "Unpublish", value: "unpublish" },
+                { name: "Delete", value: "delete" },
+              ]}
+              filtered={(a) => getFilteredAttendance(a)}
+              rowRenderMobile={(item, { disabled = false }) => (
+                <Box
+                  onClick={() =>
+                    !disabled &&
+                    props.history.push(
+                      makeLinkTo([
+                        "class",
+                        class_id,
+                        schedule_id,
+                        option_name,
+                        room_name,
+                        "?id=" + item.id,
+                      ])
                     )
-                  )}
-                </List>
-              </Grow>
-            </Box>
-
-            <Box p={2}>
-              <Pagination
-                icon={search ? "search" : "face"}
-                emptyTitle={search ? "Nothing Found" : false}
-                emptyMessage={
-                  search
-                    ? "Try a different keyword."
-                    : "There's no students to list here."
-                }
-                match={props.match}
-                page={page}
-                onChange={(p) => setPage(p)}
-                count={getFilteredAttendance().length}
-              />
-            </Box>
-          </Paper>
-        </Box>
-        <Box m={2} style={{ marginLeft: 0 }} width={330}>
+                  }
+                  display="flex"
+                  flexWrap="wrap"
+                  width="90%"
+                  flexDirection="column"
+                  justifyContent="space-between"
+                  style={{ padding: "30px 0" }}
+                >
+                  <Box width="100%" marginBottom={1}>
+                    <Typography
+                      style={{
+                        fontWeight: "bold",
+                        color: "#38108d",
+                        fontSize: "1em",
+                      }}
+                    >
+                      NAME
+                    </Typography>
+                    <Typography variant="body1">{item.name}</Typography>
+                    <Typography variant="body1" color="textSecondary">
+                      {item.attendance?.absence} absences
+                    </Typography>
+                  </Box>
+                  <Box width="100%">
+                    <Typography
+                      style={{
+                        fontWeight: "bold",
+                        color: "#38108d",
+                        fontSize: "1em",
+                      }}
+                    >
+                      ATTENDANCE
+                    </Typography>
+                    <Box display="flex" alignItems="center">
+                      {item.attendance?.attendance}
+                    </Box>
+                  </Box>
+                </Box>
+              )}
+              rowRender={(item, { disabled = false }) => (
+                <Box
+                  width="100%"
+                  display="flex"
+                  onClick={() =>
+                    !disabled &&
+                    props.history.push(
+                      makeLinkTo([
+                        "class",
+                        class_id,
+                        schedule_id,
+                        option_name,
+                        room_name,
+                        "?id=" + item.id,
+                      ])
+                    )
+                  }
+                >
+                  <Box flex={1} overflow="hidden" width="50%" maxWidth="50%">
+                    <ListItemText
+                      primary={item.name}
+                      secondaryTypographyProps={{
+                        style: {
+                          width: isMobile ? "80%" : "100%",
+                          whiteSpace: "pre-wrap",
+                        },
+                      }}
+                      primaryTypographyProps={{
+                        style: {
+                          whiteSpace: "pre-wrap",
+                        },
+                      }}
+                      secondary={
+                        item.attendance
+                          ? item.attendance.absence + " absences"
+                          : ""
+                      }
+                    />
+                  </Box>
+                  <Box
+                    overflow="hidden"
+                    width="50%"
+                    maxWidth="50%"
+                    justifyContent="flex-end"
+                    display="flex"
+                  >
+                    <Typography
+                      variant="body1"
+                      component="div"
+                      style={{
+                        marginRight: 45,
+                        display: "flex",
+                        alignItems: "center",
+                        textAlign: "right",
+                      }}
+                    >
+                      {item.attendance?.attendance}
+                    </Typography>
+                  </Box>
+                </Box>
+              )}
+            />
+          </Box>
+        )}
+        <Box
+          m={2}
+          marginLeft={!currentStudent && !isMobile ? 0 : 2}
+          width={!currentStudent && !isMobile ? 330 : "100%"}
+        >
           <Paper>
             <Box p={2} className={styles.calendar}>
-              <Typography
-                style={{ fontWeight: "bold", marginBottom: theme.spacing(2) }}
+              <Box display="flex" alignItems="center" marginBottom={2}>
+                {currentStudent && (
+                  <Avatar
+                    src={currentStudent.preferences.profile_picture}
+                    alt={currentStudent.first_name}
+                    style={{ marginRight: theme.spacing(1) }}
+                  />
+                )}
+                <Typography
+                  style={{
+                    fontWeight: 600,
+                    fontSize: 18,
+                  }}
+                >
+                  {!currentStudent ? "Schedule" : currentStudent.name}
+                </Typography>
+              </Box>
+              <AttendanceProvider
+                {...props}
+                schedule_id={schedule_id}
+                class_id={class_id}
+                student={currentStudent}
               >
-                Schedule
-              </Typography>
-              <CalendarProvider
-                events={[].concat(...eventSchedules)}
-                style={{ minWidth: 240 }}
-                variant="small"
-              >
-                <Weekdays />
-                <Dates />
-              </CalendarProvider>
-              {/* <Calendar style={{ margin: "0 auto" }} /> */}
+                <CalendarProvider
+                  style={{ minWidth: 240 }}
+                  variant={!currentStudent || isMobile ? "small" : "large"}
+                >
+                  <Weekdays />
+                  <Dates />
+                </CalendarProvider>
+              </AttendanceProvider>
             </Box>
           </Paper>
         </Box>
@@ -355,34 +468,107 @@ function Attendance(props) {
     </Box>
   );
 }
-const StyledMenu = withStyles({
-  paper: {
-    border: "1px solid #d3d4d5",
-  },
-})((props) => (
-  <Menu
-    elevation={0}
-    getContentAnchorEl={null}
-    anchorOrigin={{
-      vertical: "bottom",
-      horizontal: "center",
-    }}
-    transformOrigin={{
-      vertical: "top",
-      horizontal: "center",
-    }}
-    {...props}
-  />
-));
-
-const StyledMenuItem = withStyles((theme) => ({
-  root: {
-    "&:focus": {
-      backgroundColor: theme.palette.grey[200],
-      "& .MuiListItemIcon-root, & .MuiListItemText-primary": {
-        color: theme.palette.common.primary,
-      },
-    },
-  },
-}))(MenuItem);
+export function AttendanceProvider(props) {
+  const { student, class_id, schedule_id } = props;
+  const [events, setEvents] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const schedules = useMemo(
+    () =>
+      Array.from(props.classDetails[class_id]?.schedules)
+        ?.filter((q) => q !== undefined)
+        .sort((a, b) => new Date(b.from) - new Date(a.from)),
+    [props.classDetails]
+  );
+  const addAttendance = async (status, schedule_id) => {
+    if (typeof status !== "number" || !student || !class_id || !schedule_id)
+      return;
+    setIsLoading(true);
+    try {
+      await Api.post("/api/class/attendance/save", {
+        body: {
+          student_id: student.id,
+          schedule_id,
+          class_id: parseInt(class_id),
+          status,
+          reason: document.querySelector("#reason")?.value || "--",
+        },
+      });
+      await getAttendanceEvents();
+    } catch (e) {}
+    setIsLoading(false);
+  };
+  const getAttendanceEvents = async () => {
+    try {
+      let res = await Api.get(
+        `/api/class/my-attendance?class_id=${class_id}&user_id=${student.id}`
+      );
+      if (res.length)
+        setEvents(
+          res.map((q) => ({
+            date: moment(q.from).format("MMM DD, YYYY"),
+            reason:
+              q.status_flag === null ? (
+                <React.Fragment>
+                  <TextField
+                    id="reason"
+                    className="themed-input"
+                    variant="outlined"
+                    label="Reason"
+                    type="text"
+                    fullWidth
+                  />
+                </React.Fragment>
+              ) : (
+                q.reason
+              ),
+            actions: q.status_flag === null && (
+              <ButtonGroup variant="contained">
+                <Button onClick={() => addAttendance(2, q.schedule_id)}>
+                  Absent
+                </Button>
+                <Button onClick={() => addAttendance(1, q.schedule_id)}>
+                  Present
+                </Button>
+              </ButtonGroup>
+            ),
+            excerpt:
+              typeof q.reason === "string" && q.reason.length
+                ? q.reason.slice(0, 20) + (q.reason.length > 20 ? "..." : "")
+                : "--",
+            status:
+              q.status_flag === 1
+                ? "present"
+                : q.status_flag === 2
+                ? "absent"
+                : "unmarked",
+          }))
+        );
+    } catch (e) {}
+    setIsLoading(false);
+  };
+  const getScheduleEvents = () => {
+    setEvents(
+      schedules.map((q) => ({
+        date: moment(q.from).format("MMM DD, YYYY"),
+        status: "schedule",
+      }))
+    );
+    setIsLoading(false);
+  };
+  useEffect(() => {
+    setIsLoading(true);
+    if (student) getAttendanceEvents();
+    else if (class_id && schedules.length) getScheduleEvents();
+  }, [schedules, student]);
+  return (
+    <React.Fragment>
+      {Children.map(props.children, (child) => {
+        if (isValidElement(child)) {
+          return cloneElement(child, { events, schedules, isLoading });
+        }
+        return child;
+      })}
+    </React.Fragment>
+  );
+}
 export default connect((states) => ({ userInfo: states.userInfo }))(Attendance);

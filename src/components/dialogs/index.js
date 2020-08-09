@@ -23,7 +23,13 @@ import {
   withStyles,
   Avatar,
 } from "@material-ui/core";
-import React, { useEffect, useState } from "react";
+import React, {
+  useEffect,
+  useState,
+  Children,
+  isValidElement,
+  cloneElement,
+} from "react";
 import { connect } from "react-redux";
 import { useHistory } from "react-router-dom";
 import socket from "../../components/socket.io";
@@ -32,6 +38,7 @@ import { makeLinkTo } from "../router-dom";
 import { SearchInput } from "../Selectors";
 import Recorder from "../../components/Recorder";
 import Messages from "../Messages";
+import moment from "moment";
 
 function VideoCall(props) {
   const { caller = {}, receiver = {}, status } = props;
@@ -353,6 +360,36 @@ const styles = (theme) => ({
     color: theme.palette.grey[500],
   },
 });
+export function SetAttendanceDialog(props) {
+  const { onClose, isLoading, eventSchedule } = props;
+  return onClose && eventSchedule ? (
+    <Dialog open={eventSchedule.opened || false} onClose={onClose}>
+      <DialogTitle onClose={onClose}>
+        {eventSchedule.status?.ucfirst()}
+      </DialogTitle>
+      <DialogContent>
+        <Typography>
+          Schedule: {moment(eventSchedule.date).format("MMM DD, YYYY hh:mm A")}
+        </Typography>
+        {typeof eventSchedule.reason === "string" &&
+        eventSchedule.reason.length ? (
+          <Typography>Remarks: {eventSchedule.reason}</Typography>
+        ) : (
+          eventSchedule.reason
+        )}
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={onClose}>Close</Button>
+        {Children.map(eventSchedule.actions, (child) => {
+          if (isValidElement(child)) {
+            return cloneElement(child, { disabled: isLoading || false });
+          }
+          return child;
+        })}
+      </DialogActions>
+    </Dialog>
+  ) : null;
+}
 export const DialogTitle = withStyles(styles)((props) => {
   const { children, classes, onClose, ...other } = props;
   return (
