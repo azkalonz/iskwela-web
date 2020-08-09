@@ -22,6 +22,7 @@ import {
   CircularProgress,
   useMediaQuery,
   TextField,
+  Checkbox,
 } from "@material-ui/core";
 import MaterialTable from "material-table";
 import moment from "moment";
@@ -42,8 +43,9 @@ import MomentUtils from "@date-io/moment";
 function Scores(props) {
   const query = require("query-string").parse(window.location.search);
   const theme = useTheme();
+  const [filterByDate, setFilterByDate] = useState(false);
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
-  const { class_id, schedule_id, option_name } = props.match.params;
+  const { class_id, schedule_id, option_name, room_name } = props.match.params;
   const [loading, setLoading] = useState(true);
   const [compareData, setCompareData] = useState();
   const [modals, setModals] = useState({});
@@ -96,16 +98,27 @@ function Scores(props) {
   const getScores = async ({ to = dateTo, from = dateFrom } = {}) => {
     setLoading(true);
     try {
+      let dateFilter = "";
+      if (filterByDate) {
+        dateFilter = `from=${from}&to=${to}&`;
+      }
       let data = await Api.get(
-        `/api/reports/activity-scores?from=${from}&to=${to}&class_id=${class_id}`
+        `/api/reports/activity-scores?${dateFilter}class_id=${class_id}`
       );
+      console.log(data);
       data = data
         .filter((q) => (isTeacher ? true : q.id === props.userInfo.id))
-        .map((q) => ({
-          ...q,
-          name: q.first_name + " " + q.last_name,
-          ...q.scores,
-        }));
+        .map((q) => {
+          let scores = q.scores;
+          Object.keys(scores).map((key) => {
+            scores[key] = scores[key] * 100 + "%";
+          });
+          return {
+            ...q,
+            name: q.first_name + " " + q.last_name,
+            ...scores,
+          };
+        });
       setTable({ ...table, data });
     } catch (e) {}
     setLoading(false);
@@ -128,7 +141,13 @@ function Scores(props) {
         student = table.data.find((q) => q.id === id);
         if (!student)
           props.history.push(
-            makeLinkTo(["class", class_id, schedule_id, option_name])
+            makeLinkTo([
+              "class",
+              class_id,
+              schedule_id,
+              option_name,
+              room_name || "",
+            ])
           );
       }
       setCurrentStudent(student);
@@ -137,7 +156,7 @@ function Scores(props) {
   }, [query, table]);
   useEffect(() => {
     getScores();
-  }, []);
+  }, [filterByDate]);
   return (
     <Box marginTop={2} marginBottom={2}>
       <Dialog
@@ -163,7 +182,7 @@ function Scores(props) {
           <Box display="flex" justifyContent="flex-end" padding={2}>
             <Box display="flex" alignItems="center" display="flex">
               <TextField
-                disabled={loading}
+                disabled={loading || !filterByDate}
                 label="From"
                 type="date"
                 defaultValue={dateFrom}
@@ -180,7 +199,7 @@ function Scores(props) {
               />
               <TextField
                 label="To"
-                disabled={loading}
+                disabled={loading || !filterByDate}
                 type="date"
                 defaultValue={dateTo}
                 variant="outlined"
@@ -193,6 +212,10 @@ function Scores(props) {
                   getScores({ to: e.target.value });
                 }}
                 style={{ height: 46, paddingRight: theme.spacing(2) }}
+              />
+              <Checkbox
+                checked={filterByDate}
+                onChange={() => setFilterByDate(!filterByDate)}
               />
             </Box>
           </Box>
@@ -215,6 +238,7 @@ function Scores(props) {
                       class_id,
                       schedule_id,
                       option_name,
+                      room_name || "",
                       "?q=" + row.id,
                     ])
                   );
@@ -256,7 +280,13 @@ function Scores(props) {
               <ScoreDetails
                 onClose={() => {
                   props.history.push(
-                    makeLinkTo(["class", class_id, schedule_id, option_name])
+                    makeLinkTo([
+                      "class",
+                      class_id,
+                      schedule_id,
+                      option_name,
+                      room_name || "",
+                    ])
                   );
                 }}
                 {...props}
