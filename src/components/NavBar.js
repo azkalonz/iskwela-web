@@ -1,48 +1,42 @@
-import React, { useState, useEffect } from "react";
 import {
-  makeStyles,
   AppBar,
   Avatar,
-  Toolbar,
-  CircularProgress,
-  Button,
-  Typography,
-  IconButton,
-  MenuItem,
-  withStyles,
-  Dialog,
-  Snackbar,
-  DialogContent,
-  Switch,
-  DialogTitle as MuiDialogTitle,
-  Menu,
-  Grow,
-  Box,
-  Tooltip,
-  DialogActions,
-  TextField,
-  useTheme,
-  useMediaQuery,
-  ButtonGroup,
-  Icon,
   Badge,
+  Box,
+  Button,
+  ButtonGroup,
+  CircularProgress,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  Grow,
+  Icon,
+  IconButton,
+  makeStyles,
+  Menu,
+  MenuItem,
+  Snackbar,
+  Switch,
+  TextField,
+  Toolbar,
+  Typography,
+  useMediaQuery,
+  useTheme,
 } from "@material-ui/core";
-import { connect } from "react-redux";
-import actions from "./redux/actions";
 import ArrowDropDownIcon from "@material-ui/icons/ArrowDropDown";
-import FileUpload, { stageFiles } from "./FileUpload";
 import CloseIcon from "@material-ui/icons/Close";
-import Form from "./Form";
-import Api from "../api";
 import MuiAlert from "@material-ui/lab/Alert";
-import UserData from "./UserData";
-import HelpOutlineOutlinedIcon from "@material-ui/icons/HelpOutlineOutlined";
-import store from "./redux/store";
-import { makeLinkTo } from "./router-dom";
+import React, { useEffect, useState } from "react";
+import { connect } from "react-redux";
 import { useHistory } from "react-router-dom";
+import Api from "../api";
+import { pageState, setTitle, _handleThemeType } from "../App";
+import { DialogTitle } from "../components/dialogs";
+import FileUpload, { stageFiles } from "./FileUpload";
+import Form from "./Form";
 import Messages, { RecentMessages } from "./Messages";
-import socket from "./socket.io";
-import { setTitle, pageState, _handleThemeType } from "../App";
+import actions from "./redux/actions";
+import UserData from "./UserData";
 const styles = (theme) => ({
   root: {
     margin: 0,
@@ -57,23 +51,6 @@ const styles = (theme) => ({
     color: theme.palette.grey[500],
   },
 });
-const DialogTitle = withStyles(styles)((props) => {
-  const { children, classes, onClose, ...other } = props;
-  return (
-    <MuiDialogTitle disableTypography className={classes.root} {...other}>
-      <Typography variant="h6">{children}</Typography>
-      {onClose ? (
-        <IconButton
-          aria-label="close"
-          className={classes.closeButton}
-          onClick={onClose}
-        >
-          <CloseIcon />
-        </IconButton>
-      ) : null}
-    </MuiDialogTitle>
-  );
-});
 function Alert(props) {
   return <MuiAlert elevation={6} variant="filled" {...props} />;
 }
@@ -86,12 +63,11 @@ const useStyles = makeStyles((theme) => ({
     maxHeight: 51,
     left: 0,
   },
-  appbar: {
-    background: theme.palette.grey[200],
-    boxShadow: "none",
-  },
   title: {
     flexGrow: 1,
+    fontWeight: 600,
+    opacity: 0.65,
+    fontSize: "18px",
   },
 }));
 
@@ -184,14 +160,13 @@ function NavBar(props) {
         onClose={() => setchangePassDialog(false)}
         userInfo={props.userInfo}
       />
-      <AppBar position="static" className={classes.appbar}>
+      <AppBar position="static" className="shadowed" style={props.style}>
         <Toolbar>
           {props.left}
           <Typography
             variant="body1"
             color="textPrimary"
             className={classes.title}
-            style={{ fontWeight: "bold", opacity: 0.65 }}
             id="navbar-title"
           >
             {props.title || ""}
@@ -226,12 +201,18 @@ function NavBar(props) {
                   variant="text"
                 >
                   <Avatar
-                    style={{ height: 25, width: 25, marginRight: 7 }}
+                    style={{ height: 28, width: 28, marginRight: 7 }}
                     alt={props.userInfo.first_name}
                     src={props.userInfo.preferences.profile_picture}
                   />
                   {!isMobile && (
-                    <Typography>
+                    <Typography
+                      style={{
+                        fontWeight: 400,
+                        fontSize: "12px",
+                        letterSpacing: "0.3px",
+                      }}
+                    >
                       {props.userInfo.first_name +
                         " " +
                         props.userInfo.last_name}

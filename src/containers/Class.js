@@ -46,6 +46,8 @@ import VideoConference from "../containers/VideoConference";
 import { setTitle } from "../App";
 import Scrollbar from "../components/Scrollbar";
 
+const classPanelWidth = 355;
+
 function setPanelIds(panel, i = 0) {
   panel.forEach((p) => {
     p.id = i;
@@ -206,7 +208,7 @@ function Class(props) {
       if (o.classList.value.indexOf("opened") < 0) {
         if (p.isChild) {
           let parent = o.parentElement.parentElement;
-          let parentHeight = parent.clientHeight - 48;
+          let parentHeight = parent.clientHeight - 64;
           parent.style.height = parentHeight + h + "px";
         }
         o.style.height = h + "px";
@@ -214,10 +216,10 @@ function Class(props) {
       } else {
         if (p.isChild) {
           let parent = o.parentElement.parentElement;
-          let parentHeight = parent.firstElementChild.clientHeight - h + 48;
+          let parentHeight = parent.firstElementChild.clientHeight - h + 64;
           parent.style.height = parentHeight + "px";
         }
-        o.style.height = "48px";
+        o.style.height = "64px";
         i.notexpanded.style.display = "block";
       }
       o.classList.toggle("opened");
@@ -227,7 +229,7 @@ function Class(props) {
         key={p.id}
         id={"panel-option-" + p.id}
         className="panel-option-container"
-        style={{ ...(p.children ? { height: 48, overflow: "hidden" } : {}) }}
+        style={{ ...(p.children ? { height: 64, overflow: "hidden" } : {}) }}
       >
         <div
           className="wrapper"
@@ -271,7 +273,7 @@ function Class(props) {
               <ListItemText
                 primary={!p.shrink ? p.title : p.title[0]}
                 primaryTypographyProps={{
-                  style: { fontWeight: !p.shrink ? 400 : "bold" },
+                  style: { fontWeight: 500, fontSize: 18 },
                 }}
                 style={{ textAlign: !p.shrink ? "left" : "center" }}
               />
@@ -450,7 +452,7 @@ function Class(props) {
         style={{
           height: "100vh",
           overflow: "auto",
-          width: opts.mini === true ? 75 : 330,
+          width: opts.mini === true ? 75 : classPanelWidth,
         }}
       >
         <Box className={styles.panel} width="100vw">
@@ -490,7 +492,7 @@ function Class(props) {
                         )}
                         <Typography
                           variant="body1"
-                          style={{ fontWeight: "bold" }}
+                          style={{ fontWeight: 600, fontSize: 18 }}
                         >
                           {CLASS.name}
                         </Typography>
@@ -568,7 +570,11 @@ function Class(props) {
                           </Tooltip>
                         )}
                       </Box>
-                      <Box p={2.2} className={styles.centered}>
+                      <Box
+                        p={2.2}
+                        className={styles.centered}
+                        style={{ opacity: 0.8 }}
+                      >
                         <Box
                           flex={1}
                           className={[styles.centered, styles.start].join(" ")}
@@ -577,9 +583,9 @@ function Class(props) {
                           <Typography
                             variant="body2"
                             style={{
-                              fontSize: "0.8rem",
+                              fontSize: 14,
                               marginLeft: 5,
-                              color: "rgba(255,255,255,0.75)",
+                              fontWeight: 500,
                             }}
                           >
                             {moment(
@@ -602,9 +608,9 @@ function Class(props) {
                           <Typography
                             variant="body2"
                             style={{
-                              fontSize: "0.75rem",
                               marginLeft: 5,
-                              color: "rgba(255,255,255,0.75)",
+                              fontSize: 14,
+                              fontWeight: 500,
                             }}
                           >
                             {moment(
@@ -660,13 +666,17 @@ function Class(props) {
                         <Box p={1}>
                           <Typography
                             variant="body1"
-                            style={{ fontWeight: "bold" }}
+                            style={{ fontWeight: 500, fontSize: 18 }}
                           >
                             {CLASS.teacher.first_name} {CLASS.teacher.last_name}
                           </Typography>
                           <Typography
                             variant="body1"
-                            style={{ color: "rgba(255,255,255,0.75)" }}
+                            style={{
+                              opacity: 0.8,
+                              fontSize: 14,
+                              fontWeight: 500,
+                            }}
                           >
                             {CLASS.subject.name} Teacher
                           </Typography>
@@ -1063,8 +1073,8 @@ const useStyles = makeStyles((theme) => ({
       color: "#fff",
       zIndex: 20,
       position: "fixed",
-      maxWidth: 330,
-      minWidth: 330,
+      maxWidth: classPanelWidth,
+      minWidth: classPanelWidth,
     },
     [theme.breakpoints.down("md")]: {
       marginLeft: -8,
@@ -1083,9 +1093,11 @@ const useStyles = makeStyles((theme) => ({
       },
     },
     "& .panel-option": {
+      paddingTop: 15,
+      paddingBottom: 15,
       "& .panel-icon": {
         color: "rgba(255,255,255,0.75)",
-        fontSize: "1.5em",
+        fontSize: "2rem",
       },
       "&.selected + div span, &.selected svg": {
         color: "#fff!important",

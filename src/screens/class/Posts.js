@@ -30,7 +30,7 @@ import { motion } from "framer-motion";
 import PopupState, { bindMenu, bindTrigger } from "material-ui-popup-state";
 import moment from "moment";
 import MUIRichTextEditor from "mui-rte";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useMemo } from "react";
 import { connect } from "react-redux";
 import Api from "../../api";
 import Pagination, { getPageItems } from "../../components/Pagination";
@@ -38,6 +38,7 @@ import { makeLinkTo } from "../../components/router-dom";
 import socket from "../../components/socket.io";
 import UserData from "../../components/UserData";
 import { isMobileDevice } from "../../App";
+import { Link } from "react-router-dom";
 
 const key = {};
 function keyPress(e) {
@@ -270,7 +271,14 @@ function Comment(props) {
       >
         <Box p={1}>
           <Box display="flex" alignItems="center">
-            <Typography style={{ fontWeight: "bold", marginRight: 13 }}>
+            <Typography
+              style={{
+                fontWeight: 600,
+                opacity: 0.8,
+                fontSize: 14,
+                marginRight: 13,
+              }}
+            >
               {props.added_by.first_name + " " + props.added_by.last_name}
             </Typography>
             {props.saving && <CircularProgress size={18} />}
@@ -742,6 +750,15 @@ function Discussion(props) {
   const classesAutocomplete = getAutocomplete(props.allClasses);
   const [postValue, setPostValue] = useState(props.post.body);
   const [editorRef, setEditorRef] = useState();
+  const slicedComments = useMemo(() => {
+    if (props.post.comments && commentsPerPage) {
+      return props.post.comments
+        .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+        .slice(0, commentsPerPage + 1);
+    } else {
+      return [];
+    }
+  }, [props.post, commentsPerPage]);
   const handleDelete = async (post) => {
     setDeleting(true);
     try {
@@ -796,13 +813,29 @@ function Discussion(props) {
               }
               alt="Profile pic"
             />
-            <Box marginLeft={2}>
-              <Typography style={{ fontWeight: "bold" }}>
+            <Box marginLeft={2} style={{ opacity: 0.8 }}>
+              <Typography
+                style={{
+                  fontSize: 18,
+                  fontWeight: 600,
+                  color:
+                    useTheme().palette.type === "dark" ? "#fff" : "#060606",
+                }}
+              >
                 {props.post.added_by.first_name +
                   " " +
                   props.post.added_by.last_name}
               </Typography>
-              <Typography color="textSecondary" style={{ marginTop: -6 }}>
+              <Typography
+                color="textSecondary"
+                style={{
+                  fontSize: 14,
+                  marginTop: -6,
+                  fontWeight: 400,
+                  color:
+                    useTheme().palette.type === "dark" ? "#fff" : "#171717",
+                }}
+              >
                 {moment(props.post.created_at).fromNow()}
               </Typography>
             </Box>
@@ -935,7 +968,7 @@ function Discussion(props) {
         </Box>
         <Divider />
         <Box p={2}>
-          <Typography style={{ fontWeight: "bold" }}>
+          <Typography style={{ fontWeight: 600, fontSize: 14, opacity: 0.8 }}>
             {(props.post.comments && props.post.comments.length) || 0} comments
           </Typography>
         </Box>
@@ -945,16 +978,23 @@ function Discussion(props) {
             <Comment {...saving} saving={true} />
           )}
           {props.post.comments &&
-            props.post.comments
-              .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
-              .slice(0, commentsPerPage + 1)
-              .map((c, index) => <Comment key={index} {...c} />)}
+            slicedComments.map((c, index) => <Comment key={index} {...c} />)}
           {props.post.comments &&
           props.post.comments.length &&
           commentsPerPage < props.post.comments.length - 1 ? (
-            <a href="#" onClick={() => setCommentsPerPage(commentsPerPage + 5)}>
-              Show more comments
-            </a>
+            <Link
+              href="#"
+              style={{ textDecoration: "none" }}
+              onClick={() => setCommentsPerPage(commentsPerPage + 5)}
+            >
+              <Typography
+                style={{ fontWeight: 400, fontSize: 14, marginTop: 16 }}
+                color="primary"
+              >
+                View more {props.post.comments.length - slicedComments.length}{" "}
+                comments
+              </Typography>
+            </Link>
           ) : null}
         </Box>
         <Box p={2}>
@@ -968,7 +1008,16 @@ function WhatsDue(props) {
   return (
     <Paper>
       <Toolbar>
-        <Typography style={{ fontWeight: "bold" }}>What's Due</Typography>
+        <Typography
+          style={{
+            fontWeight: 600,
+            fontSize: 18,
+            color: "#060606",
+            opacity: 0.6,
+          }}
+        >
+          What's Due
+        </Typography>
       </Toolbar>
       <Box p={2} display="flex" alignItems="center" justifyContent="center">
         <Typography color="textSecondary">

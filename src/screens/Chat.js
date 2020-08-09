@@ -4,6 +4,9 @@ import React, {
   useRef,
   useMemo,
   useCallback,
+  Children,
+  isValidElement,
+  cloneElement,
 } from "react";
 import Messages from "../components/Messages";
 import {
@@ -75,18 +78,16 @@ const fixChatBoxHeight = () => {
   }
 };
 
-function Users(props) {
+export function ChatUsers(props) {
   const theme = useTheme();
   const isTablet = useMediaQuery(theme.breakpoints.down("md"));
   const { first_name, last_name, preferences } = props.userInfo;
-  const { onlineUsers } = props;
+  const { users } = props;
   const [search, setSearch] = useState("");
-  const { chat_id } = props.match.params;
-  const users = onlineUsers;
   const getFilteredUsers = () =>
-    [...users].filter(
-      (q) => JSON.stringify(q).toLowerCase().indexOf(search) >= 0
-    );
+    [...users]
+      .filter((q) => q.username !== props.userInfo.username)
+      .filter((q) => JSON.stringify(q).toLowerCase().indexOf(search) >= 0);
 
   const getRecentMessage = (user) => {
     let r =
@@ -161,9 +162,8 @@ function Users(props) {
                 >
                   {React.createElement(
                     eval(
-                      onlineUsers &&
-                        onlineUsers.find((q) => q.id === s.id)?.status ===
-                          "online"
+                      users &&
+                        users.find((q) => q.id === s.id)?.status === "online"
                         ? "OnlineBadge"
                         : "OfflineBadge"
                     ),
@@ -242,18 +242,18 @@ function Users(props) {
     </Box>
   );
 }
-function ChatBox(props) {
+export function ChatBox(props) {
   const theme = useTheme();
   const isTablet = useMediaQuery(theme.breakpoints.down("md"));
   const { first_name, last_name, preferences = {} } = props.user || {};
   const editorRef = useRef();
   const [reset, setReset] = useState(1);
   const [message, setMessage] = useState("");
-  const { onlineUsers } = props;
+  const { users } = props;
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
-  const { chat_id } = props.match.params;
+  const { chat_id } = props;
   const sendMessage = (message, callback) => {
     if (!chat_id) return;
     let x = JSON.parse(message);
@@ -414,10 +414,9 @@ function ChatBox(props) {
             <Box display="flex" alignItems="center" flex={1} overflow="hidden">
               {React.createElement(
                 eval(
-                  onlineUsers &&
-                    onlineUsers.find(
-                      (q) => q && props.user && q.id === props.user.id
-                    )?.status === "online"
+                  users &&
+                    users.find((q) => q && props.user && q.id === props.user.id)
+                      ?.status === "online"
                     ? "OnlineBadge"
                     : "OfflineBadge"
                 ),
@@ -664,7 +663,17 @@ function ChatBox(props) {
               props.user.id === parseInt(q)
             ) {
               return (
-                <Box width="100%" style={{ textAlign: "center" }} key={index}>
+                <Box
+                  className="sticky"
+                  style={{
+                    width: "100%",
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    textAlign: "center",
+                  }}
+                  key={index}
+                >
                   {props.status[q].message}
                 </Box>
               );
@@ -755,7 +764,7 @@ function ChatBox(props) {
 function ChatDetails(props) {
   const theme = useTheme();
   const isTablet = useMediaQuery(theme.breakpoints.down("md"));
-  const { chat_id } = props.match.params;
+  const { chat_id } = props;
   const { first_name, last_name, preferences = {} } = props.user || {};
   return (
     <Box height="100%" overflow="auto">
@@ -773,6 +782,7 @@ function ChatDetails(props) {
         }}
       >
         <NavBar
+          style={{ boxShadow: "none" }}
           left={
             isTablet && (
               <IconButton
@@ -838,7 +848,7 @@ function MainChat(props) {
         maxWidth="100%"
         overflow="auto"
       >
-        <ChatBox {...props} status={props.chat?.status} />
+        <ChatBox {...props} />
       </Box>
       <Box
         className={
@@ -891,22 +901,19 @@ function MainChat(props) {
     </Box>
   );
 }
-function Chat(props) {
+export function ChatProvider(props) {
   const theme = useTheme();
   const isTablet = useMediaQuery(theme.breakpoints.down("md"));
   const query = require("query-string");
-  const chat_id = props.match.params.chat_id || query.t;
-  const styles = useStyles();
+  const chat_id = props?.match?.params?.chat_id || query.t;
   const [tail, setTail] = useState("");
   const history = useHistory();
   const [loading, setLoading] = useState(false);
-  const { onlineUsers, chat, recent = [] } = props;
-  const [isResizing, setIsResizing] = useState({});
-
+  const { users, chat, recent = [] } = props;
   const getMessages = (start = 0, end = 10, callback = null) => {
     if (!chat_id) return;
     setLoading(true);
-    let receiver = onlineUsers.find((q) => q.username === chat_id);
+    let receiver = users.find((q) => q.username === chat_id);
     if (receiver) {
       let sender = props.userInfo;
       let channel = sender.username + "-" + receiver.username;
@@ -916,7 +923,8 @@ function Chat(props) {
   };
   const getSortedUsers = useCallback(
     () =>
-      [...onlineUsers]
+      [...users]
+        .filter((q) => q.school_id === props.userInfo.school_id)
         .filter((q) => q.id !== props.userInfo.id)
         .sort((a, b) => {
           a = recent.find(
@@ -933,7 +941,7 @@ function Chat(props) {
           );
           return a && b ? new Date(b.date) - new Date(a.date) : 0;
         }),
-    [onlineUsers, recent]
+    [users, recent]
   );
   const seen = () => {
     if (chat.messages.length) {
@@ -978,19 +986,51 @@ function Chat(props) {
   useEffect(() => {
     if (
       chat_id === props.userInfo.username ||
-      !onlineUsers.find((q) => q.username === chat_id)
+      !users.find((q) => q.username === chat_id)
     ) {
       history.push("/chat#users");
       if (!chat_id) setTitle("Chat");
-    } else if (onlineUsers.find((q) => q.username === chat_id)) {
-      let u = onlineUsers.find((q) => q.username === chat_id);
+    } else if (users.find((q) => q.username === chat_id)) {
+      let u = users.find((q) => q.username === chat_id);
       if (tail !== chat_id)
         setTitle(["Chat", u.first_name + " " + u.last_name]);
     }
     if (tail !== chat_id) {
       getMessages();
     }
-  }, [chat_id, onlineUsers]);
+  }, [chat_id, users]);
+  return (
+    <React.Fragment>
+      {Children.map(props.children, (child) => {
+        if (isValidElement(child)) {
+          return cloneElement(child, {
+            recent: recent.sort((a, b) => new Date(b.date) - new Date(a.date)),
+            selected: chat_id,
+            users: getSortedUsers(),
+            onClick: (user) => {
+              history.push("/chat/" + user.username);
+            },
+            loadMore: (callback) =>
+              getMessages(chat.end, chat.end + 10, callback),
+            onSend: () => {},
+            loading,
+            chat,
+            chat_id,
+            status: chat?.status,
+            user: users.find((q) => q.username === chat_id),
+            ...props,
+          });
+        }
+        return child;
+      })}
+    </React.Fragment>
+  );
+}
+function Chat(props) {
+  const styles = useStyles();
+  const theme = useTheme();
+  const isTablet = useMediaQuery(theme.breakpoints.down("md"));
+  const [isResizing, setIsResizing] = useState({});
   return (
     <Drawer {...props}>
       <Box display="flex" className={styles.root}>
@@ -1015,15 +1055,9 @@ function Chat(props) {
                 }),
           }}
         >
-          <Users
-            {...props}
-            recent={recent.sort((a, b) => new Date(b.date) - new Date(a.date))}
-            selected={chat_id}
-            onlineUsers={getSortedUsers()}
-            onClick={(user) => {
-              history.push("/chat/" + user.username);
-            }}
-          />
+          <ChatProvider {...props}>
+            <ChatUsers />
+          </ChatProvider>
           {!isTablet && (
             <ResizeLine
               orientation="vertical"
@@ -1048,21 +1082,9 @@ function Chat(props) {
           )}
         </Box>
         <Box width="100%" height="100%">
-          <MainChat
-            {...props}
-            users={onlineUsers}
-            loadMore={(callback) =>
-              getMessages(chat.end, chat.end + 10, callback)
-            }
-            loading={loading}
-            onSend={(d) => {
-              if (d) {
-                // setRecent([...recent, d]);
-              }
-            }}
-            chat={chat}
-            user={onlineUsers.find((q) => q.username === chat_id)}
-          />
+          <ChatProvider {...props}>
+            <MainChat />
+          </ChatProvider>
         </Box>
       </Box>
       <Backdrop
@@ -1236,8 +1258,8 @@ export const OfflineBadge = withStyles((theme) => ({
 export default connect((states) => ({
   userInfo: states.userInfo,
   classDetails: states.classDetails,
-  onlineUsers: states.onlineUsers,
-  chat: states.messages.current,
   theme: states.theme,
+  users: states.users,
+  chat: states.messages.current,
   recent: states.messages.recent_messages,
 }))(Chat);

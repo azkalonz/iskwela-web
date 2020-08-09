@@ -227,6 +227,8 @@ const useStyles = makeStyles((theme) => ({
       height: "30%",
       background: "url(/login/lamp.svg) no-repeat bottom center",
       backgroundSize: "10% auto",
+      animation: `$lamp 4s cubic-bezier(0.61, 0, 0.31, 1.01) infinite`,
+      animationDirection: "alternate",
       left: 0,
       right: 0,
       top: 0,
@@ -316,6 +318,14 @@ const useStyles = makeStyles((theme) => ({
       transform: "rotate(0) translateX(0) translateY(0)",
     },
   },
+  "@keyframes lamp": {
+    "0%": {
+      transform: "rotate(3deg)",
+    },
+    "100%": {
+      transform: "rotate(-3deg)",
+    },
+  },
   clouds: {
     [theme.breakpoints.down("sm")]: {
       right: 0,
@@ -376,6 +386,11 @@ const useStyles = makeStyles((theme) => ({
   },
   submit: {
     margin: theme.spacing(3, 0, 2),
+    "&:hover": {
+      backgroundColor: "#FFDA53!important",
+      boxShadow: "0 5px 10px 0 rgba(0,0,0,0.10)!important",
+      borderRadius: 6,
+    },
   },
 }));
 

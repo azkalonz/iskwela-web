@@ -59,6 +59,7 @@ const classes = (state = [], payload) => {
 const classDetails = (state = {}, payload) => {
   switch (payload.type) {
     case "SET_CLASS_DETAILS":
+      console.log(payload.class_details);
       return payload.class_details;
     default:
       return state;
@@ -113,7 +114,7 @@ const dataProgress = (state = {}, payload) => {
       return state;
   }
 };
-const onlineUsers = (state = [], payload) => {
+const users = (state = [], payload) => {
   switch (payload.type) {
     case "SET_ONLINE_USERS":
       return payload.data;
@@ -279,6 +280,6 @@ export default combineReducers({
   theme,
   pics,
   gradingCategories,
-  onlineUsers,
+  users,
   messages,
 });

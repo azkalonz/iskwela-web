@@ -726,7 +726,7 @@ const useStyles = makeStyles((theme) => ({
       transform: "translateX(-1.5px)",
       borderRadius: 7,
       position: "relative",
-      margin: theme.spacing(1),
+      margin: "8px 15px",
       width: 50,
       minWidth: 50,
       height: 50,

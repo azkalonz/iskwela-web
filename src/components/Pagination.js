@@ -20,8 +20,6 @@ export default function Pagination(props) {
   return totalPages ? (
     <MuiPagination
       page={props.page}
-      variant="outlined"
-      shape="rounded"
       color="primary"
       count={totalPages}
       onChange={(e, p) => {

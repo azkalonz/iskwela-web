@@ -34,7 +34,7 @@ h6.title {
   margin-top: 0;
 }
 .nonMui-themed-input {
-  border: 1px solid #e9e4ef;
+  border: 1px solid rgba(116, 0, 255, 0.2);
   background-color: #eee6ff !important;
 }
 .safe-to-url {

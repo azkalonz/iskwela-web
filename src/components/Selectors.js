@@ -10,6 +10,7 @@ import {
   useTheme,
   useMediaQuery,
   Icon,
+  makeStyles,
 } from "@material-ui/core";
 import SearchIcon from "@material-ui/icons/Search";
 import moment from "moment";
@@ -129,6 +130,7 @@ function StatusSelector(props) {
 }
 
 function SearchInput(props) {
+  const styles = useStyles();
   const theme = useTheme();
   const [isHidden, setIsHidden] = useState(true);
   const isTablet = useMediaQuery(theme.breakpoints.down("md"));
@@ -141,9 +143,10 @@ function SearchInput(props) {
     <React.Fragment>
       <Box
         p={0.3}
-        className={
-          isHidden && props.minimized ? "search-input hidden" : "search-input"
-        }
+        className={[
+          isHidden && props.minimized ? "search-input hidden" : "search-input",
+          styles.searchInput,
+        ].join(" ")}
         paddingLeft={1}
         borderRadius={4}
         alignSelf="flex-end"
@@ -166,9 +169,16 @@ function SearchInput(props) {
         }}
       >
         <InputBase
+          className={styles.searchInput}
           style={{ width: "100%" }}
           placeholder="Search"
-          onBlur={() => props.minimized && setIsHidden(true)}
+          onBlur={(e) => {
+            let parent = e.target?.parentElement?.parentElement;
+            if (parent) {
+              parent.classList.remove("focused");
+            }
+            props.minimized && setIsHidden(true);
+          }}
           onKeyUp={(e) => {
             if (!quickSearch) {
               if (e.which === 13) props.onChange(e.target.value);
@@ -176,6 +186,12 @@ function SearchInput(props) {
               props.onChange(e.target.value);
             }
             setval(e.target.value);
+          }}
+          onFocus={(e) => {
+            let parent = e.target?.parentElement?.parentElement;
+            if (parent) {
+              parent.classList.add("focused");
+            }
           }}
           inputProps={{ "aria-label": "search activity" }}
           ref={searchRef}
@@ -218,6 +234,16 @@ function SearchInput(props) {
     </React.Fragment>
   );
 }
+
+const useStyles = makeStyles((theme) => ({
+  searchInput: {
+    "&.focused": {
+      background: "#fff!important",
+      border: "1px solid #7539FF!important",
+      borderRadius: 6,
+    },
+  },
+}));
 
 const ConnectedScheduleSelector = connect((states) => ({
   theme: states.theme,

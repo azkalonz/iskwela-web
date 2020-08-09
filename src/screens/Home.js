@@ -38,6 +38,8 @@ import { SearchInput } from "../components/Selectors";
 import Scrollbar from "../components/Scrollbar";
 import { motion } from "framer-motion";
 
+const cardWidth = 340;
+
 function Alert(props) {
   return <MuiAlert elevation={6} variant="filled" {...props} />;
 }
@@ -71,6 +73,7 @@ const DialogTitle = withStyles(styles)((props) => {
   );
 });
 function Home(props) {
+  const cardRows = 3;
   const styles = useStyles();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
@@ -147,21 +150,20 @@ function Home(props) {
       "video-conference",
     ]);
     return (
-      <motion.div
-        initial={{ translateY: 100, opacity: 0 }}
-        animate={{ translateY: 0, opacity: 1 }}
+      <Box
         key={c.id}
         className={styles.root}
-        whileHover={{ scale: 1.1 }}
-        whileTap={{ scale: 0.9 }}
+        whileHover={{ scale: 1.1, translateY: -3 }}
         style={{
           flex: 1,
           marginBottom: Object.keys(c.next_schedule).length
-            ? !c.next_schedule.nosched && message
+            ? (!c.next_schedule.nosched ||
+                c.next_schedule.status === "ONGOING") &&
+              message
               ? 60
-              : 0
-            : 0,
-          minWidth: 300,
+              : 20
+            : 20,
+          minWidth: cardWidth,
         }}
       >
         <Card
@@ -171,6 +173,7 @@ function Home(props) {
             borderRadius: 17,
             width: "100%",
           }}
+          className="shadowed card"
         >
           <CardActionArea
             style={{ position: "relative" }}
@@ -190,11 +193,11 @@ function Home(props) {
               }}
             >
               <Box
-                className={styles.media}
+                className={[styles.media, "card-media"].join(" ")}
                 style={{
                   background: `url(${c.bg_image || c.image}) no-repeat`,
                   backgroundColor: c.color,
-                  backgroundPosition: "top",
+                  backgroundPosition: "center",
                 }}
               />
               {/* <div className={styles.mediaOverlay} /> */}
@@ -204,7 +207,11 @@ function Home(props) {
                 gutterBottom
                 variant="h5"
                 component="h2"
-                style={{ color: "#fff", fontWeight: "bold" }}
+                style={{
+                  color: "#fff",
+                  fontWeight: 600,
+                  letterSpacing: "0.3px",
+                }}
               >
                 {c.name}
               </Typography>
@@ -218,7 +225,9 @@ function Home(props) {
               </Typography>
             </CardContent>
 
-            <CardActions style={{ background: "grey.300" }}>
+            <CardActions
+              style={{ background: "grey.300", padding: "8px 20px" }}
+            >
               <Box
                 p={1}
                 className={styles.start}
@@ -246,7 +255,7 @@ function Home(props) {
                 >
                   <Typography
                     variant="body2"
-                    style={{ fontSize: "0.8rem", marginLeft: 5 }}
+                    style={{ fontSize: "14px", fontWeight: 400 }}
                   >
                     {moment(c.next_schedule.from).format("MMM D, YYYY")}
                   </Typography>
@@ -277,7 +286,10 @@ function Home(props) {
                   </Box>
                 </div>
                 <div style={{ position: "absolute", right: 0, bottom: 6 }}>
-                  <Typography variant="body1" style={{ fontWeight: "bold" }}>
+                  <Typography
+                    variant="body1"
+                    style={{ fontWeight: 600, fontSize: "16px" }}
+                  >
                     {c.teacher.first_name} {c.teacher.last_name}
                   </Typography>
                 </div>
@@ -286,7 +298,8 @@ function Home(props) {
           </CardActionArea>
         </Card>
         {Object.keys(c.next_schedule).length
-          ? !c.next_schedule.nosched &&
+          ? (!c.next_schedule.nosched ||
+              c.next_schedule.status === "ONGOING") &&
             message && (
               <Paper
                 onClick={() =>
@@ -307,7 +320,7 @@ function Home(props) {
               </Paper>
             )
           : ""}
-      </motion.div>
+      </Box>
     );
   };
   useEffect(() => {
@@ -316,7 +329,7 @@ function Home(props) {
       let m = document.querySelector("main");
       if (m) {
         m = m.clientWidth;
-        let p = (Math.round(m / 300) - 1) * 3;
+        let p = (Math.round(m / cardWidth) - 1) * cardRows;
         setItemsPerPage(p >= 8 ? p : 10);
       }
     };
@@ -336,7 +349,7 @@ function Home(props) {
         );
         return ans;
       });
-    return r
+    r = r
       .filter((a) =>
         moment(a.next_schedule.from).diff(moment(new Date())) > 0 ? true : false
       )
@@ -357,6 +370,7 @@ function Home(props) {
       )
       .sort((a, b) => (a.next_schedule.status === "ONGOING" ? -1 : 0))
       .sort((a, b) => a.id - b.id);
+    return r;
   };
   return (
     <React.Fragment>
@@ -477,7 +491,7 @@ const useStyles = makeStyles((theme) => ({
       maxWidth: "95%",
       width: "100%",
     },
-    maxWidth: 345,
+    maxWidth: cardWidth,
     position: "relative",
     margin: 20,
     borderRadius: 20,
@@ -501,7 +515,7 @@ const useStyles = makeStyles((theme) => ({
   media: {
     height: 150,
     width: "100%",
-    backgroundSize: "cover!important",
+    backgroundSize: "100%!important",
   },
   mediaOverlay: {
     background: theme.palette.common.white,
