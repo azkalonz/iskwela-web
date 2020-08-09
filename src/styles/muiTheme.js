@@ -14,6 +14,9 @@ export default function getTheme() {
     overrides: {
       MuiCssBaseline: {
         "@global": {
+          body: {
+            ...(theme === "dark" ? { backgroundColor: "#000" } : {}),
+          },
           "*": {
             ...(theme === "dark"
               ? {
