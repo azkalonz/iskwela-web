@@ -238,7 +238,8 @@ function SearchInput(props) {
 const useStyles = makeStyles((theme) => ({
   searchInput: {
     "&.focused": {
-      background: "#fff!important",
+      background:
+        theme.palette.type === "dark" ? "#000!important" : "#fff!important",
       border: "1px solid #7539FF!important",
       borderRadius: 6,
     },
