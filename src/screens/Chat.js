@@ -64,14 +64,17 @@ function getAbsoluteHeight(el) {
     parseFloat(styles["marginTop"]) + parseFloat(styles["marginBottom"]);
   return Math.ceil(el.offsetHeight + margin);
 }
+window.g = getAbsoluteHeight;
 const fixChatBoxHeight = () => {
   let c = document.querySelector("#chat-container");
   if (c) {
+    let h = c.getAttribute("data-height");
+    if (h) h = parseFloat(h);
     let b = c.previousElementSibling;
     let a = c.nextElementSibling;
     if (b && a) {
       c.style.height =
-        window.innerHeight -
+        (h || window.innerHeight) -
         (getAbsoluteHeight(b) + getAbsoluteHeight(a)) +
         "px";
     }
@@ -382,12 +385,18 @@ export function ChatBox(props) {
   return (
     <Box width="100%" className="chat-box" height="100%" overflow="hidden">
       <Box
+        onClick={() =>
+          props.actions?.chatHeadClick && props.actions.chatHeadClick()
+        }
         width="100%"
         className="sticky"
         top={0}
         left={0}
         right={0}
-        zIndex={1}
+        zIndex={2}
+        style={{
+          cursor: (props.actions?.chatHeadClick && "pointer") || "default",
+        }}
       >
         <Box
           p={2}
@@ -449,6 +458,7 @@ export function ChatBox(props) {
         <Divider />
       </Box>
       <Box
+        data-height={props.height}
         id="chat-container"
         height="100%"
         paddingTop={0}
@@ -571,10 +581,10 @@ export function ChatBox(props) {
                             alignItems="center"
                             style={{ left: -25 }}
                           >
-                            {c.sender.id === props.userInfo.id && (
+                            {c.seen && c.sender.id === props.userInfo.id && (
                               <React.Fragment>
                                 {Object.keys(c.seen).length <
-                                props.chat.participants.length ? (
+                                props.chat?.participants?.length ? (
                                   <Tooltip title="Sent">
                                     <CheckCircleIcon
                                       color="primary"
@@ -584,8 +594,8 @@ export function ChatBox(props) {
                                 ) : (
                                   index === messages.length - 1 && (
                                     <AvatarGroup max={3}>
-                                      {props.chat.participants
-                                        .filter(
+                                      {props.chat?.participants
+                                        ?.filter(
                                           (q) => q.id !== props.userInfo.id
                                         )
                                         .map((s, index) => (
@@ -627,10 +637,11 @@ export function ChatBox(props) {
                                 : "left",
                           }}
                         >
-                          {Object.keys(c.seen).filter(
+                          {c.seen &&
+                          Object.keys(c.seen).filter(
                             (q) => parseInt(q) !== props.userInfo.id
                           ).length >=
-                          props.chat.participants.length - 1
+                            props.chat?.participants?.length - 1
                             ? "Seen"
                             : "Sent"}
                           {/* {Object.keys(c.seen)
@@ -1129,204 +1140,107 @@ function VideoChat(props) {
   ) : null;
 }
 function FloatingChatBox(props) {
-  const { selected, user, messages } = props;
-  const [loading, setLoading] = useState(true);
-  const editorRef = useRef();
-  const [reset, setReset] = useState(1);
-  const [messageValue, setMessageValue] = useState("");
-  const { current = {} } = messages;
-  const chat_id = user?.username;
-  const sortedMessages = useMemo(
-    () =>
-      current.messages.sort((a, b) => new Date(a.date) - new Date(b.date)) ||
-      [],
-    [current.messages]
-  );
-  const sendMessage = (message, callback) => {
-    if (!chat_id) return;
-    let x = JSON.parse(message);
-    let c = 0;
-    for (let i = 0; i < x.blocks.length; i++) {
-      if (x.blocks[i].text) c++;
-    }
-    if (!c) {
-      return;
-    }
-    if (!x.blocks[Object.keys(x.blocks).length - 1].text)
-      x.blocks.splice(Object.keys(x.blocks).length - 1);
-    x = JSON.stringify(x);
-    message = x;
-    Messages.sendMessage(
-      { sender: props.userInfo, receiver: props.user },
-      message
-    );
-    props.onSend &&
-      props.onSend({
-        message,
-        sender: props.userInfo,
-        receiver: props.user,
-        date: new Date().toISOString(),
-      });
-    resetEditor();
-  };
-  const resetEditor = () => {
-    setMessageValue(
-      JSON.stringify(
-        convertToRaw(EditorState.createEmpty().getCurrentContent())
-      )
-    );
-    setReset(null);
-    setTimeout(() => {
-      setReset(1);
-      setTimeout(() => {
-        if (editorRef.current) {
-          editorRef.current.focus();
-        }
-      }, 0);
-    }, 0);
-  };
-  const getMessages = (start = 0, end = 10, callback = null) => {
-    if (!user) return;
-    let receiver = user;
-    if (receiver) {
-      let sender = props.userInfo;
-      let channel = sender.username + "-" + receiver.username;
-      Messages.getMessages(channel, { start, end }, callback);
-    }
-  };
-  useEffect(() => {
-    if (user && props.opened === user.username) {
-      setLoading(true);
-      Messages.clear();
-      Messages.hooks["get message"] = () => {
-        window.clearTimeout(window.loadingmsg);
-        window.loadingmsg = setTimeout(() => setLoading(false), 1500);
-      };
-      window.removeEventListener("keydown", keyPress);
-      window.addEventListener("keydown", keyPress);
-      setTimeout(() => {
-        getMessages();
-      }, 0);
-    } else {
-      setLoading(false);
-    }
-  }, [props.opened, user]);
-
+  const theme = useTheme();
+  const { user } = props;
   return user ? (
     <Box
       width={280}
       marginRight={1}
-      bgcolor="#fff"
+      bgcolor={theme.palette.type === "dark" ? "#222" : "#fff"}
       display="flex"
       flexDirection="column"
       alignItems="stretch"
       justifyContent="space-between"
       boxShadow="0 0px 15px rgba(0,0,0,0.15)"
       style={{
-        transition: "height 0.4s ease-out",
+        transition: "height 0.1s ease-out",
         height: props.opened === user.username ? 400 : 50,
       }}
     >
-      <Toolbar
-        onClick={() =>
-          props.onOpened && props.opened === user.username
-            ? props.onOpened(null)
-            : props.onOpened(user.username)
-        }
-        style={{
-          cursor: "pointer",
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-        }}
-      >
-        <Box display="flex" alignItems="center">
-          <Avatar
-            src={user.preferences?.profile_picture}
-            alt={user.first_name}
-          />
-          <Typography style={{ fontWeight: 500, marginLeft: 7 }}>
-            {user.first_name + " " + user.last_name}
-          </Typography>
-        </Box>
-        <IconButton onClick={() => props.onClose()}>
-          <Icon>close</Icon>
-        </IconButton>
-      </Toolbar>
-      <Box height="100%" width="100%" overflow="auto">
-        {!loading ? (
-          <Scrollbar autoHide>
-            {current &&
-              sortedMessages.map((message, key) => (
-                <Box
-                  key={key}
-                  display="flex"
-                  width="100%"
-                  justifyContent={
-                    message.sender.id === props.userInfo.id
-                      ? "flex-end"
-                      : "flex-start"
-                  }
-                  className={
-                    message.sender.id !== props.userInfo.id
-                      ? "msg sender "
-                      : "msg receiver "
-                  }
-                >
-                  <Box>
-                    <MUIRichTextEditor
-                      value={message.message}
-                      readOnly={true}
-                      toolbar={false}
-                      inlineToolbar={false}
-                    />
-                  </Box>
-                </Box>
-              ))}
-          </Scrollbar>
-        ) : (
-          <Box display="flex" alignItems="center" justifyContent="center">
-            Loading messages...
+      {props.opened === user.username ? (
+        <ChatBox
+          {...props}
+          height={400}
+          actions={{
+            chatHeadClick: () => {
+              props.onOpened && props.opened === user.username
+                ? props.onOpened(null)
+                : props.onOpened(user.username);
+            },
+          }}
+        />
+      ) : (
+        <Toolbar
+          onClick={() =>
+            props.onOpened && props.opened === user.username
+              ? props.onOpened(null)
+              : props.onOpened(user.username)
+          }
+          style={{
+            cursor: "pointer",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
+          <Box display="flex" alignItems="center">
+            {React.createElement(
+              eval(user.status === "online" ? "OnlineBadge" : "OfflineBadge"),
+              {
+                anchorOrigin: {
+                  vertical: "bottom",
+                  horizontal: "right",
+                },
+                variant: "dot",
+              },
+              <Avatar
+                src={user.preferences?.profile_picture}
+                alt={user.first_name}
+                style={{ width: 25, height: 25 }}
+              />
+            )}
+            <Typography style={{ fontWeight: 500, marginLeft: 7 }}>
+              {user.first_name + " " + user.last_name}
+            </Typography>
           </Box>
-        )}
-      </Box>
-      <Box
-        height={60}
-        minHeight={60}
-        maxHeight={100}
-        overflow="auto"
-        width="100%"
-        style={{ borderTop: "1px solid rgba(0,0,0,0.16)", padding: "0 6px" }}
-      >
-        {reset && (
-          <MUIRichTextEditor
-            ref={editorRef}
-            toolbar={false}
-            inlineToolbar={false}
-            label="Type a message"
-            onSave={(data) => {
-              sendMessage(data);
-              key.which = -1;
-            }}
-            onChange={(state) => {
-              window.clearTimeout(window.doneTyping);
-              if (!key.shiftKey && key.which === 13 && !isMobileDevice()) {
-                if (editorRef.current) editorRef.current.save();
-              }
-            }}
-          />
-        )}
-      </Box>
+          <IconButton onClick={() => props.onClose()}>
+            <Icon>close</Icon>
+          </IconButton>
+        </Toolbar>
+      )}
     </Box>
   ) : null;
 }
 function FloatingChatWidget(props) {
   const history = useHistory();
+  const styles = useStyles();
   const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const MAX_CHAT_BOXES = 3;
-  const { users, userInfo, chat_id } = props;
+  const [search, setSearch] = useState("");
+  const { userInfo, chat_id } = props;
   const [opened, setOpened] = useState(false);
   const [chatBoxes, setChatBoxes] = useState([]);
+  const users = useMemo(() => {
+    if (props.users)
+      return props.users
+        .filter(
+          (q) =>
+            JSON.stringify(q).toLowerCase().indexOf(search.toLowerCase()) >= 0
+        )
+        .filter((user) => user.id !== userInfo.id)
+        .filter((q) => q.school_id === userInfo.school_id);
+    else return [];
+  }, [props.users, search]);
+  const onlineUsersCount = useMemo(() => {
+    if (users) {
+      let c = users.filter((user) => user.status === "online").length;
+      c = c >= 0 ? c : 0;
+      return c;
+    } else {
+      return 0;
+    }
+  }, [users]);
   const toggleChatUsers = () => {
     setOpened(!opened);
   };
@@ -1351,41 +1265,64 @@ function FloatingChatWidget(props) {
       setChatBoxes(b);
     }
   };
-  const getMessages = (start = 0, end = 10, callback = null) => {
-    if (!chat_id) return;
-    let receiver = users.find((q) => q.username === chat_id);
-    if (receiver) {
-      let sender = props.userInfo;
-      let channel = sender.username + "-" + receiver.username;
-      Messages.getMessages(channel, { start, end }, callback);
-    }
-  };
   useEffect(() => {
     if (chat_id) {
       chatWith(chat_id);
     }
   }, [chat_id]);
-  return (
+  return !isMobile ? (
     <Box
-      className={useStyles().floatingChat}
+      className={styles.root}
       style={{
         position: "fixed",
         right: 10,
         bottom: 0,
         background: theme.palette.type === "dark" ? "#222" : "#fff",
-        width: 330,
-        height: opened ? "100vh" : 50,
+        width: opened ? 330 : 150,
+        height: opened ? "80vh" : 50,
         boxShadow: "rgba(0, 0, 0, 0.1) -3.6px 0px 10px",
-        transition: "height 0.4s ease-out",
+        transition: "all 0.1s ease-out",
       }}
     >
+      <ButtonBase
+        style={{
+          height: 50,
+          alignSelf: "flex-end",
+          border: "1px solid rgba(0,0,0,0.17)",
+          background: theme.palette.type === "dark" ? "#111" : "#fff",
+          width: "100%",
+        }}
+        onClick={toggleChatUsers}
+      >
+        <Box
+          height="inherit"
+          p={2}
+          width="100%"
+          display="flex"
+          alignItems="center"
+          justifyContent="space-between"
+        >
+          <Typography
+            style={{ fontSize: 18, fontWeight: 500, textAlign: "left" }}
+          >
+            Chat ({onlineUsersCount})
+          </Typography>
+          <Icon>{opened ? "expand_more" : "expand_less"}</Icon>
+        </Box>
+      </ButtonBase>
+      {opened && (
+        <Box width="100%" p={2}>
+          <SearchInput onChange={(e) => setSearch(e)} />
+        </Box>
+      )}
       <Box
         style={{
           position: "absolute",
-          right: 350,
+          right: opened ? 330 : 160,
           bottom: 0,
           display: "flex",
           alignItems: "flex-end",
+          transition: "all 0.1s ease-out",
         }}
       >
         {chatBoxes.map((chat, key) => (
@@ -1402,61 +1339,44 @@ function FloatingChatWidget(props) {
           </React.Fragment>
         ))}
       </Box>
-      <ButtonBase
-        style={{
-          height: 50,
-          alignSelf: "flex-end",
-          border: "1px solid rgba(0,0,0,0.17)",
-          background: "#fff",
-          width: "100%",
-        }}
-        onClick={toggleChatUsers}
-      >
-        <Box
-          height="inherit"
-          p={2}
-          bgcolor="#fff"
-          width="100%"
-          display="flex"
-          alignItems="center"
-          justifyContent="space-between"
+      {users.map((user, key) => (
+        <ButtonBase
+          key={key}
+          onClick={() => {
+            chatWith(user.username);
+            setOpened(false);
+          }}
+          style={{
+            display: "flex",
+            width: "100%",
+            alignItems: "center",
+            justifyContent: "flex-start",
+            textAlign: "left",
+            padding: 13,
+            borderTop: "1px solid rgba(0,0,0,0.16)",
+          }}
         >
-          <Typography style={{ fontSize: 18, fontWeight: 500 }}>
-            Chat ({users.filter((user) => user.status === "online").length - 1})
-          </Typography>
-          <Icon>{opened ? "expand_more" : "expand_less"}</Icon>
-        </Box>
-      </ButtonBase>
-      {users
-        .filter((user) => user.id !== userInfo.id)
-        .map((user, key) => (
-          <ButtonBase
-            key={key}
-            onClick={() => chatWith(user.username)}
-            style={{
-              display: "flex",
-              width: "100%",
-              alignItems: "center",
-              justifyContent: "flex-start",
-              padding: 13,
-              ...(key !== users.length - 2
-                ? {
-                    borderBottom: "1px solid rgba(0,0,0,0.16)",
-                  }
-                : {}),
-            }}
-          >
+          {React.createElement(
+            eval(user.status === "online" ? "OnlineBadge" : "OfflineBadge"),
+            {
+              anchorOrigin: {
+                vertical: "bottom",
+                horizontal: "right",
+              },
+              variant: "dot",
+            },
             <Avatar
               src={user.preferences?.profile_picture}
               alt={user.first_name}
             />
-            <Typography style={{ marginLeft: 7 }}>
-              {user.first_name} {user.last_name}
-            </Typography>
-          </ButtonBase>
-        ))}
+          )}
+          <Typography style={{ marginLeft: 7 }}>
+            {user.first_name} {user.last_name}
+          </Typography>
+        </ButtonBase>
+      ))}
     </Box>
-  );
+  ) : null;
 }
 
 const ConnectedFloatingChatWidget = connect((states) => ({
@@ -1473,6 +1393,7 @@ const useStyles = makeStyles((theme) => ({
     "& > div": {
       "& .msg > div": {
         padding: "0px 8px",
+        marginTop: 13,
         borderRadius: 12,
       },
       "& .sender": {
@@ -1543,7 +1464,7 @@ const useStyles = makeStyles((theme) => ({
       "& .msg-container": {
         "& .details": {
           overflow: "hidden",
-          transition: "height 0.2s ease-out",
+          transition: "height 0.1s ease-out",
           height: "0px",
           opacity: 0.7,
           "&.opened": {

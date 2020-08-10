@@ -30,7 +30,13 @@ import { motion } from "framer-motion";
 import PopupState, { bindMenu, bindTrigger } from "material-ui-popup-state";
 import moment from "moment";
 import MUIRichTextEditor from "mui-rte";
-import React, { useEffect, useRef, useState, useMemo } from "react";
+import React, {
+  useEffect,
+  useRef,
+  useState,
+  useMemo,
+  useCallback,
+} from "react";
 import { connect } from "react-redux";
 import Api from "../../api";
 import Pagination, { getPageItems } from "../../components/Pagination";
@@ -248,6 +254,7 @@ function Comment(props) {
   const theme = useTheme().palette.type;
   return (
     <Box
+      key={props.key}
       width="100%"
       display="flex"
       alignItems="flex-start"
@@ -256,7 +263,10 @@ function Comment(props) {
     >
       <Box>
         <Avatar
-          src={props.added_by.profile_picture}
+          src={
+            props.added_by.profile_picture ||
+            props.userInfo?.preferences?.profile_picture
+          }
           alt={props.added_by.first_name}
         />
       </Box>
@@ -695,7 +705,7 @@ function WriteAComment(props) {
             }}
             onChange={(state) => {
               if (!key.shiftKey && key.which === 13 && !isMobileDevice()) {
-                if (editorRef.current) editorRef.current.save();
+                if (editorRef?.current) editorRef.current.save();
               } else if (key.shiftKey && key.which === 13) {
                 let c = document.querySelector(
                   "#writeacomment-" + props.post.id
@@ -728,7 +738,7 @@ function WriteAComment(props) {
           <Box>
             <IconButton
               onClick={() => {
-                if (editorRef.current) editorRef.current.save();
+                if (editorRef?.current) editorRef.current.save();
               }}
               color="primary"
             >
@@ -750,7 +760,7 @@ function Discussion(props) {
   const classesAutocomplete = getAutocomplete(props.allClasses);
   const [postValue, setPostValue] = useState(props.post.body);
   const [editorRef, setEditorRef] = useState();
-  const slicedComments = useMemo(() => {
+  const slicedComments = useCallback(() => {
     if (props.post.comments && commentsPerPage) {
       return props.post.comments
         .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
@@ -758,7 +768,7 @@ function Discussion(props) {
     } else {
       return [];
     }
-  }, [props.post, commentsPerPage]);
+  }, [props.post.comments, commentsPerPage]);
   const handleDelete = async (post) => {
     setDeleting(true);
     try {
@@ -794,7 +804,11 @@ function Discussion(props) {
     setPostValue(props.post.body);
   }, [props.post]);
   return (
-    <Paper style={{ marginTop: 13 }} id={"discussion-" + props.post.id}>
+    <Paper
+      key={props.key}
+      style={{ marginTop: 13 }}
+      id={"discussion-" + props.post.id}
+    >
       <Box>
         <Box
           width="100%"
@@ -975,10 +989,10 @@ function Discussion(props) {
         <Divider />
         <Box p={2}>
           {saving && typeof saving === "object" && (
-            <Comment {...saving} saving={true} />
+            <Comment userInfo={props.userInfo} {...saving} saving={true} />
           )}
           {props.post.comments &&
-            slicedComments.map((c, index) => <Comment key={index} {...c} />)}
+            slicedComments().map((c, index) => <Comment key={index} {...c} />)}
           {props.post.comments &&
           props.post.comments.length &&
           commentsPerPage < props.post.comments.length - 1 ? (
@@ -991,15 +1005,17 @@ function Discussion(props) {
                 style={{ fontWeight: 400, fontSize: 14, marginTop: 16 }}
                 color="primary"
               >
-                View more {props.post.comments.length - slicedComments.length}{" "}
+                View more {props.post.comments.length - slicedComments().length}{" "}
                 comments
               </Typography>
             </Link>
           ) : null}
         </Box>
-        <Box p={2}>
-          <WriteAComment onSaving={(c) => setSaving(c)} {...props} />
-        </Box>
+        {!props.disabledComment && (
+          <Box p={2}>
+            <WriteAComment onSaving={(c) => setSaving(c)} {...props} />
+          </Box>
+        )}
       </Box>
     </Paper>
   );
@@ -1092,6 +1108,7 @@ function Posts(props) {
                   class={props.classes[class_id]}
                   post={saving}
                   saving={true}
+                  disabledComment={true}
                 />
               )}
               {getPageItems(

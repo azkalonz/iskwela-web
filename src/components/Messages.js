@@ -178,9 +178,9 @@ function RecentMessages(props) {
               <Box marginRight={1}>
                 {React.createElement(
                   eval(
-                    props.onlineUsers &&
-                      props.onlineUsers.find((q) => q.id === user.id)
-                        ?.status === "online"
+                    props.users &&
+                      props.users.find((q) => q.id === user.id)?.status ===
+                        "online"
                       ? "OnlineBadge"
                       : "OfflineBadge"
                   ),
@@ -245,7 +245,7 @@ const ConnectedRecentMessages = connect((states) => ({
     (a, b) => new Date(b.date) - new Date(a.date)
   ),
   userInfo: states.userInfo,
-  onlineUsers: states.onlineUsers,
+  users: states.users,
 }))(RecentMessages);
 export { ConnectedRecentMessages as RecentMessages };
 
