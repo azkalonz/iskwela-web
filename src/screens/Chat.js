@@ -725,7 +725,7 @@ export function ChatBox(props) {
                 value={message}
                 toolbar={true}
                 controls={[]}
-                label="Write Something"
+                label="Type a message"
                 onSave={(data) => {
                   sendMessage(data);
                   key.which = -1;
@@ -905,7 +905,7 @@ export function ChatProvider(props) {
   const theme = useTheme();
   const isTablet = useMediaQuery(theme.breakpoints.down("md"));
   const query = require("query-string");
-  const chat_id = props?.match?.params?.chat_id || query.t;
+  const chat_id = props?.match?.params?.chat_id || query.t || props.chatId;
   const [tail, setTail] = useState("");
   const history = useHistory();
   const [loading, setLoading] = useState(false);
@@ -988,8 +988,10 @@ export function ChatProvider(props) {
       chat_id === props.userInfo.username ||
       !users.find((q) => q.username === chat_id)
     ) {
-      history.push("/chat#users");
-      if (!chat_id) setTitle("Chat");
+      if (!props.noRedirect) {
+        history.push("/chat#users");
+        if (!chat_id) setTitle("Chat");
+      }
     } else if (users.find((q) => q.username === chat_id)) {
       let u = users.find((q) => q.username === chat_id);
       if (tail !== chat_id)
@@ -1126,11 +1128,373 @@ function VideoChat(props) {
     </Box>
   ) : null;
 }
+function FloatingChatBox(props) {
+  const { selected, user, messages } = props;
+  const [loading, setLoading] = useState(true);
+  const editorRef = useRef();
+  const [reset, setReset] = useState(1);
+  const [messageValue, setMessageValue] = useState("");
+  const { current = {} } = messages;
+  const chat_id = user?.username;
+  const sortedMessages = useMemo(
+    () =>
+      current.messages.sort((a, b) => new Date(a.date) - new Date(b.date)) ||
+      [],
+    [current.messages]
+  );
+  const sendMessage = (message, callback) => {
+    if (!chat_id) return;
+    let x = JSON.parse(message);
+    let c = 0;
+    for (let i = 0; i < x.blocks.length; i++) {
+      if (x.blocks[i].text) c++;
+    }
+    if (!c) {
+      return;
+    }
+    if (!x.blocks[Object.keys(x.blocks).length - 1].text)
+      x.blocks.splice(Object.keys(x.blocks).length - 1);
+    x = JSON.stringify(x);
+    message = x;
+    Messages.sendMessage(
+      { sender: props.userInfo, receiver: props.user },
+      message
+    );
+    props.onSend &&
+      props.onSend({
+        message,
+        sender: props.userInfo,
+        receiver: props.user,
+        date: new Date().toISOString(),
+      });
+    resetEditor();
+  };
+  const resetEditor = () => {
+    setMessageValue(
+      JSON.stringify(
+        convertToRaw(EditorState.createEmpty().getCurrentContent())
+      )
+    );
+    setReset(null);
+    setTimeout(() => {
+      setReset(1);
+      setTimeout(() => {
+        if (editorRef.current) {
+          editorRef.current.focus();
+        }
+      }, 0);
+    }, 0);
+  };
+  const getMessages = (start = 0, end = 10, callback = null) => {
+    if (!user) return;
+    let receiver = user;
+    if (receiver) {
+      let sender = props.userInfo;
+      let channel = sender.username + "-" + receiver.username;
+      Messages.getMessages(channel, { start, end }, callback);
+    }
+  };
+  useEffect(() => {
+    if (user && props.opened === user.username) {
+      setLoading(true);
+      Messages.clear();
+      Messages.hooks["get message"] = () => {
+        window.clearTimeout(window.loadingmsg);
+        window.loadingmsg = setTimeout(() => setLoading(false), 1500);
+      };
+      window.removeEventListener("keydown", keyPress);
+      window.addEventListener("keydown", keyPress);
+      setTimeout(() => {
+        getMessages();
+      }, 0);
+    } else {
+      setLoading(false);
+    }
+  }, [props.opened, user]);
+
+  return user ? (
+    <Box
+      width={280}
+      marginRight={1}
+      bgcolor="#fff"
+      display="flex"
+      flexDirection="column"
+      alignItems="stretch"
+      justifyContent="space-between"
+      boxShadow="0 0px 15px rgba(0,0,0,0.15)"
+      style={{
+        transition: "height 0.4s ease-out",
+        height: props.opened === user.username ? 400 : 50,
+      }}
+    >
+      <Toolbar
+        onClick={() =>
+          props.onOpened && props.opened === user.username
+            ? props.onOpened(null)
+            : props.onOpened(user.username)
+        }
+        style={{
+          cursor: "pointer",
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}
+      >
+        <Box display="flex" alignItems="center">
+          <Avatar
+            src={user.preferences?.profile_picture}
+            alt={user.first_name}
+          />
+          <Typography style={{ fontWeight: 500, marginLeft: 7 }}>
+            {user.first_name + " " + user.last_name}
+          </Typography>
+        </Box>
+        <IconButton onClick={() => props.onClose()}>
+          <Icon>close</Icon>
+        </IconButton>
+      </Toolbar>
+      <Box height="100%" width="100%" overflow="auto">
+        {!loading ? (
+          <Scrollbar autoHide>
+            {current &&
+              sortedMessages.map((message, key) => (
+                <Box
+                  key={key}
+                  display="flex"
+                  width="100%"
+                  justifyContent={
+                    message.sender.id === props.userInfo.id
+                      ? "flex-end"
+                      : "flex-start"
+                  }
+                  className={
+                    message.sender.id !== props.userInfo.id
+                      ? "msg sender "
+                      : "msg receiver "
+                  }
+                >
+                  <Box>
+                    <MUIRichTextEditor
+                      value={message.message}
+                      readOnly={true}
+                      toolbar={false}
+                      inlineToolbar={false}
+                    />
+                  </Box>
+                </Box>
+              ))}
+          </Scrollbar>
+        ) : (
+          <Box display="flex" alignItems="center" justifyContent="center">
+            Loading messages...
+          </Box>
+        )}
+      </Box>
+      <Box
+        height={60}
+        minHeight={60}
+        maxHeight={100}
+        overflow="auto"
+        width="100%"
+        style={{ borderTop: "1px solid rgba(0,0,0,0.16)", padding: "0 6px" }}
+      >
+        {reset && (
+          <MUIRichTextEditor
+            ref={editorRef}
+            toolbar={false}
+            inlineToolbar={false}
+            label="Type a message"
+            onSave={(data) => {
+              sendMessage(data);
+              key.which = -1;
+            }}
+            onChange={(state) => {
+              window.clearTimeout(window.doneTyping);
+              if (!key.shiftKey && key.which === 13 && !isMobileDevice()) {
+                if (editorRef.current) editorRef.current.save();
+              }
+            }}
+          />
+        )}
+      </Box>
+    </Box>
+  ) : null;
+}
+function FloatingChatWidget(props) {
+  const history = useHistory();
+  const theme = useTheme();
+  const MAX_CHAT_BOXES = 3;
+  const { users, userInfo, chat_id } = props;
+  const [opened, setOpened] = useState(false);
+  const [chatBoxes, setChatBoxes] = useState([]);
+  const toggleChatUsers = () => {
+    setOpened(!opened);
+  };
+  const [openedChatBox, setOpenedChatBox] = useState();
+  const chatWith = (username) => {
+    history.push("?t=" + username);
+    setOpenedChatBox(username);
+    if (chatBoxes.length > MAX_CHAT_BOXES) {
+      let c = [...chatBoxes];
+      c.splice(1, 1);
+      setChatBoxes(c);
+    }
+    if (chatBoxes.indexOf(username) < 0) {
+      setChatBoxes([...chatBoxes, username]);
+    }
+  };
+  const removeChatBox = (username) => {
+    let b = [...chatBoxes];
+    let index = b.indexOf(username);
+    if (index >= 0) {
+      b.splice(index, 1);
+      setChatBoxes(b);
+    }
+  };
+  const getMessages = (start = 0, end = 10, callback = null) => {
+    if (!chat_id) return;
+    let receiver = users.find((q) => q.username === chat_id);
+    if (receiver) {
+      let sender = props.userInfo;
+      let channel = sender.username + "-" + receiver.username;
+      Messages.getMessages(channel, { start, end }, callback);
+    }
+  };
+  useEffect(() => {
+    if (chat_id) {
+      chatWith(chat_id);
+    }
+  }, [chat_id]);
+  return (
+    <Box
+      className={useStyles().floatingChat}
+      style={{
+        position: "fixed",
+        right: 10,
+        bottom: 0,
+        background: theme.palette.type === "dark" ? "#222" : "#fff",
+        width: 330,
+        height: opened ? "100vh" : 50,
+        boxShadow: "rgba(0, 0, 0, 0.1) -3.6px 0px 10px",
+        transition: "height 0.4s ease-out",
+      }}
+    >
+      <Box
+        style={{
+          position: "absolute",
+          right: 350,
+          bottom: 0,
+          display: "flex",
+          alignItems: "flex-end",
+        }}
+      >
+        {chatBoxes.map((chat, key) => (
+          <React.Fragment key={key}>
+            <FloatingChatBox
+              {...props}
+              user={users.find((q) => q.username === chat)}
+              opened={openedChatBox}
+              onOpened={(u) => {
+                chatWith(u);
+              }}
+              onClose={() => removeChatBox(chat)}
+            />
+          </React.Fragment>
+        ))}
+      </Box>
+      <ButtonBase
+        style={{
+          height: 50,
+          alignSelf: "flex-end",
+          border: "1px solid rgba(0,0,0,0.17)",
+          background: "#fff",
+          width: "100%",
+        }}
+        onClick={toggleChatUsers}
+      >
+        <Box
+          height="inherit"
+          p={2}
+          bgcolor="#fff"
+          width="100%"
+          display="flex"
+          alignItems="center"
+          justifyContent="space-between"
+        >
+          <Typography style={{ fontSize: 18, fontWeight: 500 }}>
+            Chat ({users.filter((user) => user.status === "online").length - 1})
+          </Typography>
+          <Icon>{opened ? "expand_more" : "expand_less"}</Icon>
+        </Box>
+      </ButtonBase>
+      {users
+        .filter((user) => user.id !== userInfo.id)
+        .map((user, key) => (
+          <ButtonBase
+            key={key}
+            onClick={() => chatWith(user.username)}
+            style={{
+              display: "flex",
+              width: "100%",
+              alignItems: "center",
+              justifyContent: "flex-start",
+              padding: 13,
+              ...(key !== users.length - 2
+                ? {
+                    borderBottom: "1px solid rgba(0,0,0,0.16)",
+                  }
+                : {}),
+            }}
+          >
+            <Avatar
+              src={user.preferences?.profile_picture}
+              alt={user.first_name}
+            />
+            <Typography style={{ marginLeft: 7 }}>
+              {user.first_name} {user.last_name}
+            </Typography>
+          </ButtonBase>
+        ))}
+    </Box>
+  );
+}
+
+const ConnectedFloatingChatWidget = connect((states) => ({
+  messages: states.messages,
+}))(FloatingChatWidget);
+export { ConnectedFloatingChatWidget as FloatingChatWidget };
+
 const ConnectedVideoChat = connect((states) => ({
   userInfo: states.userInfo,
 }))(VideoChat);
 export { ConnectedVideoChat as VideoChat };
 const useStyles = makeStyles((theme) => ({
+  floatingChat: {
+    "& > div": {
+      "& .msg > div": {
+        padding: "0px 8px",
+        borderRadius: 12,
+      },
+      "& .sender": {
+        "& > div": {
+          backgroundColor: "rgba(0,0,0,0.12)",
+          "& span, & p": {
+            color: "#000!important",
+          },
+          marginLeft: 8,
+        },
+      },
+      "& .receiver": {
+        "& > div": {
+          backgroundColor: theme.palette.primary.main,
+          "& span, & p": {
+            color: "#fff!important",
+          },
+          marginRight: 8,
+        },
+      },
+    },
+  },
   root: {
     background: theme.palette.type === "dark" ? "#282828" : "#fff",
     height: "100vh",

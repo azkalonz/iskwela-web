@@ -15,13 +15,19 @@ import socket from "./components/socket.io";
 import UserData from "./components/UserData";
 import Class from "./containers/Class";
 import Explore from "./containers/Explore";
-import Chat, { ChatProvider, VideoChat, ChatUsers } from "./screens/Chat";
+import Chat, {
+  ChatProvider,
+  VideoChat,
+  ChatUsers,
+  FloatingChatWidget,
+} from "./screens/Chat";
 import AnswerQuiz from "./screens/class/AnswerQuiz";
 import Home from "./screens/Home";
 import Login from "./screens/Login";
 import getTheme from "./styles/muiTheme";
 
 function App(props) {
+  const query = require("query-string").parse(window.location.search);
   const [loading, setLoading] = useState(true);
   const [videocall, setVideocall] = useState({});
   const skeletonCustomTheme = {
@@ -182,18 +188,25 @@ function App(props) {
                     <Redirect to="/" />
                   </Route>
                 </Switch>
-                {/* <Box
-                  style={{
-                    position: "fixed",
-                    bottom: 0,
-                    right: 10,
-                    zIndex: 20,
-                  }}
-                >
-                  <ChatProvider {...props}>
-                    <ChatUsers />
-                  </ChatProvider>
-                </Box> */}
+                {props.userInfo.id &&
+                  window.location.pathname.indexOf("/chat") < 0 && (
+                    <Box
+                      style={{
+                        position: "fixed",
+                        bottom: 0,
+                        right: 10,
+                        zIndex: 20,
+                      }}
+                    >
+                      <ChatProvider
+                        {...props}
+                        noRedirect={true}
+                        chatId={query.t}
+                      >
+                        <FloatingChatWidget />
+                      </ChatProvider>
+                    </Box>
+                  )}
               </BrowserRouter>
             </React.Fragment>
           )}
