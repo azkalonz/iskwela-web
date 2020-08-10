@@ -1180,46 +1180,48 @@ function FloatingChatBox(props) {
           }}
         />
       ) : (
-        <Toolbar
-          style={{
-            cursor: "pointer",
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-          }}
-        >
-          <Box
-            display="flex"
-            alignItems="center"
+        <Box position="relative">
+          <Toolbar
+            style={{
+              cursor: "pointer",
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+            }}
             onClick={() =>
               props.onOpened && props.opened === user.username
                 ? props.onOpened(null)
                 : props.onOpened(user.username)
             }
           >
-            {React.createElement(
-              eval(user.status === "online" ? "OnlineBadge" : "OfflineBadge"),
-              {
-                anchorOrigin: {
-                  vertical: "bottom",
-                  horizontal: "right",
+            <Box display="flex" alignItems="center">
+              {React.createElement(
+                eval(user.status === "online" ? "OnlineBadge" : "OfflineBadge"),
+                {
+                  anchorOrigin: {
+                    vertical: "bottom",
+                    horizontal: "right",
+                  },
+                  variant: "dot",
                 },
-                variant: "dot",
-              },
-              <Avatar
-                src={user.preferences?.profile_picture}
-                alt={user.first_name}
-                style={{ width: 25, height: 25 }}
-              />
-            )}
-            <Typography style={{ fontWeight: 500, marginLeft: 7 }}>
-              {user.first_name + " " + user.last_name}
-            </Typography>
-          </Box>
-          <IconButton onClick={() => props.onClose()}>
+                <Avatar
+                  src={user.preferences?.profile_picture}
+                  alt={user.first_name}
+                  style={{ width: 25, height: 25 }}
+                />
+              )}
+              <Typography style={{ fontWeight: 500, marginLeft: 7 }}>
+                {user.first_name + " " + user.last_name}
+              </Typography>
+            </Box>
+          </Toolbar>
+          <IconButton
+            onClick={() => props.onClose()}
+            style={{ position: "absolute", right: 0, top: 0 }}
+          >
             <Icon>close</Icon>
           </IconButton>
-        </Toolbar>
+        </Box>
       )}
     </Box>
   ) : null;
