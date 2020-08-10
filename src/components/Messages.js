@@ -231,6 +231,7 @@ function RecentMessages(props) {
                 history.push("/chat#users");
                 props.onClose && props.onClose();
               }}
+              className="safe-to-url"
             >
               See All
             </Button>

@@ -175,19 +175,6 @@ const messages = (
       let { messages, loaded, channel } = state.current;
       if (payload.data.channel !== channel || payload.data.start <= 0)
         loaded = 0;
-      console.log("All messages", {
-        ...state,
-        current: {
-          ...state.current,
-          ...payload.data,
-          messages:
-            payload.data.channel === channel &&
-            state.current.messages.length < payload.data.total
-              ? [...messages, ...payload.data.messages]
-              : payload.data.messages,
-          loaded: loaded + added,
-        },
-      });
       return {
         ...state,
         current: {

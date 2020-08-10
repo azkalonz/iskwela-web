@@ -27,7 +27,7 @@ import Login from "./screens/Login";
 import getTheme from "./styles/muiTheme";
 
 function App(props) {
-  const query = require("query-string").parse(window.location.search);
+  const [chat, setChat] = useState();
   const [loading, setLoading] = useState(true);
   const [videocall, setVideocall] = useState({});
   const skeletonCustomTheme = {
@@ -201,7 +201,8 @@ function App(props) {
                       <ChatProvider
                         {...props}
                         noRedirect={true}
-                        chatId={query.t}
+                        chatId={chat}
+                        setChatId={(id) => setChat(id)}
                       >
                         <FloatingChatWidget />
                       </ChatProvider>

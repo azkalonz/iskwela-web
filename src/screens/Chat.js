@@ -47,7 +47,6 @@ import Jitsi from "react-jitsi";
 import { ResizeLine } from "../components/content-creator";
 import { AvatarGroup } from "@material-ui/lab";
 import { setTitle, isMobileDevice } from "../App";
-import { makeLinkTo } from "../components/router-dom";
 import Scrollbar from "../components/Scrollbar";
 
 const key = {};
@@ -1118,7 +1117,7 @@ function VideoChat(props) {
   const query = require("query-string").parse(window.location.search);
   useEffect(() => {
     if (!query.chat) window.close();
-  }, [query]);
+  }, [query.chat]);
   return query.chat ? (
     <Box className="video-chat">
       <Jitsi
@@ -1141,6 +1140,7 @@ function VideoChat(props) {
 }
 function FloatingChatBox(props) {
   const theme = useTheme();
+  const query = require("query-string").parse(window.location.search);
   const { user } = props;
   return user ? (
     <Box
@@ -1154,10 +1154,13 @@ function FloatingChatBox(props) {
       boxShadow="0 0px 15px rgba(0,0,0,0.15)"
       style={{
         transition: "height 0.1s ease-out",
-        height: props.opened === user.username ? 400 : 50,
+        height:
+          query.t && query.t !== "null" && props.opened === user.username
+            ? 400
+            : 50,
       }}
     >
-      {props.opened === user.username ? (
+      {props.opened === user.username && query.t && query.t !== "null" ? (
         <ChatBox
           {...props}
           height={400}
@@ -1167,7 +1170,9 @@ function FloatingChatBox(props) {
           }}
           actions={{
             chatHeadClick: () => {
-              props.onOpened && props.opened === user.username
+              props.onOpened &&
+              props.opened === user.username &&
+              (query.t || query.t !== "null")
                 ? props.onOpened(null)
                 : props.onOpened(user.username);
             },
@@ -1175,11 +1180,6 @@ function FloatingChatBox(props) {
         />
       ) : (
         <Toolbar
-          onClick={() =>
-            props.onOpened && props.opened === user.username
-              ? props.onOpened(null)
-              : props.onOpened(user.username)
-          }
           style={{
             cursor: "pointer",
             display: "flex",
@@ -1187,7 +1187,15 @@ function FloatingChatBox(props) {
             alignItems: "center",
           }}
         >
-          <Box display="flex" alignItems="center">
+          <Box
+            display="flex"
+            alignItems="center"
+            onClick={() =>
+              props.onOpened && props.opened === user.username
+                ? props.onOpened(null)
+                : props.onOpened(user.username)
+            }
+          >
             {React.createElement(
               eval(user.status === "online" ? "OnlineBadge" : "OfflineBadge"),
               {
@@ -1223,7 +1231,7 @@ function FloatingChatWidget(props) {
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const MAX_CHAT_BOXES = 3;
   const [search, setSearch] = useState("");
-  const { userInfo, chat_id } = props;
+  const { userInfo, chatId } = props;
   const [opened, setOpened] = useState(false);
   const [chatBoxes, setChatBoxes] = useState([]);
   const users = useMemo(() => {
@@ -1252,6 +1260,7 @@ function FloatingChatWidget(props) {
   const [openedChatBox, setOpenedChatBox] = useState();
   const chatWith = (username) => {
     history.push("?t=" + username);
+    props.setChatId(username);
     setOpenedChatBox(username);
     if (chatBoxes.length > MAX_CHAT_BOXES) {
       let c = [...chatBoxes];
@@ -1271,8 +1280,13 @@ function FloatingChatWidget(props) {
     }
   };
   useEffect(() => {
-    if (query.t && query.t !== "null") {
-      chatWith(query.t);
+    if (chatId) {
+      chatWith(chatId);
+    }
+  }, [chatId]);
+  useEffect(() => {
+    if (query.t && query.t !== "null" && query.t !== "undefined") {
+      props.setChatId(query.t);
     }
   }, [query.t]);
   return !isMobile ? (

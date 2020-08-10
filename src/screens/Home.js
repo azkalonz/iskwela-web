@@ -142,13 +142,7 @@ function Home(props) {
       default:
         message = "";
     }
-    let videoConferenceLink = makeLinkTo([
-      "class",
-      c.id,
-      c.next_schedule.id,
-      "posts",
-      "video-conference",
-    ]);
+    let videoConferenceLink = `/class/${c.id}/${c.next_schedule.id}/posts/video-conference`;
     return (
       <Box
         key={c.id}
