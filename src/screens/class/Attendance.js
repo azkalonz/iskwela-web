@@ -90,7 +90,9 @@ function Attendance(props) {
             <React.Fragment>
               <TextField
                 id="reason"
-                className="themed-input"
+                className={
+                  "themed-input " + (props.theme === "dark" ? "light" : "dark")
+                }
                 variant="outlined"
                 label="Reason"
                 type="text"
@@ -282,7 +284,10 @@ function Attendance(props) {
                         <React.Fragment>
                           <TextField
                             id="reason"
-                            className="themed-input"
+                            className={
+                              "themed-input " +
+                              (props.theme === "dark" ? "light" : "dark")
+                            }
                             variant="outlined"
                             label="Reason"
                             type="text"
@@ -497,6 +502,7 @@ function Attendance(props) {
   );
 }
 export function AttendanceProvider(props) {
+  const theme = useTheme();
   const { student, class_id, schedule_id } = props;
   const [events, setEvents] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -539,7 +545,10 @@ export function AttendanceProvider(props) {
                 <React.Fragment>
                   <TextField
                     id="reason"
-                    className="themed-input"
+                    className={
+                      "themed-input " +
+                      (props.theme === "dark" ? "light" : "dark")
+                    }
                     variant="outlined"
                     label="Reason"
                     type="text"
@@ -599,4 +608,7 @@ export function AttendanceProvider(props) {
     </React.Fragment>
   );
 }
-export default connect((states) => ({ userInfo: states.userInfo }))(Attendance);
+export default connect((states) => ({
+  userInfo: states.userInfo,
+  theme: states.theme,
+}))(Attendance);

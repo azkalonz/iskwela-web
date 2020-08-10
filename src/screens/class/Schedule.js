@@ -1,53 +1,40 @@
-import React, { useState, useEffect } from "react";
+import MomentUtils from "@date-io/moment";
 import {
-  ListItemText,
+  Box,
+  Button,
+  CircularProgress,
   Dialog,
   DialogActions,
   DialogContent,
   DialogContentText,
   DialogTitle,
-  TableSortLabel,
-  CircularProgress,
-  Chip,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
+  Grow,
+  makeStyles,
   Menu,
   MenuItem,
-  withStyles,
-  Box,
-  Grow,
-  Button,
-  IconButton,
-  InputBase,
-  makeStyles,
-  useTheme,
-  useMediaQuery,
   Typography,
+  useMediaQuery,
+  useTheme,
+  withStyles,
 } from "@material-ui/core";
-import MoreHorizOutlinedIcon from "@material-ui/icons/MoreHorizOutlined";
-import SearchIcon from "@material-ui/icons/Search";
-import { makeLinkTo } from "../../components/router-dom";
-import { useHistory } from "react-router-dom";
-import { connect } from "react-redux";
 import MuiAlert from "@material-ui/lab/Alert";
-import MomentUtils from "@date-io/moment";
-import moment from "moment";
 import {
-  MuiPickersUtilsProvider,
-  KeyboardTimePicker,
   KeyboardDatePicker,
+  KeyboardTimePicker,
+  MuiPickersUtilsProvider,
 } from "@material-ui/pickers";
-import Form from "../../components/Form";
-import UserData from "../../components/UserData";
+import moment from "moment";
+import React, { useEffect, useState } from "react";
+import { connect } from "react-redux";
+import { useHistory } from "react-router-dom";
 import Api from "../../api";
+import Form from "../../components/Form";
+import Pagination from "../../components/Pagination";
+import { makeLinkTo } from "../../components/router-dom";
 import { SearchInput } from "../../components/Selectors";
-import Pagination, { getPageItems } from "../../components/Pagination";
 import socket from "../../components/socket.io";
 import { Table as MTable } from "../../components/Table";
+import UserData from "../../components/UserData";
 
 function Alert(props) {
   return <MuiAlert elevation={6} variant="filled" {...props} />;
@@ -360,12 +347,16 @@ function Schedule(props) {
                   >
                     <KeyboardDatePicker
                       disableToolbar
+                      variant="outlined"
                       fullWidth
-                      variant="inline"
                       format="MMM DD, YYYY"
                       margin="normal"
                       label="Date"
                       value={form.date_from}
+                      className={
+                        "themed-input date " +
+                        (theme.palette.type === "dark" ? "light" : "dark")
+                      }
                       onChange={(e) =>
                         setForm({
                           ...form,
@@ -387,13 +378,19 @@ function Schedule(props) {
                   <Box
                     justifyContent="space-between"
                     display="flex"
+                    marginTop={4}
                     width="100%"
                   >
                     <KeyboardTimePicker
                       margin="normal"
                       label="Time From"
+                      className={
+                        "themed-input date " +
+                        (theme.palette.type === "dark" ? "light" : "dark")
+                      }
                       format="hh:mm A"
                       value={form.date_from}
+                      variant="outlined"
                       KeyboardButtonProps={{
                         "aria-label": "change time",
                       }}
@@ -414,6 +411,11 @@ function Schedule(props) {
                     <KeyboardTimePicker
                       margin="normal"
                       format="hh:mm A"
+                      variant="outlined"
+                      className={
+                        "themed-input date " +
+                        (theme.palette.type === "dark" ? "light" : "dark")
+                      }
                       value={form.date_to}
                       label="Time To"
                       KeyboardButtonProps={{

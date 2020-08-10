@@ -111,7 +111,7 @@ function Scores(props) {
         .map((q) => {
           let scores = q.scores;
           Object.keys(scores).map((key) => {
-            scores[key] = scores[key] * 100 + "%";
+            scores[key] = (scores[key] * 100).toFixed(2) + "%";
           });
           return {
             ...q,
@@ -187,7 +187,10 @@ function Scores(props) {
                 type="date"
                 defaultValue={dateFrom}
                 variant="outlined"
-                className="themed-input no-margin small"
+                className={
+                  "themed-input no-margin small " +
+                  (theme.palette.type === "dark" ? "light" : "dark")
+                }
                 InputLabelProps={{
                   shrink: true,
                 }}
@@ -203,7 +206,10 @@ function Scores(props) {
                 type="date"
                 defaultValue={dateTo}
                 variant="outlined"
-                className="themed-input no-margin small"
+                className={
+                  "themed-input no-margin small " +
+                  (theme.palette.type === "dark" ? "light" : "dark")
+                }
                 InputLabelProps={{
                   shrink: true,
                 }}
@@ -508,7 +514,10 @@ function ScoreDetails(props) {
             type="date"
             defaultValue={dateFrom}
             variant="outlined"
-            className="themed-input no-margin small"
+            className={
+              "themed-input no-margin small " +
+              (theme.palette.type === "dark" ? "light" : "dark")
+            }
             InputLabelProps={{
               shrink: true,
             }}
@@ -528,7 +537,10 @@ function ScoreDetails(props) {
             type="date"
             defaultValue={dateTo}
             variant="outlined"
-            className="themed-input no-margin small"
+            className={
+              "themed-input no-margin small " +
+              (theme.palette.type === "dark" ? "light" : "dark")
+            }
             InputLabelProps={{
               shrink: true,
             }}
@@ -544,7 +556,10 @@ function ScoreDetails(props) {
           />
           <FormControl
             variant="outlined"
-            className="themed-input"
+            className={
+              "themed-input " +
+              (theme.palette.type === "dark" ? "light" : "dark")
+            }
             style={
               isMobile
                 ? {

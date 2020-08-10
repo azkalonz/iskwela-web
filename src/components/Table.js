@@ -373,7 +373,7 @@ function Table(props) {
                           })
                         }
                       >
-                        {props.options.map((t) => (
+                        {(props.options || []).map((t) => (
                           <StyledMenuItem
                             onClick={() => {
                               if (props.actions["_handleFileOption"]) {
