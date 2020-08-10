@@ -315,6 +315,21 @@ Math.rand = (min, max) => {
   max = Math.floor(max);
   return Math.floor(Math.random() * (max - min)) + min;
 };
+String.prototype.replaceUrlParam = function (paramName, paramValue) {
+  let url = this.valueOf();
+  if (paramValue == null) {
+    paramValue = "";
+  }
+  var pattern = new RegExp("\\b(" + paramName + "=).*?(&|#|$)");
+  if (url.search(pattern) >= 0) {
+    return url.replace(pattern, "$1" + paramValue + "$2");
+  }
+  url = url.replace(/[?#]$/, "");
+  return (
+    url + (url.indexOf("?") >= 0 ? "&" : "?") + paramName + "=" + paramValue
+  );
+};
+
 export default connect((states) => ({
   theme: states.theme,
   users: states.users,

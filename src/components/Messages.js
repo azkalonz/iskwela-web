@@ -228,10 +228,14 @@ function RecentMessages(props) {
           <Toolbar>
             <Button
               onClick={() => {
-                history.push("/chat#users");
+                if (window.location.pathname.indexOf("video-conference") < 0)
+                  history.push("/chat#users");
+                else
+                  history.push(
+                    window.location.search.replaceUrlParam("t", "VIEW_USERS")
+                  );
                 props.onClose && props.onClose();
               }}
-              className="safe-to-url"
             >
               See All
             </Button>

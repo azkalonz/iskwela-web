@@ -48,6 +48,7 @@ import { ResizeLine } from "../components/content-creator";
 import { AvatarGroup } from "@material-ui/lab";
 import { setTitle, isMobileDevice } from "../App";
 import Scrollbar from "../components/Scrollbar";
+const qs = require("query-string");
 
 const key = {};
 function keyPress(e) {
@@ -914,7 +915,7 @@ function MainChat(props) {
 export function ChatProvider(props) {
   const theme = useTheme();
   const isTablet = useMediaQuery(theme.breakpoints.down("md"));
-  const query = require("query-string");
+  const query = qs.parse(window.location.search);
   const chat_id = props?.match?.params?.chat_id || query.t || props.chatId;
   const [tail, setTail] = useState("");
   const history = useHistory();
@@ -1114,7 +1115,7 @@ function Chat(props) {
 }
 
 function VideoChat(props) {
-  const query = require("query-string").parse(window.location.search);
+  const query = qs.parse(window.location.search);
   useEffect(() => {
     if (!query.chat) window.close();
   }, [query.chat]);
@@ -1140,7 +1141,7 @@ function VideoChat(props) {
 }
 function FloatingChatBox(props) {
   const theme = useTheme();
-  const query = require("query-string").parse(window.location.search);
+  const query = qs.parse(window.location.search);
   const { user } = props;
   return user ? (
     <Box
@@ -1225,7 +1226,7 @@ function FloatingChatBox(props) {
 }
 function FloatingChatWidget(props) {
   const history = useHistory();
-  const query = require("query-string").parse(window.location.search);
+  const query = qs.parse(window.location.search);
   const styles = useStyles();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
@@ -1259,7 +1260,7 @@ function FloatingChatWidget(props) {
   };
   const [openedChatBox, setOpenedChatBox] = useState();
   const chatWith = (username) => {
-    history.push("?t=" + username);
+    history.push(window.location.search.replaceUrlParam("t", username));
     props.setChatId(username);
     setOpenedChatBox(username);
     if (chatBoxes.length > MAX_CHAT_BOXES) {
@@ -1287,11 +1288,14 @@ function FloatingChatWidget(props) {
   useEffect(() => {
     if (query.t && query.t !== "null" && query.t !== "undefined") {
       props.setChatId(query.t);
+      if (query.t === "VIEW_USERS") setOpened(true);
     }
   }, [query.t]);
   return !isMobile ? (
     <Box
       className={styles.root}
+      display="flex"
+      flexDirection="column"
       style={{
         position: "fixed",
         right: 10,
@@ -1324,7 +1328,7 @@ function FloatingChatWidget(props) {
           <Typography
             style={{ fontSize: 18, fontWeight: 500, textAlign: "left" }}
           >
-            Chat ({onlineUsersCount})
+            Chat {opened && `(${onlineUsersCount})`}
           </Typography>
           <Icon>{opened ? "expand_more" : "expand_less"}</Icon>
         </Box>
@@ -1358,42 +1362,49 @@ function FloatingChatWidget(props) {
           </React.Fragment>
         ))}
       </Box>
-      {users.map((user, key) => (
-        <ButtonBase
-          key={key}
-          onClick={() => {
-            chatWith(user.username);
-            setOpened(false);
-          }}
-          style={{
-            display: "flex",
-            width: "100%",
-            alignItems: "center",
-            justifyContent: "flex-start",
-            textAlign: "left",
-            padding: 13,
-            borderTop: "1px solid rgba(0,0,0,0.16)",
-          }}
-        >
-          {React.createElement(
-            eval(user.status === "online" ? "OnlineBadge" : "OfflineBadge"),
-            {
-              anchorOrigin: {
-                vertical: "bottom",
-                horizontal: "right",
-              },
-              variant: "dot",
-            },
-            <Avatar
-              src={user.preferences?.profile_picture}
-              alt={user.first_name}
-            />
-          )}
-          <Typography style={{ marginLeft: 7 }}>
-            {user.first_name} {user.last_name}
-          </Typography>
-        </ButtonBase>
-      ))}
+      <Box width="100%" overflow="auto" height="100%">
+        <Scrollbar autoHide>
+          {opened &&
+            users.map((user, key) => (
+              <ButtonBase
+                key={key}
+                onClick={() => {
+                  chatWith(user.username);
+                  setOpened(false);
+                }}
+                style={{
+                  display: "flex",
+                  width: "100%",
+                  alignItems: "center",
+                  justifyContent: "flex-start",
+                  textAlign: "left",
+                  padding: 13,
+                  borderTop: "1px solid rgba(0,0,0,0.16)",
+                }}
+              >
+                {React.createElement(
+                  eval(
+                    user.status === "online" ? "OnlineBadge" : "OfflineBadge"
+                  ),
+                  {
+                    anchorOrigin: {
+                      vertical: "bottom",
+                      horizontal: "right",
+                    },
+                    variant: "dot",
+                  },
+                  <Avatar
+                    src={user.preferences?.profile_picture}
+                    alt={user.first_name}
+                  />
+                )}
+                <Typography style={{ marginLeft: 7 }}>
+                  {user.first_name} {user.last_name}
+                </Typography>
+              </ButtonBase>
+            ))}
+        </Scrollbar>
+      </Box>
     </Box>
   ) : null;
 }
