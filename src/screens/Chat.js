@@ -409,7 +409,7 @@ export function ChatBox(props) {
           minHeight={50}
           alignItems="center"
         >
-          {isTablet && (
+          {isTablet && !props.disabledActions?.USERS_LIST && (
             <IconButton
               color="primary"
               onClick={() => props.history.push("#users")}
@@ -445,7 +445,7 @@ export function ChatBox(props) {
             </Box>
           )}
           <Box>
-            {isTablet && (
+            {isTablet && !props.disabledActions?.USER_INFO && (
               <IconButton
                 color="primary"
                 onClick={() => props.history.push("#user-details")}
@@ -1161,6 +1161,10 @@ function FloatingChatBox(props) {
         <ChatBox
           {...props}
           height={400}
+          disabledActions={{
+            USERS_LIST: true,
+            USER_INFO: true,
+          }}
           actions={{
             chatHeadClick: () => {
               props.onOpened && props.opened === user.username
@@ -1213,6 +1217,7 @@ function FloatingChatBox(props) {
 }
 function FloatingChatWidget(props) {
   const history = useHistory();
+  const query = require("query-string").parse(window.location.search);
   const styles = useStyles();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
@@ -1266,10 +1271,10 @@ function FloatingChatWidget(props) {
     }
   };
   useEffect(() => {
-    if (chat_id) {
-      chatWith(chat_id);
+    if (query.t && query.t !== "null") {
+      chatWith(query.t);
     }
-  }, [chat_id]);
+  }, [query.t]);
   return !isMobile ? (
     <Box
       className={styles.root}
