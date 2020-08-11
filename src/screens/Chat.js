@@ -1022,7 +1022,7 @@ export function ChatProvider(props) {
             selected: chat_id,
             users: getSortedUsers(),
             onClick: (user) => {
-              history.push("/chat/" + user.username);
+              history.push("/chat?t=" + user.username);
             },
             loadMore: (callback) =>
               getMessages(chat.end, chat.end + 10, callback),

@@ -165,7 +165,7 @@ function RecentMessages(props) {
               key={index}
               className={r.seen[props.userInfo.id] ? "seen" : "not-seen"}
               onClick={() => {
-                if (isMobile) history.push("/chat/" + user.username);
+                if (isMobile) history.push("/chat?t=" + user.username);
                 else history.push("?t=" + user.username);
                 props.onClose && props.onClose();
               }}
