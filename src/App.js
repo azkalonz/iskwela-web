@@ -25,7 +25,7 @@ import AnswerQuiz from "./screens/class/AnswerQuiz";
 import Home from "./screens/Home";
 import Login from "./screens/Login";
 import getTheme from "./styles/muiTheme";
-
+const qs = require("query-string");
 function App(props) {
   const [chat, setChat] = useState();
   const [loading, setLoading] = useState(true);
@@ -36,52 +36,61 @@ function App(props) {
   };
   const theme = useMemo(() => getTheme(), [props.theme]);
   useEffect(() => {
-    Messages.subscribe((resp) => {
-      store.dispatch({
-        type: resp.type,
-        data: resp.data,
-      });
-    });
-    UserData.posts.subscribe((res) => {
-      const { class_id, payload, action } = res;
-      UserData.updatePosts(class_id, payload, action);
-    });
-    socket.on("videocall", ({ caller, receiver, status }) => {
-      setVideocall({
-        open: true,
-        caller,
-        receiver,
-        status,
-      });
-      if (status !== "CALLING") setVideocall({ ...videocall, open: false });
-    });
-    socket.on("get class details", (c) => {
-      if (store.getState().classes[c.id]) {
-        UserData.updateClassDetails(c.id, c.details);
-        UserData.updateClass(c.id, c.details[c.id]);
-      }
-    });
-    socket.on("get questionnaires", (q) => {
-      let questionnaires = [...store.getState().questionnaires];
-      let qIndex = questionnaires.findIndex((qq) => q.id === qq.id);
-      if (qIndex >= 0) {
-        questionnaires.splice(qIndex, 1, q);
-      } else {
-        questionnaires.push(q);
-      }
-      store.dispatch({
-        type: "SET_QUESTIONNAIRES",
-        questionnaires,
-      });
-    });
-    socket.on("get schedule details", (c) => {
-      if (store.getState().classes[c.id]) {
-        UserData.addClassSchedule(c.id, c.details);
-      }
-    });
     Api.auth({
       success: async (user) => {
         socket.emit("online user", { ...user, status: "online" });
+        Messages.subscribe((resp) => {
+          const query = qs.parse(window.location.search);
+          let current = store.getState().messages.current;
+          let channel = user.username + "-" + query.t;
+          if (
+            current.channel &&
+            resp.type === "SET_MESSAGES" &&
+            channel !== resp.data?.channel
+          )
+            return;
+          store.dispatch({
+            type: resp.type,
+            data: resp.data,
+          });
+        });
+        UserData.posts.subscribe((res) => {
+          const { class_id, payload, action } = res;
+          UserData.updatePosts(class_id, payload, action);
+        });
+        socket.on("videocall", ({ caller, receiver, status }) => {
+          setVideocall({
+            open: true,
+            caller,
+            receiver,
+            status,
+          });
+          if (status !== "CALLING") setVideocall({ ...videocall, open: false });
+        });
+        socket.on("get class details", (c) => {
+          if (store.getState().classes[c.id]) {
+            UserData.updateClassDetails(c.id, c.details);
+            UserData.updateClass(c.id, c.details[c.id]);
+          }
+        });
+        socket.on("get questionnaires", (q) => {
+          let questionnaires = [...store.getState().questionnaires];
+          let qIndex = questionnaires.findIndex((qq) => q.id === qq.id);
+          if (qIndex >= 0) {
+            questionnaires.splice(qIndex, 1, q);
+          } else {
+            questionnaires.push(q);
+          }
+          store.dispatch({
+            type: "SET_QUESTIONNAIRES",
+            questionnaires,
+          });
+        });
+        socket.on("get schedule details", (c) => {
+          if (store.getState().classes[c.id]) {
+            UserData.addClassSchedule(c.id, c.details);
+          }
+        });
         Messages.hooks["new message"] = (data) => {
           const { sender } = data;
           if (sender.id !== user.id) {

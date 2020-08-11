@@ -980,6 +980,7 @@ export function ChatProvider(props) {
     window.clearInterval(window.seenbutnotfocused);
     window.seenbutnotfocused = setInterval(() => {
       if (document.hasFocus()) {
+        window.clearInterval(window.seenbutnotfocused);
         seen();
       }
     }, 100);
