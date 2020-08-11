@@ -1195,7 +1195,12 @@ function FloatingChatBox(props) {
                 : props.onOpened(user.username)
             }
           >
-            <Box display="flex" alignItems="center">
+            <Box
+              display="flex"
+              alignItems="center"
+              overflow="hidden"
+              style={{ marginRight: 20 }}
+            >
               {React.createElement(
                 eval(user.status === "online" ? "OnlineBadge" : "OfflineBadge"),
                 {
@@ -1345,6 +1350,8 @@ function FloatingChatWidget(props) {
         style={{
           position: "absolute",
           right: opened ? 330 : 160,
+          height: 50,
+          overflow: "visibile",
           bottom: 0,
           display: "flex",
           alignItems: "flex-end",
