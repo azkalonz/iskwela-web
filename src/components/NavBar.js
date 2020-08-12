@@ -250,7 +250,9 @@ function NavBar(props) {
                 onClose={handleClose}
               >
                 {props.userInfo.user_type === "p" && (
-                  <ExpansionPanel>
+                  <ExpansionPanel
+                    defaultExpanded={props.parentData?.childInfo ? true : false}
+                  >
                     <ExpansionPanelSummary>
                       Viewing as {props.parentData?.childInfo?.first_name}
                       <Icon>expand_more</Icon>
@@ -270,7 +272,10 @@ function NavBar(props) {
                                 selected={props.parentData.childInfo?.id === id}
                                 divider
                                 onClick={() => {
-                                  window.location = "/?child=" + id;
+                                  window.location = window.location.search.replaceUrlParam(
+                                    "child",
+                                    id
+                                  );
                                 }}
                                 key={index}
                               >
@@ -319,6 +324,16 @@ function NavBar(props) {
                   }
                 >
                   Report a Problem
+                </MenuItem>
+                <MenuItem
+                  onClick={() =>
+                    window.open(
+                      "https://www.facebook.com/groups/1161662237559709",
+                      "_blank"
+                    )
+                  }
+                >
+                  FB Support Group
                 </MenuItem>
                 <MenuItem onClick={handleLogout}>Logout</MenuItem>
               </Menu>

@@ -154,8 +154,15 @@ function Schedule(props) {
     { id: "status", numeric: true, disablePadding: false, label: "Status" },
   ];
   const _handleEditSchedule = async () => {
+    if (!form) return;
     setSaving(true);
-    let formData = new Form(form);
+    let formData = new Form({
+      id: form.id,
+      from: form.from,
+      to: form.to,
+      teacher_id: form.teacher?.id,
+      status: form.status,
+    });
     let res = await formData.send("/api/schedule/save");
     setErrors(null);
     if (res) {

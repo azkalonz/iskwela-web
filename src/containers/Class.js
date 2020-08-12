@@ -718,7 +718,7 @@ function Class(props) {
                               size="small"
                               variant="contained"
                               disabled={
-                                saving
+                                saving || props.parentData?.childInfo
                                   ? true
                                   : isTeacher
                                   ? false
@@ -1171,6 +1171,7 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 export default connect((states) => ({
+  parentData: states.parentData,
   userInfo: states.userInfo,
   classDetails: states.classDetails,
   pics: states.pics,

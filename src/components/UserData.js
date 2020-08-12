@@ -192,25 +192,28 @@ const UserData = {
         let query = qs.parse(window.location.search);
         let childId,
           storedChild = window.localStorage["childID"];
-        if (storedChild) childId = storedChild;
-        else if (query.child) childId = query.child;
+        if (query.child) childId = query.child;
+        else if (storedChild) childId = storedChild;
+        else childId = info.id;
         if (childId) {
           let i = parseInt(childId);
           i = parseInt(i);
           if (!isNaN(i)) {
             let ii = data.parentData.children.find((q) => q.childInfo.id === i);
             if (ii) {
+              childId = i;
               info = ii.childInfo;
             }
           }
         }
-        if (info.id) {
+        if (childId) {
+          if (typeof childId !== "number") childId = info.id;
           store.dispatch({
             type: "SET_CHILD_DATA",
             child: info,
           });
-          await UserData.getUserData(info, null, info.id);
-          localStorage["childID"] = info.id;
+          await UserData.getUserData(info, null, childId);
+          window.localStorage["childID"] = childId;
         }
       }
     }
@@ -244,10 +247,12 @@ const UserData = {
         classes: allclasses,
       });
     }
-    store.dispatch({
-      type: "SET_USERINFO",
-      user,
-    });
+    if (!id) {
+      store.dispatch({
+        type: "SET_USERINFO",
+        user,
+      });
+    }
     setProgress && setProgress(100);
   },
 };
