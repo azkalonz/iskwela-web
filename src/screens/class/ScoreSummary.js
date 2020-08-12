@@ -18,6 +18,7 @@ import PopupState, {
   bindPopover,
   bindMenu,
 } from "material-ui-popup-state";
+import { connect } from "react-redux";
 
 const Scores = () => {
   const classes = useStyles(false);
@@ -127,4 +128,4 @@ const useStyles = makeStyles((theme) => ({
     color: "#7539ff",
   },
 }));
-export default Scores;
+export default connect()(Scores);

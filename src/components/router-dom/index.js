@@ -18,6 +18,8 @@ import Schedule from "../../screens/class/Schedule";
 import Scores from "../../screens/class/Scores";
 import Students from "../../screens/class/Students";
 import Calendar from "../Calendar";
+import ScoreSummary from "../../screens/class/ScoreSummary";
+
 export function makeLinkTo(path, options = {}, relative = false) {
   path = path.map((p) => (options[p] != null ? options[p] : p));
   return (
@@ -229,7 +231,7 @@ export const rightPanelOptionsStudents = [
       {
         title: "Scores",
         link: "scores",
-        screen: Scores,
+        screen: ScoreSummary,
       },
     ],
   },
