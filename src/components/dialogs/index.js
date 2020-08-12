@@ -88,6 +88,31 @@ const ConnectedVideoCall = connect((states) => ({
 }))(VideoCall);
 export { ConnectedVideoCall as VideoCall };
 
+export function ForgotPasswordDialog(props) {
+  return (
+    <Dialog open={props.open} onClose={() => props.onClose && props.onClose()}>
+      <DialogTitle onClose={() => props.onClose && props.onClose()}>
+        Forgot Password
+      </DialogTitle>
+      <DialogContent>
+        <Typography>
+          Please contact your teacher or school administrator to reset your
+          password.
+        </Typography>
+      </DialogContent>
+      <DialogActions>
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={() => props.onClose && props.onClose()}
+        >
+          Got it
+        </Button>
+      </DialogActions>
+    </Dialog>
+  );
+}
+
 export function RecorderDialog(props) {
   const [audio, setAudio] = useState();
   const theme = useTheme();

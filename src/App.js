@@ -160,7 +160,7 @@ function App(props) {
                     path="/login"
                     render={(p) => {
                       setTitle("Login");
-                      return <Login setLoading={(l) => setLoading(l)} />;
+                      return <Login setLoading={(l) => setLoading(l)} {...p} />;
                     }}
                   />
                   <Route

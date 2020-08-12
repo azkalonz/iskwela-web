@@ -22,6 +22,7 @@ import Api from "../api";
 import { useTranslation } from "react-i18next";
 import { styles } from "@material-ui/pickers/views/Calendar/Calendar";
 import { _handleThemeType } from "../App";
+import { ForgotPasswordDialog } from "../components/dialogs";
 
 const queryString = require("query-string");
 function Alert(props) {
@@ -73,6 +74,10 @@ function Login(props) {
           </Box>
         </Box>
       )}
+      <ForgotPasswordDialog
+        open={props.location.hash === "#forgot-password"}
+        onClose={() => props.history.push("#")}
+      />
     </div>
   );
 }
@@ -173,7 +178,7 @@ function LoginContainer(props) {
       </form>
       <Typography variant="body2" align="right">
         <Link
-          href="#"
+          href="#forgot-password"
           style={{ color: isMobile ? "#fff" : theme.palette.primary.main }}
         >
           Forgot Password?

@@ -1,29 +1,11 @@
 import React, { useState } from "react";
-import {
-  TableSortLabel,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Box,
-  IconButton,
-  InputBase,
-  makeStyles,
-  Avatar,
-  Typography,
-  CircularProgress,
-  Grow,
-} from "@material-ui/core";
-import store from "../../components/redux/store";
-import SearchIcon from "@material-ui/icons/Search";
-import { asyncForEach } from "../../components/UserData";
-import Api from "../../api";
-import Pagination, { getPageItems } from "../../components/Pagination";
-import { SearchInput } from "../../components/Selectors";
+import { Box, Grow, makeStyles, Typography } from "@material-ui/core";
 import { connect } from "react-redux";
+import Pagination from "../../components/Pagination";
+import store from "../../components/redux/store";
+import { SearchInput } from "../../components/Selectors";
 import { Table as MTable } from "../../components/Table";
+import Api from "../../api";
 
 const useStyles = makeStyles((theme) => ({
   hideonmobile: {
@@ -53,38 +35,17 @@ const useStyles = makeStyles((theme) => ({
 function Students(props) {
   const query = require("query-string").parse(window.location.search);
   const { class_id } = props.match.params;
+  const [saving, setSaving] = useState(false);
+  const [savingId, setSavingId] = useState([]);
   const [students, setStudents] = useState();
-  const [orderBy, setOrderBy] = React.useState("first_name");
-  const [order, setOrder] = React.useState("asc");
+  const [orderBy, setOrderBy] = useState("first_name");
+  const [order, setOrder] = useState("asc");
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(query.page ? parseInt(query.page) : 1);
   const styles = useStyles();
 
   const getStudents = async () => {
     let a = store.getState().classDetails[class_id].students;
-    // await asyncForEach(a, async (s, index, arr) => {
-    //   if (store.getState().pics[s.id]) {
-    //     a[index].pic = store.getState().pics[s.id];
-    //     return;
-    //   }
-    //   try {
-    //     let pic = await Api.postBlob("/api/download/user/profile-picture", {
-    //       body: { id: s.id },
-    //     }).then((resp) => (resp.ok ? resp.blob() : null));
-    //     if (pic) {
-    //       var picUrl = URL.createObjectURL(pic);
-    //       let userpic = {};
-    //       userpic[s.student.id] = picUrl;
-    //       store.dispatch({
-    //         type: "SET_PIC",
-    //         userpic,
-    //       });
-    //       a[index].pic = picUrl;
-    //     }
-    //   } catch (e) {
-    //     a[index].pic = "/logo192.png";
-    //   }
-    // });
     setStudents(a);
   };
   useState(() => {
@@ -106,6 +67,28 @@ function Students(props) {
   };
   const _handleSearch = (e) => {
     setSearch(e.toLowerCase());
+  };
+  const resetPassword = async (user) => {
+    let { id, username } = user;
+    if (!username) return;
+    setSaving(true);
+    setSavingId([id]);
+    try {
+      await Api.post("/api/schooladmin/change-user-password", {
+        body: {
+          username,
+          password: username,
+        },
+      });
+    } catch (e) {}
+    setSaving(false);
+    setSavingId([]);
+  };
+  const _handleFileOption = (opt, item) => {
+    switch (opt) {
+      case "reset-password":
+        resetPassword(item);
+    }
   };
   const headCells = [
     { id: "first_name", numeric: false, disablePadding: true, label: "Name" },
@@ -146,6 +129,17 @@ function Students(props) {
                   align: "flex-end",
                 },
               ]}
+              actions={{
+                _handleFileOption: (opt, file) => _handleFileOption(opt, file),
+              }}
+              options={[
+                {
+                  name: "Reset Password",
+                  value: "reset-password",
+                },
+              ]}
+              saving={saving}
+              savingId={savingId}
               filtered={(a) => getFilteredStudents(a)}
               data={students}
               noSelect={true}
