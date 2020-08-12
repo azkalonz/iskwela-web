@@ -269,6 +269,9 @@ function NavBar(props) {
                               <ListItem
                                 selected={props.parentData.childInfo?.id === id}
                                 divider
+                                onClick={() => {
+                                  window.location = "/?child=" + id;
+                                }}
                                 key={index}
                               >
                                 <ListItemAvatar>

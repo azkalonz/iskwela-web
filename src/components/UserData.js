@@ -2,6 +2,7 @@ import store from "./redux/store";
 import Api from "../api";
 import moment from "moment";
 import socket from "./socket.io";
+const qs = require("query-string");
 
 export async function asyncForEach(array, callback) {
   if (!array) return;
@@ -188,12 +189,28 @@ const UserData = {
       data.parentData = await Api.get("/api/parent/show");
       if (data.parentData?.children.length) {
         let info = data.parentData.children[0].childInfo;
+        let query = qs.parse(window.location.search);
+        let childId,
+          storedChild = window.localStorage["childID"];
+        if (storedChild) childId = storedChild;
+        else if (query.child) childId = query.child;
+        if (childId) {
+          let i = parseInt(childId);
+          i = parseInt(i);
+          if (!isNaN(i)) {
+            let ii = data.parentData.children.find((q) => q.childInfo.id === i);
+            if (ii) {
+              info = ii.childInfo;
+            }
+          }
+        }
         if (info.id) {
           store.dispatch({
             type: "SET_CHILD_DATA",
             child: info,
           });
           await UserData.getUserData(info, null, info.id);
+          localStorage["childID"] = info.id;
         }
       }
     }
