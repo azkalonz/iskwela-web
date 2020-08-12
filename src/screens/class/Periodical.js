@@ -430,7 +430,7 @@ function Periodical(props) {
     });
   };
   const handleStart = () => {
-    if (!currentItem.questionnaires.length) return;
+    if (!currentItem.questionnaires.length || props.childInfo) return;
     history.push(
       makeLinkTo([
         "class",
@@ -564,6 +564,7 @@ function Periodical(props) {
                       <Button
                         variant="contained"
                         color="primary"
+                        disabled={props.childInfo ? true : false}
                         onClick={() => handleStart()}
                       >
                         Start
@@ -626,18 +627,19 @@ function Periodical(props) {
                           color="primary"
                           key={i}
                           onClick={() => {
-                            history.push(
-                              makeLinkTo([
-                                "class",
-                                class_id,
-                                schedule_id,
-                                option_name,
-                                room_name || "",
+                            !props.childInfo &&
+                              history.push(
+                                makeLinkTo([
+                                  "class",
+                                  class_id,
+                                  schedule_id,
+                                  option_name,
+                                  room_name || "",
 
-                                "?id=" + m.id,
-                                "&q=" + currentItem.id + "&start=true",
-                              ])
-                            );
+                                  "?id=" + m.id,
+                                  "&q=" + currentItem.id + "&start=true",
+                                ])
+                              );
                           }}
                         >
                           {m.title}
@@ -1192,5 +1194,6 @@ export default connect((state) => ({
   pics: state.pics,
   dataProgress: state.dataProgress,
   classDetails: state.classDetails,
+  childInfo: state.parentData?.childInfo,
   gradingCategories: state.gradingCategories,
 }))(Periodical);

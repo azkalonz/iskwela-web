@@ -306,6 +306,13 @@ function Class(props) {
           {p.children &&
             Object.keys(p.children)
               .filter((s) => !p.children[s].hidden)
+              .filter((k) =>
+                p.children[k].hideToUserType
+                  ? p.children[k].hideToUserType.indexOf(
+                      props.userInfo.user_type
+                    ) < 0
+                  : true
+              )
               .map((k, id) =>
                 panelOption({
                   ...p.children[k],
@@ -711,7 +718,7 @@ function Class(props) {
                               size="small"
                               variant="contained"
                               disabled={
-                                saving
+                                saving || props.parentData?.childInfo
                                   ? true
                                   : isTeacher
                                   ? false
@@ -798,6 +805,13 @@ function Class(props) {
                       {isTeacher
                         ? rightPanelOptions
                             .filter((s) => !s.hidden)
+                            .filter((s) =>
+                              s.hideToUserType
+                                ? s.hideToUserType.indexOf(
+                                    props.userInfo.user_type
+                                  ) < 0
+                                : true
+                            )
                             .map((r, id) =>
                               panelOption({
                                 ...r,
@@ -807,6 +821,13 @@ function Class(props) {
                             )
                         : rightPanelOptionsStudents
                             .filter((s) => !s.hidden)
+                            .filter((s) =>
+                              s.hideToUserType
+                                ? s.hideToUserType.indexOf(
+                                    props.userInfo.user_type
+                                  ) < 0
+                                : true
+                            )
                             .map((r, id) =>
                               panelOption({
                                 ...r,
@@ -1150,6 +1171,7 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 export default connect((states) => ({
+  parentData: states.parentData,
   userInfo: states.userInfo,
   classDetails: states.classDetails,
   pics: states.pics,

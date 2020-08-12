@@ -20,6 +20,8 @@ import {
   useMediaQuery,
   useTheme,
   withStyles,
+  Menu,
+  MenuItem,
 } from "@material-ui/core";
 import Grow from "@material-ui/core/Grow";
 import VideocamIcon from "@material-ui/icons/Videocam";
@@ -37,6 +39,8 @@ import { makeLinkTo } from "../components/router-dom";
 import { SearchInput } from "../components/Selectors";
 import Scrollbar from "../components/Scrollbar";
 import { motion } from "framer-motion";
+import PopupState, { bindMenu, bindTrigger } from "material-ui-popup-state";
+import UserData from "../components/UserData";
 
 const cardWidth = 340;
 
@@ -79,6 +83,9 @@ function Home(props) {
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const isTablet = useMediaQuery(theme.breakpoints.down("md"));
   const query = require("query-string").parse(window.location.search);
+  const [showClasses, setShowClasses] = useState(
+    window.localStorage["show-classes"] || "today"
+  );
   const [loading, setLoading] = useState(true);
   const history = useHistory();
   const [greeting, setGreeting] = useState(true);
@@ -327,6 +334,15 @@ function Home(props) {
       </Box>
     );
   };
+  const handleShowClasses = () => {
+    if (showClasses === "today") {
+      window.localStorage["show-classes"] = "all";
+      setShowClasses("all");
+    } else {
+      window.localStorage["show-classes"] = "today";
+      setShowClasses("today");
+    }
+  };
   useEffect(() => {
     let cardPerPage = () => {
       if (props.location.hash === "#meeting") return;
@@ -342,6 +358,20 @@ function Home(props) {
   }, []);
   const getFilteredClass = () => {
     let r = props.classes
+      .filter((q) => {
+        if (showClasses === "today") {
+          if (q.next_schedule) {
+            return (
+              moment(q.next_schedule.from).format("MMM DD, YYYY") ===
+              moment().format("MMM DD, YYYY")
+            );
+          } else {
+            return false;
+          }
+        } else {
+          return true;
+        }
+      })
       .filter(
         (c) =>
           JSON.stringify(c).toLowerCase().indexOf(search.toLowerCase()) >= 0
@@ -448,23 +478,125 @@ function Home(props) {
             >
               <Box
                 width="100%"
-                display={isMobile ? "block" : "flex"}
-                justifyContent="flex-end"
+                display={"flex"}
+                justifyContent={props.childInfo ? "space-between" : "flex-end"}
                 alignItems="center"
-                p={4}
                 style={{ paddingTop: 7, paddingBottom: 7 }}
               >
+                {props.childInfo && !isMobile && (
+                  <PopupState variant="popover" popupId="viewing-as">
+                    {(popupState) => (
+                      <React.Fragment>
+                        <Box
+                          onClick={() => {
+                            popupState.open();
+                          }}
+                          display={"flex"}
+                          justifyContent="flex-end"
+                          alignItems="center"
+                          style={{ cursor: "pointer" }}
+                          {...bindTrigger(popupState)}
+                        >
+                          <Avatar
+                            src={props.childInfo.preferences?.profile_picture}
+                            alt={props.childInfo.first_name}
+                          />
+                          <Box marginLeft={2}>
+                            <Typography style={{ fontSize: 12 }}>
+                              Viewing as
+                            </Typography>
+                            <Typography
+                              style={{
+                                fontWeight: 16,
+                                fontWeight: 500,
+                              }}
+                            >
+                              {props.childInfo.first_name +
+                                " " +
+                                props.childInfo.last_name}
+                            </Typography>
+                          </Box>
+                          <IconButton
+                            color="primary"
+                            {...bindTrigger(popupState)}
+                          >
+                            <Icon>expand_more</Icon>
+                          </IconButton>
+                        </Box>
+                        <Menu {...bindMenu(popupState)}>
+                          {props.parentData?.children?.map((child, index) => {
+                            return (
+                              <MenuItem
+                                key={index}
+                                selected={
+                                  props.childInfo?.id === child.childInfo.id
+                                }
+                                onClick={async () => {
+                                  popupState.close();
+                                  if (
+                                    props.childInfo?.id === child.childInfo.id
+                                  ) {
+                                    return;
+                                  }
+                                  setLoading(true);
+                                  window.localStorage["chatID"] =
+                                    child.childInfo.id;
+                                  props.history.push(
+                                    window.location.search.replaceUrlParam(
+                                      "child",
+                                      child.childInfo.id
+                                    )
+                                  );
+                                  await UserData.getUserData(props.userInfo);
+                                  setLoading(false);
+                                }}
+                              >
+                                <Avatar
+                                  src={
+                                    child.childInfo?.preferences
+                                      ?.profile_picture
+                                  }
+                                  alt={child.childInfo.first_name}
+                                />
+                                <Typography style={{ marginLeft: 13 }}>
+                                  {child.childInfo.first_name +
+                                    " " +
+                                    child.childInfo.last_name}
+                                </Typography>
+                              </MenuItem>
+                            );
+                          })}
+                        </Menu>
+                      </React.Fragment>
+                    )}
+                  </PopupState>
+                )}
                 <Box
-                  p={0.3}
-                  width={isMobile ? "100%" : 230}
-                  style={{ display: "flex" }}
+                  display={"flex"}
+                  justifyContent="flex-end"
+                  alignItems="center"
+                  width="100%"
                 >
-                  <SearchInput
-                    onChange={(s) => {
-                      setPage(1);
-                      setSearch(s);
-                    }}
-                  />
+                  <Button
+                    variant="outlined"
+                    onClick={handleShowClasses}
+                    style={{ width: "auto" }}
+                    color="primary"
+                  >
+                    {showClasses === "today" ? "Show all" : "Today only"}
+                  </Button>
+                  <Box
+                    p={0.3}
+                    width={isMobile ? "100%" : 230}
+                    style={{ display: "flex" }}
+                  >
+                    <SearchInput
+                      onChange={(s) => {
+                        setPage(1);
+                        setSearch(s);
+                      }}
+                    />
+                  </Box>
                 </Box>
               </Box>
               {loading && [1, 1, 1].map((c, i) => fakeLoader(i))}
@@ -481,8 +613,19 @@ function Home(props) {
                   count={getFilteredClass().length}
                   itemsPerPage={itemsPerPage}
                   nolink
-                  emptyTitle={"Nothing Found"}
-                  emptyMessage={"Try a different keyword."}
+                  emptyTitle={search ? "Nothing Found" : "No Classes"}
+                  emptyMessage={
+                    search ? (
+                      "Try a different keyword."
+                    ) : (
+                      <Box textAlign="center">
+                        <Typography>No class is scheduled for today</Typography>
+                        <Button onClick={handleShowClasses}>
+                          Show all classes
+                        </Button>
+                      </Box>
+                    )
+                  }
                   page={page}
                   onChange={(p) => setPage(p)}
                 />
@@ -508,6 +651,7 @@ const useStyles = makeStyles((theme) => ({
       maxWidth: "95%",
       width: "100%",
     },
+    minWidth: cardWidth,
     maxWidth: cardWidth,
     position: "relative",
     margin: 20,
@@ -577,5 +721,7 @@ export default connect((states) => ({
   classes: Object.keys(states.classes).map((k) => states.classes[k]),
   pics: states.pics,
   userInfo: states.userInfo,
+  parentData: states.parentData,
+  childInfo: states.parentData?.childInfo,
   classDetails: states.classDetails,
 }))(Home);

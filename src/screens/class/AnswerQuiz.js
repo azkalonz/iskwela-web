@@ -201,7 +201,7 @@ function AnswerQuiz(props) {
       setSaving(false);
     });
   };
-  return (
+  return !props.childInfo ? (
     <React.Fragment>
       <Dialog
         open={quizScore ? true : false}
@@ -594,7 +594,7 @@ function AnswerQuiz(props) {
         )}
       </Box>
     </React.Fragment>
-  );
+  ) : null;
 }
 
 function QuestionsNavigator(props) {
@@ -747,5 +747,6 @@ function CountDown(props) {
 }
 
 export default connect((states) => ({
+  childInfo: states.parentData?.childInfo,
   questionnaires: states.questionnaires,
 }))(AnswerQuiz);

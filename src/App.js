@@ -38,6 +38,7 @@ function App(props) {
   useEffect(() => {
     Api.auth({
       success: async (user) => {
+        await UserData.getUserData(user);
         socket.emit("online user", { ...user, status: "online" });
         Messages.subscribe((resp) => {
           const query = qs.parse(window.location.search);
@@ -108,7 +109,6 @@ function App(props) {
             notifsound.play();
           }
         };
-        await UserData.getUserData(user);
         setTimeout(() => {
           setLoading(false);
         }, 500);
@@ -160,7 +160,7 @@ function App(props) {
                     path="/login"
                     render={(p) => {
                       setTitle("Login");
-                      return <Login setLoading={(l) => setLoading(l)} />;
+                      return <Login setLoading={(l) => setLoading(l)} {...p} />;
                     }}
                   />
                   <Route

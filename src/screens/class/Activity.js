@@ -277,10 +277,14 @@ function Activity(props) {
   const getAnswers = async () => {
     currentActivity.answers = null;
     let a = await Api.get(
-      "/api/teacher/seatwork-answers/" + currentActivity.id
+      "/api/teacher/seatwork-answers/" +
+        currentActivity.id +
+        (props.childInfo ? "?student_id=" + props.childInfo.id : "")
     );
     let scores = await Api.get(
-      "/api/class/seatwork/get-score/" + currentActivity.id
+      "/api/class/seatwork/get-score/" +
+        currentActivity.id +
+        (props.childInfo ? "?student_id=" + props.childInfo.id : "")
     );
     a = props.classDetails[class_id].students.map((s) => {
       let sa = a.filter((st) => st.student.id === s.id);
@@ -1219,7 +1223,7 @@ function Activity(props) {
                     </Box>
                   </Box>
                 </Paper>
-                {!isTeacher && (
+                {!isTeacher && !props.childInfo && (
                   <Box marginTop={2}>
                     <Typography
                       style={{ fontWeight: "bold", marginBottom: 7 }}
@@ -1486,7 +1490,9 @@ function Activity(props) {
                           isTeacher
                             ? true
                             : parseInt(a.student.id) ===
-                              parseInt(props.userInfo.id)
+                                parseInt(props.userInfo.id) ||
+                              parseInt(a.student.id) ===
+                                parseInt(props.childInfo?.id)
                         )
                         .filter(
                           (a) =>
@@ -2504,4 +2510,5 @@ export default connect((state) => ({
   dataProgress: state.dataProgress,
   classDetails: state.classDetails,
   gradingCategories: state.gradingCategories,
+  childInfo: state.parentData?.childInfo,
 }))(Activity);

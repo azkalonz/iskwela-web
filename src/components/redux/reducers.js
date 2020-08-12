@@ -51,6 +51,7 @@ const classes = (state = [], payload) => {
           payload.classes[k].image = i;
         }
       });
+      console.log(payload.classes);
       return payload.classes;
     default:
       return state;
@@ -153,6 +154,20 @@ const posts = (state = { current: [] }, payload) => {
         posts.splice(postIndex, 1);
         return { ...state, current: posts };
       }
+    default:
+      return state;
+  }
+};
+const parentData = (state = {}, payload) => {
+  switch (payload.type) {
+    case "SET_PARENT_DATA":
+      return typeof payload.data === "object"
+        ? { ...state, ...payload.data }
+        : state;
+    case "SET_CHILD_DATA":
+      return typeof payload.child === "object"
+        ? { ...state, childInfo: payload.child }
+        : state;
     default:
       return state;
   }
@@ -277,6 +292,7 @@ export default combineReducers({
   questionnaires,
   classDetails,
   posts,
+  parentData,
   theme,
   pics,
   gradingCategories,

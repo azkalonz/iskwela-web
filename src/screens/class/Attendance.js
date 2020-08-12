@@ -156,7 +156,11 @@ function Attendance(props) {
   };
   const getAttendance = async () => {
     try {
-      let res = await Api.get("/api/class/attendance/" + class_id);
+      let res = await Api.get(
+        "/api/class/attendance/" +
+          class_id +
+          (props.childInfo ? "?student_id=" + props.childInfo.id : "")
+      );
       if (res.students) {
         let attendanceRecords = [...attendance].map((q) => {
           let a = res.students.find((qq) => qq.id === q.id);
@@ -501,7 +505,7 @@ function Attendance(props) {
     </Box>
   );
 }
-export function AttendanceProvider(props) {
+function AttendanceProvider(props) {
   const theme = useTheme();
   const { student, class_id, schedule_id } = props;
   const [events, setEvents] = useState([]);
@@ -534,7 +538,9 @@ export function AttendanceProvider(props) {
   const getAttendanceEvents = async () => {
     try {
       let res = await Api.get(
-        `/api/class/my-attendance?class_id=${class_id}&user_id=${student.id}`
+        `/api/class/my-attendance?class_id=${class_id}&user_id=${
+          props.childInfo?.id || student.id
+        }`
       );
       if (res.length)
         setEvents(
@@ -608,6 +614,10 @@ export function AttendanceProvider(props) {
     </React.Fragment>
   );
 }
+const ConnectedAttendanceProvider = connect((states) => ({
+  childInfo: states.parentData?.childInfo,
+}))(AttendanceProvider);
+export { ConnectedAttendanceProvider as AttendanceProvider };
 export default connect((states) => ({
   userInfo: states.userInfo,
   theme: states.theme,

@@ -107,7 +107,11 @@ function Scores(props) {
       );
       console.log(data);
       data = data
-        .filter((q) => (isTeacher ? true : q.id === props.userInfo.id))
+        .filter((q) =>
+          isTeacher
+            ? true
+            : q.id === props.userInfo.id || q.id === props.childInfo.id
+        )
         .map((q) => {
           let scores = q.scores;
           Object.keys(scores).map((key) => {
@@ -655,6 +659,7 @@ const chartOptions = {
   },
 };
 export default connect((states) => ({
+  childInfo: states.parentData?.childInfo,
   classDetails: states.classDetails,
   userInfo: states.userInfo,
 }))(Scores);

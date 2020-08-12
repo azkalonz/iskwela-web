@@ -2,8 +2,10 @@ import store from "./redux/store";
 import Api from "../api";
 import moment from "moment";
 import socket from "./socket.io";
+const qs = require("query-string");
 
 export async function asyncForEach(array, callback) {
+  if (!array) return;
   for (let index = 0; index < array.length; index++) {
     await callback(array[index], index, array);
   }
@@ -172,13 +174,48 @@ const UserData = {
       });
     }
   },
-  getUserData: async function (user, setProgress = (e) => {}) {
+  getUserData: async function (user, setProgress = (e) => {}, id = "") {
+    const { user_type } = user;
+    if (!user_type) return;
     let data = {};
     if (user.user_type === "s") {
-      let c = await Api.get("/api/student/classes");
+      let c = await Api.get(
+        "/api/student/classes" + (id ? "?student_id=" + id : "")
+      );
       data.classes = c.classes;
-    } else {
+    } else if (user.user_type === "t") {
       data.classes = await Api.get("/api/teacher/classes");
+    } else if (user.user_type === "p") {
+      data.parentData = await Api.get("/api/parent/show");
+      if (data.parentData?.children.length) {
+        let info = data.parentData.children[0].childInfo;
+        let query = qs.parse(window.location.search);
+        let childId,
+          storedChild = window.localStorage["childID"];
+        if (query.child) childId = query.child;
+        else if (storedChild) childId = storedChild;
+        else childId = info.id;
+        if (childId) {
+          let i = parseInt(childId);
+          i = parseInt(i);
+          if (!isNaN(i)) {
+            let ii = data.parentData.children.find((q) => q.childInfo.id === i);
+            if (ii) {
+              childId = i;
+              info = ii.childInfo;
+            }
+          }
+        }
+        if (childId) {
+          if (typeof childId !== "number") childId = info.id;
+          store.dispatch({
+            type: "SET_CHILD_DATA",
+            child: info,
+          });
+          await UserData.getUserData(info, null, childId);
+          window.localStorage["childID"] = childId;
+        }
+      }
     }
     let questionnaires = await Api.get(
       "/api/questionnaires?types[]=myQnrs&limit=100"
@@ -193,6 +230,10 @@ const UserData = {
       allclasses[c.id].teacher.pic = "/";
     });
     store.dispatch({
+      type: "SET_PARENT_DATA",
+      data: data.parentData,
+    });
+    store.dispatch({
       type: "SET_GRADING_CATEGORIES",
       categories: gradingCategories,
     });
@@ -200,15 +241,19 @@ const UserData = {
       type: "SET_QUESTIONNAIRES",
       questionnaires,
     });
-    store.dispatch({
-      type: "SET_CLASSES",
-      classes: allclasses,
-    });
-    store.dispatch({
-      type: "SET_USERINFO",
-      user,
-    });
-    setProgress(100);
+    if (user_type === "s" || user_type === "t") {
+      store.dispatch({
+        type: "SET_CLASSES",
+        classes: allclasses,
+      });
+    }
+    if (!id) {
+      store.dispatch({
+        type: "SET_USERINFO",
+        user,
+      });
+    }
+    setProgress && setProgress(100);
   },
 };
 UserData.posts = {
