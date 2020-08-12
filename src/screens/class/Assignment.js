@@ -430,7 +430,7 @@ function Assignment(props) {
     });
   };
   const handleStart = () => {
-    if (!currentItem.questionnaires.length) return;
+    if (!currentItem.questionnaires.length || props.childInfo) return;
     history.push(
       makeLinkTo([
         "class",
@@ -565,6 +565,7 @@ function Assignment(props) {
                       <Button
                         variant="contained"
                         color="primary"
+                        disabled={props.childInfo ? true : false}
                         onClick={() => handleStart()}
                       >
                         Start
@@ -627,18 +628,19 @@ function Assignment(props) {
                           color="primary"
                           key={i}
                           onClick={() => {
-                            history.push(
-                              makeLinkTo([
-                                "class",
-                                class_id,
-                                schedule_id,
-                                option_name,
-                                room_name || "",
+                            !props.childInfo &&
+                              history.push(
+                                makeLinkTo([
+                                  "class",
+                                  class_id,
+                                  schedule_id,
+                                  option_name,
+                                  room_name || "",
 
-                                "?id=" + m.id,
-                                "&q=" + currentItem.id + "&start=true",
-                              ])
-                            );
+                                  "?id=" + m.id,
+                                  "&q=" + currentItem.id + "&start=true",
+                                ])
+                              );
                           }}
                         >
                           {m.title}
@@ -1191,6 +1193,7 @@ export default connect((state) => ({
   questionnaires: state.questionnaires,
   pics: state.pics,
   dataProgress: state.dataProgress,
+  childInfo: state.parentData?.childInfo,
   classDetails: state.classDetails,
   gradingCategories: state.gradingCategories,
 }))(Assignment);

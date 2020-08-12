@@ -273,9 +273,15 @@ function Project(props) {
   };
   const getAnswers = async () => {
     currentActivity.answers = null;
-    let a = await Api.get("/api/teacher/project-answers/" + currentActivity.id);
+    let a = await Api.get(
+      "/api/teacher/project-answers/" +
+        currentActivity.id +
+        (props.childInfo ? "?student_id=" + props.childInfo.id : "")
+    );
     let scores = await Api.get(
-      "/api/class/project/get-score/" + currentActivity.id
+      "/api/class/project/get-score/" +
+        currentActivity.id +
+        (props.childInfo ? "?student_id=" + props.childInfo.id : "")
     );
     a = props.classDetails[class_id].students.map((s) => {
       let sa = a.filter((st) => st.student.id === s.id);
@@ -1211,7 +1217,7 @@ function Project(props) {
                     </Box>
                   </Box>
                 </Paper>
-                {!isTeacher && (
+                {!isTeacher && !props.childInfo && (
                   <Box marginTop={2}>
                     <Typography
                       style={{ fontWeight: "bold", marginBottom: 7 }}
@@ -1482,7 +1488,9 @@ function Project(props) {
                           isTeacher
                             ? true
                             : parseInt(a.student.id) ===
-                              parseInt(props.userInfo.id)
+                                parseInt(props.userInfo.id) ||
+                              parseInt(a.student.id) ===
+                                parseInt(props.childInfo?.id)
                         )
                         .filter(
                           (a) =>
@@ -1679,7 +1687,9 @@ function Project(props) {
                             isTeacher
                               ? true
                               : parseInt(a.student.id) ===
-                                parseInt(props.userInfo.id)
+                                  parseInt(props.userInfo.id) ||
+                                parseInt(a.student.id) ===
+                                  parseInt(props.childInfo?.id)
                           )
                           .filter(
                             (a) =>
@@ -2495,4 +2505,5 @@ export default connect((state) => ({
   dataProgress: state.dataProgress,
   classDetails: state.classDetails,
   gradingCategories: state.gradingCategories,
+  childInfo: state.parentData?.childInfo,
 }))(Project);

@@ -22,6 +22,13 @@ import {
   Typography,
   useMediaQuery,
   useTheme,
+  ExpansionPanel,
+  ExpansionPanelSummary,
+  List,
+  ExpansionPanelDetails,
+  ListItemAvatar,
+  ListItemText,
+  ListItem,
 } from "@material-ui/core";
 import ArrowDropDownIcon from "@material-ui/icons/ArrowDropDown";
 import CloseIcon from "@material-ui/icons/Close";
@@ -37,6 +44,7 @@ import Form from "./Form";
 import Messages, { RecentMessages } from "./Messages";
 import actions from "./redux/actions";
 import UserData from "./UserData";
+
 const styles = (theme) => ({
   root: {
     margin: 0,
@@ -241,6 +249,49 @@ function NavBar(props) {
                 open={open}
                 onClose={handleClose}
               >
+                {props.userInfo.user_type === "p" && (
+                  <ExpansionPanel>
+                    <ExpansionPanelSummary>
+                      Viewing as {props.parentData?.childInfo?.first_name}
+                      <Icon>expand_more</Icon>
+                    </ExpansionPanelSummary>
+                    <ExpansionPanelDetails style={{ padding: 0 }}>
+                      {props.parentData?.children.length ? (
+                        <List style={{ width: "100%" }}>
+                          {props.parentData.children.map((child, index) => {
+                            const {
+                              first_name,
+                              last_name,
+                              id,
+                              preferences,
+                            } = child.childInfo;
+                            return (
+                              <ListItem
+                                selected={props.parentData.childInfo?.id === id}
+                                divider
+                                key={index}
+                              >
+                                <ListItemAvatar>
+                                  <Avatar
+                                    src={preferences?.profile_picture}
+                                    alt={first_name}
+                                  />
+                                </ListItemAvatar>
+                                <ListItemText
+                                  primary={first_name + " " + last_name}
+                                />
+                              </ListItem>
+                            );
+                          })}
+                        </List>
+                      ) : (
+                        <Typography variant="body1" color="textSecondary">
+                          No children
+                        </Typography>
+                      )}
+                    </ExpansionPanelDetails>
+                  </ExpansionPanel>
+                )}
                 {props.userInfo.user_type === "t" && (
                   <MenuItem>
                     <Box onClick={() => setMeetingDialog(true)}>
@@ -583,6 +634,7 @@ export default connect(
     route: states.route,
     theme: states.theme,
     userInfo: states.userInfo,
+    parentData: states.parentData,
   }),
   actions
 )(NavBar);

@@ -43,9 +43,9 @@ export const rightPanelOptions = [
   {
     title: "Student Activities",
     navTitle: "Due this week",
-    link: "todo",
+    // link: "todo",
     icon: "icon-activities",
-    screen: Todo,
+    // screen: Todo,
     children: [
       {
         title: "Seat Works",
@@ -162,9 +162,9 @@ export const rightPanelOptionsStudents = [
   {
     title: "Student Activities",
     icon: "icon-activities",
-    navTitle: "Due this week",
-    link: "my-todo",
-    screen: MyTodo,
+    // navTitle: "Due this week",
+    // link: "my-todo",
+    // screen: MyTodo,
     children: [
       {
         title: "Seat Works",
@@ -208,6 +208,7 @@ export const rightPanelOptionsStudents = [
         link: "kahoot.it",
         icon: null,
         screen: Kahoot,
+        hideToUserType: ["p"],
       },
     ],
   },
