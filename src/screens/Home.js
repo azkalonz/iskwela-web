@@ -606,7 +606,17 @@ function Home(props) {
                   </Box>
                 </Box>
               </Box>
-              {loading && [1, 1, 1].map((c, i) => fakeLoader(i))}
+              {loading &&
+                (
+                  getPageItems(getFilteredClass(), page, itemsPerPage) || [
+                    1,
+                    1,
+                    1,
+                    1,
+                    1,
+                    1,
+                  ]
+                ).map((c, i) => fakeLoader(i))}
               {!loading &&
                 props.classes &&
                 getPageItems(
@@ -614,36 +624,40 @@ function Home(props) {
                   page,
                   itemsPerPage
                 ).map((c, index) => classItem(c, index))}
-              <Box m={2} width="100%">
-                <Pagination
-                  match={props.match}
-                  count={getFilteredClass().length}
-                  itemsPerPage={itemsPerPage}
-                  nolink
-                  icon={
-                    <img
-                      src="/hero-img/search.svg"
-                      width={180}
-                      style={{ padding: "50px 0" }}
-                    />
-                  }
-                  emptyTitle={search ? "Nothing Found" : "No Classes"}
-                  emptyMessage={
-                    search ? (
-                      "Try a different keyword."
-                    ) : (
-                      <Box textAlign="center">
-                        <Typography>No class is scheduled for today</Typography>
-                        <Button onClick={handleShowClasses}>
-                          Show all classes
-                        </Button>
-                      </Box>
-                    )
-                  }
-                  page={page}
-                  onChange={(p) => setPage(p)}
-                />
-              </Box>
+              {!loading && (
+                <Box m={2} width="100%">
+                  <Pagination
+                    match={props.match}
+                    count={getFilteredClass().length}
+                    itemsPerPage={itemsPerPage}
+                    nolink
+                    icon={
+                      <img
+                        src="/hero-img/search.svg"
+                        width={180}
+                        style={{ padding: "50px 0" }}
+                      />
+                    }
+                    emptyTitle={search ? "Nothing Found" : "No Classes"}
+                    emptyMessage={
+                      search ? (
+                        "Try a different keyword."
+                      ) : (
+                        <Box textAlign="center">
+                          <Typography>
+                            No class is scheduled for today
+                          </Typography>
+                          <Button onClick={handleShowClasses}>
+                            Show all classes
+                          </Button>
+                        </Box>
+                      )
+                    }
+                    page={page}
+                    onChange={(p) => setPage(p)}
+                  />
+                </Box>
+              )}
             </Box>
           </Scrollbar>
         </Drawer>

@@ -475,7 +475,8 @@ function Class(props) {
                         background:
                           props.theme === "dark"
                             ? "#111"
-                            : props.classes[class_id]?.color,
+                            : props.classes[class_id]?.color ||
+                              theme.palette.primary.main,
                       }}
                     >
                       <Toolbar
@@ -484,7 +485,8 @@ function Class(props) {
                           background:
                             props.theme === "dark"
                               ? "#111"
-                              : props.classes[class_id]?.color,
+                              : props.classes[class_id]?.color ||
+                                theme.palette.primary.main,
                         }}
                       >
                         {isTablet && (
@@ -642,7 +644,8 @@ function Class(props) {
                         background:
                           props.theme === "dark"
                             ? "#111"
-                            : props.classes[class_id]?.color,
+                            : props.classes[class_id]?.color ||
+                              theme.palette.primary.main,
                       }}
                     >
                       <Box
@@ -778,7 +781,8 @@ function Class(props) {
                     background:
                       props.theme === "dark"
                         ? "#111"
-                        : props.classes[class_id]?.color,
+                        : props.classes[class_id]?.color ||
+                          theme.palette.primary.main,
                   }}
                 >
                   <Scrollbar autoHide>
@@ -854,7 +858,8 @@ function Class(props) {
                   background:
                     props.theme === "dark"
                       ? "#111"
-                      : props.classes[class_id]?.color,
+                      : props.classes[class_id]?.color ||
+                        theme.palette.primary.main,
                 }}
               >
                 {collapsePanel || isMobile ? (
