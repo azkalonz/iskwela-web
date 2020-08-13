@@ -675,7 +675,7 @@ function Class(props) {
                             }}
                           />
                         </Box>
-                        <Box p={1}>
+                        <Box p={1} maxWidth="80%">
                           <Typography
                             variant="body1"
                             style={{ fontWeight: 500, fontSize: 18 }}

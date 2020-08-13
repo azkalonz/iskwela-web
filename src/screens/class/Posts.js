@@ -827,7 +827,7 @@ function Discussion(props) {
               }
               alt="Profile pic"
             />
-            <Box marginLeft={2} style={{ opacity: 0.8 }}>
+            <Box marginLeft={2} style={{ opacity: 0.8, maxWidth: 480 }}>
               <Typography
                 style={{
                   fontSize: 18,

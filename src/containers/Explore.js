@@ -96,9 +96,9 @@ function Explore(props) {
   const isTablet = useMediaQuery(theme.breakpoints.down("md"));
   const { screen_name } = props.match.params;
   const [currentIframe, setCurrentIframe] = useState(
-    ((screen_name
+    screen_name
       ? rightPanelOptions.find((q) => q.id === screen_name)?.link
-      : null): null)
+      : null
   );
   const history = useHistory();
   const styles = useStyles();
