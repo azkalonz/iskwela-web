@@ -647,6 +647,17 @@ const chartOptions = {
       text: "Score",
     },
   },
+  labels: {
+    formatter: function (val, index) {
+      return val.toFixed(0) + "%";
+    },
+  },
+  dataLabels: {
+    enabled: true,
+    formatter: function (val) {
+      return val + "%";
+    },
+  },
   xaxis: {
     categories: columnKeys.map((q) => q.toUpperCase()),
   },
@@ -654,8 +665,6 @@ const chartOptions = {
   plotOptions: {
     bar: {
       horizontal: false,
-      columnWidth: "20%q",
-      endingShape: "rounded",
     },
   },
 };

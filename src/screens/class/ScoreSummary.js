@@ -18,6 +18,7 @@ import {
   Dialog,
   DialogContent,
   DialogActions,
+  Paper,
 } from "@material-ui/core";
 import Rating from "@material-ui/lab/Rating";
 import MoreHorizIcon from "@material-ui/icons/MoreHoriz";
@@ -121,12 +122,11 @@ const ScoreSummary = (props) => {
                       )
                     }
                     button
+                    component={Paper}
                     divider
                     key={index}
                     style={{
-                      border: "3px",
-                      borderStyle: "outset",
-                      marginBottom: "3px",
+                      marginBottom: "7px",
                       background:
                         theme.palette.type === "dark" ? "#222" : "#fff",
                     }}
@@ -232,7 +232,6 @@ const ScoreSummary = (props) => {
                 plotOptions: {
                   bar: {
                     horizontal: false,
-                    endingShape: "rounded",
                   },
                 },
                 dataLabels: {
