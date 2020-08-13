@@ -620,6 +620,13 @@ function Home(props) {
                   count={getFilteredClass().length}
                   itemsPerPage={itemsPerPage}
                   nolink
+                  icon={
+                    <img
+                      src="/hero-img/search.svg"
+                      width={180}
+                      style={{ padding: "50px 0" }}
+                    />
+                  }
                   emptyTitle={search ? "Nothing Found" : "No Classes"}
                   emptyMessage={
                     search ? (

@@ -1155,6 +1155,7 @@ function FloatingChatBox(props) {
       justifyContent="space-between"
       boxShadow="0 0px 15px rgba(0,0,0,0.15)"
       style={{
+        borderRadius: "10px 10px 0 0",
         transition: "height 0.1s ease-out",
         height:
           query.t && query.t !== "null" && props.opened === user.username
@@ -1307,9 +1308,10 @@ function FloatingChatWidget(props) {
       style={{
         position: "fixed",
         right: 10,
+        borderRadius: "10px 10px 0 0",
         bottom: 0,
         background: theme.palette.type === "dark" ? "#222" : "#fff",
-        width: opened ? 330 : 150,
+        width: opened ? 330 : 110,
         height: opened ? "80vh" : 50,
         boxShadow: "rgba(0, 0, 0, 0.1) -3.6px 0px 10px",
         transition: "all 0.1s ease-out",
@@ -1322,6 +1324,7 @@ function FloatingChatWidget(props) {
           border: "1px solid rgba(0,0,0,0.17)",
           background: theme.palette.type === "dark" ? "#111" : "#fff",
           width: "100%",
+          borderRadius: "10px 10px 0 0",
         }}
         onClick={toggleChatUsers}
       >
@@ -1349,7 +1352,7 @@ function FloatingChatWidget(props) {
       <Box
         style={{
           position: "absolute",
-          right: opened ? 330 : 160,
+          right: opened ? 330 : 130,
           height: 50,
           overflow: "visibile",
           bottom: 0,
