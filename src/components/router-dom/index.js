@@ -33,7 +33,7 @@ export function makeLinkTo(path, options = {}, relative = false) {
       .replace(/\/&/g, "&")
   );
 }
-export const rightPanelOptions = [
+export const leftPanelTeacherMenu = [
   {
     title: "Posts",
     icon: "icon-feeds",
@@ -152,14 +152,16 @@ export const rightPanelOptions = [
     screen: Students,
   },
 ];
-export const rightPanelOptionsStudents = [
+export const leftPanelNonTeacherMenu = [
   {
+    key: "posts",
     title: "Posts",
     icon: "icon-feeds",
     screen: Posts,
     link: "posts",
   },
   {
+    key: "student-activities",
     title: "Student Activities",
     icon: "icon-activities",
     // navTitle: "Due this week",
@@ -202,6 +204,7 @@ export const rightPanelOptionsStudents = [
         link: "white-board",
         icon: null,
         screen: WhiteBoard,
+        hideToUserType: ["p"],
       },
       {
         title: "Kahoot",
@@ -213,12 +216,14 @@ export const rightPanelOptionsStudents = [
     ],
   },
   {
+    key: "instructional-materials",
     title: "Instructional Materials",
     link: "instructional-materials",
     icon: "icon-instructional-materials",
     screen: InstructionalMaterials,
   },
   {
+    key: "reports",
     title: "Reports",
     icon: "icon-attendance",
     children: [
@@ -235,16 +240,34 @@ export const rightPanelOptionsStudents = [
     ],
   },
   {
+    key: "schedules",
     title: "Schedules",
     link: "schedule",
     icon: "icon-schedule",
     screen: Schedule,
   },
 ];
+export const reorderOptions = (orderId, options) => {
+  let reorderedOptions = options;
+  let order = {
+    p: [
+      "reports",
+      "student-activities",
+      "instructional-materials",
+      "posts",
+      "schedules",
+    ],
+  };
+  switch (orderId) {
+    case "p":
+      reorderedOptions = order.p.map((q) => options.find((qq) => q === qq.key));
+  }
+  return reorderedOptions;
+};
 export function getView(name, isTeacher = false) {
   if (isTeacher) {
     let screen;
-    rightPanelOptions.concat(rightPanelOptionsStudents).forEach((i) => {
+    leftPanelTeacherMenu.concat(leftPanelNonTeacherMenu).forEach((i) => {
       if (screen) return;
       if (i.link === name) screen = i.screen;
       if (i.children)
@@ -256,7 +279,7 @@ export function getView(name, isTeacher = false) {
     return screen;
   } else {
     let screen;
-    rightPanelOptionsStudents.forEach((i) => {
+    leftPanelNonTeacherMenu.forEach((i) => {
       if (screen) return;
       if (i.link === name) screen = i.screen;
       if (i.children)
@@ -272,7 +295,7 @@ export function getView(name, isTeacher = false) {
 export function isValidOption(name) {
   if (!name) return;
   let isvalid;
-  rightPanelOptions.concat(rightPanelOptionsStudents).forEach((o) => {
+  leftPanelTeacherMenu.concat(leftPanelNonTeacherMenu).forEach((o) => {
     if (isvalid) return;
     if (o.link) {
       if (o.link.toLowerCase() === name.toLowerCase()) isvalid = o;

@@ -614,13 +614,7 @@ function WhiteBoard(props) {
     socket.on("delete boards", (id) => {
       if (id === class_id)
         props.history.push(
-          makeLinkTo([
-            "class",
-            class_id,
-            schedule_id,
-            isTeacher ? "todo" : "my-todo",
-            room_name || "",
-          ])
+          makeLinkTo(["class", class_id, schedule_id, "posts", room_name || ""])
         );
     });
     getWhiteBoard(class_id, (whiteboard) => {
@@ -735,7 +729,7 @@ function WhiteBoard(props) {
                       "class",
                       class_id,
                       schedule_id,
-                      isTeacher ? "todo" : "my-todo",
+                      "posts",
                       room_name || "",
                     ])
                   );

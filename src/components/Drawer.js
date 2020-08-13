@@ -25,6 +25,7 @@ import { makeLinkTo } from "./router-dom";
 import ExpandLessOutlinedIcon from "@material-ui/icons/ExpandLessOutlined";
 import ExpandMoreOutlinedIcon from "@material-ui/icons/ExpandMoreOutlined";
 import Scrollbar from "./Scrollbar";
+import { defaultClassScreen } from "../screens/Home";
 
 function Drawer(props) {
   const styles = useStyles();
@@ -160,7 +161,9 @@ function Drawer(props) {
                         makeLinkTo(
                           ["class", item.id, item.next_schedule.id, "opt"],
                           {
-                            opt: item.next_schedule.id ? "posts" : "",
+                            opt: item.next_schedule.id
+                              ? defaultClassScreen[props.userInfo?.user_type]
+                              : "",
                           }
                         )
                       );
@@ -207,7 +210,11 @@ function Drawer(props) {
                             makeLinkTo(
                               ["class", item.id, item.next_schedule.id, "opt"],
                               {
-                                opt: item.next_schedule.id ? "posts" : "",
+                                opt: item.next_schedule.id
+                                  ? defaultClassScreen[
+                                      props.userInfo?.user_type
+                                    ]
+                                  : "",
                               }
                             )
                           );
@@ -480,7 +487,9 @@ function Drawer(props) {
                           makeLinkTo(
                             ["class", item.id, item.next_schedule.id, "opt"],
                             {
-                              opt: item.next_schedule.id ? "posts" : "",
+                              opt: item.next_schedule.id
+                                ? defaultClassScreen[props.userInfo?.user_type]
+                                : "",
                             }
                           )
                         );
@@ -509,7 +518,9 @@ function Drawer(props) {
                         makeLinkTo(
                           ["class", item.id, item.next_schedule.id, "opt"],
                           {
-                            opt: item.next_schedule.id ? "posts" : "",
+                            opt: item.next_schedule.id
+                              ? defaultClassScreen[props.userInfo?.user_type]
+                              : "",
                           }
                         )
                       );
@@ -553,7 +564,11 @@ function Drawer(props) {
                                   "opt",
                                 ],
                                 {
-                                  opt: item.next_schedule.id ? "posts" : "",
+                                  opt: item.next_schedule.id
+                                    ? defaultClassScreen[
+                                        props.userInfo?.user_type
+                                      ]
+                                    : "",
                                 }
                               )
                             );
@@ -582,7 +597,11 @@ function Drawer(props) {
                             makeLinkTo(
                               ["class", item.id, item.next_schedule.id, "opt"],
                               {
-                                opt: item.next_schedule.id ? "posts" : "",
+                                opt: item.next_schedule.id
+                                  ? defaultClassScreen[
+                                      props.userInfo?.user_type
+                                    ]
+                                  : "",
                               }
                             )
                           );

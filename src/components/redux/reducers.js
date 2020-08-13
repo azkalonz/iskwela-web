@@ -51,7 +51,6 @@ const classes = (state = [], payload) => {
           payload.classes[k].image = i;
         }
       });
-      console.log(payload.classes);
       return payload.classes;
     default:
       return state;
@@ -60,7 +59,6 @@ const classes = (state = [], payload) => {
 const classDetails = (state = {}, payload) => {
   switch (payload.type) {
     case "SET_CLASS_DETAILS":
-      console.log(payload.class_details);
       return payload.class_details;
     default:
       return state;

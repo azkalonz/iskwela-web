@@ -43,6 +43,11 @@ import PopupState, { bindMenu, bindTrigger } from "material-ui-popup-state";
 import UserData from "../components/UserData";
 
 const cardWidth = 340;
+export const defaultClassScreen = {
+  p: "scores",
+  t: "posts",
+  s: "posts",
+};
 
 function Alert(props) {
   return <MuiAlert elevation={6} variant="filled" {...props} />;
@@ -182,7 +187,9 @@ function Home(props) {
             onClick={() =>
               history.push(
                 makeLinkTo(["class", c.id, c.next_schedule.id, "opt"], {
-                  opt: c.next_schedule.id ? "posts" : "",
+                  opt: c.next_schedule.id
+                    ? defaultClassScreen[props.userInfo.user_type]
+                    : "",
                 })
               )
             }

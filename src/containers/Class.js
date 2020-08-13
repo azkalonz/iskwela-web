@@ -37,8 +37,9 @@ import {
   getView,
   isValidOption,
   makeLinkTo,
-  rightPanelOptions as teacherPanel,
-  rightPanelOptionsStudents as studentPanel,
+  leftPanelTeacherMenu as teacherPanel,
+  leftPanelNonTeacherMenu as studentPanel,
+  reorderOptions,
 } from "../components/router-dom";
 import socket from "../components/socket.io";
 import UserData from "../components/UserData";
@@ -59,8 +60,8 @@ function setPanelIds(panel, i = 0) {
   });
   return panel;
 }
-const rightPanelOptions = setPanelIds(teacherPanel);
-const rightPanelOptionsStudents = setPanelIds(studentPanel);
+const leftPanelTeacherMenu = setPanelIds(teacherPanel);
+const leftPanelNonTeacherMenu = setPanelIds(studentPanel);
 
 function ClassRightPanel(props) {
   const theme = useTheme();
@@ -474,7 +475,7 @@ function Class(props) {
                         background:
                           props.theme === "dark"
                             ? "#111"
-                            : props.classes[class_id].color,
+                            : props.classes[class_id]?.color,
                       }}
                     >
                       <Toolbar
@@ -483,7 +484,7 @@ function Class(props) {
                           background:
                             props.theme === "dark"
                               ? "#111"
-                              : props.classes[class_id].color,
+                              : props.classes[class_id]?.color,
                         }}
                       >
                         {isTablet && (
@@ -641,7 +642,7 @@ function Class(props) {
                         background:
                           props.theme === "dark"
                             ? "#111"
-                            : props.classes[class_id].color,
+                            : props.classes[class_id]?.color,
                       }}
                     >
                       <Box
@@ -777,7 +778,7 @@ function Class(props) {
                     background:
                       props.theme === "dark"
                         ? "#111"
-                        : props.classes[class_id].color,
+                        : props.classes[class_id]?.color,
                   }}
                 >
                   <Scrollbar autoHide>
@@ -803,7 +804,10 @@ function Class(props) {
                       aria-labelledby="nested-list-subheader"
                     >
                       {isTeacher
-                        ? rightPanelOptions
+                        ? reorderOptions(
+                            props.userInfo.user_type,
+                            leftPanelTeacherMenu
+                          )
                             .filter((s) => !s.hidden)
                             .filter((s) =>
                               s.hideToUserType
@@ -819,7 +823,10 @@ function Class(props) {
                                 ...(opts.mini ? { shrink: true } : {}),
                               })
                             )
-                        : rightPanelOptionsStudents
+                        : reorderOptions(
+                            props.userInfo.user_type,
+                            leftPanelNonTeacherMenu
+                          )
                             .filter((s) => !s.hidden)
                             .filter((s) =>
                               s.hideToUserType
@@ -847,7 +854,7 @@ function Class(props) {
                   background:
                     props.theme === "dark"
                       ? "#111"
-                      : props.classes[class_id].color,
+                      : props.classes[class_id]?.color,
                 }}
               >
                 {collapsePanel || isMobile ? (
@@ -980,11 +987,11 @@ function Class(props) {
                   }
                   routes={
                     isTeacher
-                      ? rightPanelOptions.filter(
+                      ? leftPanelTeacherMenu.filter(
                           (r) =>
                             r.children && r.children.indexOf(option_name) >= 0
                         )
-                      : rightPanelOptionsStudents.filter(
+                      : leftPanelNonTeacherMenu.filter(
                           (r) =>
                             r.children && r.children.indexOf(option_name) >= 0
                         )
