@@ -102,7 +102,7 @@ function Table(props) {
   return (
     <React.Fragment>
       <Box width="100%" alignSelf="flex-start">
-        <Box m={2}>
+        <Box m={2} style={props.style}>
           {!Object.keys(selectedItems).length &&
           props.filtered(items).length ? (
             <List

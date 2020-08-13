@@ -272,7 +272,35 @@ function Drawer(props) {
               style={{ opacity: 0.14, backgroundColor: "rgb(55, 19, 138)" }}
             />
           </Box>
-
+          <Box className={screen_name ? "selected tab bordered" : "tab"}>
+            <Box
+              onClick={() => {
+                history.push("/explore/jumpstart");
+              }}
+              className="tab-btn screen-btn"
+              style={{
+                alignItems: "center",
+                cursor: "pointer",
+                justifyContent: "center",
+                display: "flex",
+                transform: "translateX(-1.5px)",
+              }}
+            >
+              <Icon
+                style={{
+                  fontSize: "2.3rem",
+                  color:
+                    props.theme === "dark"
+                      ? isTablet
+                        ? "#282828"
+                        : "#f1f1f1"
+                      : "#38108d",
+                }}
+              >
+                admin_panel_settings
+              </Icon>
+            </Box>
+          </Box>
           <Box className={screen_name ? "selected tab bordered" : "tab"}>
             <Box
               onClick={() => {

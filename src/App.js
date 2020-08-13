@@ -1,7 +1,7 @@
-import { Box, createMuiTheme, MuiThemeProvider } from "@material-ui/core";
+import { Box, MuiThemeProvider } from "@material-ui/core";
 import CssBaseline from "@material-ui/core/CssBaseline";
 import { StylesProvider } from "@material-ui/styles";
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { SkeletonTheme } from "react-loading-skeleton";
 import { connect } from "react-redux";
 import { BrowserRouter, Redirect, Route, Switch } from "react-router-dom";
@@ -17,14 +17,14 @@ import Class from "./containers/Class";
 import Explore from "./containers/Explore";
 import Chat, {
   ChatProvider,
-  VideoChat,
-  ChatUsers,
   FloatingChatWidget,
+  VideoChat,
 } from "./screens/Chat";
 import AnswerQuiz from "./screens/class/AnswerQuiz";
 import Home from "./screens/Home";
 import Login from "./screens/Login";
 import getTheme from "./styles/muiTheme";
+import Dashboard from "./screens/Admin/Dashboard";
 const qs = require("query-string");
 function App(props) {
   const [chat, setChat] = useState();
@@ -36,91 +36,92 @@ function App(props) {
   };
   const theme = useMemo(() => getTheme(), [props.theme]);
   useEffect(() => {
-    Api.auth({
-      success: async (user) => {
-        await UserData.getUserData(user);
-        socket.emit("online user", { ...user, status: "online" });
-        Messages.subscribe((resp) => {
-          const query = qs.parse(window.location.search);
-          let current = store.getState().messages.current;
-          let channel = user.username + "-" + query.t;
-          if (
-            current.channel &&
-            resp.type === "SET_MESSAGES" &&
-            channel !== resp.data?.channel
-          )
-            return;
-          store.dispatch({
-            type: resp.type,
-            data: resp.data,
-          });
-        });
-        UserData.posts.subscribe((res) => {
-          const { class_id, payload, action } = res;
-          UserData.updatePosts(class_id, payload, action);
-        });
-        socket.on("videocall", ({ caller, receiver, status }) => {
-          setVideocall({
-            open: true,
-            caller,
-            receiver,
-            status,
-          });
-          if (status !== "CALLING") setVideocall({ ...videocall, open: false });
-        });
-        socket.on("get class details", (c) => {
-          if (store.getState().classes[c.id]) {
-            UserData.updateClassDetails(c.id, c.details);
-            UserData.updateClass(c.id, c.details[c.id]);
-          }
-        });
-        socket.on("get questionnaires", (q) => {
-          let questionnaires = [...store.getState().questionnaires];
-          let qIndex = questionnaires.findIndex((qq) => q.id === qq.id);
-          if (qIndex >= 0) {
-            questionnaires.splice(qIndex, 1, q);
-          } else {
-            questionnaires.push(q);
-          }
-          store.dispatch({
-            type: "SET_QUESTIONNAIRES",
-            questionnaires,
-          });
-        });
-        socket.on("get schedule details", (c) => {
-          if (store.getState().classes[c.id]) {
-            UserData.addClassSchedule(c.id, c.details);
-          }
-        });
-        Messages.hooks["new message"] = (data) => {
-          const { sender } = data;
-          if (sender.id !== user.id) {
-            let notifsound = document.querySelector("#notif-sound");
-            if (!notifsound) {
-              let notifAudio = document.createElement("audio");
-              notifAudio.setAttribute("id", "notif-sound");
-              notifAudio.setAttribute("autoplay", "");
-              notifAudio.src = "/chat/notification.mp3";
-              notifAudio.style.display = "none";
-              document.body.appendChild(notifAudio);
-            }
-            notifsound = document.querySelector("#notif-sound");
-            notifsound.currentTime = 0;
-            notifsound.play();
-          }
-        };
-        setTimeout(() => {
-          setLoading(false);
-        }, 500);
-      },
-      fail: () => {
-        if (
-          window.location.pathname === "/login" ||
-          window.location.pathname === "/login/"
-        )
-          setLoading(false);
-      },
-    });
+    setLoading(false);
+    // Api.auth({
+    //   success: async (user) => {
+    //     await UserData.getUserData(user);
+    //     socket.emit("online user", { ...user, status: "online" });
+    //     Messages.subscribe((resp) => {
+    //       const query = qs.parse(window.location.search);
+    //       let current = store.getState().messages.current;
+    //       let channel = user.username + "-" + query.t;
+    //       if (
+    //         current.channel &&
+    //         resp.type === "SET_MESSAGES" &&
+    //         channel !== resp.data?.channel
+    //       )
+    //         return;
+    //       store.dispatch({
+    //         type: resp.type,
+    //         data: resp.data,
+    //       });
+    //     });
+    //     UserData.posts.subscribe((res) => {
+    //       const { class_id, payload, action } = res;
+    //       UserData.updatePosts(class_id, payload, action);
+    //     });
+    //     socket.on("videocall", ({ caller, receiver, status }) => {
+    //       setVideocall({
+    //         open: true,
+    //         caller,
+    //         receiver,
+    //         status,
+    //       });
+    //       if (status !== "CALLING") setVideocall({ ...videocall, open: false });
+    //     });
+    //     socket.on("get class details", (c) => {
+    //       if (store.getState().classes[c.id]) {
+    //         UserData.updateClassDetails(c.id, c.details);
+    //         UserData.updateClass(c.id, c.details[c.id]);
+    //       }
+    //     });
+    //     socket.on("get questionnaires", (q) => {
+    //       let questionnaires = [...store.getState().questionnaires];
+    //       let qIndex = questionnaires.findIndex((qq) => q.id === qq.id);
+    //       if (qIndex >= 0) {
+    //         questionnaires.splice(qIndex, 1, q);
+    //       } else {
+    //         questionnaires.push(q);
+    //       }
+    //       store.dispatch({
+    //         type: "SET_QUESTIONNAIRES",
+    //         questionnaires,
+    //       });
+    //     });
+    //     socket.on("get schedule details", (c) => {
+    //       if (store.getState().classes[c.id]) {
+    //         UserData.addClassSchedule(c.id, c.details);
+    //       }
+    //     });
+    //     Messages.hooks["new message"] = (data) => {
+    //       const { sender } = data;
+    //       if (sender.id !== user.id) {
+    //         let notifsound = document.querySelector("#notif-sound");
+    //         if (!notifsound) {
+    //           let notifAudio = document.createElement("audio");
+    //           notifAudio.setAttribute("id", "notif-sound");
+    //           notifAudio.setAttribute("autoplay", "");
+    //           notifAudio.src = "/chat/notification.mp3";
+    //           notifAudio.style.display = "none";
+    //           document.body.appendChild(notifAudio);
+    //         }
+    //         notifsound = document.querySelector("#notif-sound");
+    //         notifsound.currentTime = 0;
+    //         notifsound.play();
+    //       }
+    //     };
+    //     setTimeout(() => {
+    //       setLoading(false);
+    //     }, 500);
+    //   },
+    //   fail: () => {
+    //     if (
+    //       window.location.pathname === "/login" ||
+    //       window.location.pathname === "/login/"
+    //     )
+    //       setLoading(false);
+    //   },
+    // });
   }, []);
   return (
     <MuiThemeProvider theme={theme}>
@@ -187,6 +188,14 @@ function App(props) {
                       const { screen_name } = p.match.params;
                       setTitle(["Explore"].concat([screen_name]));
                       return <Explore {...p} />;
+                    }}
+                  />
+                  <Route
+                    exact
+                    path="/dashboard"
+                    render={(p) => {
+                      setTitle("Dashboard");
+                      return <Dashboard {...p} />;
                     }}
                   />
                   <Route

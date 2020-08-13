@@ -248,13 +248,10 @@ function NavBar(props) {
                   horizontal: "right",
                 }}
                 open={open}
-                style={{
-                  maxWidth: 280,
-                }}
                 onClose={handleClose}
               >
                 {props.parentData?.childInfo && (
-                  <ExpansionPanel>
+                  <ExpansionPanel style={{ maxWidth: 280 }}>
                     <ExpansionPanelSummary>
                       Viewing as {props.parentData?.childInfo?.first_name}
                       <Icon>expand_more</Icon>
