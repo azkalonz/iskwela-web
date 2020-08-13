@@ -219,6 +219,7 @@ function NavBar(props) {
                         fontWeight: 400,
                         fontSize: "12px",
                         letterSpacing: "0.3px",
+                        maxWidth: 150,
                       }}
                     >
                       {props.userInfo.first_name +
@@ -247,6 +248,9 @@ function NavBar(props) {
                   horizontal: "right",
                 }}
                 open={open}
+                style={{
+                  maxWidth: 280,
+                }}
                 onClose={handleClose}
               >
                 {props.parentData?.childInfo && (

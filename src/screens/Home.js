@@ -210,7 +210,9 @@ function Home(props) {
               />
               {/* <div className={styles.mediaOverlay} /> */}
             </div>
-            <CardContent style={{ position: "absolute", top: 0, left: 0 }}>
+            <CardContent
+              style={{ position: "absolute", top: 0, left: 0, width: "100%" }}
+            >
               <Typography
                 gutterBottom
                 variant="h5"
@@ -300,7 +302,14 @@ function Home(props) {
                       /> */}
                   </Box>
                 </div>
-                <div style={{ position: "absolute", right: 0, bottom: 6 }}>
+                <div
+                  style={{
+                    position: "absolute",
+                    right: 0,
+                    bottom: 6,
+                    maxWidth: "50%",
+                  }}
+                >
                   <Typography
                     variant="body1"
                     style={{ fontWeight: 600, fontSize: "16px" }}
@@ -527,7 +536,12 @@ function Home(props) {
                             <Icon>expand_more</Icon>
                           </IconButton>
                         </Box>
-                        <Menu {...bindMenu(popupState)}>
+                        <Menu
+                          {...bindMenu(popupState)}
+                          style={{
+                            maxWidth: 300,
+                          }}
+                        >
                           {props.parentData?.children?.map((child, index) => {
                             return (
                               <MenuItem
