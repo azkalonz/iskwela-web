@@ -343,82 +343,84 @@ function Table(props) {
                       props.rowRenderMobile(item, {
                         disabled: isDisabled(item),
                       })}
-                  <ListItemSecondaryAction
-                    style={{ ...(isMobile ? { top: 30 } : {}) }}
-                  >
-                    <IconButton
-                      onClick={(event) =>
-                        setAnchorEl(() => {
-                          let a = {};
-                          a[item.id] = event.currentTarget;
-                          return { ...anchorEl, ...a };
-                        })
-                      }
-                      disabled={isDisabled(item)}
-                      color="primary"
+                  {!props.noOptions && (
+                    <ListItemSecondaryAction
+                      style={{ ...(isMobile ? { top: 30 } : {}) }}
                     >
-                      <Icon>{isMobile ? "more_vert" : "more_horiz"}</Icon>
-                    </IconButton>
-                    {anchorEl && (
-                      <StyledMenu
-                        id="customized-menu"
-                        anchorEl={anchorEl[item.id]}
-                        keepMounted
-                        open={Boolean(anchorEl[item.id])}
-                        onClose={() =>
+                      <IconButton
+                        onClick={(event) =>
                           setAnchorEl(() => {
                             let a = {};
-                            a[item.id] = null;
+                            a[item.id] = event.currentTarget;
                             return { ...anchorEl, ...a };
                           })
                         }
+                        disabled={isDisabled(item)}
+                        color="primary"
                       >
-                        {(props.options || []).map((t) => (
-                          <StyledMenuItem
-                            onClick={() => {
-                              if (props.actions["_handleFileOption"]) {
-                                props.actions["_handleFileOption"](
-                                  t.value,
-                                  item
-                                );
-                                setAnchorEl(() => {
-                                  let a = {};
-                                  a[item.id] = null;
-                                  return { ...anchorEl, ...a };
-                                });
-                              }
-                            }}
-                          >
-                            <ListItemText primary={t.name} />
-                          </StyledMenuItem>
-                        ))}
-                        {isTeacher && (
-                          <div>
-                            {props.teacherOptions &&
-                              props.teacherOptions.map((t) => (
-                                <StyledMenuItem
-                                  onClick={() => {
-                                    if (props.actions["_handleFileOption"]) {
-                                      props.actions["_handleFileOption"](
-                                        t.value,
-                                        item
-                                      );
-                                      setAnchorEl(() => {
-                                        let a = {};
-                                        a[item.id] = null;
-                                        return { ...anchorEl, ...a };
-                                      });
-                                    }
-                                  }}
-                                >
-                                  <ListItemText primary={t.name} />
-                                </StyledMenuItem>
-                              ))}
-                          </div>
-                        )}
-                      </StyledMenu>
-                    )}
-                  </ListItemSecondaryAction>
+                        <Icon>{isMobile ? "more_vert" : "more_horiz"}</Icon>
+                      </IconButton>
+                      {anchorEl && (
+                        <StyledMenu
+                          id="customized-menu"
+                          anchorEl={anchorEl[item.id]}
+                          keepMounted
+                          open={Boolean(anchorEl[item.id])}
+                          onClose={() =>
+                            setAnchorEl(() => {
+                              let a = {};
+                              a[item.id] = null;
+                              return { ...anchorEl, ...a };
+                            })
+                          }
+                        >
+                          {(props.options || []).map((t) => (
+                            <StyledMenuItem
+                              onClick={() => {
+                                if (props.actions["_handleFileOption"]) {
+                                  props.actions["_handleFileOption"](
+                                    t.value,
+                                    item
+                                  );
+                                  setAnchorEl(() => {
+                                    let a = {};
+                                    a[item.id] = null;
+                                    return { ...anchorEl, ...a };
+                                  });
+                                }
+                              }}
+                            >
+                              <ListItemText primary={t.name} />
+                            </StyledMenuItem>
+                          ))}
+                          {isTeacher && (
+                            <div>
+                              {props.teacherOptions &&
+                                props.teacherOptions.map((t) => (
+                                  <StyledMenuItem
+                                    onClick={() => {
+                                      if (props.actions["_handleFileOption"]) {
+                                        props.actions["_handleFileOption"](
+                                          t.value,
+                                          item
+                                        );
+                                        setAnchorEl(() => {
+                                          let a = {};
+                                          a[item.id] = null;
+                                          return { ...anchorEl, ...a };
+                                        });
+                                      }
+                                    }}
+                                  >
+                                    <ListItemText primary={t.name} />
+                                  </StyledMenuItem>
+                                ))}
+                            </div>
+                          )}
+                        </StyledMenu>
+                      )}
+                    </ListItemSecondaryAction>
+                  )}
                 </ListItem>
               ))}
             </List>
