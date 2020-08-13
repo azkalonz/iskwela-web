@@ -60,7 +60,8 @@ function MainBoard(props) {
   const [configControl, setConfigControl] = useState();
   const [saving, setSaving] = useState({});
   const [latex, setLatex] = useState("");
-  const isTeacher = props.userInfo.user_type === "t";
+  const isTeacher =
+    props.userInfo.user_type === "t" || props.userInfo.user_type === "a";
   const [infoDialog, setInfoDialog] = useState(false);
   const mqToolbar = [
     "\\frac{i}{j}",
@@ -574,7 +575,8 @@ function WhiteBoard(props) {
   const [tail, setTail] = useState();
   const [currentBoard, setCurrentBoard] = useState({});
   const [preview, setPreview] = useState(false);
-  const isTeacher = props.userInfo.user_type === "t";
+  const isTeacher =
+    props.userInfo.user_type === "t" || props.userInfo.user_type === "a";
   const getWhiteBoard = (id, callback = () => {}) => {
     socket.off("get whiteboard");
     socket.emit("whiteboard", { id, user: props.userInfo });

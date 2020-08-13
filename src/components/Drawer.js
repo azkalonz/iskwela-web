@@ -272,6 +272,7 @@ function Drawer(props) {
               style={{ opacity: 0.14, backgroundColor: "rgb(55, 19, 138)" }}
             />
           </Box>
+
           <Box className={screen_name ? "selected tab bordered" : "tab"}>
             <Box
               onClick={() => {

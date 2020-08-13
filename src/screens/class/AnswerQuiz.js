@@ -201,7 +201,7 @@ function AnswerQuiz(props) {
       setSaving(false);
     });
   };
-  return !props.childInfo ? (
+  return props.userInfo.user_type !== "p" ? (
     <React.Fragment>
       <Dialog
         open={quizScore ? true : false}
@@ -747,6 +747,6 @@ function CountDown(props) {
 }
 
 export default connect((states) => ({
-  childInfo: states.parentData?.childInfo,
+  userInfo: states.userInfo,
   questionnaires: states.questionnaires,
 }))(AnswerQuiz);

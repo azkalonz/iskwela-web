@@ -100,7 +100,7 @@ function Periodical(props) {
   const [ITEMS, setITEMS] = useState();
   const [search, setSearch] = useState("");
   const [modals, setModals] = React.useState({});
-  const isTeacher = props.userInfo.user_type === "t" ? true : false;
+  const isTeacher = props.userInfo.user_type === "t";
   const styles = useStyles();
   const classSched = props.classSched;
   const [errors, setErrors] = useState();
@@ -152,14 +152,22 @@ function Periodical(props) {
     try {
       let res;
       let published;
-      if (isTeacher) {
-        res = await Api.get("/api/periodicals?include=questionnaires");
+      let teacherId = props.classDetails[class_id]?.teacher?.id;
+      if (props.userInfo.user_type === "t") {
+        res = await Api.get(
+          "/api/periodicals?include=questionnaire" +
+            (teacherId ? "&teacher_id=" + teacherId : "")
+        );
         published = await Api.get(
-          "/api/periodicals?include=questionnaires&class_id=" + class_id
+          "/api/periodicals?include=questionnaires&class_id=" +
+            class_id +
+            (teacherId ? "&teacher_id=" + teacherId : "")
         );
       } else {
         res = await Api.get(
-          "/api/periodicals?include=questionnaires&class_id=" + class_id
+          "/api/periodicals?include=questionnaires&class_id=" +
+            class_id +
+            (teacherId ? "&teacher_id=" + teacherId : "")
         );
       }
       if (res) {
@@ -430,7 +438,8 @@ function Periodical(props) {
     });
   };
   const handleStart = () => {
-    if (!currentItem.questionnaires.length || props.childInfo) return;
+    if (!currentItem.questionnaires.length || props.userInfo.user_type === "p")
+      return;
     history.push(
       makeLinkTo([
         "class",
@@ -564,7 +573,9 @@ function Periodical(props) {
                       <Button
                         variant="contained"
                         color="primary"
-                        disabled={props.childInfo ? true : false}
+                        disabled={
+                          props.userInfo.user_type === "p" ? true : false
+                        }
                         onClick={() => handleStart()}
                       >
                         Start
@@ -624,10 +635,10 @@ function Periodical(props) {
                       {currentItem.questionnaires.map((m, i) => (
                         <Typography
                           style={{ cursor: "pointer", fontWeight: "bold" }}
-                          color="primary"
+                          color="primar y"
                           key={i}
                           onClick={() => {
-                            !props.childInfo &&
+                            props.userInfo.user_type !== "p" &&
                               history.push(
                                 makeLinkTo([
                                   "class",

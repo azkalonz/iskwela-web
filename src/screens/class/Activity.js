@@ -125,7 +125,7 @@ function Activity(props) {
   const [dragover, setDragover] = useState(false);
   const [search, setSearch] = useState("");
   const [modals, setModals] = React.useState({});
-  const isTeacher = props.userInfo.user_type === "t" ? true : false;
+  const isTeacher = props.userInfo.user_type === "t";
   const styles = useStyles();
   const classSched = props.classSched;
   const [currentActivity, setCurrentActivity] = useState();

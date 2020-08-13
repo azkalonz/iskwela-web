@@ -174,7 +174,7 @@ const UserData = {
       });
     }
   },
-  getUserData: async function (user, setProgress = (e) => {}, id = "") {
+  getUserData: async function (user, callback = (e) => {}, id = "") {
     const { user_type } = user;
     if (!user_type) return;
     let data = {};
@@ -184,7 +184,9 @@ const UserData = {
       );
       data.classes = c.classes;
     } else if (user.user_type === "t") {
-      data.classes = await Api.get("/api/teacher/classes");
+      data.classes = await Api.get(
+        "/api/teacher/classes" + (id ? "?user_id=" + id : "")
+      );
     } else if (user.user_type === "p") {
       data.parentData = await Api.get("/api/parent/show");
       if (data.parentData?.children.length) {
@@ -192,7 +194,7 @@ const UserData = {
         let query = qs.parse(window.location.search);
         let childId,
           storedChild = window.localStorage["childID"];
-        if (query.child) childId = query.child;
+        if (query.userId) childId = query.userId;
         else if (storedChild) childId = storedChild;
         else childId = info.id;
         if (childId) {
@@ -212,7 +214,43 @@ const UserData = {
             type: "SET_CHILD_DATA",
             child: info,
           });
-          await UserData.getUserData(info, null, childId);
+          await UserData.getUserData(info, callback, childId);
+          window.localStorage["childID"] = childId;
+        }
+      }
+    } else if (user.user_type === "a") {
+      data.parentData = await Api.get("/api/schooladmin/teachers");
+      if (data.parentData?.length) {
+        data.parentData = {
+          children: data.parentData.map((q) => ({
+            childInfo: q,
+          })),
+        };
+        let info = data.parentData.children[0].childInfo;
+        let query = qs.parse(window.location.search);
+        let childId,
+          storedChild = window.localStorage["childID"];
+        if (query.userId) childId = query.userId;
+        else if (storedChild) childId = storedChild;
+        else childId = info.id;
+        if (childId) {
+          let i = parseInt(childId);
+          i = parseInt(i);
+          if (!isNaN(i)) {
+            let ii = data.parentData.children.find((q) => q.childInfo.id === i);
+            if (ii) {
+              childId = i;
+              info = ii.childInfo;
+            }
+          }
+        }
+        if (childId) {
+          if (typeof childId !== "number") childId = info.id;
+          store.dispatch({
+            type: "SET_CHILD_DATA",
+            child: info,
+          });
+          await UserData.getUserData(info, callback, childId);
           window.localStorage["childID"] = childId;
         }
       }
@@ -245,6 +283,7 @@ const UserData = {
       store.dispatch({
         type: "SET_CLASSES",
         classes: allclasses,
+        callback,
       });
     }
     if (!id) {
@@ -253,7 +292,6 @@ const UserData = {
         user,
       });
     }
-    setProgress && setProgress(100);
   },
 };
 UserData.posts = {

@@ -122,6 +122,7 @@ export const leftPanelTeacherMenu = [
     link: "lesson-plan",
     icon: "icon-lesson-plan",
     screen: LessonPlan,
+    hideToUserType: ["a"],
   },
   {
     title: "Reports",
@@ -247,6 +248,7 @@ export const leftPanelNonTeacherMenu = [
     screen: Schedule,
   },
 ];
+export const leftPanelAdminMenu = [...leftPanelTeacherMenu];
 export const reorderOptions = (orderId, options) => {
   let reorderedOptions = options;
   let order = {
@@ -264,8 +266,8 @@ export const reorderOptions = (orderId, options) => {
   }
   return reorderedOptions;
 };
-export function getView(name, isTeacher = false) {
-  if (isTeacher) {
+export function getView(name, userType) {
+  if (userType === "t") {
     let screen;
     leftPanelTeacherMenu.concat(leftPanelNonTeacherMenu).forEach((i) => {
       if (screen) return;
@@ -277,9 +279,21 @@ export function getView(name, isTeacher = false) {
         });
     });
     return screen;
-  } else {
+  } else if (userType === "s" || userType === "p") {
     let screen;
     leftPanelNonTeacherMenu.forEach((i) => {
+      if (screen) return;
+      if (i.link === name) screen = i.screen;
+      if (i.children)
+        i.children.forEach((c) => {
+          if (screen) return;
+          if (c.link === name) screen = c.screen;
+        });
+    });
+    return screen;
+  } else if (userType === "a") {
+    let screen;
+    leftPanelAdminMenu.forEach((i) => {
       if (screen) return;
       if (i.link === name) screen = i.screen;
       if (i.children)
@@ -295,19 +309,22 @@ export function getView(name, isTeacher = false) {
 export function isValidOption(name) {
   if (!name) return;
   let isvalid;
-  leftPanelTeacherMenu.concat(leftPanelNonTeacherMenu).forEach((o) => {
-    if (isvalid) return;
-    if (o.link) {
-      if (o.link.toLowerCase() === name.toLowerCase()) isvalid = o;
-    }
-    if (o.children) {
-      o.children.forEach((c) => {
-        if (isvalid) return;
-        if (c.link) {
-          if (c.link.toLowerCase() === name.toLowerCase()) isvalid = c;
-        }
-      });
-    }
-  });
+  leftPanelTeacherMenu
+    .concat(leftPanelNonTeacherMenu)
+    .concat(leftPanelAdminMenu)
+    .forEach((o) => {
+      if (isvalid) return;
+      if (o.link) {
+        if (o.link.toLowerCase() === name.toLowerCase()) isvalid = o;
+      }
+      if (o.children) {
+        o.children.forEach((c) => {
+          if (isvalid) return;
+          if (c.link) {
+            if (c.link.toLowerCase() === name.toLowerCase()) isvalid = c;
+          }
+        });
+      }
+    });
   return isvalid;
 }

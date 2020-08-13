@@ -53,7 +53,8 @@ function Schedule(props) {
   const [orderBy, setOrderBy] = React.useState("calories");
   const [order, setOrder] = React.useState("asc");
   const [search, setSearch] = useState("");
-  const isTeacher = props.userInfo.user_type === "t" ? true : false;
+  const isTeacher =
+    props.userInfo.user_type === "t" || props.userInfo.user_type === "a";
   const styles = useStyles();
   const [savingId, setSavingId] = useState([]);
   const [page, setPage] = useState(query.page ? parseInt(query.page) : 1);

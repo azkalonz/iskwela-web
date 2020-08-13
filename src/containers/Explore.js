@@ -104,7 +104,8 @@ function Explore(props) {
   const styles = useStyles();
   const [collapsePanel, setCollapsePanel] = useState(true);
   const userInfo = props.userInfo;
-  const isTeacher = userInfo.user_type === "t" ? true : false;
+  const isTeacher =
+    userInfo.user_type === "t" || props.userInfo.user_type === "a";
   const [rightPanelLoading, setRightPanelLoading] = useState(true);
   useEffect(() => {
     if (isMobile) setCollapsePanel(false);

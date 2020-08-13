@@ -249,10 +249,8 @@ function NavBar(props) {
                 open={open}
                 onClose={handleClose}
               >
-                {props.userInfo.user_type === "p" && (
-                  <ExpansionPanel
-                    defaultExpanded={props.parentData?.childInfo ? true : false}
-                  >
+                {props.parentData?.childInfo && (
+                  <ExpansionPanel>
                     <ExpansionPanelSummary>
                       Viewing as {props.parentData?.childInfo?.first_name}
                       <Icon>expand_more</Icon>
@@ -273,7 +271,7 @@ function NavBar(props) {
                                 divider
                                 onClick={() => {
                                   window.location = window.location.search.replaceUrlParam(
-                                    "child",
+                                    "userId",
                                     id
                                   );
                                 }}

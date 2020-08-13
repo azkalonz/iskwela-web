@@ -100,7 +100,7 @@ function Assignment(props) {
   const [ITEMS, setITEMS] = useState();
   const [search, setSearch] = useState("");
   const [modals, setModals] = React.useState({});
-  const isTeacher = props.userInfo.user_type === "t" ? true : false;
+  const isTeacher = props.userInfo.user_type === "t";
   const styles = useStyles();
   const classSched = props.classSched;
   const [errors, setErrors] = useState();
@@ -152,14 +152,22 @@ function Assignment(props) {
     try {
       let res;
       let published;
-      if (isTeacher) {
-        res = await Api.get("/api/assignments?include=questionnaires");
+      let teacherId = props.classDetails[class_id]?.teacher?.id;
+      if (props.userInfo.user_type === "t") {
+        res = await Api.get(
+          "/api/assignments?include=questionnaires" +
+            (teacherId ? "&teacher_id=" + teacherId : "")
+        );
         published = await Api.get(
-          "/api/assignments?include=questionnaires&class_id=" + class_id
+          "/api/assignments?include=questionnaires&class_id=" +
+            class_id +
+            (teacherId ? "&teacher_id=" + teacherId : "")
         );
       } else {
         res = await Api.get(
-          "/api/assignments?include=questionnaires&class_id=" + class_id
+          "/api/assignments?include=questionnaires&class_id=" +
+            class_id +
+            (teacherId ? "&teacher_id=" + teacherId : "")
         );
       }
       if (res) {
@@ -628,7 +636,7 @@ function Assignment(props) {
                           color="primary"
                           key={i}
                           onClick={() => {
-                            !props.childInfo &&
+                            props.userInfo.user_type !== "p" &&
                               history.push(
                                 makeLinkTo([
                                   "class",

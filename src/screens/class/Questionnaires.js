@@ -86,7 +86,8 @@ function Questionnaires(props) {
   const [search, setSearch] = useState("");
   const [modals, setModals] = React.useState({});
   const [file, setFile] = useState();
-  const isTeacher = props.userInfo.user_type === "t" ? true : false;
+  const isTeacher =
+    props.userInfo.user_type === "t" || props.userInfo.user_type === "a";
   const styles = useStyles();
   const classSched = props.classSched;
   const [errors, setErrors] = useState();

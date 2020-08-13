@@ -51,7 +51,8 @@ function Scores(props) {
   const [modals, setModals] = useState({});
   const [currentStudent, setCurrentStudent] = useState();
   const [currentData, setCurrentData] = useState();
-  const isTeacher = props.userInfo.user_type === "t";
+  const isTeacher =
+    props.userInfo.user_type === "t" || props.userInfo.user_type === "a";
   const [table, setTable] = useState({
     columns: tableCells,
     data: [],

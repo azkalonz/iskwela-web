@@ -59,7 +59,7 @@ function LessonPlan(props) {
   const [anchorEl, setAnchorEl] = useState(null);
   const [addNewFileAnchor, setAddNewFileAnchor] = useState(null);
   const classSched = props.classSched;
-  const isTeacher = props.userInfo.user_type === "t" ? true : false;
+  const isTeacher = props.userInfo.user_type === "t";
   const styles = useStyles();
   const [form, setForm] = useState();
   const [hasFiles, setHasFiles] = useState(false);

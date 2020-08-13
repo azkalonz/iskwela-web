@@ -105,7 +105,8 @@ function Quizzes(props) {
   const [anchorEl, setAnchorEl] = useState(null);
   const [addNewFileAnchor, setAddNewFileAnchor] = useState(null);
   const classSched = props.classSched;
-  const isTeacher = props.userInfo.user_type === "t" ? true : false;
+  const isTeacher =
+    props.userInfo.user_type === "t" || props.userInfo.user_type === "a";
   const styles = useStyles();
   const [file, setFile] = useState();
   const [fileViewerOpen, setfileViewerOpen] = useState(false);

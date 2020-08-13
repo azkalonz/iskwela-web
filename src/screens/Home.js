@@ -47,6 +47,7 @@ export const defaultClassScreen = {
   p: "scores",
   t: "posts",
   s: "posts",
+  a: "posts",
 };
 
 function Alert(props) {
@@ -91,18 +92,14 @@ function Home(props) {
   const [showClasses, setShowClasses] = useState(
     window.localStorage["show-classes"] || "today"
   );
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const history = useHistory();
-  const [greeting, setGreeting] = useState(true);
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(6);
   const [errors, setErrors] = useState([]);
   const [success, setSuccess] = useState(false);
 
-  useEffect(() => {
-    if (props.classes) setLoading(false);
-  }, [props.classes]);
   const fakeLoader = (i) => (
     <Card key={i} className={styles.root}>
       <CardActionArea style={{ position: "relative" }}>
@@ -550,7 +547,7 @@ function Home(props) {
                                     child.childInfo.id;
                                   props.history.push(
                                     window.location.search.replaceUrlParam(
-                                      "child",
+                                      "userId",
                                       child.childInfo.id
                                     )
                                   );
@@ -607,15 +604,9 @@ function Home(props) {
                 </Box>
               </Box>
               {loading &&
-                (
-                  getPageItems(getFilteredClass(), page, itemsPerPage) || [
-                    1,
-                    1,
-                    1,
-                    1,
-                    1,
-                    1,
-                  ]
+                (getFilteredClass().length
+                  ? getPageItems(getFilteredClass(), page, itemsPerPage)
+                  : [1, 1, 1, 1, 1, 1]
                 ).map((c, i) => fakeLoader(i))}
               {!loading &&
                 props.classes &&

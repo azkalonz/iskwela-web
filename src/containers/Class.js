@@ -40,6 +40,7 @@ import {
   leftPanelTeacherMenu as teacherPanel,
   leftPanelNonTeacherMenu as studentPanel,
   reorderOptions,
+  leftPanelAdminMenu,
 } from "../components/router-dom";
 import socket from "../components/socket.io";
 import UserData from "../components/UserData";
@@ -67,17 +68,17 @@ function ClassRightPanel(props) {
   const theme = useTheme();
   const isTablet = useMediaQuery(theme.breakpoints.down("md"));
   const { option_name, class_id, room_name } = props.match.params;
-  const isTeacher = props.userInfo.user_type === "t";
+  const userType = props.userInfo.user_type;
   let [View, setView] = useState();
   const handleRefresh = async () => {
     props.loading(true);
     setView(null);
     await UserData.updateScheduleDetails(class_id, props.classSched);
-    setView(getView(option_name.toLowerCase(), isTeacher));
+    setView(getView(option_name.toLowerCase(), userType));
   };
   useEffect(() => {
     if (isValidOption(option_name)) {
-      setView(getView(option_name.toLowerCase(), isTeacher));
+      setView(getView(option_name.toLowerCase(), userType));
       if (props.classes[class_id])
         setTitle(
           [props.classes[class_id].name].concat([
@@ -117,7 +118,7 @@ function Class(props) {
   const userInfo = props.userInfo;
   const [file, setFile] = useState();
   const [openFileViewer, setOpenFileViewer] = useState();
-  const isTeacher = userInfo.user_type === "t" ? true : false;
+  const isTeacher = userInfo.user_type === "t" || userInfo.user_type === "a";
   const [saving, setSaving] = useState(false);
   const [savingImg, setSavingImg] = useState(false);
   const [currentID, setCurrentID] = useState(class_id);
@@ -722,7 +723,8 @@ function Class(props) {
                               size="small"
                               variant="contained"
                               disabled={
-                                saving || props.parentData?.childInfo
+                                saving ||
+                                (props.parentData?.childInfo && !isTeacher)
                                   ? true
                                   : isTeacher
                                   ? false
@@ -807,7 +809,7 @@ function Class(props) {
                       component="nav"
                       aria-labelledby="nested-list-subheader"
                     >
-                      {isTeacher
+                      {props.userInfo.user_type === "t"
                         ? reorderOptions(
                             props.userInfo.user_type,
                             leftPanelTeacherMenu
@@ -827,7 +829,9 @@ function Class(props) {
                                 ...(opts.mini ? { shrink: true } : {}),
                               })
                             )
-                        : reorderOptions(
+                        : props.userInfo?.user_type === "s" ||
+                          props.userInfo?.user_type === "p"
+                        ? reorderOptions(
                             props.userInfo.user_type,
                             leftPanelNonTeacherMenu
                           )
@@ -845,7 +849,28 @@ function Class(props) {
                                 isChild: false,
                                 ...(opts.mini ? { shrink: true } : {}),
                               })
-                            )}
+                            )
+                        : props.userInfo?.user_type === "a"
+                        ? reorderOptions(
+                            props.userInfo.user_type,
+                            leftPanelAdminMenu
+                          )
+                            .filter((s) => !s.hidden)
+                            .filter((s) =>
+                              s.hideToUserType
+                                ? s.hideToUserType.indexOf(
+                                    props.userInfo.user_type
+                                  ) < 0
+                                : true
+                            )
+                            .map((r, id) =>
+                              panelOption({
+                                ...r,
+                                isChild: false,
+                                ...(opts.mini ? { shrink: true } : {}),
+                              })
+                            )
+                        : null}
                     </List>
                   </Scrollbar>
                 </Paper>
