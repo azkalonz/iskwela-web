@@ -111,13 +111,14 @@ function Dashboard(props) {
             onChange={handleChange}
           >
             <Tab
-              label="Manage Classes"
+              label="Classes"
               {...a11yProps(0)}
               onClick={() => props.history.push("/dashboard")}
             />
-            {/* <Tab label="Sections" {...a11yProps(1)} />
-            <Tab label="Students" {...a11yProps(2)} />
-            <Tab label="Parents" {...a11yProps(3)} /> */}
+            <Tab label="Accounts" {...a11yProps(1)} />
+            <Tab label="Student Groups" {...a11yProps(2)} />
+            <Tab label="Parents" {...a11yProps(3)} />
+            <Tab label="Grading Categories" {...a11yProps(4)} />
           </Tabs>
         </Box>
         <Box
@@ -989,12 +990,11 @@ function ClassDetails(props) {
                     />
                   </Box>
                 ))}
-                {CLASS.subjects && (
-                  <Box>
+                <Box display="flex" style={{ marginTop: "50px" }}>
+                  {CLASS.subjects && (
                     <FormControl
                       className="themed-input"
                       variant="outlined"
-                      style={{ marginTop: "40px" }}
                       disabled={!editing}
                     >
                       <InputLabel>Subject</InputLabel>
@@ -1016,9 +1016,9 @@ function ClassDetails(props) {
                         ))}
                       </Select>
                     </FormControl>
-                  </Box>
-                )}
-                <Box display="flex" style={{ marginTop: "40px" }}>
+                  )}
+                </Box>
+                <Box display="flex" style={{ marginTop: "50px" }}>
                   {CLASS.section_id ? (
                     <FormControl
                       className="themed-input"
@@ -1050,11 +1050,12 @@ function ClassDetails(props) {
                       retrieving sections...
                     </Box>
                   )}
+                </Box>
+                <Box display="flex" style={{ marginTop: "50px" }}>
                   {CLASS.year_id ? (
                     <FormControl
                       className="themed-input"
                       variant="outlined"
-                      style={{ marginLeft: 13 }}
                       disabled={!editing}
                     >
                       <InputLabel>Year Level</InputLabel>
@@ -1088,7 +1089,7 @@ function ClassDetails(props) {
             <TabPanel value={value} index={1}>
               <Box display="flex">
                 <Box>
-                  <Box marginTop={"40px"} display="flex">
+                  <Box marginTop={"50px"} display="flex">
                     <TextField
                       variant="outlined"
                       label={"Date" + (editing ? "*" : "")}
@@ -1192,7 +1193,7 @@ function ClassDetails(props) {
                     <FormLabel>Frequency</FormLabel>
                     <FormGroup>
                       {[
-                        { key: "M", value: "Monnday" },
+                        { key: "M", value: "Monday" },
                         { key: "T", value: "Tuesday" },
                         { key: "W", value: "Wednesday" },
                         { key: "R", value: "Thursday" },

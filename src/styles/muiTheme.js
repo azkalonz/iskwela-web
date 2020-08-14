@@ -170,6 +170,10 @@ export default function getTheme() {
         },
       },
       MuiAvatar: {
+        img: {
+          width: "100%",
+          height: "auto",
+        },
         root: {
           fontSize: "1em",
           zIndex: "10!important",

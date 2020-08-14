@@ -1146,7 +1146,7 @@ function FloatingChatBox(props) {
   const { user } = props;
   return user ? (
     <Box
-      width={280}
+      width={props.opened !== user.username ? 190 : 310}
       marginRight={1}
       bgcolor={theme.palette.type === "dark" ? "#222" : "#fff"}
       display="flex"
@@ -1156,7 +1156,7 @@ function FloatingChatBox(props) {
       boxShadow="0 0px 15px rgba(0,0,0,0.15)"
       style={{
         borderRadius: "10px 10px 0 0",
-        transition: "height 0.1s ease-out",
+        transition: "all 0.1s ease-out",
         height:
           query.t && query.t !== "null" && props.opened === user.username
             ? 400

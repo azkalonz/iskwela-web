@@ -283,23 +283,24 @@ function Home(props) {
                     borderRadius="50%"
                     width={60}
                     height={60}
-                    bgcolor="grey.500"
                     overflow="hidden"
+                    style={{
+                      background: `${
+                        theme.palette.type === "dark" ? "#444" : "#f4f4f4"
+                      } url(${c.teacher.profile_picture}) no-repeat center`,
+                      backgroundSize: "cover",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
                   >
-                    <Avatar
-                      alt={c.teacher.first_name}
-                      style={{
-                        width: "100%",
-                        height: "100%",
-                        background: "#fff",
-                      }}
-                      src={c.teacher.profile_picture}
-                    />
-                    {/* <img
-                        src="https://source.unsplash.com/random/500x500"
-                        width="100%"
-                        height="auto"
-                      /> */}
+                    {!c.teacher.profile_picture && (
+                      <Typography style={{ fontWeight: 600, fontSize: 18 }}>
+                        {c.teacher.first_name.ucfirst()[0] +
+                          " " +
+                          c.teacher.last_name.ucfirst()[0]}
+                      </Typography>
+                    )}
                   </Box>
                 </div>
                 <div
