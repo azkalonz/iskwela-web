@@ -51,7 +51,6 @@ import { makeLinkTo } from "../../components/router-dom";
 
 const qs = require("query-string");
 
-const sortedFrequency = ["u", "m", "t", "w", "r", "f", "s"];
 function Dashboard(props) {
   const theme = useTheme();
   const isTablet = useMediaQuery(theme.breakpoints.down("md"));
@@ -505,6 +504,9 @@ function ClassDetails(props) {
         : [],
     [props.class]
   );
+  const sortedFrequency = useMemo(() => ["u", "m", "t", "w", "r", "f", "s"], [
+    frequency,
+  ]);
   const initialClass = {
     years: props.years,
     sections: props.sections,
