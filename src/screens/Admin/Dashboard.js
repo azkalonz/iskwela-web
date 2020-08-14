@@ -1,4 +1,4 @@
-import React, { useMemo, useEffect, useState } from "react";
+import React, { useMemo, useEffect, useState, useCallback } from "react";
 import PropTypes from "prop-types";
 import { makeStyles, useTheme } from "@material-ui/core/styles";
 import Tabs from "@material-ui/core/Tabs";
@@ -40,6 +40,8 @@ import NavBar from "../../components/NavBar";
 import UserData from "../../components/UserData";
 import socket from "../../components/socket.io";
 import PopupState, { bindTrigger, bindMenu } from "material-ui-popup-state";
+import SavingButton from "../../components/SavingButton";
+import moment from "moment";
 
 const qs = require("query-string");
 
@@ -57,11 +59,16 @@ function Dashboard(props) {
 
   return (
     <Drawer {...props}>
+      <Backdrop
+        open={isMobile && opened}
+        style={{ zIndex: 16 }}
+        onClick={() => setOpened(false)}
+      />
       <Box width="100%" display="flex">
         <Box
           className={classes.tabs}
           style={{
-            width: opened ? 270 : 0,
+            width: opened ? 345 : 0,
             transition: "width 0.3s ease-out",
           }}
         >
@@ -73,12 +80,17 @@ function Dashboard(props) {
                   onClick={() => {
                     props.history.push("#menu");
                   }}
-                  style={{ marginLeft: -15 }}
+                  style={{ marginLeft: -15, color: "#fff" }}
                 >
                   <Icon>menu</Icon>
                 </IconButton>
               )}
             </Box>
+            <Typography
+              style={{ color: "#fff", fontSize: 18, fontWeight: 500 }}
+            >
+              Dashboard
+            </Typography>
             <IconButton
               onClick={() => setOpened(false)}
               style={{ color: "#fff" }}
@@ -101,9 +113,9 @@ function Dashboard(props) {
                 )
               }
             />
-            <Tab label="Sections" {...a11yProps(1)} />
+            {/* <Tab label="Sections" {...a11yProps(1)} />
             <Tab label="Students" {...a11yProps(2)} />
-            <Tab label="Parents" {...a11yProps(3)} />
+            <Tab label="Parents" {...a11yProps(3)} /> */}
           </Tabs>
         </Box>
         <Box
@@ -114,7 +126,6 @@ function Dashboard(props) {
           id="dashboard-panel"
         >
           <NavBar
-            title="Dashboard"
             left={
               !opened && (
                 <IconButton onClick={() => setOpened(true)}>
@@ -157,6 +168,8 @@ function Classes(props) {
   const data = Object.keys(props.classes).map((q) => props.classes[q]);
   const [sections, setSections] = useState([]);
   const [years, setYears] = useState([]);
+  const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
   const subjects = Object.keys(props.classes)
     .filter((k, i) => {
       let c = Object.keys(props.classes);
@@ -178,6 +191,10 @@ function Classes(props) {
     { id: "frequency", title: "Frequency", width: "23%" },
   ]);
   const _handleFileOption = (option, item) => {};
+  const getFilteredClasses = (c = data) =>
+    [...c].filter(
+      (q) => JSON.stringify(q).toLowerCase().indexOf(search.toLowerCase()) >= 0
+    );
   const fetchData = async () => {
     setLoading(true);
     try {
@@ -185,15 +202,11 @@ function Classes(props) {
       let yrs = await Api.get("/api/years");
       setSections(sec);
       setYears(yrs);
-    } catch (e) {
-      console.log(e);
-    }
+    } catch (e) {}
     setLoading(false);
   };
   useEffect(() => {
     fetchData();
-  }, []);
-  useEffect(() => {
     if (query.classId) {
       let i = query.classId;
       if (!isNaN(parseInt(i))) {
@@ -221,13 +234,13 @@ function Classes(props) {
               </Button>
             </Box>
             <Box>
-              <SearchInput onChange={(e) => null} />
+              <SearchInput onChange={(e) => setSearch(e)} />
             </Box>
           </Box>
           <Table
             loading={loading}
             headers={columnHeaders}
-            filtered={(t) => data}
+            filtered={(t) => getFilteredClasses(t)}
             data={data}
             actions={{
               _handleFileOption: (opt, item) => _handleFileOption(opt, item),
@@ -239,38 +252,70 @@ function Classes(props) {
             style={{ margin: 0 }}
             pagination={{
               page: 1,
-              render: <Pagination page={1} count={1} nolink />,
+              render: (
+                <Pagination
+                  page={page}
+                  onChange={(e) => setPage(e)}
+                  icon={
+                    search ? (
+                      <img
+                        src="/hero-img/search.svg"
+                        width={180}
+                        style={{ padding: "50px 0" }}
+                      />
+                    ) : (
+                      <img
+                        src="/hero-img/undraw_Progress_tracking_re_ulfg.svg"
+                        width={180}
+                        style={{ padding: "50px 0" }}
+                      />
+                    )
+                  }
+                  emptyTitle={search ? "Nothing Found" : false}
+                  emptyMessage={search ? "Try a different keyword." : false}
+                  nolink
+                  count={getFilteredClasses().length}
+                />
+              ),
             }}
-            rowRender={(item) => (
-              <Box
-                p={2}
-                display="flex"
-                width="100%"
-                onClick={() =>
-                  props.history.push(
-                    window.location.search.replaceUrlParam("classId", item.id)
-                  )
-                }
-              >
-                <Box width="5%">
-                  <Typography>{item.id}</Typography>
+            rowRender={(item) => {
+              let f = item.frequency;
+              if (typeof f === "string" && f) {
+                f = f.split(",").filter((q) => !!q);
+                if (f.length >= 7) f = "DAILY";
+                else f = f.join(",");
+              }
+              return (
+                <Box
+                  p={2}
+                  display="flex"
+                  width="100%"
+                  onClick={() =>
+                    props.history.push(
+                      window.location.search.replaceUrlParam("classId", item.id)
+                    )
+                  }
+                >
+                  <Box width="5%">
+                    <Typography>{item.id}</Typography>
+                  </Box>
+                  <Box width="23%">
+                    <Typography>{item.name}</Typography>
+                  </Box>
+                  <Box width="23%">
+                    <Typography>{item.description}</Typography>
+                  </Box>
+                  <Box width="23%">
+                    <Typography>
+                      {item.teacher?.first_name + " " + item.teacher?.last_name}
+                    </Typography>
+                  </Box>
+                  <Box width="23%">
+                    <Typography>{f}</Typography>
+                  </Box>
                 </Box>
-                <Box width="23%">
-                  <Typography>{item.name}</Typography>
-                </Box>
-                <Box width="23%">
-                  <Typography>{item.description}</Typography>
-                </Box>
-                <Box width="23%">
-                  <Typography>
-                    {item.teacher?.first_name + " " + item.teacher?.last_name}
-                  </Typography>
-                </Box>
-                <Box width="23%">
-                  <Typography>{item.frequency}</Typography>
-                </Box>
-              </Box>
-            )}
+              );
+            }}
           />
         </Box>
       )}
@@ -288,22 +333,155 @@ function Classes(props) {
 }
 function ClassDetails(props) {
   const theme = useTheme();
-  const { name, teacher, color, id } = props.class;
-  const frequency =
-    props.class?.frequency === "DAILY"
-      ? ["M", "T", "W", "R", "F", "S", "U"]
-      : props.class?.frequency?.split(",");
+  const { teacher, color, id } = props.class;
+  const frequency = useMemo(
+    () =>
+      props.class?.frequency === "DAILY"
+        ? ["M", "T", "W", "R", "F", "S", "U"]
+        : typeof props.class?.frequency === "object"
+        ? props.class.frequency
+            .split(",")
+            .filter((q) => typeof q === "string" && q)
+        : [],
+    [props.class]
+  );
+  const initialClass = {
+    years: props.years,
+    sections: props.sections,
+    subject_id: props.subjects[0]?.id,
+    subjects: props.subjects,
+    teacher: props.class?.teacher,
+    frequency,
+    date_from: props.class?.date_from,
+    date_to: props.class?.date_from,
+    time_from: props.class?.time_from,
+    time_to: props.class?.time_to,
+    ...props.class,
+  };
+  const [CLASS, setCLASS] = useState(initialClass);
+  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [savingImg, setSavingImg] = useState(false);
+  const [savingId, setSavingId] = useState(false);
   const class_id = id;
   const styles = useStyles();
   const [editing, setEditing] = useState(false);
+  const [students, setStudents] = useState([{}]);
+  const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
   const [value, setValue] = useState(0);
-  useEffect(() => {
-    let d = document.querySelector("#dashboard-panel")?.firstChild?.firstChild;
-    if (d) d.scrollTop = 0;
-  }, [props.class]);
+
+  const getFilteredStudents = (s = students) =>
+    [...s].filter(
+      (q) => JSON.stringify(q).toLowerCase().indexOf(search.toLowerCase()) >= 0
+    );
+  const getStudents = async () => {
+    setLoading(true);
+    try {
+      let studs = await Api.get(
+        "/api/teacher/class/" + class_id + "?include=schedules,students"
+      );
+      if (studs?.students?.length) {
+        setStudents(studs.students);
+      }
+    } catch (e) {}
+    setLoading(false);
+  };
+  const handleSave = async () => {
+    const frequencyOrder = ["m", "t", "w", "r", "f", "s", "u"];
+    setSaving(true);
+    const {
+      id,
+      name,
+      description,
+      teacher,
+      subject_id,
+      year_id,
+      date_from,
+      frequency,
+      date_to,
+      time_from,
+      time_to,
+      section_id,
+    } = CLASS;
+    let data = {
+      id,
+      name: name || "Class description",
+      description,
+      teacher_id: teacher?.id,
+      date_from,
+      frequency:
+        typeof frequency === "object"
+          ? frequency?.join(",")
+          : typeof frequency === "string"
+          ? frequency
+          : "",
+      date_to,
+      time_from,
+      time_to,
+      subject_id,
+      year_id,
+      section_id,
+    };
+    let finalData = {};
+    data = Object.keys(data)
+      .filter(
+        (k) => data[k] !== undefined && data[k] !== null && data[k] !== ""
+      )
+      .map((q) => (finalData[q] = data[q]));
+    try {
+      let orderedFrequency = frequencyOrder
+        .filter((q) =>
+          typeof frequency === "object"
+            ? frequency.indexOf(q.toUpperCase()) >= 0
+            : false
+        )
+        .join(",");
+      await Api.post("/api/schooladmin/class/save", {
+        body: {
+          ...finalData,
+          ...(orderedFrequency ? { frequency: orderedFrequency } : {}),
+        },
+      });
+      let newDetails = await Api.get("/api/teacher/class/" + id);
+      if (newDetails)
+        UserData.updateClass(
+          id,
+          {
+            ...newDetails,
+            ...finalData,
+          },
+          true
+        );
+    } catch (e) {
+      console.log(e);
+      setCLASS({
+        ...initialClass,
+        subject_id: props.subjects[0]?.id,
+        year_id: props.years[0]?.id,
+        section_id: props.sections[0]?.id,
+      });
+    }
+    setEditing(false);
+    setSaving(false);
+  };
   const handleChange = (event, newValue) => {
     setValue(newValue);
   };
+  const getSchedules = useCallback(() => {
+    let events = [];
+    if (CLASS.date_from && CLASS.date_to) {
+      var a = moment(CLASS.date_from);
+      var b = moment(CLASS.date_to);
+      for (var m = moment(a); m.diff(b, "days") <= 0; m.add(1, "days")) {
+        events.push({
+          date: m.format("YYYY-MM-DD"),
+          status: "schedule",
+        });
+      }
+      return events;
+    }
+  }, [CLASS]);
   const editClassPicture = (callback) => {
     let input = document.querySelector("#edit-class-pic-input");
     if (!input) {
@@ -318,6 +496,7 @@ function ClassDetails(props) {
     newinput.addEventListener("change", async () => {
       if (newinput.files.length && class_id !== undefined) {
         try {
+          setSavingImg(true);
           let body = new FormData();
           body.append("image", newinput.files[0]);
           await Api.post("/api/upload/class/image/" + class_id, {
@@ -337,6 +516,43 @@ function ClassDetails(props) {
     input = document.querySelector("#edit-class-pic-input");
     input.click();
   };
+  const _handleFileOption = (opt, item) => {
+    switch (opt) {
+      case "reset-password":
+        resetPassword(item);
+        return;
+    }
+  };
+  const resetPassword = async (user) => {
+    let { id, username } = user;
+    if (!username) return;
+    setSaving(true);
+    setSavingId([id]);
+    try {
+      await Api.post("/api/schooladmin/change-user-password", {
+        body: {
+          username,
+          password: username,
+        },
+      });
+    } catch (e) {}
+    setSaving(false);
+    setSavingId([]);
+  };
+  useEffect(() => {
+    let d = document.querySelector("#dashboard-panel")?.firstChild?.firstChild;
+    if (d) d.scrollTop = 0;
+  }, [props.class]);
+  useEffect(() => {
+    setCLASS({
+      ...CLASS,
+      years: props.years,
+      sections: props.sections,
+      subjects: props.subjects,
+      year_id: props.years[0]?.id,
+      section_id: props.sections[0]?.id,
+    });
+  }, [props.subjects, props.sections, props.years]);
   return (
     <React.Fragment>
       <Box
@@ -354,33 +570,66 @@ function ClassDetails(props) {
         display="flex"
         alignItems="center"
       >
-        <IconButton
-          onClick={() =>
-            props.history.push(
-              window.location.search.replaceUrlParam("classId", "")
-            )
-          }
-        >
-          <Icon>arrow_back</Icon>
-        </IconButton>
+        {!editing && (
+          <IconButton
+            onClick={() =>
+              props.history.push(
+                window.location.search.replaceUrlParam("classId", "")
+              )
+            }
+          >
+            <Icon>arrow_back</Icon>
+          </IconButton>
+        )}
         <ButtonBase
-          onClick={() => editClassPicture()}
           style={{
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
+            minWidth: 50,
             width: 50,
             height: 50,
             borderRadius: "50%",
             overflow: "hidden",
             marginRight: "7px",
+            position: "relative",
           }}
         >
           <img
-            src={props.class.bg_image || props.class.image}
+            onClick={() =>
+              window.open(
+                props.classes[id]?.bg_image || props.classes[id]?.image,
+                "_blank"
+              )
+            }
+            src={props.classes[id]?.bg_image || props.classes[id]?.image}
             width="auto"
             height="100%"
           />
+          {editing && (
+            <Box
+              onClick={() =>
+                !savingImg && editClassPicture(() => setSavingImg(false))
+              }
+              bgcolor={savingImg ? "rgba(255,255,255,0.3)" : "rgba(0,0,0,0.3)"}
+              style={{
+                position: "absolute",
+                left: 0,
+                right: 0,
+                bottom: 0,
+                top: 0,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              {!savingImg ? (
+                <Icon style={{ color: "#fff" }}>camera_alt</Icon>
+              ) : (
+                <CircularProgress size={15} />
+              )}
+            </Box>
+          )}
         </ButtonBase>
         <Typography
           style={{
@@ -390,11 +639,15 @@ function ClassDetails(props) {
             marginLeft: 13,
           }}
         >
-          {name}
+          {CLASS?.name}
         </Typography>
-        <Button
+        <SavingButton
+          saving={saving}
           style={{ marginLeft: 13, width: "auto" }}
-          onClick={() => setEditing(!editing)}
+          onClick={() => {
+            if (editing) handleSave();
+            else setEditing(true);
+          }}
         >
           {editing ? (
             "Save  "
@@ -403,7 +656,23 @@ function ClassDetails(props) {
               Edit <Icon fontSize="small">create_outlined</Icon>
             </React.Fragment>
           )}
-        </Button>
+        </SavingButton>
+        {editing && (
+          <Button
+            style={{ color: "red", width: "auto" }}
+            onClick={() => {
+              setCLASS({
+                ...initialClass,
+                subject_id: props.subjects[0]?.id,
+                year_id: props.years[0]?.id,
+                section_id: props.sections[0]?.id,
+              });
+              setEditing(false);
+            }}
+          >
+            Cancel
+          </Button>
+        )}
       </Box>
       <Tabs
         style={{ padding: "0 30px" }}
@@ -414,323 +683,470 @@ function ClassDetails(props) {
       >
         <Tab label="Details" {...a11yProps(0)} />
         <Tab label="Schedules" {...a11yProps(1)} />
-        <Tab label="Students" {...a11yProps(2)} />
+        <Tab label="Students" {...a11yProps(2)} onClick={() => getStudents()} />
       </Tabs>
       <Box width="100%" overflow="auto" p={4}>
-        <form
-          action="#"
-          onSubmit={() => false}
-          className={!editing ? styles.notEditingForm : ""}
-          style={{ width: "100%" }}
-        >
-          <TabPanel value={value} index={0}>
-            <Box>
-              {props.childInfo && (
-                <PopupState variant="popover" popupId="viewing-as">
-                  {(popupState) => (
-                    <React.Fragment>
-                      <Box
-                        marginTop={1}
-                        onClick={() => {
-                          popupState.open();
-                        }}
-                        display={"flex"}
-                        justifyContent="flex-start"
-                        alignItems="center"
-                        style={{ cursor: "pointer" }}
-                        {...bindTrigger(popupState)}
-                      >
-                        <Avatar
-                          src={props.childInfo.preferences?.profile_picture}
-                          alt={props.childInfo.first_name}
-                        />
-                        <Box marginLeft={2}>
-                          <Typography style={{ fontSize: 12 }}>
-                            Teacher
-                          </Typography>
-                          <Typography
-                            style={{
-                              fontWeight: 16,
-                              fontWeight: 500,
-                            }}
-                          >
-                            {props.childInfo.first_name +
-                              " " +
-                              props.childInfo.last_name}
-                          </Typography>
-                        </Box>
-                        <IconButton
-                          color="primary"
-                          {...bindTrigger(popupState)}
-                        >
-                          <Icon>expand_more</Icon>
-                        </IconButton>
-                      </Box>
-                      <Menu
-                        {...bindMenu(popupState)}
-                        style={{
-                          maxWidth: 300,
-                        }}
-                      >
-                        {props.parentData?.children?.map((child, index) => {
-                          return (
-                            <MenuItem
-                              key={index}
-                              selected={
-                                props.classes?.teacher?.id ===
-                                child.childInfo.id
-                              }
-                              onClick={async () => {}}
-                            >
-                              <Avatar
-                                src={
-                                  child.childInfo?.preferences?.profile_picture
-                                }
-                                alt={child.childInfo.first_name}
-                              />
-                              <Typography style={{ marginLeft: 13 }}>
-                                {child.childInfo.first_name +
-                                  " " +
-                                  child.childInfo.last_name}
-                              </Typography>
-                            </MenuItem>
-                          );
-                        })}
-                      </Menu>
-                    </React.Fragment>
-                  )}
-                </PopupState>
-              )}
-              {["name", "description"].map((item, index) => (
-                <Box width="100%" marginTop={1} key={index}>
-                  <TextField
-                    disabled={!editing}
-                    name={item}
-                    fullWidth
-                    variant="outlined"
-                    type="text"
-                    defaultValue={props.class[item] || "No description"}
-                    className={
-                      "themed-input " +
-                      (theme.palette.type === "dark" ? "light" : "dark")
-                    }
-                    label={item.ucfirst()}
-                  />
-                </Box>
-              ))}
-              {props.subjects && (
-                <Box>
-                  <FormControl
-                    className="themed-input"
-                    variant="outlined"
-                    style={{ marginTop: "38px" }}
-                    disabled={!editing}
-                  >
-                    <InputLabel>Subject</InputLabel>
-                    <Select
-                      label="Subject"
-                      name="subject"
-                      defaultValue={props.subjects[0].id}
-                    >
-                      {props.subjects.map((subject, index) => (
-                        <MenuItem key={index} value={subject.id}>
-                          {subject.name}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
-                </Box>
-              )}
-              <Box display="flex">
-                {props.sections.length ? (
-                  <FormControl
-                    className="themed-input"
-                    variant="outlined"
-                    style={{ marginTop: "38px" }}
-                    disabled={!editing}
-                  >
-                    <InputLabel>Section</InputLabel>
-                    <Select
-                      label="Section"
-                      name="section"
-                      defaultValue={props.sections[0].id}
-                    >
-                      {props.sections.map((section, index) => (
-                        <MenuItem key={index} value={section.id}>
-                          {section.name}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
-                ) : (
-                  <Box display="flex">
-                    <CircularProgress size={10} /> retrieving sections...
-                  </Box>
-                )}
-                {props.years.length ? (
-                  <FormControl
-                    className="themed-input"
-                    variant="outlined"
-                    style={{ marginTop: "38px", marginLeft: 13 }}
-                    disabled={!editing}
-                  >
-                    <InputLabel>Year Level</InputLabel>
-                    <Select
-                      label="Year Level"
-                      name="year-level"
-                      defaultValue={props.sections[0].id}
-                    >
-                      {props.years.map((year, index) => (
-                        <MenuItem key={index} value={year.id}>
-                          {year.name}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
-                ) : (
-                  <Box display="flex">
-                    <CircularProgress size={10} /> retrieving year levels...
-                  </Box>
-                )}
-              </Box>
-            </Box>
-          </TabPanel>
-          <TabPanel value={value} index={1}>
-            <Box display="flex">
+        <Box component={Paper} p={4}>
+          <form
+            action="#"
+            onSubmit={() => false}
+            className={!editing ? styles.notEditingForm : ""}
+            style={{ width: "100%" }}
+          >
+            <TabPanel value={value} index={0}>
               <Box>
-                <Box marginTop={"38px"} display="flex">
-                  <TextField
-                    variant="outlined"
-                    label="Date"
-                    disabled={!editing}
-                    className={
-                      "themed-input no-margin small " +
-                      (theme.palette.type === "dark" ? "light" : "dark")
-                    }
-                    type="date"
-                    defaultValue="2020-08-14"
-                    InputLabelProps={{
-                      shrink: true,
-                    }}
-                    inputProps={{
-                      step: 300,
-                    }}
-                    style={{
-                      height: 46,
-                      paddingRight: theme.spacing(2),
-                      flex: 1,
-                    }}
-                  />
-                  <TextField
-                    variant="outlined"
-                    disabled={!editing}
-                    className={
-                      "themed-input no-margin small " +
-                      (theme.palette.type === "dark" ? "light" : "dark")
-                    }
-                    type="date"
-                    defaultValue="2020-08-14"
-                    InputLabelProps={{
-                      shrink: true,
-                    }}
-                    inputProps={{
-                      step: 300,
-                    }}
-                    style={{
-                      height: 46,
-                      paddingRight: theme.spacing(2),
-                      flex: 1,
-                    }}
-                  />
-                </Box>
-                <Box marginTop={"35px"} display="flex">
-                  <TextField
-                    variant="outlined"
-                    label="Time"
-                    disabled={!editing}
-                    className={
-                      "themed-input no-margin small " +
-                      (theme.palette.type === "dark" ? "light" : "dark")
-                    }
-                    type="time"
-                    defaultValue="07:30"
-                    InputLabelProps={{
-                      shrink: true,
-                    }}
-                    inputProps={{
-                      step: 300,
-                    }}
-                    style={{
-                      height: 46,
-                      paddingRight: theme.spacing(2),
-                      flex: 1,
-                    }}
-                  />
-                  <TextField
-                    variant="outlined"
-                    disabled={!editing}
-                    className={
-                      "themed-input no-margin small " +
-                      (theme.palette.type === "dark" ? "light" : "dark")
-                    }
-                    type="time"
-                    defaultValue="07:30"
-                    InputLabelProps={{
-                      shrink: true,
-                    }}
-                    inputProps={{
-                      step: 300,
-                    }}
-                    style={{
-                      height: 46,
-                      paddingRight: theme.spacing(2),
-                      flex: 1,
-                    }}
-                  />
-                </Box>
-                <FormControl style={{ marginTop: 8 }} disabled={!editing}>
-                  <FormLabel>Frequency</FormLabel>
-                  <FormGroup>
-                    {[
-                      { key: "M", value: "Monnday" },
-                      { key: "T", value: "Tuesday" },
-                      { key: "W", value: "Wednesday" },
-                      { key: "R", value: "Thursday" },
-                      { key: "F", value: "Friday" },
-                      { key: "S", value: "Saturday" },
-                      { key: "U", value: "Sundary" },
-                    ].map((day, index) => (
-                      <FormControlLabel
-                        key={index}
-                        control={
-                          <Checkbox
-                            defaultChecked={frequency.indexOf(day.key) >= 0}
-                            name="frequency[]"
+                {props.childInfo && (
+                  <PopupState variant="popover" popupId="viewing-as">
+                    {(popupState) => (
+                      <React.Fragment>
+                        <Box
+                          marginTop={1}
+                          onClick={() => {
+                            editing && popupState.open();
+                          }}
+                          display={"flex"}
+                          justifyContent="flex-start"
+                          alignItems="center"
+                          style={{ cursor: "pointer" }}
+                          {...(editing ? bindTrigger(popupState) : {})}
+                        >
+                          <Avatar
+                            src={
+                              CLASS.teacher?.preferences?.profile_picture ||
+                              CLASS.teacher?.profile_picture
+                            }
+                            alt={CLASS.teacher?.first_name}
                           />
+                          <Box marginLeft={2}>
+                            <Typography style={{ fontSize: 12 }}>
+                              Teacher
+                            </Typography>
+                            <Typography
+                              style={{
+                                fontWeight: 16,
+                                fontWeight: 500,
+                              }}
+                            >
+                              {CLASS.teacher?.first_name +
+                                " " +
+                                CLASS.teacher?.last_name}
+                            </Typography>
+                          </Box>
+                          {editing && (
+                            <IconButton
+                              color="primary"
+                              {...bindTrigger(popupState)}
+                            >
+                              <Icon>expand_more</Icon>
+                            </IconButton>
+                          )}
+                        </Box>
+                        <Menu
+                          {...bindMenu(popupState)}
+                          style={{
+                            maxWidth: 300,
+                          }}
+                        >
+                          {props.parentData?.children?.map((child, index) => {
+                            return (
+                              <MenuItem
+                                key={index}
+                                selected={CLASS.teacher === child.childInfo.id}
+                                onClick={() => {
+                                  setCLASS({
+                                    ...CLASS,
+                                    teacher: child.childInfo,
+                                  });
+                                  popupState.close();
+                                }}
+                              >
+                                <Avatar
+                                  src={
+                                    child.childInfo?.preferences
+                                      ?.profile_picture
+                                  }
+                                  alt={child.childInfo.first_name}
+                                />
+                                <Typography style={{ marginLeft: 13 }}>
+                                  {child.childInfo.first_name +
+                                    " " +
+                                    child.childInfo.last_name}
+                                </Typography>
+                              </MenuItem>
+                            );
+                          })}
+                        </Menu>
+                      </React.Fragment>
+                    )}
+                  </PopupState>
+                )}
+                {["name", "description"].map((item, index) => (
+                  <Box width="100%" marginTop={1} key={index}>
+                    <TextField
+                      disabled={!editing}
+                      name={item}
+                      fullWidth
+                      variant="outlined"
+                      type="text"
+                      value={
+                        CLASS[item] || (editing ? "" : "No " + item.ucfirst())
+                      }
+                      onChange={(e) => {
+                        let s = {};
+                        s[item] = e.target.value;
+                        setCLASS({ ...CLASS, ...s });
+                      }}
+                      className={
+                        "themed-input " +
+                        (theme.palette.type === "dark" ? "light" : "dark")
+                      }
+                      label={item.ucfirst()}
+                    />
+                  </Box>
+                ))}
+                {CLASS.subjects && (
+                  <Box>
+                    <FormControl
+                      className="themed-input"
+                      variant="outlined"
+                      style={{ marginTop: "40px" }}
+                      disabled={!editing}
+                    >
+                      <InputLabel>Subject</InputLabel>
+                      <Select
+                        label="Subject"
+                        name="subject"
+                        value={CLASS?.subject_id}
+                        onChange={(e) =>
+                          setCLASS({
+                            ...CLASS,
+                            subject_id: parseInt(e.target.value),
+                          })
                         }
-                        label={day.value}
-                      />
-                    ))}
-                  </FormGroup>
-                </FormControl>
+                      >
+                        {CLASS?.subjects.map((subject, index) => (
+                          <MenuItem key={index} value={subject.id}>
+                            {subject.name}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+                  </Box>
+                )}
+                <Box display="flex" style={{ marginTop: "40px" }}>
+                  {CLASS.section_id ? (
+                    <FormControl
+                      className="themed-input"
+                      variant="outlined"
+                      disabled={!editing}
+                    >
+                      <InputLabel>Section</InputLabel>
+                      <Select
+                        label="Section"
+                        name="section"
+                        value={CLASS?.section_id}
+                        onChange={(e) =>
+                          setCLASS({
+                            ...CLASS,
+                            section_id: parseInt(e.target.value),
+                          })
+                        }
+                      >
+                        {CLASS?.sections.map((section, index) => (
+                          <MenuItem key={index} value={section.id}>
+                            {section.name}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+                  ) : (
+                    <Box display="flex" alignItems="center">
+                      <CircularProgress size={10} />
+                      {"   "}retrieving sections...
+                    </Box>
+                  )}
+                  {CLASS.year_id ? (
+                    <FormControl
+                      className="themed-input"
+                      variant="outlined"
+                      style={{ marginLeft: 13 }}
+                      disabled={!editing}
+                    >
+                      <InputLabel>Year Level</InputLabel>
+                      <Select
+                        label="Year Level"
+                        name="year-level"
+                        value={CLASS?.year_id}
+                        onChange={(e) =>
+                          setCLASS({
+                            ...CLASS,
+                            year_id: parseInt(e.target.value),
+                          })
+                        }
+                      >
+                        {CLASS.years.map((year, index) => (
+                          <MenuItem key={index} value={year.id}>
+                            {year.name}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+                  ) : (
+                    <Box display="flex" alignItems="center">
+                      <CircularProgress size={10} />
+                      {"   "}retrieving year levels...
+                    </Box>
+                  )}
+                </Box>
               </Box>
-              <Box marginLeft={4}>
-                <CalendarProvider
-                  style={{ minWidth: 240 }}
-                  variant={"small"}
-                  events={[]}
-                  schedules={[]}
-                >
-                  <Weekdays />
-                  <Dates />
-                </CalendarProvider>
+            </TabPanel>
+            <TabPanel value={value} index={1}>
+              <Box display="flex">
+                <Box>
+                  <Box marginTop={"40px"} display="flex">
+                    <TextField
+                      variant="outlined"
+                      label="Date"
+                      disabled={!editing}
+                      className={
+                        "themed-input no-margin small " +
+                        (theme.palette.type === "dark" ? "light" : "dark")
+                      }
+                      type="date"
+                      defaultValue={CLASS.date_from}
+                      {...(!editing ? { value: CLASS.date_from } : {})}
+                      onChange={(e) => {
+                        setCLASS({ ...CLASS, date_from: e.target.value });
+                      }}
+                      InputLabelProps={{
+                        shrink: true,
+                      }}
+                      style={{
+                        height: 46,
+                        paddingRight: theme.spacing(2),
+                        flex: 1,
+                      }}
+                    />
+                    <TextField
+                      variant="outlined"
+                      disabled={!editing}
+                      className={
+                        "themed-input no-margin small " +
+                        (theme.palette.type === "dark" ? "light" : "dark")
+                      }
+                      type="date"
+                      defaultValue={CLASS.date_to}
+                      {...(!editing ? { value: CLASS.date_to } : {})}
+                      onChange={(e) => {
+                        setCLASS({ ...CLASS, date_to: e.target.value });
+                      }}
+                      InputLabelProps={{
+                        shrink: true,
+                      }}
+                      style={{
+                        height: 46,
+                        paddingRight: theme.spacing(2),
+                        flex: 1,
+                      }}
+                    />
+                  </Box>
+                  <Box marginTop={"35px"} display="flex">
+                    <TextField
+                      variant="outlined"
+                      label="Time"
+                      disabled={!editing}
+                      className={
+                        "themed-input no-margin small " +
+                        (theme.palette.type === "dark" ? "light" : "dark")
+                      }
+                      type="time"
+                      defaultValue={CLASS.time_from}
+                      {...(!editing ? { value: CLASS.time_from } : {})}
+                      onChange={(e) => {
+                        setCLASS({ ...CLASS, time_from: e.target.value });
+                      }}
+                      InputLabelProps={{
+                        shrink: true,
+                      }}
+                      inputProps={{
+                        step: 300,
+                      }}
+                      style={{
+                        height: 46,
+                        paddingRight: theme.spacing(2),
+                        flex: 1,
+                      }}
+                    />
+                    <TextField
+                      variant="outlined"
+                      disabled={!editing}
+                      className={
+                        "themed-input no-margin small " +
+                        (theme.palette.type === "dark" ? "light" : "dark")
+                      }
+                      type="time"
+                      defaultValue={CLASS.time_to}
+                      {...(!editing ? { value: CLASS.time_to } : {})}
+                      onChange={(e) => {
+                        setCLASS({ ...CLASS, time_to: e.target.value });
+                      }}
+                      InputLabelProps={{
+                        shrink: true,
+                      }}
+                      inputProps={{
+                        step: 300,
+                      }}
+                      style={{
+                        height: 46,
+                        paddingRight: theme.spacing(2),
+                        flex: 1,
+                      }}
+                    />
+                  </Box>
+                  <FormControl style={{ marginTop: 8 }} disabled={!editing}>
+                    <FormLabel>Frequency</FormLabel>
+                    <FormGroup>
+                      {[
+                        { key: "M", value: "Monnday" },
+                        { key: "T", value: "Tuesday" },
+                        { key: "W", value: "Wednesday" },
+                        { key: "R", value: "Thursday" },
+                        { key: "F", value: "Friday" },
+                        { key: "S", value: "Saturday" },
+                        { key: "U", value: "Sundary" },
+                      ].map((day, index) => (
+                        <FormControlLabel
+                          key={index}
+                          control={
+                            <Checkbox
+                              checked={CLASS.frequency.indexOf(day.key) >= 0}
+                              onChange={() => {
+                                let i = CLASS.frequency?.indexOf(day.key);
+                                let c = [...CLASS.frequency];
+                                if (i >= 0) c.splice(i, 1);
+                                else c.push(day.key);
+                                setCLASS({
+                                  ...CLASS,
+                                  frequency: c.filter(
+                                    (q) => typeof q === "string"
+                                  ),
+                                });
+                              }}
+                              name="frequency[]"
+                            />
+                          }
+                          label={day.value}
+                        />
+                      ))}
+                    </FormGroup>
+                  </FormControl>
+                </Box>
+                <Box marginLeft={4}>
+                  <CalendarProvider
+                    style={{ minWidth: 240 }}
+                    variant={"small"}
+                    events={getSchedules()}
+                    schedules={[]}
+                  >
+                    <Weekdays />
+                    <Dates />
+                  </CalendarProvider>
+                </Box>
               </Box>
-            </Box>
-          </TabPanel>
-          <TabPanel value={value} index={2}>
-            Item Three
-          </TabPanel>
-        </form>
+            </TabPanel>
+            <TabPanel value={value} index={2}>
+              <Box
+                width="100%"
+                display="flex"
+                justifyContent="flex-end"
+                marginBottom={4}
+              >
+                <Box>
+                  <SearchInput onChange={(e) => setSearch(e)} />
+                </Box>
+              </Box>
+              <Table
+                loading={loading}
+                saving={saving}
+                savingId={savingId}
+                headers={[
+                  { id: "id", title: "ID", width: "5%" },
+                  { id: "first_name", title: "Name", width: "31%" },
+                  { id: "phone_number", title: "Phone", width: "31%" },
+                  { id: "email", title: "Email", width: "31%" },
+                ]}
+                filtered={(t) => getFilteredStudents(t)}
+                data={students}
+                actions={{
+                  _handleFileOption: (opt, item) =>
+                    _handleFileOption(opt, item),
+                }}
+                options={[
+                  {
+                    name: "Reset Password",
+                    value: "reset-password",
+                  },
+                ]}
+                style={{ margin: 0 }}
+                pagination={{
+                  page: 1,
+                  render: (
+                    <Pagination
+                      page={page}
+                      onChange={(e) => setPage(e)}
+                      count={getFilteredStudents().length}
+                      icon={
+                        search ? (
+                          <img
+                            src="/hero-img/person-search.svg"
+                            width={180}
+                            style={{ padding: "50px 0" }}
+                          />
+                        ) : (
+                          ""
+                        )
+                      }
+                      emptyTitle={"Nothing Found"}
+                      emptyMessage={"Try a different keyword."}
+                      nolink
+                    />
+                  ),
+                }}
+                rowRender={(item) => (
+                  <Box
+                    p={2}
+                    display="flex"
+                    width="100%"
+                    onClick={() =>
+                      props.history.push(
+                        window.location.search.replaceUrlParam(
+                          "classId",
+                          item.id
+                        )
+                      )
+                    }
+                  >
+                    <Box width="5%">
+                      <Typography>{item.id}</Typography>
+                    </Box>
+                    <Box width="31%">
+                      <Typography>
+                        {item.first_name &&
+                          item.first_name + " " + item.last_name}
+                      </Typography>
+                    </Box>
+                    <Box width="31%">
+                      <Typography>{item.phone_number}</Typography>
+                    </Box>
+                    <Box width="31%">
+                      <Typography>{item.email}</Typography>
+                    </Box>
+                  </Box>
+                )}
+              />
+            </TabPanel>
+          </form>
+        </Box>
       </Box>
     </React.Fragment>
   );
@@ -767,12 +1183,23 @@ function a11yProps(index) {
 
 const useStyles = makeStyles((theme) => ({
   tabs: {
+    [theme.breakpoints.down("sm")]: {
+      position: "fixed",
+      top: 0,
+      bottom: 0,
+      overflow: "hidden",
+      left: 0,
+      zIndex: 17,
+    },
     background:
       theme.palette.type === "dark" ? "#222" : theme.palette.primary.main,
     color: "#fff",
   },
   notEditingForm: {
     "& .themed-input": {
+      "& svg": {
+        display: "none",
+      },
       "& > div:first-of-type": {
         backgroundColor: "transparent!important",
         border: "none",

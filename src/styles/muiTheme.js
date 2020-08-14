@@ -70,6 +70,11 @@ export default function getTheme() {
           },
         },
       },
+      MuiTab: {
+        root: {
+          maxWidth: "100%",
+        },
+      },
       MuiTooltip: {
         tooltip: {
           fontSize: "1em",

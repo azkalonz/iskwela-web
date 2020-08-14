@@ -339,14 +339,7 @@ function Drawer(props) {
       </Box>
       <Box textAlign="center">
         <Tooltip title="Help" placement="right">
-          <IconButton
-            onClick={() =>
-              window.open(
-                "https://files.iskwela.net/public/iSkwela_UserManual_Beta1.0.pdf",
-                "_blank"
-              )
-            }
-          >
+          <IconButton onClick={() => window.open("/user-manual", "_blank")}>
             <Icon
               fontSize="inherit"
               style={{
@@ -764,10 +757,7 @@ function Drawer(props) {
             <Box
               className={"tab"}
               onClick={() => {
-                window.open(
-                  "https://files.iskwela.net/public/iSkwela_UserManual_Beta1.0.pdf",
-                  "_blank"
-                );
+                window.open("/user-manual", "_blank");
               }}
             >
               <Box className="tab-btn screen-btn">
