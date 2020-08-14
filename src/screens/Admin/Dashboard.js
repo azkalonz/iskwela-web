@@ -1058,9 +1058,14 @@ function ClassDetails(props) {
               <Box
                 width="100%"
                 display="flex"
-                justifyContent="flex-end"
+                justifyContent="space-between"
                 marginBottom={4}
               >
+                <Box>
+                  <Button variant="contained" color="secondary">
+                    Add Student
+                  </Button>
+                </Box>
                 <Box>
                   <SearchInput onChange={(e) => setSearch(e)} />
                 </Box>
