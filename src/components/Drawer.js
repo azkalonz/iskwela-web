@@ -559,9 +559,6 @@ function Drawer(props) {
                   >
                     {item.name}
                   </Typography>
-                  <Typography color="textSecondary">
-                    {item.description}
-                  </Typography>
                 </Box>
               );
             })}
@@ -640,9 +637,6 @@ function Drawer(props) {
                       >
                         {item.name}
                       </Typography>
-                      <Typography color="textSecondary">
-                        {item.description}
-                      </Typography>
                     </Box>
                   </Grow>
                 );
@@ -714,7 +708,7 @@ function Drawer(props) {
                   history.push("/dashboard");
                 }}
               >
-                Explore
+                Admin Panel
               </Typography>
             </Box>
             <Box className={screen_name ? "selected tab bordered" : "tab"}>

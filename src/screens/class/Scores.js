@@ -649,13 +649,13 @@ const chartOptions = {
   },
   labels: {
     formatter: function (val, index) {
-      return val.toFixed(0) + "%";
+      return val.toFixed(2) + "%";
     },
   },
   dataLabels: {
     enabled: true,
     formatter: function (val) {
-      return val + "%";
+      return val.toFixed(2) + "%";
     },
   },
   xaxis: {

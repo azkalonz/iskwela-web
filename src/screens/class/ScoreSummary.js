@@ -99,7 +99,7 @@ const ScoreSummary = (props) => {
               <Typography
                 style={{ fontWeight: 500, fontSize: 18, marginRight: 13 }}
               >
-                My Score Summmary
+                {props.parentData?.childInfo?.first_name + "'s"} Score Summmary
               </Typography>
               <Button
                 variant="outlined"
@@ -150,7 +150,7 @@ const ScoreSummary = (props) => {
                       style={{ width: "100%", paddingRight: "20px" }}
                     />
                     <p key="index" className={classes.scores}>
-                      {scores.scores[activity] * 100}%
+                      {(scores.scores[activity] * 100).toFixed(2)}%
                     </p>
                     <ListItemSecondaryAction>
                       <PopupState
@@ -219,7 +219,7 @@ const ScoreSummary = (props) => {
                   max: 100,
                   labels: {
                     formatter: function (val, index) {
-                      return val.toFixed(0) + "%";
+                      return val.toFixed(2) + "%";
                     },
                   },
                 },
@@ -237,7 +237,7 @@ const ScoreSummary = (props) => {
                 dataLabels: {
                   enabled: true,
                   formatter: function (val) {
-                    return val + "%";
+                    return val.toFixed(2) + "%";
                   },
                 },
               }}
