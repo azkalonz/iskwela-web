@@ -355,7 +355,7 @@ function HTML(props) {
               </ol>
           </p>
           <p>Login is the same for school admin, teacher and student.<br/>
-             <img src="/images/signin.png"/></p>
+             <img src="/images/signin.PNG"/></p>
       </div>
       
       <div>
@@ -367,10 +367,10 @@ function HTML(props) {
               <p>To change you password:</p>
               <ol>
                   <li>Click the dropdown icon on the upper right side and choose "Preferences".</li><br/>
-                  <img src="/images/preferences.png"/><br/>
+                  <img src="/images/preferences.PNG"/><br/>
                   <li>You will be redirected to the change password window.<br/> 
                    Fill out the form with your old and new password then click<span>SAVE</span>.</li><br/>
-                  <img src="/images/changepass.png"/>
+                  <img src="/images/changepass.PNG"/>
               </ol>
           </p>
       </div>
@@ -379,21 +379,21 @@ function HTML(props) {
       <h2> <a name="dashboard">Dashboard</a> </h2>
           <p>
           After a successful login, the dashboard or home page is displayed with all the upcoming classes.<br/>
-          <img src="/images/dashboard.png"/>
+          <img src="/images/dashboard.PNG"/>
           </p>
           
           
           <h3><a name="search_classes"> Search Classes </a></h3>
               <p>
                   You can look for a specific class by entering some texts on the search field at the right side.<br/>
-                  <img src="/images/search_class.png"/>
+                  <img src="/images/search_class.PNG"/>
               </p>
               
           
           <h3><a name="quick_access"> Quick Access </a></h3>
               <p>
                   Classes can easily be accessed through the menu bar at the left side.
-                  <br/><img src="/images/quick access.png"/>
+                  <br/><img src="/images/quick access.PNG"/>
               </p>
               
           
@@ -402,9 +402,9 @@ function HTML(props) {
                   You can choose to display the app in dark mode by following these steps.
                   <ol>
                       <li>Click on the options icon.</li>
-                      <img src="/images/options.png"/>
+                      <img src="/images/options.PNG"/>
                       <li>Select Dark Mode On.</li>
-                      <img src="/images/darkmode.png"/>
+                      <img src="/images/darkmode.PNG"/>
                   </ol>
               </p>
               <p>You can also turn it off by following the same procedure.</p>
@@ -416,7 +416,7 @@ function HTML(props) {
                       <li>Click the<span>UPLOAD</span>button.</li>
                       <li>Browse your profile picture.</li>
                       <li>Click the<span>SAVE</span>button.</li>
-                      <img src="/images/profile.png"/>
+                      <img src="/images/profile.PNG"/>
                   </ol>
               </p>
               
@@ -424,8 +424,8 @@ function HTML(props) {
               <p>
                   Students and teacher can connect to each other to discuss about personal matters through chat.<br/>
                   To go to chats, click the messages icon.<br/>
-                  <img src="/images/chat icon.png"/><br/>
-                  <img src="/images/chat.png"/>
+                  <img src="/images/chat icon.PNG"/><br/>
+                  <img src="/images/chat.PNG"/>
               </p>
       </div>
       
@@ -435,13 +435,13 @@ function HTML(props) {
               There are two (2) ways to open and view the class.
               <ol>
                   <li>Click the class widget in the dashboard main panel.</li>
-                  <img src="/images/viewclass1.png"/>
+                  <img src="/images/viewclass1.PNG"/>
                   <li>Click the class icon in the menu bar at the left side.</li>
-                  <img src="/images/viewclass2.png"/>
+                  <img src="/images/viewclass2.PNG"/>
               </ol>
           </p>
           <p>Class details will be displayed on this page.
-             <img src="/images/classdetails.png"/></p>
+             <img src="/images/classdetails.PNG"/></p>
           
           
           <h3><a name="class_info"> Class Information </a></h3>
@@ -453,7 +453,7 @@ function HTML(props) {
                       <li>Schedule - date and time</li>
                       <li>Teacher name</li>
                       <li>Start Class button</li>
-                      <img src="/images/classinfo.png"/>
+                      <img src="/images/classinfo.PNG"/>
                   </ol>
               </p>
           
@@ -470,7 +470,7 @@ function HTML(props) {
                       <li>Reports - to trace absences and scores of students.</li>
                       <li>Schedule - list of class schedules</li>
                       <li>Students - list of students credentials</li>
-                      <img src="/images/classmenu.png"/>
+                      <img src="/images/classmenu.PNG"/>
                   </ol>
               </p>
           
@@ -478,13 +478,13 @@ function HTML(props) {
               <p>
                   Click this button to start the class.<br/>
               <em>Note : Only teachers can start a class. Students can join in the class once it is started.</em><br/>
-                  <img src="/images/startclass.png"/><br/>
+                  <img src="/images/startclass.PNG"/><br/>
                   A video conference will open once the class is started.<br/>
-                  <img src="/images/startclassvid.png"/><br/>
+                  <img src="/images/startclassvid.PNG"/><br/>
                   On the other hand, students will click on<span>Join Class</span>button in order to join.<br/>
-                  <img src="/images/joinclass.png"/><br/>
+                  <img src="/images/joinclass.PNG"/><br/>
                   Finally, when the teacher wants to end the class, he or she can simply click the<span>End Class</span> button.<br/>
-                  <img src="/images/endclass.png"/>
+                  <img src="/images/endclass.PNG"/>
                   
               </p>
       </div>
@@ -493,13 +493,13 @@ function HTML(props) {
       <h2> Video Conferencing and Chat </h2>
           <p>
               This video conference can handle upto 50 participants only as of the moment.<br/>
-              <img src="/images/vidconference.png"/>
+              <img src="/images/vidconference.PNG"/>
           </p>
           
           <h3><a name="full_screen"> Full Screen View </a></h3>
               <p>
                   The video conference can be displayed as full screen by clicking this button.<br/>
-                  <img src="/images/fullscreen1.png"/><img src="/images/fullscreen.png"/>
+                  <img src="/images/fullscreen1.PNG"/><img src="/images/fullscreen.PNG"/>
               </p>
           
           <h3><a name="vid_and_mic"> Video and Microphone </a></h3>
@@ -507,50 +507,50 @@ function HTML(props) {
                   Once the video conference starts, a pop-up message will be shown by the browser.<br/>
                   This is asking you to allow the video conference to use your computer’s or device’s microphone and camera for the video.<br/>
                   <em>Note : The Allow button must be clicked, otherwise you need to close the browser window and open the app again.</em><br/>
-                  <img src="/images/allowvidandmic.png"/><br/>
+                  <img src="/images/allowvidandmic.PNG"/><br/>
                   Both the microphone and camera can be turned on and off.<br/>
                   <em>Note : It is advisable that all participants turn on their video for a more effective class.</em><br/>
-                  <img src="/images/camandmic.png"/>
+                  <img src="/images/camandmic.PNG"/>
               </p>
           
           <h3><a name="share_screen"> Share Screen </a></h3>
               <p>
                   To share your screen, click on the leftmost button.<br/>
-                  <img src="/images/sharescreen.png"/><br/>
+                  <img src="/images/sharescreen.PNG"/><br/>
                   There are 3 options available for screen sharing.
                   <ol>
                       <li>Your Entire Screen - allows you to share all open apps in your device</li>
                       <li>Application Window - allows you to share a certain app only, example : browser.</li>
                       <li>Chrome Tab - the current browser you are using.</li><br/>
-                      <img src="/images/sharescreenoptions.png"/>
+                      <img src="/images/sharescreenoptions.PNG"/>
                   </ol>
               </p>
               <p>Once the Share button is clicked, the video conference will show your screen.<br/>
-              <img src="/images/sharescreenstart.png"/></p>
+              <img src="/images/sharescreenstart.PNG"/></p>
               
           
           <h3><a name="chat"> Chat </a></h3>
               <p>
                   Click the chat icon to initiate the chat box.<br/>
-                  <img src="/images/chatconference.png"/>
+                  <img src="/images/chatconference.PNG"/>
               </p>
               
           <h3><a name="raisehand">Raise Hand</a></h3>
               <p>To have an interactive conference, the raise hand feature was made.<br/>
                  If a student wants to participate or ask a question, he or she can click the raise/lower hand button.<br/>
-              <img src="/images/raisehand.png"/>
+              <img src="/images/raisehand.PNG"/>
               </p>
               
           <h3><a name="toggleview">Toggle View</a></h3>
               <p>To change from one view to another, click the toggle button.<br/>
-              <img src="/images/toggle.png"/>
+              <img src="/images/toggle.PNG"/>
               </p>
           
           <h3><a name="livestream">Live Stream</a></h3>
               <p>To start a live stream, click on the three dots on the right side and choose "Live Stream".<br/>
                  It will prompt you to enter your live stream key, which can be found on your youtube account.<br/>
-              <img src="/images/fullscreen1.png"/>
-              <img src="/images/startlivestream.png"/>
+              <img src="/images/fullscreen1.PNG"/>
+              <img src="/images/startlivestream.PNG"/>
               </p>
       </div>	
       
@@ -558,7 +558,7 @@ function HTML(props) {
       <h2><a name="posts">Posts</a></h2>
           <p>
           Teachers can post announcements and updates in this feature. 
-          <img src="/images/posts.png"/>
+          <img src="/images/posts.PNG"/>
           </p>
       </div>
       
@@ -568,7 +568,7 @@ function HTML(props) {
               Teachers can create different types of activity, while students can only view and submit a file.<br/>
               The activities are listed with the latest one on top.<br/>
               Activities can be seat works, projects, quizzes, periodical tests, quizzes, and assignments.<br/>
-              <img src="/images/studentactivities.png"/>
+              <img src="/images/studentactivities.PNG"/>
           </p>
           
           <h3><a name="add_new_act"> Add New Activity </a></h3>
@@ -590,9 +590,9 @@ function HTML(props) {
                   </ol>
               </p>
               <p><em>Note : After creating the activity, you can still publish or unpublish it.</em><br/>
-              <img src="/images/addquiz.png"/><img src="/images/addact.png"/>
-              <img src="/images/addproj.png"/><img src="/images/addtest.png"/><img src="/images/addassign.png"/>
-              <img src="/images/activityform.png"/></p>
+              <img src="/images/addquiz.PNG"/><img src="/images/addact.PNG"/>
+              <img src="/images/addproj.PNG"/><img src="/images/addtest.PNG"/><img src="/images/addassign.PNG"/>
+              <img src="/images/activityform.PNG"/></p>
           
           <h3><a name="publish_activity"> Publish Activity </a></h3>
               <p>
@@ -600,19 +600,19 @@ function HTML(props) {
                   <ol>
                       <li>Click the<span>PUBLISH</span>button upon adding new activity.</li>
                       <li>Choose an activity, click the … icon and choose Publish from the option.</li>
-                      <img src="/images/publishactivity.png"/>
+                      <img src="/images/publishactivity.PNG"/>
                   </ol>
               </p>
               <p>The published activity will be shared to all students under the class.</p>
               
           <h3><a name="whiteboard">White Board</a></h3>
               <p>White board is a virtual board where teachers can draw and write notes regarding the discussion.<br/>
-              <img src="/images/whiteboard.png"/>
+              <img src="/images/whiteboard.PNG"/>
               </p>
               
           <h3><a name="kahoot">Kahoot</a></h3>
               <p>Kahoot is a game-based learning platform that enables teachers to provide a fun and creative medium of learning through games.<br/>
-              <img src="/images/kahoot.png"/>
+              <img src="/images/kahoot.PNG"/>
               </p>
       </div>
       
@@ -621,11 +621,11 @@ function HTML(props) {
           <p>
               <h3><a name="viewq">View Questionnaire</a></h3>
               <p>Displays all the questionnaires that the teacher have made.<br/>
-              <img src="/images/vieq.png"/></p>
+              <img src="/images/vieq.PNG"/></p>
               
               <h3><a name="createq">Create Questionnaire</a></h3>
               <p>To create a questionnaire, under the Questionnaires menu, select<span>Create Questionnaire</span>.<br/>
-              <img src="/images/createq.png"/></p>
+              <img src="/images/createq.PNG"/></p>
           </p>
       </div>
       
@@ -634,7 +634,7 @@ function HTML(props) {
           <p>
               Holds all the instructional materials for the class.<br/> 
               This is the same the lesson plan, teachers can add a web link or upload a file.<br/>
-              <img src="/images/instructional.png"/>
+              <img src="/images/instructional.PNG"/>
           </p>
       </div>
       
@@ -642,24 +642,24 @@ function HTML(props) {
       <h2> Lesson Plan </h2>
           <p>
                The teacher's guide for the students' course of learning. This is not viewable by students.<br/>
-              <img src="/images/lessonplan.png"/>
+              <img src="/images/lessonplan.PNG"/>
           </p>
           
           <h3> Add New File</h3>
               <p>
                   Teachers can upload their lesson plans on this page or just add in the link.<br/>
-                  <img src="/images/lessonplanaddfile.png"/>
+                  <img src="/images/lessonplanaddfile.PNG"/>
                       
                       <h3><a name="gdrive">Google Drive</a><br/>
-                      <img src="/images/googledrive.png"/>
+                      <img src="/images/googledrive.PNG"/>
                       </h3>
                       
                       <h3><a name="web_link"> Web Link </a><br/>
-                          <img src="/images/weblink.png"/>
+                          <img src="/images/weblink.PNG"/>
                       </h3>
           
                       <h3><a name="file_upload"> File Upload </a><br/>
-                      <img src="/images/fileupload.png"/>
+                      <img src="/images/fileupload.PNG"/>
                       </h3>
                       
               </p>
@@ -668,7 +668,7 @@ function HTML(props) {
               <p>
                   Uploaded files can be viewed by clicking on the file link.<br/>
                   It can be downloaded or printed.<br/>
-                  <img src="/images/viewfile.png"/>
+                  <img src="/images/viewfile.PNG"/>
               </p>
       </div>
       
@@ -677,11 +677,11 @@ function HTML(props) {
           <p>
               <h3><a name="attendance">Attendance</a></h3>
                   <p>Keeps track of the students absences and presence in the class.</p><br/>
-                  <img src="/images/attendance.png"/>
+                  <img src="/images/attendance.PNG"/>
                   
               <h3><a name="scores">Scores</a></h3>
                   <p>Contains the list of students' scores from different activities.</p><br/>
-                  <img src="/images/scores.png"></a>
+                  <img src="/images/scores.PNG"></a>
           </p>
       </div>
       
@@ -694,7 +694,7 @@ function HTML(props) {
                   <li>Time</li>
                   <li>Teacher Name - since class can be re-assigned to a teacher</li>
                   <li>Status</li>
-                  <img src="/images/schedules.png"/>
+                  <img src="/images/schedules.PNG"/>
               </ol>
               
           </p>
@@ -705,7 +705,7 @@ function HTML(props) {
           <p>
               This contains a list of students under the specific class.<br/>
               It includes the student's additional information such as phone number and email for the teacher's reference should he or she needs to contact the student.<br/>
-              <img src="/images/students.png"/>
+              <img src="/images/students.PNG"/>
           </p>
       </div>
       </div>
