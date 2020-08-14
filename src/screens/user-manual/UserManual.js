@@ -12,31 +12,38 @@ function UserManual(props) {
 
 function HTML(props) {
   useEffect(() => {
-    var toppings = document.getElementById("scrolltotop");
-    var scroller = document.querySelector(".wrapper");
-    scroller.addEventListener("scroll", scrollToTop);
+    try {
+      var toppings = document.getElementById("scrolltotop");
+      var scroller = document.querySelector(".wrapper");
+      scroller.addEventListener("scroll", scrollToTop);
 
-    function scrollToTop() {
-      if (scroller.scrollTop > 20 || document.documentElement.scrollTop > 20) {
-        toppings.style.display = "block";
-      } else {
-        toppings.style.display = "none";
-      }
-    }
-    var collapse = document.getElementsByClassName("collapsible");
-    var i;
-
-    for (i = 0; i < collapse.length; i++) {
-      collapse[i].addEventListener("click", function () {
-        this.classList.toggle("active");
-        var content = this.nextElementSibling;
-        if (content.style.display === "block") {
-          content.style.display = "none";
+      function scrollToTop() {
+        if (
+          scroller.scrollTop > 20 ||
+          document.documentElement.scrollTop > 20
+        ) {
+          toppings.style.display = "block";
         } else {
-          content.style.display = "block";
+          toppings.style.display = "none";
         }
-      });
-    }
+      }
+      var collapse = document.getElementsByClassName("collapsible");
+      var i;
+
+      for (i = 0; i < collapse.length; i++) {
+        collapse[i].addEventListener("click", function () {
+          this.classList.toggle("active");
+          var content = this.nextElementSibling;
+          if (content) {
+            if (content.style.display === "block") {
+              content.style.display = "none";
+            } else {
+              content.style.display = "block";
+            }
+          }
+        });
+      }
+    } catch (e) {}
   }, []);
   return (
     <div
