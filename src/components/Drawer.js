@@ -272,41 +272,43 @@ function Drawer(props) {
               style={{ opacity: 0.14, backgroundColor: "rgb(55, 19, 138)" }}
             />
           </Box>
-          <Box
-            className={
-              window.location.pathname.indexOf("/dashboard") >= 0
-                ? "selected tab bordered"
-                : "tab"
-            }
-          >
+          {props.userInfo?.user_type === "a" && (
             <Box
-              onClick={() => {
-                history.push("/dashboard");
-              }}
-              className="tab-btn screen-btn"
-              style={{
-                alignItems: "center",
-                cursor: "pointer",
-                justifyContent: "center",
-                display: "flex",
-                transform: "translateX(-1.5px)",
-              }}
+              className={
+                window.location.pathname.indexOf("/dashboard") >= 0
+                  ? "selected tab bordered"
+                  : "tab"
+              }
             >
-              <Icon
+              <Box
+                onClick={() => {
+                  history.push("/dashboard");
+                }}
+                className="tab-btn screen-btn"
                 style={{
-                  fontSize: "2.3rem",
-                  color:
-                    props.theme === "dark"
-                      ? isTablet
-                        ? "#282828"
-                        : "#f1f1f1"
-                      : "#38108d",
+                  alignItems: "center",
+                  cursor: "pointer",
+                  justifyContent: "center",
+                  display: "flex",
+                  transform: "translateX(-1.5px)",
                 }}
               >
-                admin_panel_settings
-              </Icon>
+                <Icon
+                  style={{
+                    fontSize: "2.3rem",
+                    color:
+                      props.theme === "dark"
+                        ? isTablet
+                          ? "#282828"
+                          : "#f1f1f1"
+                        : "#38108d",
+                  }}
+                >
+                  admin_panel_settings
+                </Icon>
+              </Box>
             </Box>
-          </Box>
+          )}
           <Box className={screen_name ? "selected tab bordered" : "tab"}>
             <Box
               onClick={() => {
@@ -665,52 +667,54 @@ function Drawer(props) {
             <Divider
               style={{ opacity: 0.14, backgroundColor: "rgb(55, 19, 138)" }}
             />
-            <Box
-              className={
-                window.location.pathname.indexOf("/dashboard") >= 0
-                  ? "selected tab bordered"
-                  : "tab"
-              }
-            >
+            {props.userInfo?.user_type === "a" && (
               <Box
-                onClick={() => {
-                  history.push("/dashboard");
-                }}
-                className="tab-btn screen-btn"
-                style={{
-                  alignItems: "center",
-                  cursor: "pointer",
-                  justifyContent: "center",
-                  display: "flex",
-                  transform: "translateX(-1.5px)",
-                }}
+                className={
+                  window.location.pathname.indexOf("/dashboard") >= 0
+                    ? "selected tab bordered"
+                    : "tab"
+                }
               >
-                <Icon
+                <Box
+                  onClick={() => {
+                    history.push("/dashboard");
+                  }}
+                  className="tab-btn screen-btn"
                   style={{
-                    fontSize: "2.3rem",
-                    color:
-                      props.theme === "dark"
-                        ? isTablet
-                          ? "#282828"
-                          : "#f1f1f1"
-                        : "#38108d",
+                    alignItems: "center",
+                    cursor: "pointer",
+                    justifyContent: "center",
+                    display: "flex",
+                    transform: "translateX(-1.5px)",
                   }}
                 >
-                  admin_panel_settings
-                </Icon>
+                  <Icon
+                    style={{
+                      fontSize: "2.3rem",
+                      color:
+                        props.theme === "dark"
+                          ? isTablet
+                            ? "#282828"
+                            : "#f1f1f1"
+                          : "#38108d",
+                    }}
+                  >
+                    admin_panel_settings
+                  </Icon>
+                </Box>
+                <Typography
+                  style={{
+                    color: props.theme === "dark" ? "#f1f1f1" : "#38108d",
+                    fontWeight: "bold",
+                  }}
+                  onClick={() => {
+                    history.push("/dashboard");
+                  }}
+                >
+                  Admin Panel
+                </Typography>
               </Box>
-              <Typography
-                style={{
-                  color: props.theme === "dark" ? "#f1f1f1" : "#38108d",
-                  fontWeight: "bold",
-                }}
-                onClick={() => {
-                  history.push("/dashboard");
-                }}
-              >
-                Admin Panel
-              </Typography>
-            </Box>
+            )}
             <Box className={screen_name ? "selected tab bordered" : "tab"}>
               <Box
                 onClick={() => {

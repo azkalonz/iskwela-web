@@ -33,7 +33,7 @@ import {
 import Drawer from "../../components/Drawer";
 import { CalendarProvider, Weekdays, Dates } from "../../components/Calendar";
 import Scrollbar from "../../components/Scrollbar";
-import { useHistory } from "react-router-dom";
+import { useHistory, Redirect } from "react-router-dom";
 import Api from "../../api";
 import { connect } from "react-redux";
 import NavBar from "../../components/NavBar";
@@ -215,7 +215,7 @@ function Classes(props) {
       setCurrentClass(null);
     }
   }, [query.classId]);
-  return (
+  return props.userInfo?.user_type === "a" ? (
     <React.Fragment>
       {option_name === "new-class" ? (
         <ClassDetails
@@ -353,6 +353,8 @@ function Classes(props) {
         </React.Fragment>
       )}
     </React.Fragment>
+  ) : (
+    <Redirect to="/" />
   );
 }
 function ClassDetails(props) {
