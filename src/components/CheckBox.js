@@ -16,7 +16,8 @@ import VisibilityOutlinedIcon from "@material-ui/icons/VisibilityOutlined";
 import { connect } from "react-redux";
 
 function CheckBoxAction(props) {
-  const isTeacher = props.userInfo.user_type === "t";
+  const isTeacher =
+    props.userInfo.user_type === "t" || props.userInfo.user_type === "a";
   const theme = useTheme();
   return isTeacher ? (
     <AppBar

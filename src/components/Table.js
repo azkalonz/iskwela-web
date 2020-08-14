@@ -34,7 +34,8 @@ function Table(props) {
   const [selectedItems, setSelectedItems] = useState({});
   const [sortType, setSortType] = useState({ order: "asc" });
   const [items, setItems] = useState([]);
-  const isTeacher = props.userInfo.user_type === "t";
+  const isTeacher =
+    props.userInfo.user_type === "t" || props.userInfo.user_type === "a";
   const page = props.pagination.page;
 
   useEffect(() => {

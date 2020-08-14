@@ -126,7 +126,10 @@ const UserData = {
 
     let allScheds = [];
     let schedules;
-    if (store.getState().userInfo.user_type === "t") {
+    if (
+      store.getState().userInfo.user_type === "t" ||
+      store.getState().userInfo.user_type === "a"
+    ) {
       schedules = await Api.get(
         "/api/teacher/class-schedules/" +
           class_id +

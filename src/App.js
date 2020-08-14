@@ -191,7 +191,7 @@ function App(props) {
                   />
                   <Route
                     exact
-                    path="/dashboard"
+                    path="/dashboard/:option_name?"
                     render={(p) => {
                       setTitle("Dashboard");
                       return <Dashboard {...p} />;

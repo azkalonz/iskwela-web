@@ -107,11 +107,7 @@ function Dashboard(props) {
             <Tab
               label="Classes"
               {...a11yProps(0)}
-              onClick={() =>
-                props.history.push(
-                  window.location.search.replaceUrlParam("classId", "")
-                )
-              }
+              onClick={() => props.history.push("/dashboard")}
             />
             {/* <Tab label="Sections" {...a11yProps(1)} />
             <Tab label="Students" {...a11yProps(2)} />
@@ -163,6 +159,7 @@ function Dashboard(props) {
 
 function Classes(props) {
   const query = qs.parse(window.location.search);
+  const { option_name } = props.match.params;
   const [currentClass, setCurrentClass] = useState();
   const [loading, setLoading] = useState(true);
   const data = Object.keys(props.classes).map((q) => props.classes[q]);
@@ -220,113 +217,140 @@ function Classes(props) {
   }, [query.classId]);
   return (
     <React.Fragment>
-      {!currentClass && (
-        <Box p={4}>
-          <Box
-            width="100%"
-            display="flex"
-            justifyContent="space-between"
-            marginBottom={4}
-          >
-            <Box>
-              <Button variant="contained" color="secondary">
-                New Class
-              </Button>
-            </Box>
-            <Box>
-              <SearchInput onChange={(e) => setSearch(e)} />
-            </Box>
-          </Box>
-          <Table
-            loading={loading}
-            headers={columnHeaders}
-            filtered={(t) => getFilteredClasses(t)}
-            data={data}
-            actions={{
-              _handleFileOption: (opt, item) => _handleFileOption(opt, item),
-            }}
-            options={[
-              { key: "view", name: "View Details" },
-              { key: "edit", name: "Edit" },
-            ]}
-            style={{ margin: 0 }}
-            pagination={{
-              page: 1,
-              render: (
-                <Pagination
-                  page={page}
-                  onChange={(e) => setPage(e)}
-                  icon={
-                    search ? (
-                      <img
-                        src="/hero-img/search.svg"
-                        width={180}
-                        style={{ padding: "50px 0" }}
-                      />
-                    ) : (
-                      <img
-                        src="/hero-img/undraw_Progress_tracking_re_ulfg.svg"
-                        width={180}
-                        style={{ padding: "50px 0" }}
-                      />
-                    )
-                  }
-                  emptyTitle={search ? "Nothing Found" : false}
-                  emptyMessage={search ? "Try a different keyword." : false}
-                  nolink
-                  count={getFilteredClasses().length}
-                />
-              ),
-            }}
-            rowRender={(item) => {
-              let f = item.frequency;
-              if (typeof f === "string" && f) {
-                f = f.split(",").filter((q) => !!q);
-                if (f.length >= 7) f = "DAILY";
-                else f = f.join(",");
-              }
-              return (
-                <Box
-                  p={2}
-                  display="flex"
-                  width="100%"
-                  onClick={() =>
-                    props.history.push(
-                      window.location.search.replaceUrlParam("classId", item.id)
-                    )
-                  }
-                >
-                  <Box width="5%">
-                    <Typography>{item.id}</Typography>
-                  </Box>
-                  <Box width="23%">
-                    <Typography>{item.name}</Typography>
-                  </Box>
-                  <Box width="23%">
-                    <Typography>{item.description}</Typography>
-                  </Box>
-                  <Box width="23%">
-                    <Typography>
-                      {item.teacher?.first_name + " " + item.teacher?.last_name}
-                    </Typography>
-                  </Box>
-                  <Box width="23%">
-                    <Typography>{f}</Typography>
-                  </Box>
-                </Box>
-              );
-            }}
-          />
-        </Box>
-      )}
-      {currentClass && (
+      {option_name === "new-class" ? (
         <ClassDetails
-          class={currentClass}
+          class={{
+            teacher:
+              props.parentData?.children &&
+              props.parentData?.children[0]?.childInfo,
+          }}
           {...props}
           sections={sections}
           years={years}
           subjects={subjects}
+          editable={true}
         />
+      ) : (
+        <React.Fragment>
+          {!currentClass && (
+            <Box p={4}>
+              <Box
+                width="100%"
+                display="flex"
+                justifyContent="space-between"
+                marginBottom={4}
+              >
+                <Box>
+                  <Button
+                    variant="contained"
+                    color="secondary"
+                    onClik={() => props.history.push("?test=2321")}
+                  >
+                    New Class
+                  </Button>
+                </Box>
+                <Box>
+                  <SearchInput onChange={(e) => setSearch(e)} />
+                </Box>
+              </Box>
+              <Table
+                loading={loading}
+                headers={columnHeaders}
+                filtered={(t) => getFilteredClasses(t)}
+                data={data}
+                actions={{
+                  _handleFileOption: (opt, item) =>
+                    _handleFileOption(opt, item),
+                }}
+                options={[
+                  { key: "view", name: "View Details" },
+                  { key: "edit", name: "Edit" },
+                ]}
+                style={{ margin: 0 }}
+                pagination={{
+                  page: 1,
+                  render: (
+                    <Pagination
+                      page={page}
+                      onChange={(e) => setPage(e)}
+                      icon={
+                        search ? (
+                          <img
+                            src="/hero-img/search.svg"
+                            width={180}
+                            style={{ padding: "50px 0" }}
+                          />
+                        ) : (
+                          <img
+                            src="/hero-img/undraw_Progress_tracking_re_ulfg.svg"
+                            width={180}
+                            style={{ padding: "50px 0" }}
+                          />
+                        )
+                      }
+                      emptyTitle={search ? "Nothing Found" : false}
+                      emptyMessage={search ? "Try a different keyword." : false}
+                      nolink
+                      count={getFilteredClasses().length}
+                    />
+                  ),
+                }}
+                rowRender={(item) => {
+                  let f = item.frequency;
+                  if (typeof f === "string" && f) {
+                    f = f.split(",").filter((q) => !!q);
+                    if (f.length >= 7) f = "DAILY";
+                    else f = f.join(",");
+                  }
+                  return (
+                    <Box
+                      p={2}
+                      display="flex"
+                      width="100%"
+                      onClick={() =>
+                        props.history.push(
+                          window.location.search.replaceUrlParam(
+                            "classId",
+                            item.id
+                          )
+                        )
+                      }
+                    >
+                      <Box width="5%">
+                        <Typography>{item.id}</Typography>
+                      </Box>
+                      <Box width="23%">
+                        <Typography>{item.name}</Typography>
+                      </Box>
+                      <Box width="23%">
+                        <Typography>{item.description}</Typography>
+                      </Box>
+                      <Box width="23%">
+                        <Typography>
+                          {item.teacher?.first_name +
+                            " " +
+                            item.teacher?.last_name}
+                        </Typography>
+                      </Box>
+                      <Box width="23%">
+                        <Typography>{f}</Typography>
+                      </Box>
+                    </Box>
+                  );
+                }}
+              />
+            </Box>
+          )}
+          {currentClass && (
+            <ClassDetails
+              class={currentClass}
+              {...props}
+              sections={sections}
+              years={years}
+              subjects={subjects}
+            />
+          )}
+        </React.Fragment>
       )}
     </React.Fragment>
   );
@@ -365,7 +389,7 @@ function ClassDetails(props) {
   const [savingId, setSavingId] = useState(false);
   const class_id = id;
   const styles = useStyles();
-  const [editing, setEditing] = useState(false);
+  const [editing, setEditing] = useState(false || !!props.editable);
   const [students, setStudents] = useState([{}]);
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
@@ -437,22 +461,24 @@ function ClassDetails(props) {
             : false
         )
         .join(",");
-      await Api.post("/api/schooladmin/class/save", {
+      let res = await Api.post("/api/schooladmin/class/save", {
         body: {
           ...finalData,
           ...(orderedFrequency ? { frequency: orderedFrequency } : {}),
         },
       });
-      let newDetails = await Api.get("/api/teacher/class/" + id);
-      if (newDetails)
-        UserData.updateClass(
-          id,
-          {
-            ...newDetails,
-            ...finalData,
-          },
-          true
-        );
+      if (res?.id) {
+        let newDetails = await Api.get("/api/teacher/class/" + res.id);
+        if (newDetails)
+          UserData.updateClass(
+            res.id,
+            {
+              ...newDetails,
+              ...finalData,
+            },
+            true
+          );
+      }
     } catch (e) {
       console.log(e);
       setCLASS({
@@ -462,7 +488,9 @@ function ClassDetails(props) {
         section_id: props.sections[0]?.id,
       });
     }
-    setEditing(false);
+    if (!props.editable) {
+      setEditing(false);
+    }
     setSaving(false);
   };
   const handleChange = (event, newValue) => {
@@ -646,10 +674,12 @@ function ClassDetails(props) {
           style={{ marginLeft: 13, width: "auto" }}
           onClick={() => {
             if (editing) handleSave();
-            else setEditing(true);
+            else if (!props.editable) {
+              setEditing(true);
+            }
           }}
         >
-          {editing ? (
+          {editing || props.editable ? (
             "Save  "
           ) : (
             <React.Fragment>
@@ -657,7 +687,7 @@ function ClassDetails(props) {
             </React.Fragment>
           )}
         </SavingButton>
-        {editing && (
+        {editing && !props.editable && (
           <Button
             style={{ color: "red", width: "auto" }}
             onClick={() => {
@@ -690,7 +720,7 @@ function ClassDetails(props) {
           <form
             action="#"
             onSubmit={() => false}
-            className={!editing ? styles.notEditingForm : ""}
+            className={!editing && !props.editable ? styles.notEditingForm : ""}
             style={{ width: "100%" }}
           >
             <TabPanel value={value} index={0}>

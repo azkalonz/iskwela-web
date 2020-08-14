@@ -100,7 +100,8 @@ function Assignment(props) {
   const [ITEMS, setITEMS] = useState();
   const [search, setSearch] = useState("");
   const [modals, setModals] = React.useState({});
-  const isTeacher = props.userInfo.user_type === "t";
+  const isTeacher =
+    props.userInfo.user_type === "t" || props.userInfo.user_type === "a";
   const styles = useStyles();
   const classSched = props.classSched;
   const [errors, setErrors] = useState();

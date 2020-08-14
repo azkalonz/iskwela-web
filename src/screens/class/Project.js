@@ -575,7 +575,7 @@ function Project(props) {
         setSavingId([...savingId, ...Object.keys(a).map((i) => a[i].id)]);
         await asyncForEach(Object.keys(a), async (i) => {
           try {
-            await Api.post("/api/class/seatwork/save", {
+            await Api.post("/api/class/project/save", {
               body: {
                 ...a[i],
                 published: s,
