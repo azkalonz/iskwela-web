@@ -45,6 +45,7 @@ import moment from "moment";
 
 const qs = require("query-string");
 
+const sortedFrequency = ["u", "m", "t", "w", "r", "f", "s"];
 function Dashboard(props) {
   const theme = useTheme();
   const isTablet = useMediaQuery(theme.breakpoints.down("md"));
@@ -1098,7 +1099,19 @@ function ClassDetails(props) {
                     schedules={[]}
                   >
                     <Weekdays />
-                    <Dates />
+                    <Dates
+                      includeDays={
+                        typeof CLASS.frequency === "object"
+                          ? sortedFrequency
+                              .map((f, i) =>
+                                CLASS.frequency.indexOf(f.toUpperCase()) >= 0
+                                  ? i
+                                  : null
+                              )
+                              .filter((f) => f !== null)
+                          : null
+                      }
+                    />
                   </CalendarProvider>
                 </Box>
               </Box>

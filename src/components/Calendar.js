@@ -65,7 +65,14 @@ export function Weekdays(props) {
     </div>
   );
 }
-export function Dates({ month, variant, year, events = [], isLoading }) {
+export function Dates({
+  includeDays,
+  month,
+  variant,
+  year,
+  events = [],
+  isLoading,
+}) {
   const totalDays = moment(new Date(year, month)).daysInMonth();
   const totalWeeks = Math.ceil(totalDays / 7);
   const [currentEvent, setCurrentEvent] = useState({});
@@ -96,6 +103,9 @@ export function Dates({ month, variant, year, events = [], isLoading }) {
   useEffect(() => {
     if (!isLoading) setCurrentEvent({ ...currentEvent, opened: false });
   }, [isLoading]);
+  useEffect(() => {
+    console.log(includeDays);
+  }, [includeDays]);
   return (
     <React.Fragment>
       <SetAttendanceDialog
@@ -107,7 +117,8 @@ export function Dates({ month, variant, year, events = [], isLoading }) {
         <div className={"week " + "no-" + (index + 1)} key={index}>
           {week.map((day, i) => {
             let event = getEvent(day.date);
-            return event && i !== 0 ? (
+            return (includeDays ? includeDays.indexOf(i) >= 0 : true) &&
+              event ? (
               <div key={i} className={"day"}>
                 <Box
                   width="100%"
