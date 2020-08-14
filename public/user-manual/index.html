@@ -6,6 +6,7 @@
 		* {
 			font-family:Century Gothic;
 			box-sizing: border-box;
+			scroll-behavior: smooth;
 		  }
 		
 		p {
@@ -80,6 +81,7 @@
 
 		.active {}
 		
+		.logo-white {display: none!important;}
 		
 		@media only screen and (max-width: 1366px) {
 		.content { left: 30%; }
@@ -88,8 +90,12 @@
 		
 		@media only screen and (max-width: 930px) {
 		li,ul,ol { text-indent: 5px;}
+		.logo-white {display: flex!important}
+		.logo-colored {
+			display: none;
+		}
 		
-		img {max-width: 500px; }
+		img {max-width: 100%; }
 
 		.wrapper{
 			display: flex;
@@ -112,7 +118,7 @@
 			margin-top: 13%;
 			padding:15px;
 			width: 180%;	
-			flex:none;	
+			flex:1;	
 			clear: both;
 			}
 		
@@ -160,7 +166,9 @@
 <div class="wrapper ">
 <div class="inner ">
 <ul>
-	<li style="text-indent:0;"><h2><a href="#iskwela">iSkwela</a></h2></li>
+	<li style="text-indent:0;"><h2><a href="#iskwela">
+		<img src="/logo/logo-full-colored.svg" width="160" class="logo-colored"/>
+	</a></h2></li>
 	<li><a href="#account_creation"> Account Creation </a></li>
 	<li><a href="#login"> Login </a></li>
 	
@@ -254,10 +262,14 @@
 </div>
 
 <div class="content">
-	<div class="top">
-		<h1 style="margin:0;">iSkwela User Manual Beta 1.0</h1>
+	<div class="top" style="display: flex;align-items: center;justify-content: flex-start;">
+		<div class="logo-white" style="display: flex;margin-left: 13px">
+			<img src="/logo/logo-full.svg" width="150" />
+			<h1>|</h1>
 		</div>
-
+		<h1 style="margin:0;">User Manual</h1>
+	</div>
+	<hr/>
 <div>
 <h2><a name="account_creation"> Account Creation </a></h2>
 	<p>
@@ -284,7 +296,7 @@
 </div>
 
 <div>
-<h2>Passwords</h2>
+<h2><a>Passwords</a></h2>
 	<p>
 		For the security purposes of the accounts, all users are required to change 
 		their respective passwords at least once every six (6) months. 
@@ -301,7 +313,7 @@
 </div>
 
 <div>	
-<h2> Dashboard </h2>
+<h2> <a name="dashboard">Dashboard</a> </h2>
 	<p>
 	After a successful login, the dashboard or home page is displayed with all the upcoming classes.<br/>
 	<img src="images/dashboard.png"/>
