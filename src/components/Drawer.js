@@ -341,7 +341,7 @@ function Drawer(props) {
       </Box>
       <Box textAlign="center">
         <Tooltip title="Help" placement="right">
-          <IconButton onClick={() => window.open("/manual.html", "_blank")}>
+          <IconButton onClick={() => window.open("/user-manual", "_blank")}>
             <Icon
               fontSize="inherit"
               style={{
@@ -755,7 +755,7 @@ function Drawer(props) {
             <Box
               className={"tab"}
               onClick={() => {
-                window.open("/manual.html", "_blank");
+                window.open("/user-manual", "_blank");
               }}
             >
               <Box className="tab-btn screen-btn">
