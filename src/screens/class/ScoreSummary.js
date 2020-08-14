@@ -15,9 +15,6 @@ import {
   Button,
   Menu,
   MenuItem,
-  Dialog,
-  DialogContent,
-  DialogActions,
   Paper,
 } from "@material-ui/core";
 import Rating from "@material-ui/lab/Rating";
@@ -95,96 +92,164 @@ const ScoreSummary = (props) => {
       {!currentActivity && !loading && scores?.scores && (
         <Grid container direction="column" className={classes.parentWrapper}>
           <Grid item>
-            <Box p={2} display="flex" alignItems="center">
-              <Typography
-                style={{ fontWeight: 500, fontSize: 18, marginRight: 13 }}
-              >
+            <Box p={2} display="flex" alignItems="center" direction="column">
+              <Typography style={{ fontWeight: 500, fontSize: 18 }}>
                 My Score Summmary
               </Typography>
-              <Button
-                variant="outlined"
-                style={{ marginLeft: "auto", width: "auto" }}
-                onClick={() => setOpen(true)}
-              >
-                View Chart
-              </Button>
             </Box>
-            <List>
-              {Object.keys(scores.scores).map((activity, index) => {
-                return (
-                  <ListItem
-                    onClick={() =>
-                      props.history.push(
-                        window.location.search.replaceUrlParam(
-                          "activity",
-                          activity
-                        )
-                      )
-                    }
-                    button
-                    component={Paper}
-                    divider
-                    key={index}
-                    style={{
-                      marginBottom: "7px",
-                      background:
-                        theme.palette.type === "dark" ? "#222" : "#fff",
+            <Box
+              display="flex"
+              direction="column"
+              flexWrap="wrap"
+              textAlign="center"
+              justifyContent="center"
+              position="relative"
+            >
+              <Paper
+                style={{
+                  marginRight: "10px",
+                  minWidth: "60%",
+                  maxWidth: "100%",
+                }}
+              >
+                {scores?.scores && (
+                  <Chart
+                    type="bar"
+                    height={430}
+                    options={{
+                      yaxis: {
+                        title: {
+                          text: "Average Scores",
+                        },
+                        max: 100,
+                        labels: {
+                          formatter: function (val, index) {
+                            return val.toFixed(2) + "%";
+                          },
+                        },
+                      },
+                      xaxis: {
+                        categories: Object.keys(scores.scores).map((k) =>
+                          k.ucfirst()
+                        ),
+                      },
+                      colors: [
+                        "#7539ff",
+                        "#FFD026",
+                        "#7539ff",
+                        "#FFD026",
+                        "#7539ff",
+                      ],
+                      plotOptions: {
+                        bar: {
+                          horizontal: false,
+                        },
+                      },
+                      dataLabels: {
+                        enabled: true,
+                        formatter: function (val) {
+                          return val + "%";
+                        },
+                      },
                     }}
-                  >
-                    <ListItemText
-                      primary={activity.ucfirst()}
-                      secondary={
-                        <Rating
-                          value={Math.map(
-                            scores.scores[activity] * 100,
-                            0,
-                            100,
-                            0,
-                            5
-                          )}
-                          readOnly
-                          size="small"
-                          precision={0.1}
-                        />
+                    series={[
+                      {
+                        name: "Average",
+                        data: Object.keys(scores.scores).map(
+                          (k) => scores.scores[k] * 100
+                        ),
+                      },
+                    ]}
+                  />
+                )}
+              </Paper>
+              <List
+                style={{
+                  minWidth: "30%",
+                  maxWidth: "100%",
+                  flex: "1 1 auto",
+                  paddingBottom: "20px",
+                }}
+              >
+                {Object.keys(scores.scores).map((activity, index) => {
+                  return (
+                    <ListItem
+                      onClick={() =>
+                        props.history.push(
+                          window.location.search.replaceUrlParam(
+                            "activity",
+                            activity
+                          )
+                        )
                       }
-                      style={{ width: "100%", paddingRight: "20px" }}
-                    />
-                    <p key="index" className={classes.scores}>
-                      {scores.scores[activity] * 100}%
-                    </p>
-                    <ListItemSecondaryAction>
-                      <PopupState
-                        variant="popover"
-                        popupId={"details-" + index}
-                      >
-                        {(popupState) => (
-                          <div>
-                            <IconButton {...bindTrigger(popupState)}>
-                              <MoreHorizIcon style={{ color: "#7539ff" }} />
-                            </IconButton>
-                            <Menu {...bindMenu(popupState)}>
-                              <MenuItem
-                                onClick={() => {
-                                  props.history.push(
-                                    window.location.search.replaceUrlParam(
-                                      "activity",
-                                      activity
-                                    )
-                                  );
-                                  popupState.close();
-                                }}
-                              >
-                                Details
-                              </MenuItem>
-                            </Menu>
-                          </div>
-                        )}
-                      </PopupState>
-                    </ListItemSecondaryAction>
-                  </ListItem>
-                );
-              })}
-            </List>
+                      button
+                      component={Paper}
+                      divider
+                      key={index}
+                      style={{
+                        marginBottom: "7px",
+                        background:
+                          theme.palette.type === "dark" ? "#222" : "#fff",
+                        width: "100%",
+                      }}
+                    >
+                      <ListItemText
+                        primary={activity.ucfirst()}
+                        secondary={
+                          <Rating
+                            value={Math.map(
+                              scores.scores[activity] * 100,
+                              0,
+                              100,
+                              0,
+                              5
+                            )}
+                            readOnly
+                            size="small"
+                            precision={0.1}
+                          />
+                        }
+                        style={{
+                          width: "100%",
+                        }}
+                      />
+                      <p key="index" className={classes.scores}>
+                        {scores.scores[activity] * 100}%
+                      </p>
+                      <ListItemSecondaryAction>
+                        <PopupState
+                          variant="popover"
+                          popupId={"details-" + index}
+                        >
+                          {(popupState) => (
+                            <div>
+                              <IconButton {...bindTrigger(popupState)}>
+                                <MoreHorizIcon style={{ color: "#7539ff" }} />
+                              </IconButton>
+                              <Menu {...bindMenu(popupState)}>
+                                <MenuItem
+                                  onClick={() => {
+                                    props.history.push(
+                                      window.location.search.replaceUrlParam(
+                                        "activity",
+                                        activity
+                                      )
+                                    );
+                                    popupState.close();
+                                  }}
+                                >
+                                  Details
+                                </MenuItem>
+                              </Menu>
+                            </div>
+                          )}
+                        </PopupState>
+                      </ListItemSecondaryAction>
+                    </ListItem>
+                  );
+                })}
+              </List>
+            </Box>
           </Grid>
         </Grid>
       )}
@@ -201,61 +266,6 @@ const ScoreSummary = (props) => {
           }}
         />
       )}
-      <Dialog open={open} onClose={() => setOpen(false)}>
-        <DialogTitle onClose={() => setOpen(false)}>
-          Score Summary Chart
-        </DialogTitle>
-        <DialogContent>
-          {scores?.scores && (
-            <Chart
-              type="bar"
-              width="100%"
-              height={350}
-              options={{
-                yaxis: {
-                  title: {
-                    text: "Average Scores",
-                  },
-                  max: 100,
-                  labels: {
-                    formatter: function (val, index) {
-                      return val.toFixed(0) + "%";
-                    },
-                  },
-                },
-                xaxis: {
-                  categories: Object.keys(scores.scores).map((k) =>
-                    k.ucfirst()
-                  ),
-                },
-                colors: ["#7539ff", "#FFD026", "#7539ff", "#FFD026", "#7539ff"],
-                plotOptions: {
-                  bar: {
-                    horizontal: false,
-                  },
-                },
-                dataLabels: {
-                  enabled: true,
-                  formatter: function (val) {
-                    return val + "%";
-                  },
-                },
-              }}
-              series={[
-                {
-                  name: "Average",
-                  data: Object.keys(scores.scores).map(
-                    (k) => scores.scores[k] * 100
-                  ),
-                },
-              ]}
-            />
-          )}
-        </DialogContent>
-        <DialogActions>
-          {/* <Button onClose={() => setOpen(false)}>Done</Button> */}
-        </DialogActions>
-      </Dialog>
     </React.Fragment>
   );
 };
@@ -483,17 +493,12 @@ const useStyles = makeStyles((theme) => ({
     width: "90%",
     margin: "0 auto",
   },
-  itemWrapper: {
-    margin: "10px",
-    padding: "3px",
-    alignItems: "center",
-  },
   title: {
     fontWeight: "bold",
   },
   scores: {
     textAlign: "right",
-    width: "100%",
+    width: "45%",
     marginRight: theme.spacing(3),
     fontWeight: "normal",
     fontSize: "20px",
