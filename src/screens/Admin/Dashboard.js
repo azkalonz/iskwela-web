@@ -189,9 +189,12 @@ function Classes(props) {
   ]);
   const _handleFileOption = (option, item) => {};
   const getFilteredClasses = (c = data) =>
-    [...c].filter(
-      (q) => JSON.stringify(q).toLowerCase().indexOf(search.toLowerCase()) >= 0
-    );
+    [...c]
+      .filter(
+        (q) =>
+          JSON.stringify(q).toLowerCase().indexOf(search.toLowerCase()) >= 0
+      )
+      .sort((a, b) => b.id - a.id);
   const fetchData = async () => {
     setLoading(true);
     try {
@@ -244,7 +247,7 @@ function Classes(props) {
                   <Button
                     variant="contained"
                     color="secondary"
-                    onClik={() => props.history.push("?test=2321")}
+                    onClick={() => props.history.push("/dashboard/new-class")}
                   >
                     New Class
                   </Button>
@@ -254,6 +257,7 @@ function Classes(props) {
                 </Box>
               </Box>
               <Table
+                noSelect
                 loading={loading}
                 headers={columnHeaders}
                 filtered={(t) => getFilteredClasses(t)}
@@ -483,12 +487,15 @@ function ClassDetails(props) {
       }
     } catch (e) {
       console.log(e);
-      setCLASS({
-        ...initialClass,
-        subject_id: props.subjects[0]?.id,
-        year_id: props.years[0]?.id,
-        section_id: props.sections[0]?.id,
-      });
+      alert("Please fill in the required fields.");
+      if (!props.editable) {
+        setCLASS({
+          ...initialClass,
+          subject_id: props.subjects[0]?.id,
+          year_id: props.years[0]?.id,
+          section_id: props.sections[0]?.id,
+        });
+      }
     }
     if (!props.editable) {
       setEditing(false);
@@ -611,56 +618,60 @@ function ClassDetails(props) {
             <Icon>arrow_back</Icon>
           </IconButton>
         )}
-        <ButtonBase
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            minWidth: 50,
-            width: 50,
-            height: 50,
-            borderRadius: "50%",
-            overflow: "hidden",
-            marginRight: "7px",
-            position: "relative",
-          }}
-        >
-          <img
-            onClick={() =>
-              window.open(
-                props.classes[id]?.bg_image || props.classes[id]?.image,
-                "_blank"
-              )
-            }
-            src={props.classes[id]?.bg_image || props.classes[id]?.image}
-            width="auto"
-            height="100%"
-          />
-          {editing && (
-            <Box
+        {(props.classes[id]?.bg_image || props.classes[id]?.image) && (
+          <ButtonBase
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              minWidth: 50,
+              width: 50,
+              height: 50,
+              borderRadius: "50%",
+              overflow: "hidden",
+              marginRight: "7px",
+              position: "relative",
+            }}
+          >
+            <img
               onClick={() =>
-                !savingImg && editClassPicture(() => setSavingImg(false))
+                window.open(
+                  props.classes[id]?.bg_image || props.classes[id]?.image,
+                  "_blank"
+                )
               }
-              bgcolor={savingImg ? "rgba(255,255,255,0.3)" : "rgba(0,0,0,0.3)"}
-              style={{
-                position: "absolute",
-                left: 0,
-                right: 0,
-                bottom: 0,
-                top: 0,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              {!savingImg ? (
-                <Icon style={{ color: "#fff" }}>camera_alt</Icon>
-              ) : (
-                <CircularProgress size={15} />
-              )}
-            </Box>
-          )}
-        </ButtonBase>
+              src={props.classes[id]?.bg_image || props.classes[id]?.image}
+              width="auto"
+              height="100%"
+            />
+            {editing && (
+              <Box
+                onClick={() =>
+                  !savingImg && editClassPicture(() => setSavingImg(false))
+                }
+                bgcolor={
+                  savingImg ? "rgba(255,255,255,0.3)" : "rgba(0,0,0,0.3)"
+                }
+                style={{
+                  position: "absolute",
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  top: 0,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                {!savingImg ? (
+                  <Icon style={{ color: "#fff" }}>camera_alt</Icon>
+                ) : (
+                  <CircularProgress size={15} />
+                )}
+              </Box>
+            )}
+          </ButtonBase>
+        )}
         <Typography
           style={{
             maxWidth: "40%",
@@ -715,7 +726,13 @@ function ClassDetails(props) {
       >
         <Tab label="Details" {...a11yProps(0)} />
         <Tab label="Schedules" {...a11yProps(1)} />
-        <Tab label="Students" {...a11yProps(2)} onClick={() => getStudents()} />
+        {!props.editable && (
+          <Tab
+            label="Students"
+            {...a11yProps(2)}
+            onClick={() => getStudents()}
+          />
+        )}
       </Tabs>
       <Box width="100%" overflow="auto" p={4}>
         <Box component={Paper} p={4}>
@@ -832,7 +849,7 @@ function ClassDetails(props) {
                         "themed-input " +
                         (theme.palette.type === "dark" ? "light" : "dark")
                       }
-                      label={item.ucfirst()}
+                      label={item.ucfirst() + (editing ? "*" : "")}
                     />
                   </Box>
                 ))}
@@ -938,7 +955,7 @@ function ClassDetails(props) {
                   <Box marginTop={"40px"} display="flex">
                     <TextField
                       variant="outlined"
-                      label="Date"
+                      label={"Date" + (editing ? "*" : "")}
                       disabled={!editing}
                       className={
                         "themed-input no-margin small " +
@@ -985,7 +1002,7 @@ function ClassDetails(props) {
                   <Box marginTop={"35px"} display="flex">
                     <TextField
                       variant="outlined"
-                      label="Time"
+                      label={"Time" + (editing ? "*" : "")}
                       disabled={!editing}
                       className={
                         "themed-input no-margin small " +
@@ -1103,6 +1120,7 @@ function ClassDetails(props) {
                 </Box>
               </Box>
               <Table
+                noSelect
                 loading={loading}
                 saving={saving}
                 savingId={savingId}
