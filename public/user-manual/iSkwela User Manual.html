@@ -5,7 +5,6 @@
 	<style type="text/css">
 		* {
 			font-family:Century Gothic;
-			margin:1%;
 			box-sizing: border-box;
 		  }
 		
@@ -30,26 +29,29 @@
 		     max-width:1000px;
 			}
 
-			
+		button {
+			display:none;
+		}
+
 		.wrapper{
 			display:flex;
 			flex-wrap: wrap;
+			margin:1%;
 		}
 			
 		.inner{
 			position:fixed;
 			background-color:#FBF5FE;
-			margin-top: 100px;
 			top:0;
 			bottom: 0;
-			overflow-y: scroll;
+			padding-right: 10px;
 			flex-wrap: wrap;
 			flex: 0 0 25%;
 		}
 		
 		.content{
 			left:25%;
-			position: relative;
+			position: absolute;
 			flex-wrap: wrap;
 			flex: 0 0 75%;
 			margin: 2%;
@@ -65,6 +67,18 @@
 			cursor: pointer;
 			font-weight: bold;
 		}
+
+		.collapsible{
+			text-indent: -2px;
+		}
+
+		.dropdown-content {
+			padding: 0 18px;
+  			display: none;
+  			overflow: hidden;
+		}
+
+		.active {}
 		
 		
 		@media only screen and (max-width: 1366px) {
@@ -75,23 +89,34 @@
 		@media only screen and (max-width: 930px) {
 		li,ul,ol { text-indent: 5px;}
 		
+		img {max-width: 500px; }
+
 		.wrapper{
-			display: table;
+			display: flex;
+			clear: both;
 		}
 		
 		div {
 			align-items: center;
-		}
-		
-		.inner{
-			position:relative;
-			z-index:-1;
+			clear: both;
 		}
 		
 		.content{
 			left:0;
-			z-index:-1;
+			z-index:1;
 		}
+
+		.inner{
+			align-items: center;
+			position: relative;
+			margin-top: 13%;
+			padding:15px;
+			width: 180%;	
+			flex:none;	
+			clear: both;
+			}
+		
+		
 		
 		h1{
 			color: white;
@@ -109,101 +134,130 @@
 			top:0;
 			left:0;
 		}
+
+		#scrolltotop{
+			display: none; 
+  			position: fixed; 
+  			bottom: 20px; 
+  			right: 30px; 
+  			z-index: 99; 
+  			border: none; 
+  			outline: none; 
+  			background-color: #6A2BD9;
+  			color: white;   
+  			padding: 15px; 
+  			border-radius: 10px; 
+  			font-size: 20px;
+		}
 		
 		}
 	</style>
 </head>
+
 <body>
 <a name="iskwela"></a>
 
-<div class="top">
-<h1>iSkwela User Manual Beta 1.0</h1>
-</div>
-<br/>
-
-<div class="wrapper">
-<div class="inner">
+<div class="wrapper ">
+<div class="inner ">
 <ul>
 	<li style="text-indent:0;"><h2><a href="#iskwela">iSkwela</a></h2></li>
 	<li><a href="#account_creation"> Account Creation </a></li>
 	<li><a href="#login"> Login </a></li>
-	<li><a href="#password">Passwords</a>
-		<ul><li><a href="#changepass"> Password Change </a></li></ul>
-		
-	</li>
+	
 	<li>
-		<a href="#dashboard">Dashboard</a>
-		<ul>
-			<li><a href="#search_classes"> Search Classes </a></li>
-			<li><a href="#quick_access"> Quick Access </a></li>
-			<li><a href="#dark_mode"> Dark Mode </a></li>
-			<li><a href="#profile_picture"> Profile Picture </a></li>
-			<li><a href="#chatdash"> Chat </a></li>
-		</ul>
+		<div class="collapsible clearfix"><a>▸Passwords</a></div>
+		<div class="dropdown-content">
+		<a href="#changepass">Password Change </a>
+		</div>
 	</li>
+
 	<li>
-		<a href="#view_class"> View Class </a>
-		<ul>
-			<li><a href="#class_info"> Class Information </a></li>
-			<li><a href="#class_menus"> Class Menus </a></li>
-			<li><a href="#start_class"> Start, Join, and End Class </a></li>
-		</ul>
+		<div class="collapsible"><a>▸Dashboard</a></div>
+		<div class="dropdown-content">
+			<div><a href="#search_classes"> Search Classes </a></div>
+			<div><a href="#quick_access"> Quick Access </a></div>
+			<div><a href="#dark_mode"> Dark Mode </a></div>
+			<div><a href="#profile_picture"> Profile Picture </a></div>
+			<div><a href="#chatdash"> Chat </a></div>
+		</div>
 	</li>
+
 	<li>
-		<a href="#vid_conference_and_chat"> Video Conferencing and Chat </a>
-		<ul>
-			<li><a href="#full_screen"> Full Screen View </a></li>
-			<li><a href="#vid_and_mic"> Video and Microphone </a></li>
-			<li><a href="#share_screen"> Share Screen </a></li>
-			<li><a href="#chat"> Chat </a></li>
-			<li><a href="#raisehand">Raise Hand</a></li>
-			<li><a href="#toggleview">Toggle View</a></li>
-			<li><a href="#livestream">Live Stream</a></li>
-		</ul>
+		<div class="collapsible"><a>▸View Class</a></div>
+		<div class="dropdown-content">
+			<div><a href="#class_info"> Class Information </a></div>
+			<div><a href="#class_menus"> Class Menus </a></div>
+			<div><a href="#start_class"> Start, Join, and End Class </a></div>
+		</div>
 	</li>
+
+	<li>
+		<div class="collapsible"><a>▸Video Conferencing and Chat</a></div>
+		<div class="dropdown-content">
+			<div><a href="#full_screen"> Full Screen View </a></div>
+			<div><a href="#vid_and_mic"> Video and Microphone </a></div>
+			<div><a href="#share_screen"> Share Screen </a></div>
+			<div><a href="#chat"> Chat </a></div>
+			<div><a href="#raisehand">Raise Hand</a></div>
+			<div><a href="#toggleview">Toggle View</a></div>
+			<div><a href="#livestream">Live Stream</a></div>
+		</div>
+	</li>
+
 	<li><a href="#posts">Posts</a></li>
+
 	<li>
-		<a href="#activity"> Student Activities </a>
-		<ul>
-			<li><a href="#add_new_act"> Add New Activity </a></li>
-			<li><a href="#publish_activity"> Publish Activity </a></li>
-			<li><a href="#whiteboard">White Board</a></li>
-			<li><a href="#kahoot">Kahoot</a></li>
-		</ul>
+		<div class="collapsible"><a>▸Student Activities</a></div>
+		<div class="dropdown-content">
+			<div><a href="#add_new_act"> Add New Activity </a></div>
+			<div><a href="#publish_activity"> Publish Activity </a></div>
+			<div><a href="#whiteboard">White Board</a></div>
+			<div><a href="#kahoot">Kahoot</a></div>
+		</div>
 	</li>
-	<li><a href="#quiestionnaires">Questionnaires</a>
-		<ul>
-			<li><a href="#viewq">View Questionnaire</a></li>
-			<li><a href="#createq">Create Questionnaire</a></li>
-		</ul>
+
+	<li>
+		<div class="collapsible"><a>▸Questionnaires</a></div>
+		<div class="dropdown-content">
+			<div><a href="#viewq">View Questionnaire</a></div>
+			<div><a href="#createq">Create Questionnaire</a></div>
+		</div>
 	</li>
+
 	<li><a href="#instructional"> Instructional Materials </a></li>
+
 	<li>
-		<a href="#lesson_plan"> Lesson Plan </a>
-		<ul>
-			<li>
-				<a href="#add_new_file"> Add New File </a>
-				<ul>
-					<li><a href="#gdrive">Google Drive</a></li>
-					<li><a href="#web_link"> Web Link </a></li>
-					<li><a href="#file_upload"> File Upload </a></li>
-				</ul>
-			</li>
-			<li><a href="#view_upload"> View Uploaded Files </a></li>
-		</ul>
+		<div class="collapsible"><a>▸Lesson Plan</a></div>
+				<div class="collapsible dropdown-content">
+				<div class="collapsible"><<a>▸Add New File</a></div>
+				<div class="dropdown-content">
+					<a href="#gdrive">Google Drive</a><br/>
+					<a href="#web_link"> Web Link </a><br/>
+					<a href="#file_upload"> File Upload </a><br/>
+				</div>
+			<a href="#view_upload"> View Uploaded Files </a>
+		</div>
 	</li>
-	<li><a href="#reports">Reports</a>
-		<ul>
-			<li><a href="#attendance">Attendance</a></li>
-			<li><a href="#scores">Scores</a></li>
-		</ul>
+
+	<li>
+		<div class="collapsible"><a>▸Reports</a></div>
+		<div class="dropdown-content">
+			<div><a href="#attendance">Attendance</a></div>
+			<div><a href="#scores">Scores</a></div>
+		</div>
 	</li>
+
 	<li><a href="#sched"> Schedule </a></li>
 	<li><a href="#student"> Student </a></li>
 </ul>
 </div>
+</div>
 
-<div class="content" >
+<div class="content">
+	<div class="top">
+		<h1 style="margin:0;">iSkwela User Manual Beta 1.0</h1>
+		</div>
+
 <div>
 <h2><a name="account_creation"> Account Creation </a></h2>
 	<p>
@@ -230,7 +284,7 @@
 </div>
 
 <div>
-<h2><a name="password">Passwords</a></h2>
+<h2>Passwords</h2>
 	<p>
 		For the security purposes of the accounts, all users are required to change 
 		their respective passwords at least once every six (6) months. 
@@ -247,7 +301,7 @@
 </div>
 
 <div>	
-<h2><a name="dashboard"> Dashboard </a></h2>
+<h2> Dashboard </h2>
 	<p>
 	After a successful login, the dashboard or home page is displayed with all the upcoming classes.<br/>
 	<img src="images/dashboard.png"/>
@@ -301,7 +355,7 @@
 </div>
 
 <div>	
-<h2><a name="view_class"> View Class </a></h2>
+<h2> View Class </h2>
 	<p>
 		There are two (2) ways to open and view the class.
 		<ol>
@@ -361,7 +415,7 @@
 </div>
 	
 <div>
-<h2><a name="vid_conference_and_chat"> Video Conferencing and Chat </a></h2>
+<h2> Video Conferencing and Chat </h2>
 	<p>
 		This video conference can handle upto 50 participants only as of the moment.<br/>
 		<img src="images/vidconference.png"/>
@@ -434,7 +488,7 @@
 </div>
 
 <div>
-<h2><a name="activity"> Student Activities </a></h2>
+<h2> Student Activities </h2>
 	<p>
 		Teachers can create different types of activity, while students can only view and submit a file.<br/>
 		The activities are listed with the latest one on top.<br/>
@@ -488,7 +542,7 @@
 </div>
 
 <div>
-<h2><a name="quiestionnaires">Questionnaires</a></h2>
+<h2>Questionnaires</h2>
 	<p>
 		<h3><a name="viewq">View Questionnaire</a></h3>
 		<p>Displays all the questionnaires that the teacher have made.<br/>
@@ -510,13 +564,13 @@
 </div>
 
 <div>	
-<h2><a name="lesson_plan"> Lesson Plan </a></h2>
+<h2> Lesson Plan </h2>
 	<p>
 		 The teacher's guide for the students' course of learning. This is not viewable by students.<br/>
 		<img src="images/lessonplan.png"/>
 	</p>
 	
-	<h3><a name="add_new_file"> Add New File </a></h3>
+	<h3> Add New File</h3>
 		<p>
 			Teachers can upload their lesson plans on this page or just add in the link.<br/>
 			<img src="images/lessonplanaddfile.png"/>
@@ -544,7 +598,7 @@
 </div>
 
 <div>
-<h2><a name="reports">Reports</a></h2>
+<h2>Reports</h2>
 	<p>
 		<h3><a name="attendance">Attendance</a></h3>
 			<p>Keeps track of the students absences and presence in the class.</p><br/>
@@ -582,5 +636,45 @@
 </div>
 </div>
 
+<button id="scrolltotop" onclick="topFunction()"> Scroll to Top</button>
+
+<script>
+var toppings = document.getElementById("scrolltotop");
+window.onscroll = function() {scrollToTop()};
+
+function scrollToTop() {
+  if (document.body.scrollTop > 20 || document.documentElement.scrollTop > 20) 
+  {
+    toppings.style.display = "block";
+  } 
+  else 
+  {
+    toppings.style.display = "none";
+  }
+}
+
+function topFunction() {
+  document.body.scrollTop = 0; 
+  document.documentElement.scrollTop = 0;
+}
+
+var collapse = document.getElementsByClassName("collapsible");
+var i;
+
+for (i = 0; i < collapse.length; i++) {
+   collapse[i].addEventListener("click", function() {
+    this.classList.toggle("active");
+    var content = this.nextElementSibling;
+    if (content.style.display === "block") 
+	{
+      content.style.display = "none";
+    } 
+	else 
+	{
+    content.style.display = "block";
+    }
+  });
+}
+</script>
 </body>
 </html>
