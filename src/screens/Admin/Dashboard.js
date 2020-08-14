@@ -1224,7 +1224,6 @@ function ClassDetails(props) {
                     </FormGroup>
                   </FormControl>
                 </Box>
-                {JSON.stringify(frequency)}
                 <Box marginLeft={4}>
                   <CalendarProvider
                     style={{ minWidth: 240 }}
@@ -1243,10 +1242,10 @@ function ClassDetails(props) {
                     <Weekdays />
                     <Dates
                       includeDays={
-                        typeof frequency === "object"
+                        typeof CLASS.frequency === "object"
                           ? sortedFrequency
                               .map((f, i) =>
-                                frequency.indexOf(f.toUpperCase()) >= 0
+                                CLASS.frequency.indexOf(f.toUpperCase()) >= 0
                                   ? i
                                   : null
                               )
