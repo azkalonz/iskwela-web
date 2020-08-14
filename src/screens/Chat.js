@@ -1269,26 +1269,36 @@ function FloatingChatWidget(props) {
   };
   const [openedChatBox, setOpenedChatBox] = useState();
   const chatWith = (username) => {
-    history.push(window.location.search.replaceUrlParam("t", username));
+    let c = [...getSortedChatUsers()];
+    let index = chatBoxes.findIndex((q) => q.username === username);
+    if (c.length + (index < 0 ? 1 : 0) > MAX_CHAT_BOXES) {
+      let cc = c[c.length - 1];
+      if (cc) {
+        c.splice(
+          c.findIndex((q) => cc.username === q.username),
+          1
+        );
+      }
+    }
+    if (index < 0) {
+      c.push({ id: new Date(), username });
+    }
     props.setChatId(username);
     setOpenedChatBox(username);
-    if (chatBoxes.length > MAX_CHAT_BOXES) {
-      let c = [...chatBoxes];
-      c.splice(1, 1);
-      setChatBoxes(c);
-    }
-    if (chatBoxes.indexOf(username) < 0) {
-      setChatBoxes([...chatBoxes, username]);
-    }
+    setChatBoxes(c);
   };
   const removeChatBox = (username) => {
-    let b = [...chatBoxes];
-    let index = b.indexOf(username);
+    let b = [...getSortedChatUsers()];
+    let index = b.findIndex((q) => q.username === username);
     if (index >= 0) {
       b.splice(index, 1);
       setChatBoxes(b);
     }
   };
+  const getSortedChatUsers = useCallback(
+    () => chatBoxes.sort((a, b) => new Date(b.id) - new Date(a.id)),
+    [chatBoxes]
+  );
   useEffect(() => {
     if (chatId) {
       chatWith(chatId);
@@ -1361,16 +1371,17 @@ function FloatingChatWidget(props) {
           transition: "all 0.1s ease-out",
         }}
       >
-        {chatBoxes.map((chat, key) => (
+        {getSortedChatUsers().map((chat, key) => (
           <React.Fragment key={key}>
             <FloatingChatBox
               {...props}
-              user={users.find((q) => q.username === chat)}
+              user={users.find((q) => q.username === chat.username)}
               opened={openedChatBox}
               onOpened={(u) => {
-                chatWith(u);
+                history.push(window.location.search.replaceUrlParam("t", u));
+                setOpenedChatBox(u);
               }}
-              onClose={() => removeChatBox(chat)}
+              onClose={() => removeChatBox(chat.username)}
             />
           </React.Fragment>
         ))}
@@ -1382,7 +1393,9 @@ function FloatingChatWidget(props) {
               <ButtonBase
                 key={key}
                 onClick={() => {
-                  chatWith(user.username);
+                  history.push(
+                    window.location.search.replaceUrlParam("t", user.username)
+                  );
                   setOpened(false);
                 }}
                 style={{
