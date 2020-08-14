@@ -484,6 +484,28 @@ function Attendance(props) {
                   {!currentStudent ? "Schedule" : currentStudent.name}
                 </Typography>
               </Box>
+              <Box display="flex">
+                {(!currentStudent
+                  ? ["schedule"]
+                  : ["unmarked", "present", "absent"]
+                ).map((legend, index) => (
+                  <Box
+                    key={index}
+                    display="flex"
+                    marginRight={2}
+                    alignItems="center"
+                  >
+                    <Box
+                      width={30}
+                      height={30}
+                      borderRadius={6}
+                      className={legend}
+                      marginRight={1}
+                    />
+                    <Typography>{legend.ucfirst()}</Typography>
+                  </Box>
+                ))}
+              </Box>
               <AttendanceProvider
                 {...props}
                 schedule_id={schedule_id}
