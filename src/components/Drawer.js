@@ -35,9 +35,9 @@ function Drawer(props) {
   const history = useHistory();
   const { class_id, room_name, screen_name } = props.match.params;
   const [more, setMore] = useState(false);
-  const classes = props.classes.sort((a, b) =>
-    a.next_schedule.status === "ONGOING" ? -1 : 0
-  );
+  const classes = props.classes
+    .sort((a, b) => b.id - a.id)
+    .sort((a, b) => (a.next_schedule.status === "ONGOING" ? -1 : 0));
   useEffect(() => {
     focusCurrentTab();
     if (!room_name)

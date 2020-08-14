@@ -31,7 +31,12 @@ import {
   CircularProgress,
 } from "@material-ui/core";
 import Drawer from "../../components/Drawer";
-import { CalendarProvider, Weekdays, Dates } from "../../components/Calendar";
+import {
+  CalendarProvider,
+  Weekdays,
+  Dates,
+  getYears,
+} from "../../components/Calendar";
 import Scrollbar from "../../components/Scrollbar";
 import { useHistory, Redirect } from "react-router-dom";
 import Api from "../../api";
@@ -42,6 +47,7 @@ import socket from "../../components/socket.io";
 import PopupState, { bindTrigger, bindMenu } from "material-ui-popup-state";
 import SavingButton from "../../components/SavingButton";
 import moment from "moment";
+import { makeLinkTo } from "../../components/router-dom";
 
 const qs = require("query-string");
 
@@ -181,14 +187,23 @@ function Classes(props) {
     {
       id: "id",
       title: "ID",
+      align: "center",
       width: "5%",
     },
-    { id: "name", title: "Name", width: "23%" },
-    { id: "description", title: "Description", width: "23%" },
-    { id: "teacher", title: "Teacher", width: "23%" },
-    { id: "frequency", title: "Frequency", width: "23%" },
+    { id: "name", align: "center", title: "Name", width: "23%" },
+    { id: "description", align: "center", title: "Description", width: "23%" },
+    { id: "teacher", align: "center", title: "Teacher", width: "23%" },
+    { id: "frequency", align: "center", title: "Frequency", width: "23%" },
   ]);
-  const _handleFileOption = (option, item) => {};
+  const _handleFileOption = (option, item) => {
+    switch (option) {
+      case "edit":
+        props.history.push(
+          window.location.search.replaceUrlParam("classId", item.id)
+        );
+        return;
+    }
+  };
   const getFilteredClasses = (c = data) =>
     [...c]
       .filter(
@@ -232,7 +247,7 @@ function Classes(props) {
           sections={sections}
           years={years}
           subjects={subjects}
-          editable={true}
+          editOnly={true}
         />
       ) : (
         <React.Fragment>
@@ -267,10 +282,7 @@ function Classes(props) {
                   _handleFileOption: (opt, item) =>
                     _handleFileOption(opt, item),
                 }}
-                options={[
-                  { key: "view", name: "View Details" },
-                  { key: "edit", name: "Edit" },
-                ]}
+                options={[{ name: "Edit", value: "edit" }]}
                 style={{ margin: 0 }}
                 pagination={{
                   page: 1,
@@ -300,6 +312,112 @@ function Classes(props) {
                     />
                   ),
                 }}
+                rowRenderMobile={(item) => {
+                  let f = item.frequency;
+                  if (typeof f === "string" && f) {
+                    f = f.split(",").filter((q) => !!q);
+                    if (f.length >= 7) f = "DAILY";
+                    else f = f.join(",");
+                  }
+                  return (
+                    <Box
+                      onClick={() =>
+                        props.history.push(
+                          window.location.search.replaceUrlParam(
+                            "classId",
+                            item.id
+                          )
+                        )
+                      }
+                      display="flex"
+                      flexWrap="wrap"
+                      width="90%"
+                      flexDirection="column"
+                      justifyContent="space-between"
+                      style={{ padding: "30px 0" }}
+                    >
+                      <Box width="100%" marginBottom={1}>
+                        <Typography
+                          style={{
+                            fontWeight: "bold",
+                            color: "#38108d",
+                            fontSize: "1em",
+                          }}
+                        >
+                          Name
+                        </Typography>
+                        <Typography variant="body1">{item.name}</Typography>
+                      </Box>
+                      <Box width="100%" marginBottom={1}>
+                        <Typography
+                          style={{
+                            fontWeight: "bold",
+                            color: "#38108d",
+                            fontSize: "1em",
+                          }}
+                        >
+                          DESCRIPTION
+                        </Typography>
+                        <Typography
+                          variant="body1"
+                          style={{
+                            fontWeight: "bold",
+                            fontSize: "0.9em",
+                          }}
+                        >
+                          {item.description ? item.description : "--"}
+                        </Typography>
+                      </Box>
+                      <Box width="100%" marginBottom={1}>
+                        <Typography
+                          style={{
+                            fontWeight: "bold",
+                            color: "#38108d",
+                            fontSize: "1em",
+                          }}
+                        >
+                          TEACHER
+                        </Typography>
+                      </Box>
+                      <Box
+                        display="flex"
+                        alignItems="center"
+                        style={{ margin: "13px 0" }}
+                      >
+                        <Avatar
+                          src={item.teacher?.profile_picture}
+                          alt={item.teacher?.first_name}
+                        />
+                        <Typography
+                          variant="body1"
+                          style={{
+                            fontWeight: "bold",
+                            marginLeft: 13,
+                            fontSize: "0.9em",
+                          }}
+                        >
+                          {item.teacher?.first_name +
+                            " " +
+                            item.teacher?.last_name}
+                        </Typography>
+                      </Box>
+                      <Box width="100%">
+                        <Typography
+                          style={{
+                            fontWeight: "bold",
+                            color: "#38108d",
+                            fontSize: "1em",
+                          }}
+                        >
+                          FREQUENCY
+                        </Typography>
+                        <Box display="flex" alignItems="center">
+                          <Typography>{f}</Typography>
+                        </Box>
+                      </Box>
+                    </Box>
+                  );
+                }}
                 rowRender={(item) => {
                   let f = item.frequency;
                   if (typeof f === "string" && f) {
@@ -321,23 +439,34 @@ function Classes(props) {
                         )
                       }
                     >
-                      <Box width="5%">
+                      <Box width="5%" textAlign="center">
                         <Typography>{item.id}</Typography>
                       </Box>
-                      <Box width="23%">
+                      <Box width="23%" textAlign="center">
                         <Typography>{item.name}</Typography>
                       </Box>
-                      <Box width="23%">
-                        <Typography>{item.description}</Typography>
-                      </Box>
-                      <Box width="23%">
+                      <Box width="23%" textAlign="center">
                         <Typography>
+                          {item.description ? item.description : "--"}
+                        </Typography>
+                      </Box>
+                      <Box
+                        width="23%"
+                        display="flex"
+                        alignItems="center"
+                        justifyContent="center"
+                      >
+                        <Avatar
+                          src={item.teacher?.profile_picture}
+                          alt={item.teacher?.first_name}
+                        />
+                        <Typography style={{ marginLeft: 13 }}>
                           {item.teacher?.first_name +
                             " " +
                             item.teacher?.last_name}
                         </Typography>
                       </Box>
-                      <Box width="23%">
+                      <Box width="23%" textAlign="center">
                         <Typography>{f}</Typography>
                       </Box>
                     </Box>
@@ -396,7 +525,7 @@ function ClassDetails(props) {
   const [savingId, setSavingId] = useState(false);
   const class_id = id;
   const styles = useStyles();
-  const [editing, setEditing] = useState(false || !!props.editable);
+  const [editing, setEditing] = useState(false || !!props.editOnly);
   const [students, setStudents] = useState([{}]);
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
@@ -476,20 +605,30 @@ function ClassDetails(props) {
       });
       if (res?.id) {
         let newDetails = await Api.get("/api/teacher/class/" + res.id);
-        if (newDetails)
-          UserData.updateClass(
-            res.id,
-            {
-              ...newDetails,
-              ...finalData,
-            },
-            true
-          );
+        if (newDetails) {
+          let t = props.parentData?.childInfo;
+          if (t?.id && newDetails.teacher?.id !== t.id) {
+            await UserData.getUserData(t, null, t.id);
+          } else {
+            UserData.updateClass(
+              res.id,
+              {
+                ...newDetails,
+                ...finalData,
+              },
+              true
+            );
+          }
+          if (props.editOnly)
+            props.history.push(
+              makeLinkTo(["class", res.id, res.next_schedule?.id, "posts"])
+            );
+        }
       }
     } catch (e) {
       console.log(e);
       alert("Please fill in the required fields.");
-      if (!props.editable) {
+      if (!props.editOnly) {
         setCLASS({
           ...initialClass,
           subject_id: props.subjects[0]?.id,
@@ -498,7 +637,7 @@ function ClassDetails(props) {
         });
       }
     }
-    if (!props.editable) {
+    if (!props.editOnly) {
       setEditing(false);
     }
     setSaving(false);
@@ -608,14 +747,8 @@ function ClassDetails(props) {
         display="flex"
         alignItems="center"
       >
-        {!editing && (
-          <IconButton
-            onClick={() =>
-              props.history.push(
-                window.location.search.replaceUrlParam("classId", "")
-              )
-            }
-          >
+        {(!editing || props.editOnly) && (
+          <IconButton onClick={() => props.history.push("/dashboard")}>
             <Icon>arrow_back</Icon>
           </IconButton>
         )}
@@ -688,12 +821,12 @@ function ClassDetails(props) {
           style={{ marginLeft: 13, width: "auto" }}
           onClick={() => {
             if (editing) handleSave();
-            else if (!props.editable) {
+            else if (!props.editOnly) {
               setEditing(true);
             }
           }}
         >
-          {editing || props.editable ? (
+          {editing || props.editOnly ? (
             "Save  "
           ) : (
             <React.Fragment>
@@ -701,7 +834,7 @@ function ClassDetails(props) {
             </React.Fragment>
           )}
         </SavingButton>
-        {editing && !props.editable && (
+        {editing && !props.editOnly && (
           <Button
             style={{ color: "red", width: "auto" }}
             onClick={() => {
@@ -727,7 +860,7 @@ function ClassDetails(props) {
       >
         <Tab label="Details" {...a11yProps(0)} />
         <Tab label="Schedules" {...a11yProps(1)} />
-        {!props.editable && (
+        {!props.editOnly && (
           <Tab
             label="Students"
             {...a11yProps(2)}
@@ -740,7 +873,7 @@ function ClassDetails(props) {
           <form
             action="#"
             onSubmit={() => false}
-            className={!editing && !props.editable ? styles.notEditingForm : ""}
+            className={!editing && !props.editOnly ? styles.notEditingForm : ""}
             style={{ width: "100%" }}
           >
             <TabPanel value={value} index={0}>
@@ -910,9 +1043,9 @@ function ClassDetails(props) {
                       </Select>
                     </FormControl>
                   ) : (
-                    <Box display="flex" alignItems="center">
-                      <CircularProgress size={10} />
-                      {"   "}retrieving sections...
+                    <Box display="flex" alignItems="center" marginRight={2}>
+                      <CircularProgress size={10} style={{ marginRight: 13 }} />
+                      retrieving sections...
                     </Box>
                   )}
                   {CLASS.year_id ? (
@@ -942,9 +1075,9 @@ function ClassDetails(props) {
                       </Select>
                     </FormControl>
                   ) : (
-                    <Box display="flex" alignItems="center">
-                      <CircularProgress size={10} />
-                      {"   "}retrieving year levels...
+                    <Box display="flex" alignItems="center" marginRight={2}>
+                      <CircularProgress size={10} style={{ marginRight: 13 }} />
+                      retrieving year levels...
                     </Box>
                   )}
                 </Box>
@@ -1097,6 +1230,14 @@ function ClassDetails(props) {
                     variant={"small"}
                     events={getSchedules()}
                     schedules={[]}
+                    years={
+                      CLASS.date_to && CLASS.date_from
+                        ? getYears(
+                            moment(CLASS.date_from || new Date()).year(),
+                            moment(CLASS.date_to).year()
+                          )
+                        : [moment().year()]
+                    }
                   >
                     <Weekdays />
                     <Dates
@@ -1124,9 +1265,9 @@ function ClassDetails(props) {
                 marginBottom={4}
               >
                 <Box>
-                  <Button variant="contained" color="secondary">
+                  {/* <Button variant="contained" color="secondary">
                     Add Student
-                  </Button>
+                  </Button> */}
                 </Box>
                 <Box>
                   <SearchInput onChange={(e) => setSearch(e)} />
@@ -1180,6 +1321,87 @@ function ClassDetails(props) {
                     />
                   ),
                 }}
+                rowRenderMobile={(item, { disabled = false }) => (
+                  <Box
+                    onClick={() => !disabled && _handleFileOption("view", item)}
+                    display="flex"
+                    flexWrap="wrap"
+                    width="90%"
+                    flexDirection="column"
+                    justifyContent="space-between"
+                    style={{ padding: "30px 0" }}
+                  >
+                    <Box width="100%" marginBottom={1}>
+                      <Typography
+                        style={{
+                          fontWeight: "bold",
+                          color: "#38108d",
+                          fontSize: "1em",
+                        }}
+                      >
+                        TITLE
+                      </Typography>
+                      <Box
+                        display="flex"
+                        alignItems="center"
+                        style={{ margin: "13px 0" }}
+                      >
+                        <Avatar
+                          src={item.preferences?.profile_picture}
+                          alt={item.first_name}
+                        />
+                        <Typography
+                          variant="body1"
+                          style={{
+                            fontWeight: "bold",
+                            marginLeft: 13,
+                            fontSize: "0.9em",
+                          }}
+                        >
+                          {item.first_name + " " + item.last_name}
+                        </Typography>
+                      </Box>
+                    </Box>
+                    <Box width="100%" marginBottom={1}>
+                      <Typography
+                        style={{
+                          fontWeight: "bold",
+                          color: "#38108d",
+                          fontSize: "1em",
+                        }}
+                      >
+                        PHONE
+                      </Typography>
+                      <Typography
+                        variant="body1"
+                        style={{
+                          fontWeight: "bold",
+                          fontSize: "0.9em",
+                          color:
+                            item.done !== "true"
+                              ? theme.palette.success.main
+                              : theme.palette.error.main,
+                        }}
+                      >
+                        {item.phone_number}
+                      </Typography>
+                    </Box>
+                    <Box width="100%">
+                      <Typography
+                        style={{
+                          fontWeight: "bold",
+                          color: "#38108d",
+                          fontSize: "1em",
+                        }}
+                      >
+                        EMAIL
+                      </Typography>
+                      <Box display="flex" alignItems="center">
+                        {item.email}
+                      </Box>
+                    </Box>
+                  </Box>
+                )}
                 rowRender={(item) => (
                   <Box
                     p={2}
@@ -1197,8 +1419,12 @@ function ClassDetails(props) {
                     <Box width="5%">
                       <Typography>{item.id}</Typography>
                     </Box>
-                    <Box width="31%">
-                      <Typography>
+                    <Box width="31%" display="flex" alignItems="center">
+                      <Avatar
+                        src={item.preferences?.profile_picture}
+                        alt={item.first_name}
+                      />
+                      <Typography style={{ marginLeft: 13 }}>
                         {item.first_name &&
                           item.first_name + " " + item.last_name}
                       </Typography>

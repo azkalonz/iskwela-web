@@ -221,7 +221,10 @@ export function CalendarProvider(props) {
         <YearSelector
           onChange={(val) => setYear(val)}
           years={
-            typeof props.schedules === "object" && props.schedules.length > 0
+            props.years
+              ? props.years
+              : typeof props.schedules === "object" &&
+                props.schedules.length > 0
               ? getYears(
                   moment(props.schedules[scheduleLength - 1].from).year(),
                   moment(props.schedules[0].from).year()
