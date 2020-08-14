@@ -1,10 +1,10 @@
 <!doctype html>
 <html>
 <head>
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>iSkwela | User Manual</title>
 	<link
-      rel="icon"
+	rel="icon"		
       sizes="48x48"
       type="image/x-icon"
       href="/images/user-manual/icons/favicon.ico"
@@ -43,33 +43,22 @@
 
 		.wrapper{
 			display:flex;
-			flex-wrap: wrap;
-			margin:1%;
 		}
 			
-		.inner{
-			position:fixed;
-			background-color:#FBF5FE;
-			top:0;
-			bottom: 0;
-			padding-right: 10px;
-			flex-wrap: wrap;
-			flex: 0 0 25%;
-		}
-		
-		.content{
-			left:25%;
-			position: absolute;
-			flex-wrap: wrap;
-			flex: 0 0 75%;
-			margin: 2%;
-		}
-		
 		a {
 			text-decoration: none;
 			color: #6A2BD9;
 		}
-		
+		.inner {
+			background-color:#FBF5FE;
+			min-width: 330px;
+		}
+		.inner.fixed {
+			position: fixed;
+			left:0;
+			bottom:0;
+			top:0;
+		}
 		a:hover{
 			color: purple;
 			cursor: pointer;
@@ -85,9 +74,10 @@
   			display: none;
   			overflow: hidden;
 		}
-
-		.active {}
-		
+		.content {
+			padding: 40px;
+			padding-top: 10px;
+		}
 		.logo-white {display: none!important;}
 		
 		@media only screen and (max-width: 1366px) {
@@ -107,6 +97,17 @@
 		.wrapper{
 			display: flex;
 			clear: both;
+			flex-wrap: wrap;
+		}
+		.inner {
+			width: 100%;
+			margin-top: 105px;
+		}
+		.inner.fake {
+			display: none;
+		}
+		.inner.fixed {
+			position: relative;
 		}
 		
 		div {
@@ -118,19 +119,6 @@
 			left:0;
 			z-index:1;
 		}
-
-		.inner{
-			align-items: center;
-			position: relative;
-			margin-top: 13%;
-			padding:15px;
-			width: 180%;	
-			flex:1;	
-			clear: both;
-			}
-		
-		
-		
 		h1{
 			color: white;
 			text-align: center;
@@ -142,10 +130,9 @@
 			position: fixed;
 			background-color:#6A2BD9; 
 			width: 100%;
-			padding:0;
-			margin:0;
-			top:0;
-			left:0;
+			height: 100px;
+			box-shadow: 0 4px 6px rgba(189, 101, 248, 0.486);
+			left:0;top:0;right:0;
 		}
 
 		#scrolltotop{
@@ -171,7 +158,9 @@
 <a name="iskwela"></a>
 
 <div class="wrapper ">
-<div class="inner ">
+<div class="inner fake">
+</div>
+<div class="inner fixed">
 <ul>
 	<li style="text-indent:0;"><h2><a href="#iskwela">
 		<img src="/logo/logo-full-colored.svg" width="160" class="logo-colored"/>
@@ -265,7 +254,6 @@
 	<li><a href="#sched"> Schedule </a></li>
 	<li><a href="#student"> Student </a></li>
 </ul>
-</div>
 </div>
 
 <div class="content">
@@ -651,6 +639,7 @@
 		It includes the student's additional information such as phone number and email for the teacher's reference should he or she needs to contact the student.<br/>
 		<img src="/images/user-manual/students.png"/>
 	</p>
+</div>
 </div>
 </div>
 </div>
