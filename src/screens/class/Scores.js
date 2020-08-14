@@ -388,7 +388,12 @@ function Scores(props) {
                   Performance
                 </Typography>
                 <Chart
-                  options={chartOptions}
+                  options={{
+                    ...chartOptions,
+                    theme: {
+                      mode: theme.palette.type,
+                    },
+                  }}
                   series={graphData}
                   type="bar"
                   width="100%"

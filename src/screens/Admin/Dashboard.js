@@ -95,7 +95,7 @@ function Dashboard(props) {
             <Typography
               style={{ color: "#fff", fontSize: 18, fontWeight: 500 }}
             >
-              Dashboard
+              Admin Panel
             </Typography>
             <IconButton
               onClick={() => setOpened(false)}
@@ -111,7 +111,7 @@ function Dashboard(props) {
             onChange={handleChange}
           >
             <Tab
-              label="Classes"
+              label="Manage Classes"
               {...a11yProps(0)}
               onClick={() => props.history.push("/dashboard")}
             />

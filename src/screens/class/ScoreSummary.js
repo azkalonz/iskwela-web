@@ -212,6 +212,7 @@ const ScoreSummary = (props) => {
               width="100%"
               height={350}
               options={{
+                theme: { mode: theme.palette.type },
                 yaxis: {
                   title: {
                     text: "Average Scores",
