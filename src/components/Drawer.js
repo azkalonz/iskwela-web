@@ -272,10 +272,16 @@ function Drawer(props) {
               style={{ opacity: 0.14, backgroundColor: "rgb(55, 19, 138)" }}
             />
           </Box>
-          <Box className={screen_name ? "selected tab bordered" : "tab"}>
+          <Box
+            className={
+              window.location.pathname.indexOf("/dashboard") >= 0
+                ? "selected tab bordered"
+                : "tab"
+            }
+          >
             <Box
               onClick={() => {
-                history.push("/explore/jumpstart");
+                history.push("/dashboard");
               }}
               className="tab-btn screen-btn"
               style={{
@@ -670,6 +676,52 @@ function Drawer(props) {
             <Divider
               style={{ opacity: 0.14, backgroundColor: "rgb(55, 19, 138)" }}
             />
+            <Box
+              className={
+                window.location.pathname.indexOf("/dashboard") >= 0
+                  ? "selected tab bordered"
+                  : "tab"
+              }
+            >
+              <Box
+                onClick={() => {
+                  history.push("/dashboard");
+                }}
+                className="tab-btn screen-btn"
+                style={{
+                  alignItems: "center",
+                  cursor: "pointer",
+                  justifyContent: "center",
+                  display: "flex",
+                  transform: "translateX(-1.5px)",
+                }}
+              >
+                <Icon
+                  style={{
+                    fontSize: "2.3rem",
+                    color:
+                      props.theme === "dark"
+                        ? isTablet
+                          ? "#282828"
+                          : "#f1f1f1"
+                        : "#38108d",
+                  }}
+                >
+                  admin_panel_settings
+                </Icon>
+              </Box>
+              <Typography
+                style={{
+                  color: props.theme === "dark" ? "#f1f1f1" : "#38108d",
+                  fontWeight: "bold",
+                }}
+                onClick={() => {
+                  history.push("/dashboard");
+                }}
+              >
+                Explore
+              </Typography>
+            </Box>
             <Box className={screen_name ? "selected tab bordered" : "tab"}>
               <Box
                 onClick={() => {

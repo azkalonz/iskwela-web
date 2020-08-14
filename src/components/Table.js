@@ -249,6 +249,11 @@ function Table(props) {
                   </Box>
                 </div>
               </ListItem>
+              {props.loading && (
+                <ListItem style={{ display: "flex", justifyContent: "center" }}>
+                  {props.loader ? props.loader : <CircularProgress />}
+                </ListItem>
+              )}
             </List>
           ) : Object.keys(selectedItems).length &&
             !props.noSelect &&
