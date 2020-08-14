@@ -229,7 +229,8 @@ function HTML(props) {
       </div>
       <div class="inner fixed">
       <ul>
-          <li style="text-indent:0;"><h2><a href="#iskwela" style="border-bottom: 1px solid rgba(0,0,0,0.18)">
+          <li style="text-indent:0;border-bottom: 1px solid rgba(0,0,0,0.18);
+          margin-bottom: 20px;"><h2><a href="#iskwela">
               <img src="/logo/logo-full.svg" width="60%" class="logo-colored"/>
           </a></h2></li>
           <li><a href="#account_creation"> Account Creation </a></li>
