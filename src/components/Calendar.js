@@ -7,6 +7,7 @@ import {
   Typography,
   useMediaQuery,
   useTheme,
+  Paper,
 } from "@material-ui/core";
 import moment from "moment";
 import React, {
@@ -43,12 +44,32 @@ function Calendar(props) {
   const { class_id } = props.match.params;
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   return (
-    <AttendanceProvider {...props} student={props.userInfo} class_id={class_id}>
-      <CalendarProvider variant={isMobile ? "small" : "large"}>
-        <Weekdays />
-        <Dates />
-      </CalendarProvider>
-    </AttendanceProvider>
+    <Box component={Paper} p={2}>
+      <Box display="flex" justifyContent="center">
+        {["unmarked", "present", "absent"].map((legend, index) => (
+          <Box key={index} display="flex" marginRight={2} alignItems="center">
+            <Box
+              width={30}
+              height={30}
+              borderRadius={6}
+              className={legend}
+              marginRight={1}
+            />
+            <Typography>{legend.ucfirst()}</Typography>
+          </Box>
+        ))}
+      </Box>
+      <AttendanceProvider
+        {...props}
+        student={props.userInfo}
+        class_id={class_id}
+      >
+        <CalendarProvider variant={isMobile ? "small" : "large"}>
+          <Weekdays />
+          <Dates />
+        </CalendarProvider>
+      </AttendanceProvider>
+    </Box>
   );
 }
 export function Weekdays(props) {

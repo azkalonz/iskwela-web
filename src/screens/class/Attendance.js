@@ -191,10 +191,10 @@ function Attendance(props) {
             <Box
               flexDirection="row"
               display="flex"
-              justifyContent="space-between"
+              justifyContent="flex-end"
               alignItems="center"
             >
-              <div>
+              {/* <div>
                 {!currentStudent && (
                   <FormControl variant="outlined">
                     <InputLabel>Status</InputLabel>
@@ -205,7 +205,7 @@ function Attendance(props) {
                     </Select>
                   </FormControl>
                 )}
-              </div>
+              </div> */}
               {!currentStudent && (
                 <SearchInput
                   style={{ marginLeft: 16 }}
