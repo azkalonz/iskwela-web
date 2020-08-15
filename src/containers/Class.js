@@ -554,7 +554,8 @@ function Class(props) {
                               props.classes[class_id].bg_image ||
                               props.classes[class_id].image ||
                               "https://www.iskwela.net/img/on-iskwela.svg"
-                            }) no-repeat`,
+                            })`,
+                            backgroundRepeat: "no-repeat",
                             backgroundPosition: props.classes[class_id].bg_image
                               ? "right top"
                               : "center",

@@ -58,7 +58,7 @@ export function Weekdays(props) {
   return (
     <div className="weekdays-container">
       {weekDays.map((day, index) => (
-        <div className={"day " + day}>
+        <div className={"day " + day} key={index}>
           <Typography color="primary">{day}</Typography>
         </div>
       ))}
