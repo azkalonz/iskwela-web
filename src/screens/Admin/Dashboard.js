@@ -239,9 +239,7 @@ function Classes(props) {
       {option_name === "new-class" ? (
         <ClassDetails
           class={{
-            teacher:
-              props.parentData?.children &&
-              props.parentData?.children[0]?.childInfo,
+            teacher: props.parentData?.childInfo,
           }}
           {...props}
           sections={sections}
@@ -612,6 +610,8 @@ function ClassDetails(props) {
           let t = props.parentData?.childInfo;
           if (t?.id && newDetails.teacher?.id !== t.id) {
             await UserData.getUserData(t, null, t.id);
+            if (props.editOnly)
+              window.location = `/class/${res.id}?userId=${newDetails.teacher?.id}`;
           } else {
             UserData.updateClass(
               res.id,
@@ -621,11 +621,9 @@ function ClassDetails(props) {
               },
               true
             );
+            if (props.editOnly)
+              props.history.push(makeLinkTo(["class", res.id]));
           }
-          if (props.editOnly)
-            props.history.push(
-              makeLinkTo(["class", res.id, res.next_schedule?.id, "posts"])
-            );
         }
       }
     } catch (e) {
@@ -937,7 +935,9 @@ function ClassDetails(props) {
                             return (
                               <MenuItem
                                 key={index}
-                                selected={CLASS.teacher === child.childInfo.id}
+                                selected={
+                                  CLASS.teacher?.id === child.childInfo.id
+                                }
                                 onClick={() => {
                                   setCLASS({
                                     ...CLASS,
