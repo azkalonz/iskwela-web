@@ -6,7 +6,7 @@ import Tab from "@material-ui/core/Tab";
 import Typography from "@material-ui/core/Typography";
 import Box from "@material-ui/core/Box";
 import { Table } from "../../components/Table";
-import Pagination from "../../components/Pagination";
+import Pagination, { getPageItems } from "../../components/Pagination";
 import { SearchInput } from "../../components/Selectors";
 import {
   Button,
@@ -29,6 +29,11 @@ import {
   Select,
   InputLabel,
   CircularProgress,
+  List,
+  Snackbar,
+  ListItem,
+  ListItemAvatar,
+  ListItemText,
 } from "@material-ui/core";
 import Drawer from "../../components/Drawer";
 import {
@@ -48,17 +53,27 @@ import PopupState, { bindTrigger, bindMenu } from "material-ui-popup-state";
 import SavingButton from "../../components/SavingButton";
 import moment from "moment";
 import { makeLinkTo } from "../../components/router-dom";
+import { BlankDialog, Alert } from "../../components/dialogs";
 
 const qs = require("query-string");
 
+const createTab = (key, label, opts = {}) => ({ key, label, ...opts });
 function Dashboard(props) {
   const theme = useTheme();
+  const query = qs.parse(window.location.search);
+  const tabMap = [
+    createTab("classes", "Classes"),
+    createTab("accounts", "Accounts"),
+    createTab("student-groups", "Student Groups"),
+    createTab("parents", "Parents"),
+    createTab("grading-categories", "Grading Categories"),
+  ];
+  const tabid = tabMap.findIndex((q) => q.key === query.tab);
+  const [value, setValue] = useState(tabid >= 0 ? tabid : 0);
   const isTablet = useMediaQuery(theme.breakpoints.down("md"));
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const classes = useStyles();
   const [opened, setOpened] = useState(true);
-  const [value, setValue] = useState(0);
-
   const handleChange = (event, newValue) => {
     setValue(newValue);
   };
@@ -110,15 +125,19 @@ function Dashboard(props) {
             value={value}
             onChange={handleChange}
           >
-            <Tab
-              label="Classes"
-              {...a11yProps(0)}
-              onClick={() => props.history.push("/dashboard")}
-            />
-            <Tab label="Accounts" {...a11yProps(1)} />
-            <Tab label="Student Groups" {...a11yProps(2)} />
-            <Tab label="Parents" {...a11yProps(3)} />
-            <Tab label="Grading Categories" {...a11yProps(4)} />
+            {tabMap.map((tab, index) => (
+              <Tab
+                key={tab.key}
+                label={tab.label}
+                {...a11yProps(index)}
+                onClick={() =>
+                  props.history.push(
+                    "/dashboard/" +
+                      window.location.search.replaceUrlParam("tab", tab.key)
+                  )
+                }
+              />
+            ))}
           </Tabs>
         </Box>
         <Box
@@ -142,7 +161,7 @@ function Dashboard(props) {
               <Classes {...props} />
             </TabPanel>
             <TabPanel value={value} index={1}>
-              Item Two
+              <Accounts history={props.history} />
             </TabPanel>
             <TabPanel value={value} index={2}>
               Item Three
@@ -174,15 +193,12 @@ function Classes(props) {
   const [years, setYears] = useState([]);
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
-  const subjects = Object.keys(props.classes)
-    .filter((k, i) => {
-      let c = Object.keys(props.classes);
-      let index = c.findIndex(
-        (key) => props.classes[key].subject.id === props.classes[k].subject.id
-      );
-      return index === i;
-    })
-    .map((k) => props.classes[k].subject);
+  let subArray = Object.keys(props.classes).map(
+    (k) => props.classes[k].subject
+  );
+  const subjects = subArray.filter(
+    (k, i) => subArray.findIndex((q) => q.id === k.id) === i
+  );
   const columnHeaders = useMemo(() => [
     {
       id: "id",
@@ -283,7 +299,7 @@ function Classes(props) {
                 options={[{ name: "Edit", value: "edit" }]}
                 style={{ margin: 0 }}
                 pagination={{
-                  page: 1,
+                  page,
                   render: (
                     <Pagination
                       page={page}
@@ -309,6 +325,7 @@ function Classes(props) {
                       count={getFilteredClasses().length}
                     />
                   ),
+                  onChangePage: (p) => setPage(p),
                 }}
                 rowRenderMobile={(item) => {
                   let f = item.frequency;
@@ -509,7 +526,7 @@ function ClassDetails(props) {
   const initialClass = {
     years: props.years,
     sections: props.sections,
-    subject_id: props.subjects[0]?.id,
+    subject_id: props.class?.subject?.id || props.subjects[0]?.id,
     subjects: props.subjects,
     teacher: props.class?.teacher,
     frequency,
@@ -520,34 +537,23 @@ function ClassDetails(props) {
     ...props.class,
   };
   const [CLASS, setCLASS] = useState(initialClass);
-  const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [savingImg, setSavingImg] = useState(false);
-  const [savingId, setSavingId] = useState(false);
   const class_id = id;
   const styles = useStyles();
   const [editing, setEditing] = useState(false || !!props.editOnly);
-  const [students, setStudents] = useState([{}]);
-  const [search, setSearch] = useState("");
-  const [page, setPage] = useState(1);
-  const [value, setValue] = useState(0);
+  const query = qs.parse(window.location.search);
+  const tabMap = useMemo(
+    () => [
+      createTab("details", "Details"),
+      createTab("schedules", "Schedules"),
+      createTab("students", "Students", { hidden: props.editOnly }),
+    ],
+    [props.editOnly]
+  );
+  const tabid = tabMap.findIndex((q) => q.key === query.section);
+  const [value, setValue] = useState(tabid >= 0 ? tabid : 0);
 
-  const getFilteredStudents = (s = students) =>
-    [...s].filter(
-      (q) => JSON.stringify(q).toLowerCase().indexOf(search.toLowerCase()) >= 0
-    );
-  const getStudents = async () => {
-    setLoading(true);
-    try {
-      let studs = await Api.get(
-        "/api/teacher/class/" + class_id + "?include=schedules,students"
-      );
-      if (studs?.students?.length) {
-        setStudents(studs.students);
-      }
-    } catch (e) {}
-    setLoading(false);
-  };
   const handleSave = async () => {
     const frequencyOrder = ["m", "t", "w", "r", "f", "s", "u"];
     setSaving(true);
@@ -632,7 +638,7 @@ function ClassDetails(props) {
       if (!props.editOnly) {
         setCLASS({
           ...initialClass,
-          subject_id: props.subjects[0]?.id,
+          subject_id: props.class?.subject?.id || props.subjects[0]?.id,
           year_id: props.years[0]?.id,
           section_id: props.sections[0]?.id,
         });
@@ -694,29 +700,6 @@ function ClassDetails(props) {
     input = document.querySelector("#edit-class-pic-input");
     input.click();
   };
-  const _handleFileOption = (opt, item) => {
-    switch (opt) {
-      case "reset-password":
-        resetPassword(item);
-        return;
-    }
-  };
-  const resetPassword = async (user) => {
-    let { id, username } = user;
-    if (!username) return;
-    setSaving(true);
-    setSavingId([id]);
-    try {
-      await Api.post("/api/schooladmin/change-user-password", {
-        body: {
-          username,
-          password: username,
-        },
-      });
-    } catch (e) {}
-    setSaving(false);
-    setSavingId([]);
-  };
   useEffect(() => {
     let d = document.querySelector("#dashboard-panel")?.firstChild?.firstChild;
     if (d) d.scrollTop = 0;
@@ -769,12 +752,7 @@ function ClassDetails(props) {
             }}
           >
             <img
-              onClick={() =>
-                window.open(
-                  props.classes[id]?.bg_image || props.classes[id]?.image,
-                  "_blank"
-                )
-              }
+              onClick={() => props.history.push("/class/" + id)}
               src={props.classes[id]?.bg_image || props.classes[id]?.image}
               width="auto"
               height="100%"
@@ -813,7 +791,9 @@ function ClassDetails(props) {
             fontSize: 18,
             fontWeight: 500,
             marginLeft: 13,
+            cursor: "pointer",
           }}
+          onClick={() => !editing && props.history.push("/class/" + id)}
         >
           {CLASS?.name}
         </Typography>
@@ -841,7 +821,7 @@ function ClassDetails(props) {
             onClick={() => {
               setCLASS({
                 ...initialClass,
-                subject_id: props.subjects[0]?.id,
+                subject_id: props.class?.subject?.id || props.subjects[0]?.id,
                 year_id: props.years[0]?.id,
                 section_id: props.sections[0]?.id,
               });
@@ -859,15 +839,21 @@ function ClassDetails(props) {
         value={value}
         onChange={handleChange}
       >
-        <Tab label="Details" {...a11yProps(0)} />
-        <Tab label="Schedules" {...a11yProps(1)} />
-        {!props.editOnly && (
-          <Tab
-            label="Students"
-            {...a11yProps(2)}
-            onClick={() => getStudents()}
-          />
-        )}
+        {tabMap
+          .filter((q) => !q.hidden)
+          .map((tab, index) => (
+            <Tab
+              key={tab.key}
+              label={tab.label}
+              {...a11yProps(index)}
+              onClick={() => {
+                props.history.push(
+                  window.location.search.replaceUrlParam("section", tab.key)
+                );
+                tab.onClick && tab.onClick();
+              }}
+            />
+          ))}
       </Tabs>
       <Box width="100%" overflow="auto" p={4}>
         <Box component={Paper} p={4}>
@@ -990,7 +976,7 @@ function ClassDetails(props) {
                     />
                   </Box>
                 ))}
-                <Box display="flex" style={{ marginTop: "50px" }}>
+                <Box display="flex" style={{ marginTop: "44px" }}>
                   {CLASS.subjects && (
                     <FormControl
                       className="themed-input"
@@ -1018,7 +1004,7 @@ function ClassDetails(props) {
                     </FormControl>
                   )}
                 </Box>
-                <Box display="flex" style={{ marginTop: "50px" }}>
+                <Box display="flex" style={{ marginTop: "44px" }}>
                   {CLASS.section_id ? (
                     <FormControl
                       className="themed-input"
@@ -1051,7 +1037,7 @@ function ClassDetails(props) {
                     </Box>
                   )}
                 </Box>
-                <Box display="flex" style={{ marginTop: "50px" }}>
+                <Box display="flex" style={{ marginTop: "44px" }}>
                   {CLASS.year_id ? (
                     <FormControl
                       className="themed-input"
@@ -1089,7 +1075,7 @@ function ClassDetails(props) {
             <TabPanel value={value} index={1}>
               <Box display="flex">
                 <Box>
-                  <Box marginTop={"50px"} display="flex">
+                  <Box marginTop={"44px"} display="flex">
                     <TextField
                       variant="outlined"
                       label={"Date" + (editing ? "*" : "")}
@@ -1253,7 +1239,18 @@ function ClassDetails(props) {
                                   : null
                               )
                               .filter((f) => f !== null)
-                          : null
+                          : CLASS.frequency.split(",").filter((q) => !!q)
+                              .length &&
+                            sortedFrequency
+                              .map((f, i) =>
+                                CLASS.frequency
+                                  .split(",")
+                                  .filter((q) => !!q)
+                                  .indexOf(f.toUpperCase()) >= 0
+                                  ? i
+                                  : null
+                              )
+                              .filter((f) => f !== null)
                       }
                     />
                   </CalendarProvider>
@@ -1261,190 +1258,717 @@ function ClassDetails(props) {
               </Box>
             </TabPanel>
             <TabPanel value={value} index={2}>
-              <Box
-                width="100%"
-                display="flex"
-                justifyContent="space-between"
-                marginBottom={4}
-              >
-                <Box>
-                  {/* <Button variant="contained" color="secondary">
-                    Add Student
-                  </Button> */}
-                </Box>
-                <Box>
-                  <SearchInput onChange={(e) => setSearch(e)} />
-                </Box>
-              </Box>
-              <Table
-                noSelect
-                loading={loading}
-                saving={saving}
-                savingId={savingId}
-                headers={[
-                  { id: "id", title: "ID", width: "5%" },
-                  { id: "first_name", title: "Name", width: "31%" },
-                  { id: "phone_number", title: "Phone", width: "31%" },
-                  { id: "email", title: "Email", width: "31%" },
-                ]}
-                filtered={(t) => getFilteredStudents(t)}
-                data={students}
-                actions={{
-                  _handleFileOption: (opt, item) =>
-                    _handleFileOption(opt, item),
-                }}
-                options={[
-                  {
-                    name: "Reset Password",
-                    value: "reset-password",
-                  },
-                ]}
-                style={{ margin: 0 }}
-                pagination={{
-                  page: 1,
-                  render: (
-                    <Pagination
-                      page={page}
-                      onChange={(e) => setPage(e)}
-                      count={getFilteredStudents().length}
-                      icon={
-                        search ? (
-                          <img
-                            src="/hero-img/person-search.svg"
-                            width={180}
-                            style={{ padding: "50px 0" }}
-                          />
-                        ) : (
-                          ""
-                        )
-                      }
-                      emptyTitle={"Nothing Found"}
-                      emptyMessage={"Try a different keyword."}
-                      nolink
-                    />
-                  ),
-                }}
-                rowRenderMobile={(item, { disabled = false }) => (
-                  <Box
-                    onClick={() => !disabled && _handleFileOption("view", item)}
-                    display="flex"
-                    flexWrap="wrap"
-                    width="90%"
-                    flexDirection="column"
-                    justifyContent="space-between"
-                    style={{ padding: "30px 0" }}
-                  >
-                    <Box width="100%" marginBottom={1}>
-                      <Typography
-                        style={{
-                          fontWeight: "bold",
-                          color: "#38108d",
-                          fontSize: "1em",
-                        }}
-                      >
-                        TITLE
-                      </Typography>
-                      <Box
-                        display="flex"
-                        alignItems="center"
-                        style={{ margin: "13px 0" }}
-                      >
-                        <Avatar
-                          src={item.preferences?.profile_picture}
-                          alt={item.first_name}
-                        />
-                        <Typography
-                          variant="body1"
-                          style={{
-                            fontWeight: "bold",
-                            marginLeft: 13,
-                            fontSize: "0.9em",
-                          }}
-                        >
-                          {item.first_name + " " + item.last_name}
-                        </Typography>
-                      </Box>
-                    </Box>
-                    <Box width="100%" marginBottom={1}>
-                      <Typography
-                        style={{
-                          fontWeight: "bold",
-                          color: "#38108d",
-                          fontSize: "1em",
-                        }}
-                      >
-                        PHONE
-                      </Typography>
-                      <Typography
-                        variant="body1"
-                        style={{
-                          fontWeight: "bold",
-                          fontSize: "0.9em",
-                          color:
-                            item.done !== "true"
-                              ? theme.palette.success.main
-                              : theme.palette.error.main,
-                        }}
-                      >
-                        {item.phone_number}
-                      </Typography>
-                    </Box>
-                    <Box width="100%">
-                      <Typography
-                        style={{
-                          fontWeight: "bold",
-                          color: "#38108d",
-                          fontSize: "1em",
-                        }}
-                      >
-                        EMAIL
-                      </Typography>
-                      <Box display="flex" alignItems="center">
-                        {item.email}
-                      </Box>
-                    </Box>
-                  </Box>
-                )}
-                rowRender={(item) => (
-                  <Box
-                    p={2}
-                    display="flex"
-                    width="100%"
-                    onClick={() =>
-                      props.history.push(
-                        window.location.search.replaceUrlParam(
-                          "classId",
-                          item.id
-                        )
-                      )
-                    }
-                  >
-                    <Box width="5%">
-                      <Typography>{item.id}</Typography>
-                    </Box>
-                    <Box width="31%" display="flex" alignItems="center">
-                      <Avatar
-                        src={item.preferences?.profile_picture}
-                        alt={item.first_name}
-                      />
-                      <Typography style={{ marginLeft: 13 }}>
-                        {item.first_name &&
-                          item.first_name + " " + item.last_name}
-                      </Typography>
-                    </Box>
-                    <Box width="31%">
-                      <Typography>{item.phone_number}</Typography>
-                    </Box>
-                    <Box width="31%">
-                      <Typography>{item.email}</Typography>
-                    </Box>
-                  </Box>
-                )}
-              />
+              <UserTable name="students" />
             </TabPanel>
           </form>
         </Box>
       </Box>
+    </React.Fragment>
+  );
+}
+
+const createFormField = (key, name, opt) => ({ key, name, ...opt });
+const form = {
+  teacher: [
+    createFormField("username", "Username", {
+      required: true,
+      minChar: 4,
+      maxChar: 11,
+      pattern: /[a-zA-Z]+/,
+    }),
+    createFormField("password", "Password", {
+      required: true,
+      minChar: 4,
+      props: {
+        type: "password",
+      },
+    }),
+    createFormField("first_name", "First Name", {
+      required: true,
+      minChar: 2,
+      maxChar: 26,
+      pattern: /[a-zA-Z]+/,
+    }),
+    createFormField("last_name", "Last Name", {
+      required: true,
+      minChar: 2,
+      maxChar: 26,
+      pattern: /[a-zA-Z]+/,
+    }),
+    createFormField("middle_name", "Middle Name", {
+      minChar: 1,
+      maxChar: 26,
+      pattern: /[a-zA-Z]+/,
+    }),
+    createFormField("gender", "Gender", { pattern: /[a-zA-Z]+/ }),
+    createFormField("email", "Email", {
+      pattern: /^(([^<>()\[\]\.,;:\s@\"]+(\.[^<>()\[\]\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()[\]\.,;:\s@\"]+\.)+[^<>()[\]\.,;:\s@\"]{2,})$/i,
+      props: {
+        type: "email",
+      },
+    }),
+    createFormField("phone_number", "Phone"),
+  ],
+};
+form.parent = form.teacher;
+form.student = form.teacher;
+function Accounts(props) {
+  const query = qs.parse(window.location.search);
+  let teacherTableRef;
+  const tabMap = [
+    createTab("teachers", "Teachers"),
+    createTab("parents", "Parents"),
+    createTab("students", "Students"),
+  ];
+  const [success, setSuccess] = useState(false);
+  const [errors, setErrors] = useState({});
+  const tabid = tabMap.findIndex((q) => q.key === query.section);
+  const [value, setValue] = useState(tabid >= 0 ? tabid : 0);
+  const [children, setChildren] = useState([]);
+  const [childrenSearch, setChildrenSearch] = useState("");
+  const [childrenPage, setChildrenPage] = useState(1);
+  const [loadingChildren, setLoadingChildren] = useState(true);
+  const [selectedChild, setSelectedChild] = useState();
+  const [saving, setSaving] = useState(false);
+  const handleChange = (event, newValue) => {
+    setValue(newValue);
+  };
+  const getFilteredChildren = useCallback(
+    () =>
+      children?.filter(
+        (q) =>
+          JSON.stringify(q)
+            .toLowerCase()
+            .indexOf(childrenSearch.toLowerCase()) >= 0
+      ) || [],
+    [childrenSearch, children]
+  );
+  const addChild = (c) => {
+    if (!c?.id) return;
+    fetchData({
+      before: () => setSaving(true),
+      send: async () =>
+        Api.post("/api/schooladmin/parent/add-child", {
+          body: { parent_id: parseInt(query.parent), student_id: c.id },
+        }),
+      after: (data) => {
+        if (data?.id) {
+          setSuccess(true);
+        }
+        setSaving(false);
+      },
+    });
+  };
+  const registerUser = (name) => {
+    if (!form[name]) return;
+    let errors = {};
+    let body = {};
+    form[name].forEach((field) => {
+      const { minChar, value, required, maxChar, key, pattern } = field;
+      body[key] = value;
+      let e;
+      if (required) {
+        if (!value) {
+          e = "Please enter a " + field.name;
+        } else if (minChar && value?.length < minChar) {
+          e = "Please enter at least " + minChar + " length " + field.name;
+        } else if (maxChar && value?.length > maxChar) {
+          e = "Maximum characters execeed.";
+        } else if (pattern && !new RegExp(pattern).test(value)) {
+          e = "Please enter a valid " + field.name;
+        }
+      } else if (value && pattern && !new RegExp(pattern).test(value)) {
+        e = "Please enter a valid " + field.name;
+      }
+      if (e) errors[key] = e;
+    });
+    if (!Object.keys(errors).length) {
+      fetchData({
+        send: async () =>
+          await Api.post("/api/admin/register/" + name, { body }),
+        after: (data) => {
+          if (data && data.id && teacherTableRef?.appendData) {
+            teacherTableRef.appendData(data);
+            setErrors({});
+            form[name].forEach((field) => {
+              delete field.value;
+            });
+            props.history.push(
+              window.location.search.replaceUrlParam("register", "")
+            );
+          }
+        },
+      });
+    } else {
+      setErrors(errors);
+    }
+  };
+  useEffect(() => {
+    if (query.action === "add-child")
+      fetchData({
+        before: () => {
+          setChildren(null);
+          setLoadingChildren(true);
+        },
+        send: async () => await Api.get("/api/schooladmin/students"),
+        after: (data) => {
+          if (typeof data === "object")
+            setChildren(
+              data.map((q) => ({
+                ...q,
+                name: q.first_name + " " + q.last_name,
+              }))
+            );
+          else setChildren(null);
+          setLoadingChildren(false);
+        },
+      });
+  }, [query.action]);
+  const AccountPanel = useCallback(
+    ({ name, tableProps }) => (
+      <React.Fragment>
+        <UserTable
+          name={name + "s"}
+          actions={[
+            {
+              name: "Add " + name.ucfirst(),
+              onClick: () =>
+                props.history.push(
+                  window.location.search.replaceUrlParam("register", name)
+                ),
+            },
+          ]}
+          getRef={(r) => (teacherTableRef = r)}
+          {...(tableProps || {})}
+          {...props}
+        />
+        <BlankDialog
+          open={query.register === name}
+          title={"Add New " + name.ucfirst()}
+          onClose={() => {
+            setErrors([]);
+            props.history.push(
+              window.location.search.replaceUrlParam("register", "")
+            );
+            form[name].forEach((field) => {
+              delete field.value;
+            });
+          }}
+          actions={<Button onClick={() => registerUser(name)}>Submit</Button>}
+        >
+          <form action="#">
+            {form[name].map((field, index) => (
+              <TextField
+                key={index}
+                fullWidth
+                required={field.required}
+                onChange={(e) => {
+                  field.value = e.target.value;
+                }}
+                label={field.name}
+                error={!!errors[field.key]}
+                helperText={errors[field.key] || ""}
+                variant="outlined"
+                className="themed-input"
+                {...(field.props || {})}
+              />
+            ))}
+          </form>
+        </BlankDialog>
+      </React.Fragment>
+    ),
+    [errors, query.register]
+  );
+  const ChildrenDialog = useCallback(
+    ({ title, action = {} }) => (
+      <BlankDialog
+        open={query.action === action.query}
+        title={title}
+        onClose={() => {
+          props.history.push(
+            window.location.search.replaceUrlParam("action", "")
+          );
+        }}
+        actions={
+          <SavingButton saving={saving} onClick={() => addChild(selectedChild)}>
+            {action.saveTitle}
+          </SavingButton>
+        }
+      >
+        <SearchInput
+          onChange={(e) => {
+            setChildrenSearch(e);
+          }}
+        />
+        {selectedChild && (
+          <React.Fragment>
+            <Box
+              p={3}
+              className="sticky"
+              onClick={() => {}}
+              display={"flex"}
+              justifyContent="flex-start"
+              alignItems="center"
+              component={Paper}
+              style={{
+                cursor: "pointer",
+                top: 0,
+                left: 0,
+                right: 0,
+                zIndex: 11,
+              }}
+            >
+              <Avatar
+                src={selectedChild?.preferences?.profile_picture}
+                alt={selectedChild?.first_name}
+              />
+              <Box marginLeft={2}>
+                <Typography style={{ fontSize: 12 }}>
+                  Selected Student
+                </Typography>
+                <Typography
+                  style={{
+                    fontWeight: 16,
+                    fontWeight: 500,
+                  }}
+                >
+                  {selectedChild?.first_name + " " + selectedChild?.last_name}
+                </Typography>
+              </Box>
+            </Box>
+          </React.Fragment>
+        )}
+        {loadingChildren && (
+          <Box
+            width="100%"
+            display="flex"
+            alignItems="center"
+            justifyContent="center"
+            p={4}
+          >
+            <CircularProgress />
+          </Box>
+        )}
+        {!loadingChildren && (
+          <React.Fragment>
+            <List>
+              {getPageItems(getFilteredChildren(), childrenPage).map(
+                (child, index) => (
+                  <ListItem
+                    disabled={saving}
+                    key={index}
+                    button
+                    divider
+                    selected={selectedChild?.id === child.id || false}
+                    onClick={() => setSelectedChild(child)}
+                  >
+                    <ListItemAvatar>
+                      <Avatar
+                        src={child.preferences?.profile_picture}
+                        alt={child.name}
+                      />
+                    </ListItemAvatar>
+                    <ListItemText
+                      primary={child.name}
+                      secondary={child.phone_number}
+                    />
+                  </ListItem>
+                )
+              )}
+            </List>
+            <Pagination
+              count={getFilteredChildren().length}
+              nolink
+              page={childrenPage}
+              onChange={(p) => setChildrenPage(p)}
+              icon={
+                childrenSearch ? (
+                  <img
+                    src="/hero-img/person-search.svg"
+                    width={180}
+                    style={{ padding: "50px 0" }}
+                  />
+                ) : (
+                  <img
+                    src="/hero-img/undraw_Progress_tracking_re_ulfg.svg"
+                    width={180}
+                    style={{ padding: "50px 0" }}
+                  />
+                )
+              }
+              emptyTitle={"Nothing Found"}
+              emptyMessage={
+                childrenSearch ? "Try a different keyword." : "No Data"
+              }
+            />
+          </React.Fragment>
+        )}
+      </BlankDialog>
+    ),
+    [
+      childrenPage,
+      childrenSearch,
+      getFilteredChildren,
+      loadingChildren,
+      selectedChild,
+      query.action,
+      saving,
+    ]
+  );
+  return (
+    <React.Fragment>
+      <Snackbar
+        open={success}
+        autoHideDuration={6000}
+        onClose={() => setSuccess(false)}
+      >
+        <Alert severity="success" onClose={() => setSuccess(false)}>
+          Success
+        </Alert>
+      </Snackbar>
+      <Tabs
+        style={{ padding: "0 30px" }}
+        orientation="horizontal"
+        variant="scrollable"
+        value={value}
+        onChange={handleChange}
+      >
+        {tabMap.map((tab, index) => (
+          <Tab
+            key={tab.key}
+            label={tab.label}
+            {...a11yProps(index)}
+            onClick={() =>
+              props.history.push(
+                "/dashboard/" +
+                  window.location.search.replaceUrlParam("section", tab.key)
+              )
+            }
+          />
+        ))}
+      </Tabs>
+      <Box m={4} p={2}>
+        <TabPanel value={value} index={0}>
+          {AccountPanel({ name: "teacher" })}
+        </TabPanel>
+        <TabPanel value={value} index={1}>
+          {AccountPanel({
+            name: "parent",
+            tableProps: {
+              options: [
+                { name: "Add Child", value: "add-child" },
+                { name: "Remove Child", value: "remove-child" },
+              ],
+            },
+          })}
+          {ChildrenDialog({
+            title: "Add Child",
+            action: { saveTitle: "Add Child", query: "add-child" },
+          })}
+          {ChildrenDialog({
+            title: "Add Child",
+            action: { saveTitle: "Remove Child", query: "remove-child" },
+          })}
+        </TabPanel>
+        <TabPanel value={value} index={2}>
+          {AccountPanel({ name: "student" })}
+        </TabPanel>
+      </Box>
+    </React.Fragment>
+  );
+}
+const fetchData = async ({
+  before = null,
+  send,
+  after = null,
+  onError = null,
+} = {}) => {
+  if (!send) return;
+  let res;
+  before && before();
+  try {
+    res = await send();
+  } catch (e) {
+    onError && onError(e);
+  }
+  after && after(res);
+};
+function UserTable(props) {
+  const theme = useTheme();
+  const query = qs.parse(window.location.search);
+  const [saving, setSaving] = useState(false);
+  const [savingId, setSavingId] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [data, setData] = useState([]);
+  const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
+  const [success, setSuccess] = useState(false);
+  const _handleFileOption = (opt, item) => {
+    switch (opt) {
+      case "add-child":
+        props.history.push(
+          window.location.search
+            .replaceUrlParam("action", "add-child")
+            .replaceUrlParam("parent", item.id)
+        );
+        return;
+      case "reset-password":
+        fetchData({
+          before: () => {
+            setSaving(true);
+            setSavingId([item.id]);
+          },
+          send: async () =>
+            await Api.post("/api/schooladmin/change-user-password", {
+              body: {
+                username: item.username,
+                password: item.username,
+              },
+            }),
+          after: (data) => {
+            if (data && data.success) {
+              setSuccess(true);
+            }
+            setSaving(false);
+            setSavingId([]);
+          },
+        });
+        return;
+    }
+  };
+  const appendData = (d) => {
+    setData([...data, d]);
+  };
+  const getFilteredData = (d = data) =>
+    [...d]
+      .filter(
+        (q) =>
+          JSON.stringify(q).toLowerCase().indexOf(search.toLowerCase()) >= 0
+      )
+      .sort((a, b) => b.id - a.id);
+  useEffect(() => {
+    if (props.name)
+      fetchData({
+        send: () => Api.get("/api/schooladmin/" + props.name),
+        before: () => setLoading(true),
+        after: (data) => {
+          if (data?.length)
+            setData(
+              data.map((q) => ({
+                ...q,
+                name: q.first_name + " " + q.last_name,
+              }))
+            );
+          setLoading(false);
+        },
+      });
+  }, [props.name]);
+  useEffect(() => {
+    if (typeof props.getRef === "function") props.getRef({ appendData });
+  }, [props.getRef]);
+  return (
+    <React.Fragment>
+      <Snackbar
+        open={success}
+        autoHideDuration={6000}
+        onClose={() => setSuccess(false)}
+      >
+        <Alert severity="success" onClose={() => setSuccess(false)}>
+          Success
+        </Alert>
+      </Snackbar>
+      <Box paddingBottom={2} display="flex" justifyContent="space-between">
+        <Box>
+          {(props.actions || []).map((a, i) => (
+            <Button variant="contained" color="secondary" onClick={a.onClick}>
+              {a.name}
+            </Button>
+          ))}
+        </Box>
+        <Box>
+          <SearchInput onChange={(e) => setSearch(e)} />
+        </Box>
+      </Box>
+      {loading && (
+        <Box
+          width="100%"
+          display="flex"
+          alignItems="center"
+          justifyContent="center"
+          p={4}
+        >
+          <CircularProgress />
+        </Box>
+      )}
+      {!loading && (
+        <Table
+          noSelect
+          loading={loading}
+          saving={saving}
+          savingId={savingId}
+          headers={[
+            { id: "id", title: "ID", width: "5%" },
+            { id: "first_name", title: "Name", width: "31%" },
+            { id: "phone_number", title: "Phone", width: "31%" },
+            { id: "email", title: "Email", width: "31%" },
+          ]}
+          filtered={(t) => getFilteredData(t)}
+          data={data}
+          actions={{
+            _handleFileOption: (opt, item) => _handleFileOption(opt, item),
+          }}
+          options={[
+            {
+              name: "Reset Password",
+              value: "reset-password",
+            },
+          ].concat(props.options || [])}
+          style={{ margin: 0 }}
+          pagination={{
+            page,
+            render: (
+              <Pagination
+                page={page}
+                onChange={(e) => setPage(e)}
+                count={getFilteredData().length}
+                icon={
+                  search ? (
+                    <img
+                      src="/hero-img/person-search.svg"
+                      width={180}
+                      style={{ padding: "50px 0" }}
+                    />
+                  ) : (
+                    <img
+                      src="/hero-img/undraw_Progress_tracking_re_ulfg.svg"
+                      width={180}
+                      style={{ padding: "50px 0" }}
+                    />
+                  )
+                }
+                emptyTitle={"Nothing Found"}
+                emptyMessage={"Try a different keyword."}
+                nolink
+              />
+            ),
+            onChangePage: (p) => setPage(p),
+          }}
+          rowRenderMobile={(item, { disabled = false }) => (
+            <Box
+              onClick={() => !disabled && _handleFileOption("view", item)}
+              display="flex"
+              flexWrap="wrap"
+              width="90%"
+              flexDirection="column"
+              justifyContent="space-between"
+              style={{ padding: "30px 0" }}
+            >
+              <Box width="100%" marginBottom={1}>
+                <Typography
+                  style={{
+                    fontWeight: "bold",
+                    color: "#38108d",
+                    fontSize: "1em",
+                  }}
+                >
+                  NAME
+                </Typography>
+                <Box
+                  display="flex"
+                  alignItems="center"
+                  style={{ margin: "13px 0" }}
+                >
+                  <Avatar
+                    src={item.preferences?.profile_picture}
+                    alt={item.first_name}
+                  />
+                  <Box marginLeft={2}>
+                    <Typography
+                      variant="body1"
+                      style={{
+                        fontWeight: "bold",
+                        fontSize: "0.9em",
+                      }}
+                    >
+                      {item.first_name + " " + item.last_name}
+                    </Typography>
+                    <Typography
+                      variant="body1"
+                      style={{
+                        fontWeight: "bold",
+                        fontSize: "0.6em",
+                      }}
+                      color="textSecondary"
+                    >
+                      {item.username}
+                    </Typography>
+                  </Box>
+                </Box>
+              </Box>
+              <Box width="100%" marginBottom={1}>
+                <Typography
+                  style={{
+                    fontWeight: "bold",
+                    color: "#38108d",
+                    fontSize: "1em",
+                  }}
+                >
+                  PHONE
+                </Typography>
+                <Typography
+                  variant="body1"
+                  style={{
+                    fontWeight: "bold",
+                    fontSize: "0.9em",
+                    color:
+                      item.done !== "true"
+                        ? theme.palette.success.main
+                        : theme.palette.error.main,
+                  }}
+                >
+                  {item.phone_number}
+                </Typography>
+              </Box>
+              <Box width="100%">
+                <Typography
+                  style={{
+                    fontWeight: "bold",
+                    color: "#38108d",
+                    fontSize: "1em",
+                  }}
+                >
+                  EMAIL
+                </Typography>
+                <Box display="flex" alignItems="center">
+                  {item.email}
+                </Box>
+              </Box>
+            </Box>
+          )}
+          rowRender={(item) => (
+            <Box p={2} display="flex" width="100%">
+              <Box width="5%">
+                <Typography>{item.id}</Typography>
+              </Box>
+              <Box width="31%" display="flex" alignItems="center">
+                <Avatar
+                  src={item.preferences?.profile_picture}
+                  alt={item.first_name}
+                />
+                <Typography style={{ marginLeft: 13 }}>
+                  {item.first_name && item.first_name + " " + item.last_name}
+                </Typography>
+              </Box>
+              <Box width="31%">
+                <Typography>{item.phone_number}</Typography>
+              </Box>
+              <Box width="31%">
+                <Typography>{item.email}</Typography>
+              </Box>
+            </Box>
+          )}
+        />
+      )}
     </React.Fragment>
   );
 }
