@@ -3,7 +3,7 @@ import { Button, CircularProgress } from "@material-ui/core";
 
 function SavingButton(props) {
   return (
-    <Button {...props} disabled={props.saving || false}>
+    <Button {...props} disabled={props.saving || false || props.disabled}>
       {props.saving === true && (
         <div
           style={{

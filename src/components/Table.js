@@ -382,8 +382,9 @@ function Table(props) {
                             })
                           }
                         >
-                          {(props.options || []).map((t) => (
+                          {(props.options || []).map((t, index) => (
                             <StyledMenuItem
+                              key={index}
                               onClick={() => {
                                 if (props.actions["_handleFileOption"]) {
                                   props.actions["_handleFileOption"](

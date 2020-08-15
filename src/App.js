@@ -329,6 +329,15 @@ export const setTitle = (
     pageState.subtitles = subtitles;
   }
 };
+String.prototype.titleCase = function () {
+  var str = this.valueOf();
+  var splitStr = str.toLowerCase().split(" ");
+  for (var i = 0; i < splitStr.length; i++) {
+    splitStr[i] =
+      splitStr[i].charAt(0).toUpperCase() + splitStr[i].substring(1);
+  }
+  return splitStr.join(" ");
+};
 String.prototype.ucfirst = function () {
   var firstLetter = this.valueOf().substr(0, 1);
   return firstLetter.toUpperCase() + this.valueOf().substr(1);
