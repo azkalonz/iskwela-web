@@ -92,6 +92,23 @@ function HTML(props) {
               button {
                   display:none;
               }
+
+              button:hover{
+                background-color: #250A52;
+            }
+    
+            .buttonPrint{
+                display: flex;
+                margin: 6px;
+                padding:5px;
+                font-weight: bold;
+                background-color: #6A2BD9;
+                color:#FBF5FE;
+                border: none;
+                font-size-adjust: inherit; 
+                font-size: 15px; 
+                border-radius: 5px; 
+            }
       
               .wrapper{
                   display:flex;
@@ -144,6 +161,7 @@ function HTML(props) {
                   padding: 60px;
                   padding-top: 40px;
               }
+              h2{ display:none; }
               .logo-white {display: none!important;}
               
               @media only screen and (max-width: 1366px) {
@@ -215,6 +233,10 @@ function HTML(props) {
                     padding: 15px; 
                     border-radius: 10px; 
                     font-size: 20px;
+              }
+
+              h2{
+                  display: flex;
               }
               
               }
@@ -325,12 +347,16 @@ function HTML(props) {
       </div>
       
       <div class="content">
-          <div class="top" style="display: flex;align-items: center;justify-content: flex-start;">
+          <div class="top" style="display: flex;align-items: center;justify-content: flex-end;">
               <div class="logo-white" style="display: flex;margin-left: 13px">
                   <img src="/logo/logo-full.svg" width="150" />
-                  <h1>|</h1>
+                  
               </div>
-              <h1 style="margin:0;">User Manual</h1>
+              <h1 style="margin:0;margin-right:auto;">User Manual</h1>
+              <h2 style="color:whitesmoke;">|</h2>
+              <button onclick="window.print()" class="buttonPrint print">
+			    PRINT
+		      </button>
           </div>
           <hr/>
       <div>
@@ -677,7 +703,12 @@ function HTML(props) {
           <p>
               <h3><a name="attendance">Attendance</a></h3>
                   <p>Keeps track of the students absences and presence in the class.</p><br/>
-                  <img src="/images/attendance.PNG"/>
+                  <img src="/images/attendance.PNG"/><br/>
+                  <p>Below are the legends together with their corresponding interpretations.</p><br/>
+                  <img src="/images/reports_sched.PNG"/>
+                  <img src="/images/reports_unmarked.PNG"/>
+                  <img src="/images/reports_present.PNG"/>
+                  <img src="/images/reports_absent.PNG"/>
                   
               <h3><a name="scores">Scores</a></h3>
                   <p>Contains the list of students' scores from different activities.</p><br/>
