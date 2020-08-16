@@ -174,11 +174,10 @@ function Drawer(props) {
                         {item.name[0].toUpperCase()}
                       </span>
                       <span style={{ fontSize: "0.8em" }}>
-                        {
-                          item.name
-                            .substr(item.name.search(/\d/), item.name.length)
-                            ?.split(" ")[0]
-                        }
+                        {item.name.substr(
+                          item.name.search(/\d/),
+                          item.name.length
+                        )}
                       </span>
                     </Typography>
                   </Box>
