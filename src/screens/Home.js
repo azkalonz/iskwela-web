@@ -374,7 +374,7 @@ function Home(props) {
     let r = props.classes
       .filter((q) => {
         if (showClasses === "today") {
-          if (q.next_schedule) {
+          if (q.next_schedule?.length) {
             return (
               moment(q.next_schedule.from).format("MMM DD, YYYY") ===
               moment().format("MMM DD, YYYY")

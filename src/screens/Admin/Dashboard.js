@@ -1165,12 +1165,30 @@ function GradingCategories(props) {
   const query = qs.parse(window.location.search);
   const [success, setSuccess] = useState(false);
   const [grading, setGrading] = useState([]);
+  const [subjects, setSubjects] = useState([]);
+  const [subjectGrading, setSubjectGrading] = useState([]);
   const [loading, setLoading] = useState(true);
   const [errors, setErrors] = useState([]);
   const [saving, setSaving] = useState(false);
   const [savingId, setSavingId] = useState([]);
   const [currentCategory, setCurrentCategory] = useState();
-  const tabMap = useMemo(() => [createTab("school", "School Grading")], []);
+  const tabMap = useMemo(
+    () => [
+      createTab("subject-grading", "Subject Grading", {
+        onClick: () =>
+          props.history.push(
+            window.location.search.replaceUrlParam("subject_id", "")
+          ),
+      }),
+      createTab("categories", "Grading Categories", {
+        onClick: () =>
+          props.history.push(
+            window.location.search.replaceUrlParam("subject_id", "")
+          ),
+      }),
+    ],
+    []
+  );
   const tabid = useMemo(
     () => tabMap.findIndex((q) => q.key === query.section),
     [tabMap]
@@ -1179,27 +1197,70 @@ function GradingCategories(props) {
   const handleChange = (event, newValue) => {
     setValue(newValue);
   };
-  const removeCategory = (item) => {
-    if (
-      window.confirm(`Are you sure to delete this category (${item.category})`)
-    ) {
+  const getSubjectCategories = (id) => {
+    fetchData({
+      before: () => setLoading(true),
+      send: async () =>
+        await Api.get("/api/schooladmin/subject-grading-categories/" + id),
+      after: (data) => {
+        if (data?.length) {
+          setSubjectGrading(data.sort((a, b) => b.id - a.id));
+          console.log(data);
+        } else setSubjectGrading([]);
+        setLoading(false);
+      },
+    });
+  };
+  const SubjectGradingCategory = useCallback(
+    (item) => {
+      const cat = grading.find(
+        (q) => parseInt(q.id) === parseInt(item.category_id)
+      );
+      return (
+        <Box p={2} display="flex" width="100%">
+          <Box width="50%">
+            <Typography style={{ fontWeight: 600 }}>{cat?.category}</Typography>
+          </Box>
+          <Box width="50%">
+            <Typography style={{ fontWeight: 600 }}>
+              {parseFloat(item.category_percentage) * 100} %
+            </Typography>
+          </Box>
+        </Box>
+      );
+    },
+    [subjectGrading, grading, subjects]
+  );
+  const removeCategory = (item, cat = "school") => {
+    if (window.confirm(`Are you sure to delete this category?`)) {
       fetchData({
         send: async () =>
           Api.delete(
-            "/api/schooladmin/school-grading-category/remove/" + item.id
+            "/api/schooladmin/" + cat + "-grading-category/remove/" + item.id
           ),
         after: (data) => {
-          if (data.success && tableRef["school-grading"].deleteData) {
-            tableRef["school-grading"].deleteData(item.id);
+          if (data?.success && tableRef[cat + "-grading"].deleteData) {
+            tableRef[cat + "-grading"].deleteData(item.id);
+            let d = [...grading];
+            let i = d.findIndex((q) => q.id === item.id);
+            if (i >= 0) {
+              d.splice(i, 1);
+              setGrading(d);
+            }
             setSuccess(true);
           }
           setSaving(false);
         },
       });
     }
+    setCurrentCategory(null);
   };
   const saveCategory = useCallback(
     (name = "category", callback = null) => {
+      const isSubject = !isNaN(parseInt(query.subject_id));
+      if (currentCategory && isSubject) {
+        name = "subjectCategory";
+      }
       if (!form[name]) return;
       let errors = {};
       let body = {};
@@ -1233,37 +1294,66 @@ function GradingCategories(props) {
         if (e) errors[key] = e;
       });
       if (!Object.keys(errors).length) {
-        if (currentCategory) body.id = currentCategory.id;
-        body.category_percentage = parseFloat(body.category_percentage) / 100;
+        let finalBody = {};
+        let pp = parseFloat(body.category_percentage) / 100;
+        body.category_percentage = pp;
+        if (currentCategory && !isSubject) {
+          console.log(1);
+          finalBody.id = currentCategory.id;
+          finalBody.category = body.category;
+        } else if (!currentCategory && !isSubject) {
+          console.log(2);
+          finalBody.category = body.category;
+        } else if (currentCategory && isSubject) {
+          console.log(3);
+          finalBody.category_percentage = pp;
+          finalBody.id = currentCategory.id;
+          finalBody.subject_id = parseInt(currentCategory.subject_id);
+          finalBody.category_id = parseInt(currentCategory.category_id);
+        } else if (!currentCategory && isSubject) {
+          console.log(4);
+          finalBody.category_id = body.category;
+          finalBody.subject_id = parseInt(query.subject_id);
+        }
+        let endpoint = isSubject
+          ? "/api/schooladmin/subject-grading-category/save"
+          : "/api/schooladmin/school-grading-category/save";
         fetchData({
           before: () => setSaving(true),
           send: async () =>
-            await Api.post("/api/schooladmin/school-grading-category/save", {
+            await Api.post(endpoint, {
               body: {
-                ...body,
+                ...finalBody,
                 category_percentage: parseFloat(body.category_percentage),
               },
             }),
           after: (data) => {
             if (data && data.id) {
-              let d = [...grading];
-              let index = d.findIndex((q) => q.id === data.id);
-              if (index >= 0) {
-                d[index] = data;
-                setGrading(d);
+              if (currentCategory && !isSubject) {
+                console.log(5);
+                let d = [...grading];
+                let index = d.findIndex((q) => q.id === data.id);
+                if (index >= 0) {
+                  d[index] = data;
+                  setGrading(d);
+                }
+              } else if (!currentCategory && !isSubject) {
+                console.log(6);
+                setGrading([data, ...grading]);
+              } else if (currentCategory && isSubject) {
+                console.log(7);
+                tableRef["subject-grading"].modifyData(data.id, data);
+              } else if (!currentCategory && isSubject) {
+                console.log(8);
+                tableRef["subject-grading"].appendData(data);
               }
-              if (currentCategory) {
-                tableRef["school-grading"].modifyData(data.id, data);
-              } else {
-                tableRef["school-grading"].appendData(data);
-              }
-              form.category.forEach((field) => {
+              form[name].forEach((field) => {
                 delete field.value;
               });
-              setCurrentCategory(data);
               setSuccess(true);
               callback && callback();
             }
+            setCurrentCategory(null);
             setSaving(false);
             setErrors({});
           },
@@ -1272,36 +1362,68 @@ function GradingCategories(props) {
         setErrors(errors);
       }
     },
-    [currentCategory, success, saving, errors]
+    [
+      currentCategory,
+      success,
+      saving,
+      errors,
+      grading,
+      subjectGrading,
+      query.subject_id,
+    ]
   );
-  const closeCatDialog = () => {
+  const closeCatDialog = (name = "category") => {
     setCurrentCategory(null);
     props.history.push(
       window.location.search
         .replaceUrlParam("action", "")
         .replaceUrlParam("category", "")
     );
-    form.category.forEach((field) => {
+    form[name].forEach((field) => {
       delete field.value;
     });
     setErrors([]);
   };
   useEffect(() => {
+    if (query.subject_id)
+      props.history.push(
+        window.location.search.replaceUrlParam("subject_id", "")
+      );
     fetchData({
       before: () => setLoading(true),
       send: async () =>
         await Api.get("/api/schooladmin/school-grading-categories"),
       after: (data) => {
         if (data?.length) {
-          setGrading(data);
+          setGrading(
+            data
+              .sort((a, b) => b.id - a.id)
+              .filter((q) => q.school_id === props.userInfo.school_id)
+          );
+        }
+      },
+    });
+    fetchData({
+      before: () => setLoading(true),
+      send: async () => await Api.get("/api/subjects"),
+      after: (data) => {
+        if (data?.length) {
+          setSubjects(data);
         }
         setLoading(false);
       },
     });
-  }, [query.section]);
+  }, []);
+  useEffect(() => {
+    let id = parseInt(query.length);
+    if (!isNaN(id) && subjects?.length) {
+      getSubjectCategories(id);
+    }
+  }, [query.subject_id, subjects]);
 
   return (
     <Box>
+      {JSON.stringify(currentCategory)}
       <Snackbar
         open={success}
         autoHideDuration={6000}
@@ -1335,6 +1457,89 @@ function GradingCategories(props) {
           ))}
       </Tabs>
       <BlankDialog
+        title="Create Subject Grading Category"
+        open={query.action === "create-subject-category" || false}
+        onClose={() => {
+          closeCatDialog("subjectCategory2");
+          setCurrentCategory(null);
+        }}
+        actions={
+          <SavingButton
+            saving={saving}
+            onClick={() => saveCategory("subjectCategory2")}
+          >
+            Save
+          </SavingButton>
+        }
+      >
+        <form
+          action="#"
+          onSubmit={(e) => {
+            e.preventDefault();
+            saveCategory("subjectCategory2");
+          }}
+        >
+          <Typography style={{ fontSize: 18, fontWeight: 600 }}>
+            {currentCategory?.category}
+          </Typography>
+          {form.subjectCategory2.map((field, index) => {
+            let val = "";
+            if (grading && field.key === "category") {
+              field.options = grading.map((q) => ({
+                key: q.id,
+                value: q.category,
+              }));
+              val = field.options[0]?.key;
+              field.value = val;
+            }
+            return !field.options ? (
+              <TextField
+                key={index}
+                disabled={saving}
+                defaultValue={val}
+                fullWidth
+                required={field.required}
+                onChange={(e) => {
+                  console.log(form.subjectCategory2);
+                  field.value = e.target.value;
+                }}
+                label={field.name}
+                error={!!errors[field.key]}
+                helperText={errors[field.key] || ""}
+                variant="outlined"
+                className="themed-input"
+                {...(field.props || {})}
+              />
+            ) : (
+              <FormControl
+                fullWidth
+                variant="outlined"
+                className="themed-input"
+                style={{ marginTop: "42px" }}
+              >
+                <InputLabel>{field.name}</InputLabel>
+                <Select
+                  required={field.required}
+                  disabled={saving}
+                  onChange={(e) => {
+                    console.log(form.subjectCategory2);
+                    field.value = e.target.value;
+                  }}
+                  label={field.name}
+                  defaultValue={field.options[0]?.key}
+                >
+                  {field.options?.map((op, index) => (
+                    <MenuItem value={op.key} key={index}>
+                      {op.value}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            );
+          })}
+        </form>
+      </BlankDialog>
+      <BlankDialog
         title="Edit Grading Category"
         open={
           (currentCategory &&
@@ -1342,37 +1547,59 @@ function GradingCategories(props) {
             !isNaN(parseInt(query.category))) ||
           false
         }
-        onClose={closeCatDialog}
+        onClose={() => {
+          closeCatDialog();
+          setCurrentCategory(null);
+        }}
         actions={
-          <SavingButton saving={saving} onClick={() => saveCategory()}>
+          <SavingButton
+            saving={saving}
+            onClick={() =>
+              saveCategory(
+                query.subject_id?.length ? "subjectCategory" : "category"
+              )
+            }
+          >
             Save
           </SavingButton>
         }
       >
-        {!saving && (
-          <form
-            action="#"
-            onSubmit={(e) => {
-              e.preventDefault();
-              saveCategory();
-            }}
-          >
-            <Typography style={{ fontSize: 18, fontWeight: 600 }}>
-              {currentCategory?.category}
-            </Typography>
-            {form.category.map((field, index) => {
+        <form
+          action="#"
+          onSubmit={(e) => {
+            e.preventDefault();
+            saveCategory(
+              query.subject_id?.length ? "subjectCategory" : "category"
+            );
+          }}
+        >
+          <Typography style={{ fontSize: 18, fontWeight: 600 }}>
+            {currentCategory?.category ||
+              grading?.find(
+                (q) => parseInt(q.id) === parseInt(currentCategory?.category_id)
+              )?.category}
+          </Typography>
+          {form[query.subject_id?.length ? "subjectCategory" : "category"].map(
+            (field, index) => {
               let val = "";
               if (currentCategory) {
                 val = currentCategory[field.key];
                 if (field.key === "category_percentage") {
                   val = parseFloat(currentCategory[field.key]) * 100;
                 }
+                if (!currentCategory.category && field.key === "category") {
+                  let d = grading.find(
+                    (q) =>
+                      parseInt(q.id) === parseInt(currentCategory.category_id)
+                  );
+                  if (d) val = d.category;
+                }
                 field.value = val;
               }
               return (
                 <TextField
                   key={index}
-                  disabled={saving}
+                  disabled={saving || field.props?.disabled}
                   defaultValue={val}
                   fullWidth
                   required={field.required}
@@ -1387,14 +1614,17 @@ function GradingCategories(props) {
                   {...(field.props || {})}
                 />
               );
-            })}
-          </form>
-        )}
+            }
+          )}
+        </form>
       </BlankDialog>
       <BlankDialog
         title="Create Grading Category"
         open={query.action === "new-category" || false}
-        onClose={closeCatDialog}
+        onClose={() => {
+          closeCatDialog();
+          setCurrentCategory(null);
+        }}
         actions={
           <SavingButton
             saving={saving}
@@ -1451,23 +1681,222 @@ function GradingCategories(props) {
           </form>
         )}
       </BlankDialog>
-      <Box p={2}>
+      <Box p={4}>
+        {loading && (
+          <Box
+            width="100%"
+            display="flex"
+            alignItems="center"
+            justifyContent="center"
+            p={4}
+          >
+            <CircularProgress />
+          </Box>
+        )}
         <TabPanel value={value} index={0}>
-          {loading && (
-            <Box
-              width="100%"
-              display="flex"
-              alignItems="center"
-              justifyContent="center"
-              p={4}
-            >
-              <CircularProgress />
-            </Box>
+          {!loading && (
+            <React.Fragment>
+              {!query.subject_id?.length ? (
+                <UserTable
+                  {...props}
+                  onSelect={(item) => setCurrentCategory(item)}
+                  loading={loading}
+                  headers={[{ id: "name", title: "Subject", width: "100%" }]}
+                  saving={saving}
+                  savingId={savingId}
+                  data={subjects}
+                  getRef={(ref) => (tableRef["school-grading"] = ref)}
+                  options={[]}
+                  tableProps={{ noOptions: true }}
+                  optionActions={{
+                    delete: (item) => removeCategory(item),
+                  }}
+                  actions={[]}
+                  rowRenderMobile={(item, itemController) => {
+                    const cat = grading.find(
+                      (q) => parseInt(q.id) === parseInt(item.category_id)
+                    );
+                    return (
+                      <Box
+                        display="flex"
+                        flexWrap="wrap"
+                        width="90%"
+                        flexDirection="column"
+                        onClick={() => {
+                          props.history.push(
+                            window.location.search.replaceUrlParam(
+                              "subject_id",
+                              item.id
+                            )
+                          );
+                          getSubjectCategories(item.id);
+                        }}
+                        justifyContent="space-between"
+                        style={{ padding: "30px 0" }}
+                      >
+                        <Box width="100%" marginBottom={1}>
+                          <Typography
+                            style={{
+                              fontWeight: "bold",
+                              color: "#38108d",
+                              fontSize: "1em",
+                            }}
+                          >
+                            CATEGORY NAME
+                          </Typography>
+                          <Typography
+                            variant="body1"
+                            style={{
+                              fontWeight: "bold",
+                              fontSize: "0.9em",
+                            }}
+                          >
+                            {cat.name}
+                          </Typography>
+                        </Box>
+                        <Box width="100%" marginBottom={1}>
+                          <Typography
+                            style={{
+                              fontWeight: "bold",
+                              color: "#38108d",
+                              fontSize: "1em",
+                            }}
+                          >
+                            PERCENTAGE
+                          </Typography>
+                          <Typography
+                            variant="body1"
+                            style={{
+                              fontWeight: "bold",
+                              fontSize: "0.9em",
+                            }}
+                          >
+                            {item.category_percentage}
+                          </Typography>
+                        </Box>
+                      </Box>
+                    );
+                  }}
+                  rowRender={(item, itemController) => {
+                    return (
+                      <Box
+                        p={2}
+                        display="flex"
+                        width="100%"
+                        onClick={() => {
+                          props.history.push(
+                            window.location.search.replaceUrlParam(
+                              "subject_id",
+                              item.id
+                            )
+                          );
+                          getSubjectCategories(item.id);
+                        }}
+                      >
+                        <Box width="100%">
+                          <Typography style={{ fontWeight: 600 }}>
+                            {item.name}
+                          </Typography>
+                        </Box>
+                      </Box>
+                    );
+                  }}
+                />
+              ) : null}
+              {query.subject_id?.length ? (
+                <UserTable
+                  {...props}
+                  onSelect={(item) => setCurrentCategory(item)}
+                  loading={loading}
+                  headers={[
+                    { id: "name", title: "Category Name", width: "50%" },
+                    {
+                      id: "category_percentage",
+                      title: "Percentage",
+                      width: "50%",
+                    },
+                  ]}
+                  saving={saving}
+                  savingId={savingId}
+                  data={subjectGrading}
+                  getRef={(ref) => (tableRef["subject-grading"] = ref)}
+                  options={[
+                    { name: "Edit", value: "edit-category" },
+                    {
+                      name: "Delete",
+                      value: "delete-category",
+                    },
+                  ]}
+                  optionActions={{
+                    delete: (item) => removeCategory(item, "subject"),
+                  }}
+                  actions={[
+                    {
+                      name: "New Category",
+                      onClick: () =>
+                        props.history.push(
+                          window.location.search.replaceUrlParam(
+                            "action",
+                            "create-subject-category"
+                          )
+                        ),
+                    },
+                  ]}
+                  rowRenderMobile={(item, itemController) => (
+                    <Box
+                      display="flex"
+                      flexWrap="wrap"
+                      width="90%"
+                      flexDirection="column"
+                      onClick={() => {
+                        props.history.push(
+                          window.location.search.replaceUrlParam(
+                            "subject_id",
+                            item.id
+                          )
+                        );
+                        getSubjectCategories(item.id);
+                      }}
+                      justifyContent="space-between"
+                      style={{ padding: "30px 0" }}
+                    >
+                      <Box width="100%" marginBottom={1}>
+                        <Typography
+                          style={{
+                            fontWeight: "bold",
+                            color: "#38108d",
+                            fontSize: "1em",
+                          }}
+                        >
+                          SUBJECT
+                        </Typography>
+                        <Typography
+                          variant="body1"
+                          style={{
+                            fontWeight: "bold",
+                            fontSize: "0.9em",
+                          }}
+                        >
+                          {item.name}
+                        </Typography>
+                      </Box>
+                    </Box>
+                  )}
+                  rowRender={(item, itemController) => {
+                    return SubjectGradingCategory(item);
+                  }}
+                />
+              ) : null}
+            </React.Fragment>
           )}
+        </TabPanel>
+        <TabPanel value={value} index={1}>
           {!loading && (
             <UserTable
               {...props}
-              onSelect={(item) => setCurrentCategory(item)}
+              onSelect={(item) => {
+                setCurrentCategory(item);
+              }}
               loading={loading}
               headers={[
                 { id: "id", title: "ID", width: "5%" },
@@ -2398,6 +2827,46 @@ const form = {
       required: true,
     }),
   ],
+  subjectCategory: [
+    createFormField("category", "Category Name", {
+      required: true,
+      minChar: 1,
+      maxChar: 40,
+      pattern: /[a-zA-Z]+/,
+      props: {
+        disabled: true,
+      },
+    }),
+    createFormField("category_percentage", "Percentage", {
+      props: {
+        type: "number",
+        inputProps: {
+          max: 100,
+          min: 1,
+        },
+      },
+      type: "number",
+      required: true,
+    }),
+  ],
+  subjectCategory2: [
+    createFormField("category", "Category Name", {
+      required: true,
+      minChar: 1,
+      maxChar: 40,
+    }),
+    createFormField("category_percentage", "Percentage", {
+      props: {
+        type: "number",
+        inputProps: {
+          max: 100,
+          min: 1,
+        },
+      },
+      type: "number",
+      required: true,
+    }),
+  ],
   teacher: [
     createFormField("username", "Username", {
       required: true,
@@ -2991,7 +3460,7 @@ function Accounts(props) {
     </React.Fragment>
   );
 }
-const fetchData = async ({
+export const fetchData = async ({
   before = null,
   send,
   after = null,
@@ -3069,7 +3538,7 @@ function UserTable(props) {
               },
             }),
           after: (data) => {
-            if (data && data.success) {
+            if (data && data?.success) {
               setSuccess(true);
             }
             setSaving(false);
@@ -3085,6 +3554,9 @@ function UserTable(props) {
   const modifyData = (id, d) => {
     let dd = [...data];
     let index = dd.findIndex((q) => q.id === id);
+    console.log(data);
+    console.log(id);
+    console.log(d);
     if (index >= 0) {
       dd[index] = d;
       setData(dd);
@@ -3189,6 +3661,7 @@ function UserTable(props) {
       )}
       {!loading && (
         <Table
+          {...(props.tableProps ? props.tableProps : {})}
           noSelect
           loading={loading}
           saving={saving}

@@ -87,6 +87,7 @@ function NavBar(props) {
   const classes = useStyles();
   const [anchorEl, setAnchorEl] = useState(null);
   const open = Boolean(anchorEl);
+  const [locked, setLocked] = useState(false);
   const [messageAnchor, setMessageAnchor] = useState(null);
   const [changeProfileDialog, setChangeProfileDialog] = useState(false);
   const [changePassDialog, setchangePassDialog] = useState(false);
@@ -115,6 +116,10 @@ function NavBar(props) {
   };
   useEffect(() => {
     Messages.getRecentMessages(props.userInfo);
+    if (!!window.localStorage["first_loggon_pass"]) {
+      setchangePassDialog(true);
+      setLocked(true);
+    }
   }, []);
   useEffect(() => {
     if (notSeen > 0) {
@@ -164,7 +169,11 @@ function NavBar(props) {
         userInfo={props.userInfo}
       />
       <ChangePasswordDialog
-        open={changePassDialog}
+        open={changePassDialog || locked}
+        passChanged={() => {
+          setLocked(false);
+          setchangePassDialog(false);
+        }}
         onClose={() => setchangePassDialog(false)}
         userInfo={props.userInfo}
       />
@@ -355,8 +364,15 @@ const ChangePasswordDialog = React.memo(function (props) {
   const _handleChangePass = async () => {
     setErrors(false);
     if (!form.current_password) {
-      setErrors(["Enter your current password."]);
-      return;
+      if (!window.localStorage["first_loggon_pass"]) {
+        setErrors(["Enter your current password."]);
+        return;
+      } else {
+        setForm({
+          ...form,
+          current_password: window.localStorage["first_loggon_pass"],
+        });
+      }
     } else if (!form.password) {
       setErrors(["Enter new password."]);
       return;
@@ -366,19 +382,25 @@ const ChangePasswordDialog = React.memo(function (props) {
     }
     setSaving(true);
     await Api.auth();
-    let req = await new Form(form).send("/api/user/change-password");
-    if (!req.errors) {
-      if (req.error) {
-        setErrors(["Invalid password."]);
+    try {
+      let req = await new Form(form).send("/api/user/change-password");
+      if (!req.errors) {
+        if (req.error) {
+          setErrors(["Invalid password."]);
+        } else {
+          setSuccess(true);
+          props.passChanged && props.passChanged();
+          window.localStorage["first_loggon_pass"] = null;
+        }
       } else {
-        setSuccess(true);
+        let err = [];
+        for (let e in req.errors) {
+          err.push(req.errors[e][0]);
+        }
+        setErrors(err);
       }
-    } else {
-      let err = [];
-      for (let e in req.errors) {
-        err.push(req.errors[e][0]);
-      }
-      setErrors(err);
+    } catch (e) {
+      setErrors(["Invalid password."]);
     }
 
     setSaving(false);
@@ -427,19 +449,24 @@ const ChangePasswordDialog = React.memo(function (props) {
       <DialogTitle>Change Password</DialogTitle>
       <DialogContent>
         <Box width="100%">
+          <Typography style={{ marginBottom: 13 }}>
+            You must change your password before logging on the first time.
+          </Typography>
           <TextField
             label="Username"
             value={props.userInfo.username}
             fullWidth
           />
-          <TextField
-            label="Current Password"
-            onChange={(e) =>
-              setForm({ ...form, current_password: e.target.value })
-            }
-            type="password"
-            fullWidth
-          />
+          {!window.localStorage["first_loggon_pass"] && (
+            <TextField
+              label="Current Password"
+              onChange={(e) =>
+                setForm({ ...form, current_password: e.target.value })
+              }
+              type="password"
+              fullWidth
+            />
+          )}
           <TextField
             label="New Password"
             onChange={(e) => setForm({ ...form, password: e.target.value })}
@@ -457,19 +484,21 @@ const ChangePasswordDialog = React.memo(function (props) {
         </Box>
       </DialogContent>
       <DialogActions>
-        <Button
-          disabled={saving ? true : false}
-          onClick={() => {
-            if (saving) return;
-            setErrors(null);
-            setForm({
-              username: props.userInfo.username,
-            });
-            props.onClose();
-          }}
-        >
-          Cancel
-        </Button>
+        {!window.localStorage["first_loggon_pass"] && (
+          <Button
+            disabled={saving ? true : false}
+            onClick={() => {
+              if (saving) return;
+              setErrors(null);
+              setForm({
+                username: props.userInfo.username,
+              });
+              props.onClose();
+            }}
+          >
+            Cancel
+          </Button>
+        )}
         <Button onClick={_handleChangePass} disabled={saving ? true : false}>
           Save
         </Button>

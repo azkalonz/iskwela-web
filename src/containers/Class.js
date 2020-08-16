@@ -48,6 +48,7 @@ import VideoConference from "../containers/VideoConference";
 import { setTitle } from "../App";
 import Scrollbar from "../components/Scrollbar";
 import { defaultClassScreen } from "../screens/Home";
+import { fetchData } from "../screens/Admin/Dashboard";
 
 const classPanelWidth = 355;
 
@@ -108,6 +109,7 @@ function Class(props) {
   const query = require("query-string").parse(window.location.search);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  const [subjectGradingCat, setSubjectGradingCat] = useState([]);
   const [draggable, setDraggable] = useState(false);
   const isTablet = useMediaQuery(theme.breakpoints.down("md"));
   const { room_name, class_id, schedule_id, option_name } = props.match.params;
@@ -161,10 +163,23 @@ function Class(props) {
   }, [CLASS]);
   const _getClass = async () => {
     try {
-      if (props.classDetails[class_id]) {
-        setCLASS(props.classDetails[class_id]);
+      let klass = props.classDetails[class_id];
+      if (klass) {
+        if (klass.subject?.id) {
+          fetchData({
+            send: async () =>
+              await Api.get(
+                "/api/schooladmin/subject-grading-categories/" +
+                  klass.subject.id
+              ),
+            after: (data) => {
+              setSubjectGradingCat(data);
+            },
+          });
+        }
+        setCLASS(klass);
         setTitle(
-          [props.classDetails[class_id].name].concat([
+          [klass.name].concat([
             isValidOption(option_name)
               ? isValidOption(option_name).navTitle
                 ? isValidOption(option_name).navTitle
@@ -1106,6 +1121,7 @@ function Class(props) {
                     isConferencing={isConferencing()}
                     loading={(e) => setRightPanelLoading(e)}
                     fullWidth={query.full_width ? true : false}
+                    subjectGradingCategories={subjectGradingCat}
                     {...props}
                     openFile={(f) => {
                       setFile(f);

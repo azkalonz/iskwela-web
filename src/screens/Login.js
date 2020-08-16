@@ -100,6 +100,11 @@ function LoginContainer(props) {
       if (!res.error) {
         let redirect_url = queryString.parse(window.location.search).r;
         localStorage["auth"] = JSON.stringify(res);
+        if (res?.change_password_required) {
+          window.localStorage["first_loggon_pass"] = password;
+        } else {
+          window.localStorage["first_loggon_pass"] = null;
+        }
         window.location = redirect_url ? redirect_url : "/";
         return;
       } else {
