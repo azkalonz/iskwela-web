@@ -242,6 +242,7 @@ function Scores(props) {
                     ? "Students Scores"
                     : "Score Summary"
                 }
+                style={{ marginBottom: 60 }}
                 onRowClick={(e, row) => {
                   props.history.push(
                     makeLinkTo([
