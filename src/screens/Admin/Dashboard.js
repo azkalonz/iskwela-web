@@ -1590,18 +1590,15 @@ function GradingCategories(props) {
 function ClassDetails(props) {
   const theme = useTheme();
   const { teacher, color, id, subject, section, year } = props.class;
-  console.log(props.class);
-  const frequency = useMemo(
-    () =>
-      props.class?.frequency === "DAILY"
-        ? ["M", "T", "W", "R", "F", "S", "U"]
-        : typeof props.class?.frequency === "object"
-        ? props.class.frequency
-            .split(",")
-            .filter((q) => typeof q === "string" && q)
-        : [],
-    [props.class]
-  );
+  const frequency = useMemo(() => {
+    return props.class?.frequency === "DAILY"
+      ? ["M", "T", "W", "R", "F", "S", "U"]
+      : typeof props.class?.frequency === "string"
+      ? props.class.frequency
+          .split(",")
+          .filter((q) => typeof q === "string" && q)
+      : [];
+  }, [props.class]);
   const sortedFrequency = useMemo(() => ["u", "m", "t", "w", "r", "f", "s"], [
     frequency,
   ]);
@@ -1617,7 +1614,7 @@ function ClassDetails(props) {
       teacher: props.class?.teacher,
       frequency,
       date_from: props.class?.date_from,
-      date_to: props.class?.date_from,
+      date_to: props.class?.date_to,
       time_from: props.class?.time_from,
       time_to: props.class?.time_to,
     }),
@@ -2292,7 +2289,7 @@ function ClassDetails(props) {
                                   setCLASS({
                                     ...CLASS,
                                     frequency: c.filter(
-                                      (q) => typeof q === "string"
+                                      (q) => typeof q === "string" && q
                                     ),
                                   });
                                 }}

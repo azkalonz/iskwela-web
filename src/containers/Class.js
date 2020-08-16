@@ -173,6 +173,19 @@ function Class(props) {
             room_name ? "Video Conference" : undefined,
           ])
         );
+        if (!schedule_id) {
+          await UserData.updateClassDetails(class_id, null, (d) => {
+            if (!schedule_id)
+              history.push(
+                makeLinkTo([
+                  "class",
+                  class_id,
+                  d.id,
+                  defaultClassScreen[props.userInfo.user_type],
+                ])
+              );
+          });
+        }
       } else {
         await UserData.updateClassDetails(class_id, null, (d) => {
           if (!schedule_id)

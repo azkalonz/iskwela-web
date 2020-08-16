@@ -124,9 +124,6 @@ export function Dates({
   useEffect(() => {
     if (!isLoading) setCurrentEvent({ ...currentEvent, opened: false });
   }, [isLoading]);
-  useEffect(() => {
-    console.log(includeDays);
-  }, [includeDays]);
   return (
     <React.Fragment>
       <SetAttendanceDialog
