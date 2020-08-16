@@ -224,19 +224,21 @@ function Schedule(props) {
               noSelect={true}
               pagination={{
                 render: (
-                  <Pagination
-                    emptyMessage={
-                      search
-                        ? "Try a different keyword"
-                        : "There's no schedule in your class yet."
-                    }
-                    icon={search ? "person_search" : "calendar_today"}
-                    emptyTitle={search ? "Nothing Found" : ""}
-                    match={props.match}
-                    page={page}
-                    onChange={(e) => setPage(e)}
-                    count={getFilteredSchedules().length}
-                  />
+                  <Box style={{ marginBottom: 50 }}>
+                    <Pagination
+                      emptyMessage={
+                        search
+                          ? "Try a different keyword"
+                          : "There's no schedule in your class yet."
+                      }
+                      icon={search ? "person_search" : "calendar_today"}
+                      emptyTitle={search ? "Nothing Found" : ""}
+                      match={props.match}
+                      page={page}
+                      onChange={(e) => setPage(e)}
+                      count={getFilteredSchedules().length}
+                    />
+                  </Box>
                 ),
                 page,
                 onChangePage: (p) => setPage(p),

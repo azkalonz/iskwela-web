@@ -473,29 +473,33 @@ function Classes(props) {
                 pagination={{
                   page,
                   render: (
-                    <Pagination
-                      page={page}
-                      onChange={(e) => setPage(e)}
-                      icon={
-                        search ? (
-                          <img
-                            src="/hero-img/search.svg"
-                            width={180}
-                            style={{ padding: "50px 0" }}
-                          />
-                        ) : (
-                          <img
-                            src="/hero-img/undraw_Progress_tracking_re_ulfg.svg"
-                            width={180}
-                            style={{ padding: "50px 0" }}
-                          />
-                        )
-                      }
-                      emptyTitle={search ? "Nothing Found" : false}
-                      emptyMessage={search ? "Try a different keyword." : false}
-                      nolink
-                      count={getFilteredClasses().length}
-                    />
+                    <Box p={2} style={{ marginBottom: 50 }}>
+                      <Pagination
+                        page={page}
+                        onChange={(e) => setPage(e)}
+                        icon={
+                          search ? (
+                            <img
+                              src="/hero-img/search.svg"
+                              width={180}
+                              style={{ padding: "50px 0" }}
+                            />
+                          ) : (
+                            <img
+                              src="/hero-img/undraw_Progress_tracking_re_ulfg.svg"
+                              width={180}
+                              style={{ padding: "50px 0" }}
+                            />
+                          )
+                        }
+                        emptyTitle={search ? "Nothing Found" : false}
+                        emptyMessage={
+                          search ? "Try a different keyword." : false
+                        }
+                        nolink
+                        count={getFilteredClasses().length}
+                      />
+                    </Box>
                   ),
                   onChangePage: (p) => setPage(p),
                 }}
@@ -937,29 +941,31 @@ function StudentGroups(props) {
       {!loading &&
         !tabMap.length &&
         (sections?.length === 0 || !!searchSections) && (
-          <Pagination
-            page={1}
-            onChange={(e) => null}
-            count={0}
-            icon={
-              searchSections ? (
-                <img
-                  src="/hero-img/search.svg"
-                  width={180}
-                  style={{ padding: "50px 0" }}
-                />
-              ) : (
-                <img
-                  src="/hero-img/undraw_Progress_tracking_re_ulfg.svg"
-                  width={180}
-                  style={{ padding: "50px 0" }}
-                />
-              )
-            }
-            emptyTitle={searchSections ? "Nothing Found" : "No Data"}
-            emptyMessage={"Try a different keyword."}
-            nolink
-          />
+          <Box p={2} style={{ marginBottom: 50 }}>
+            <Pagination
+              page={1}
+              onChange={(e) => null}
+              count={0}
+              icon={
+                searchSections ? (
+                  <img
+                    src="/hero-img/search.svg"
+                    width={180}
+                    style={{ padding: "50px 0" }}
+                  />
+                ) : (
+                  <img
+                    src="/hero-img/undraw_Progress_tracking_re_ulfg.svg"
+                    width={180}
+                    style={{ padding: "50px 0" }}
+                  />
+                )
+              }
+              emptyTitle={searchSections ? "Nothing Found" : "No Data"}
+              emptyMessage={"Try a different keyword."}
+              nolink
+            />
+          </Box>
         )}
       <BlankDialog
         open={query.add_section === "true"}
@@ -1182,23 +1188,27 @@ function StudentGroups(props) {
                         )
                       )}
                     </List>
-                    <Pagination
-                      count={getFilteredChildren().length}
-                      nolink
-                      page={childrenPage}
-                      onChange={(p) => setChildrenPage(p)}
-                      icon={
-                        <img
-                          src="/hero-img/person-search.svg"
-                          width={180}
-                          style={{ padding: "50px 0" }}
-                        />
-                      }
-                      emptyTitle={"Nothing Found"}
-                      emptyMessage={
-                        childrenSearch ? "Try a different keyword." : "No Data"
-                      }
-                    />
+                    <Box p={2} style={{ marginBottom: 50 }}>
+                      <Pagination
+                        count={getFilteredChildren().length}
+                        nolink
+                        page={childrenPage}
+                        onChange={(p) => setChildrenPage(p)}
+                        icon={
+                          <img
+                            src="/hero-img/person-search.svg"
+                            width={180}
+                            style={{ padding: "50px 0" }}
+                          />
+                        }
+                        emptyTitle={"Nothing Found"}
+                        emptyMessage={
+                          childrenSearch
+                            ? "Try a different keyword."
+                            : "No Data"
+                        }
+                      />
+                    </Box>
                   </React.Fragment>
                 )}
               </BlankDialog>
@@ -3421,23 +3431,25 @@ function Accounts(props) {
                 )
               )}
             </List>
-            <Pagination
-              count={getFilteredChildren().length}
-              nolink
-              page={childrenPage}
-              onChange={(p) => setChildrenPage(p)}
-              icon={
-                <img
-                  src="/hero-img/person-search.svg"
-                  width={180}
-                  style={{ padding: "50px 0" }}
-                />
-              }
-              emptyTitle={"Nothing Found"}
-              emptyMessage={
-                childrenSearch ? "Try a different keyword." : "No Data"
-              }
-            />
+            <Box p={2} style={{ marginBottom: 50 }}>
+              <Pagination
+                count={getFilteredChildren().length}
+                nolink
+                page={childrenPage}
+                onChange={(p) => setChildrenPage(p)}
+                icon={
+                  <img
+                    src="/hero-img/person-search.svg"
+                    width={180}
+                    style={{ padding: "50px 0" }}
+                  />
+                }
+                emptyTitle={"Nothing Found"}
+                emptyMessage={
+                  childrenSearch ? "Try a different keyword." : "No Data"
+                }
+              />
+            </Box>
           </React.Fragment>
         )}
       </BlankDialog>
@@ -3782,29 +3794,31 @@ function UserTable(props) {
           pagination={{
             page,
             render: (
-              <Pagination
-                page={page}
-                onChange={(e) => setPage(e)}
-                count={getFilteredData().length}
-                icon={
-                  search ? (
-                    <img
-                      src="/hero-img/person-search.svg"
-                      width={180}
-                      style={{ padding: "50px 0" }}
-                    />
-                  ) : (
-                    <img
-                      src="/hero-img/undraw_Progress_tracking_re_ulfg.svg"
-                      width={180}
-                      style={{ padding: "50px 0" }}
-                    />
-                  )
-                }
-                emptyTitle={search ? "Nothing Found" : "No Data"}
-                emptyMessage={"Try a different keyword."}
-                nolink
-              />
+              <Box p={2} style={{ marginBottom: 50 }}>
+                <Pagination
+                  page={page}
+                  onChange={(e) => setPage(e)}
+                  count={getFilteredData().length}
+                  icon={
+                    search ? (
+                      <img
+                        src="/hero-img/person-search.svg"
+                        width={180}
+                        style={{ padding: "50px 0" }}
+                      />
+                    ) : (
+                      <img
+                        src="/hero-img/undraw_Progress_tracking_re_ulfg.svg"
+                        width={180}
+                        style={{ padding: "50px 0" }}
+                      />
+                    )
+                  }
+                  emptyTitle={search ? "Nothing Found" : "No Data"}
+                  emptyMessage={"Try a different keyword."}
+                  nolink
+                />
+              </Box>
             ),
             onChangePage: (p) => setPage(p),
           }}

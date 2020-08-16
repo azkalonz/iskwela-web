@@ -631,7 +631,7 @@ function Home(props) {
                   itemsPerPage
                 ).map((c, index) => classItem(c, index))}
               {!loading && (
-                <Box m={2} width="100%">
+                <Box m={2} width="100%" style={{ margin: isMobile ? "" : 50 }}>
                   <Pagination
                     match={props.match}
                     count={getFilteredClass().length}
