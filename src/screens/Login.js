@@ -103,7 +103,7 @@ function LoginContainer(props) {
         if (res?.change_password_required) {
           window.localStorage["first_loggon_pass"] = password;
         } else {
-          window.localStorage["first_loggon_pass"] = null;
+          window.localStorage.removeItem("first_loggon_pass");
         }
         window.location = redirect_url ? redirect_url : "/";
         return;

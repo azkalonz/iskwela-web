@@ -286,8 +286,8 @@ const UserData = {
       store.dispatch({
         type: "SET_CLASSES",
         classes: allclasses,
-        callback,
       });
+      callback();
     }
     if (!id) {
       store.dispatch({

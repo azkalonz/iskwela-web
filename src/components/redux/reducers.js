@@ -51,7 +51,7 @@ const classes = (state = [], payload) => {
           payload.classes[k].image = i;
         }
       });
-      payload.callback && payload.callback();
+      // payload.callback && payload.callback();
       return payload.classes;
     default:
       return state;

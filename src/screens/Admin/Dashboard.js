@@ -73,6 +73,7 @@ function Dashboard(props) {
     createTab("grading-categories", "Grading Categories"),
   ];
   const tabid = tabMap.findIndex((q) => q.key === query.tab);
+  const [loading, setLoading] = useState(false);
   const [value, setValue] = useState(tabid >= 0 ? tabid : 0);
   const isTablet = useMediaQuery(theme.breakpoints.down("md"));
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
@@ -186,6 +187,89 @@ function Dashboard(props) {
               <span className="icon-menu-close"></span>
             </IconButton>
           </Toolbar>
+          <Box marginTop={3} marginBottom={3}>
+            <PopupState variant="popover" popupId="viewing-as">
+              {(popupState) => (
+                <React.Fragment>
+                  <Box
+                    onClick={() => {
+                      popupState.open();
+                    }}
+                    display={"flex"}
+                    justifyContent="flex-end"
+                    alignItems="center"
+                    style={{ cursor: "pointer" }}
+                    {...bindTrigger(popupState)}
+                  >
+                    <Avatar
+                      src={props.childInfo.preferences?.profile_picture}
+                      alt={props.childInfo.first_name}
+                    />
+                    <Box marginLeft={2}>
+                      <Typography style={{ fontSize: 12 }}>
+                        Viewing as
+                      </Typography>
+                      <Typography
+                        style={{
+                          fontWeight: 16,
+                          fontWeight: 500,
+                        }}
+                      >
+                        {props.childInfo.first_name +
+                          " " +
+                          props.childInfo.last_name}
+                      </Typography>
+                    </Box>
+                    <IconButton color="primary" {...bindTrigger(popupState)}>
+                      <Icon>expand_more</Icon>
+                    </IconButton>
+                  </Box>
+                  <Menu
+                    {...bindMenu(popupState)}
+                    style={{
+                      maxWidth: 300,
+                    }}
+                  >
+                    {props.parentData?.children?.map((child, index) => {
+                      return (
+                        <MenuItem
+                          key={index}
+                          selected={props.childInfo?.id === child.childInfo.id}
+                          onClick={async () => {
+                            popupState.close();
+                            if (props.childInfo?.id === child.childInfo.id) {
+                              return;
+                            }
+                            window.localStorage["chatID"] = child.childInfo.id;
+                            props.history.push(
+                              window.location.search.replaceUrlParam(
+                                "userId",
+                                child.childInfo.id
+                              )
+                            );
+                            setLoading(true);
+                            await UserData.getUserData(props.userInfo, () => {
+                              setLoading(false);
+                            });
+                          }}
+                        >
+                          <Avatar
+                            src={child.childInfo?.preferences?.profile_picture}
+                            alt={child.childInfo.first_name}
+                          />
+                          <Typography style={{ marginLeft: 13 }}>
+                            {child.childInfo.first_name +
+                              " " +
+                              child.childInfo.last_name}
+                          </Typography>
+                        </MenuItem>
+                      );
+                    })}
+                  </Menu>
+                </React.Fragment>
+              )}
+            </PopupState>
+          </Box>
           <Tabs
             orientation="vertical"
             variant="scrollable"
@@ -218,20 +302,33 @@ function Dashboard(props) {
               )
             }
           />
-          <Scrollbar autoHide>
-            <TabPanel value={value} index={0}>
-              <Classes {...props} />
-            </TabPanel>
-            <TabPanel value={value} index={1}>
-              <Accounts history={props.history} />
-            </TabPanel>
-            <TabPanel value={value} index={2}>
-              <StudentGroups {...props} />
-            </TabPanel>
-            <TabPanel value={value} index={3}>
-              <GradingCategories {...props} />
-            </TabPanel>
-          </Scrollbar>
+          {loading && (
+            <Box
+              width="100%"
+              display="flex"
+              alignItems="center"
+              justifyContent="center"
+              p={4}
+            >
+              <CircularProgress />
+            </Box>
+          )}
+          {!loading && (
+            <Scrollbar autoHide>
+              <TabPanel value={value} index={0}>
+                <Classes {...props} />
+              </TabPanel>
+              <TabPanel value={value} index={1}>
+                <Accounts history={props.history} />
+              </TabPanel>
+              <TabPanel value={value} index={2}>
+                <StudentGroups {...props} />
+              </TabPanel>
+              <TabPanel value={value} index={3}>
+                <GradingCategories {...props} />
+              </TabPanel>
+            </Scrollbar>
+          )}
         </Box>
       </Box>
       <Backdrop
