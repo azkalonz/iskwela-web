@@ -300,7 +300,6 @@ function Classes(props) {
     setLoading(false);
   };
   useEffect(() => {
-    fetchData();
     if (query.classId) {
       let i = query.classId;
       if (!isNaN(parseInt(i))) {
@@ -312,6 +311,9 @@ function Classes(props) {
       setCurrentClass(null);
     }
   }, [query.classId]);
+  useEffect(() => {
+    fetchData();
+  }, []);
   return props.userInfo?.user_type === "a" ? (
     <React.Fragment>
       {option_name === "new-class" ? (
@@ -327,7 +329,18 @@ function Classes(props) {
         />
       ) : (
         <React.Fragment>
-          {!currentClass && (
+          {loading && (
+            <Box
+              width="100%"
+              display="flex"
+              alignItems="center"
+              justifyContent="center"
+              p={4}
+            >
+              <CircularProgress />
+            </Box>
+          )}
+          {!currentClass && !loading && (
             <Box p={4}>
               <Box
                 width="100%"
@@ -1576,7 +1589,8 @@ function GradingCategories(props) {
 }
 function ClassDetails(props) {
   const theme = useTheme();
-  const { teacher, color, id } = props.class;
+  const { teacher, color, id, subject, section, year } = props.class;
+  console.log(props.class);
   const frequency = useMemo(
     () =>
       props.class?.frequency === "DAILY"
@@ -1591,19 +1605,24 @@ function ClassDetails(props) {
   const sortedFrequency = useMemo(() => ["u", "m", "t", "w", "r", "f", "s"], [
     frequency,
   ]);
-  const initialClass = {
-    years: props.years,
-    sections: props.sections,
-    subject_id: props.subjects[0]?.id,
-    subjects: props.subjects,
-    teacher: props.class?.teacher,
-    frequency,
-    date_from: props.class?.date_from,
-    date_to: props.class?.date_from,
-    time_from: props.class?.time_from,
-    time_to: props.class?.time_to,
-    ...props.class,
-  };
+  const initialClass = useMemo(
+    () => ({
+      ...props.class,
+      years: props.years,
+      sections: props.sections,
+      section_id: section?.id || props.sections[0]?.id,
+      subject_id: subject?.id || props.subjects[0]?.id,
+      year_id: year?.id || props.years[0]?.id,
+      subjects: props.subjects,
+      teacher: props.class?.teacher,
+      frequency,
+      date_from: props.class?.date_from,
+      date_to: props.class?.date_from,
+      time_from: props.class?.time_from,
+      time_to: props.class?.time_to,
+    }),
+    [props.class, props.subjects, props.years, props.sections]
+  );
   const [CLASS, setCLASS] = useState(initialClass);
   const [saving, setSaving] = useState(false);
   const [savingImg, setSavingImg] = useState(false);
@@ -1704,12 +1723,7 @@ function ClassDetails(props) {
       console.log(e);
       alert("Please fill in the required fields.");
       if (!props.editOnly) {
-        setCLASS({
-          ...initialClass,
-          subject_id: props.class?.subject?.id || props.subjects[0]?.id,
-          year_id: props.years[0]?.id,
-          section_id: props.sections[0]?.id,
-        });
+        setCLASS(initialClass);
       }
     }
     if (!props.editOnly) {
@@ -1775,12 +1789,7 @@ function ClassDetails(props) {
   useEffect(() => {
     setCLASS({
       ...CLASS,
-      years: props.years,
-      sections: props.sections,
-      subjects: props.subjects,
-      subject_id: props.subjects[0]?.id,
-      year_id: props.years[0]?.id,
-      section_id: props.sections[0]?.id,
+      ...initialClass,
     });
   }, [props.subjects, props.sections, props.years]);
   return (
@@ -1889,12 +1898,7 @@ function ClassDetails(props) {
             <Button
               style={{ color: "red", width: "auto" }}
               onClick={() => {
-                setCLASS({
-                  ...initialClass,
-                  subject_id: props.class?.subject?.id || props.subjects[0]?.id,
-                  year_id: props.years[0]?.id,
-                  section_id: props.sections[0]?.id,
-                });
+                setCLASS(initialClass);
                 setEditing(false);
               }}
             >
