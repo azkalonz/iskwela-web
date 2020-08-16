@@ -390,7 +390,7 @@ const ChangePasswordDialog = React.memo(function (props) {
         } else {
           setSuccess(true);
           props.passChanged && props.passChanged();
-          window.localStorage["first_loggon_pass"] = null;
+          window.localStorage.removeItem("first_loggon_pass");
         }
       } else {
         let err = [];
