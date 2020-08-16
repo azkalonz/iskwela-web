@@ -1,6 +1,7 @@
 import React, { useEffect } from "react";
 import { Box, Paper, Typography } from "@material-ui/core";
 import { connect } from "react-redux";
+import pdf from "./manual.pdf";
 
 function UserManual(props) {
   return (
@@ -27,6 +28,11 @@ function HTML(props) {
           toppings.style.display = "none";
         }
       }
+
+      window.openPdf = () => {
+        window.open(pdf);
+      };
+
       var collapse = document.getElementsByClassName("collapsible");
       var i;
 
@@ -45,6 +51,7 @@ function HTML(props) {
       }
     } catch (e) {}
   }, []);
+
   return (
     <div
       dangerouslySetInnerHTML={{
@@ -139,9 +146,11 @@ function HTML(props) {
                   overflow: auto;
                   top:0;
               }
+
               .inner.fixed ul {
                   padding-inline-start: 0px;
               }
+
               a:hover{
                   opacity: 0.7;
                   cursor: pointer;
@@ -162,20 +171,21 @@ function HTML(props) {
                   padding-top: 40px;
               }
               h2{ display:none; }
-              .logo-white {display: none!important;}
+              .logo-white {display: none !important;}
               
               @media only screen and (max-width: 1366px) {
               .content { left: 30%; }
               img {max-width: 500px; } 
               }
+
               
               @media only screen and (max-width: 930px) {
               li,ul,ol { text-indent: 5px;}
-              .logo-white {display: flex!important}
+              .logo-white {display: flex !important}
               .logo-colored {
-                  display: none;
-              }
-              
+                display: none;
+            }
+            
               img {max-width: 100%; }
       
               .wrapper{
@@ -221,7 +231,7 @@ function HTML(props) {
               }
       
               #scrolltotop{
-                  display: none; 
+                    display: none; 
                     position: fixed; 
                     bottom: 20px; 
                     right: 30px; 
@@ -252,9 +262,9 @@ function HTML(props) {
       <div class="inner fixed">
       <ul>
           <li style="text-indent:0;border-bottom: 1px solid rgba(0,0,0,0.18);
-          margin-bottom: 20px;"><h2><a href="#iskwela">
-              <img src="/logo/logo-full.svg" width="60%" class="logo-colored"/>
-          </a></h2></li>
+          margin-bottom: 10px;padding-bottom:20px;">
+          <img src="/logo/logo-full.svg" width="60%" class="logo-colored"/>
+          </li>
           <li><a href="#account_creation"> Account Creation </a></li>
           <li><a href="#login"> Login </a></li>
           
@@ -350,17 +360,18 @@ function HTML(props) {
           <div class="top" style="display: flex;align-items: center;justify-content: flex-end;">
               <div class="logo-white" style="display: flex;margin-left: 13px">
                   <img src="/logo/logo-full.svg" width="150" />
-                  
               </div>
+
               <h1 style="margin:0;margin-right:auto;">User Manual</h1>
               <h2 style="color:whitesmoke;">|</h2>
-              <button onclick="window.print()" class="buttonPrint print">
+              <button onclick=window.openPdf() class="buttonPrint">
 			    PRINT
 		      </button>
           </div>
           <hr/>
+
       <div>
-      <h2><a name="account_creation"> Account Creation </a></h2>
+      <h3><a name="account_creation"> Account Creation </a></h3>
           <p>
               iSkwela team will register the school once both sides come to an agreement. <br />
               All members of the school, administrators, teachers, and students will be given an account.<br/> 
@@ -370,14 +381,14 @@ function HTML(props) {
       
           
       <div>
-      <h2><a name="login"> Login </a></h2>
+      <h3><a name="login"> Login </a></h3>
           <p>
               To login successfully, follow these steps:
               <ol>
                   <li>Open your browser.</li>
                   <li>Enter this link <a href="https://portal.iskwela.net">https://portal.iskwela.net</a></li>
                   <li>Enter your valid username and password.</li>
-                  <li>Click the <span>SIGN IN</span> button.</li>
+                  <li>Click the <span> SIGN IN </span> button.</li>
               </ol>
           </p>
           <p>Login is the same for school admin, teacher and student.<br/>
@@ -385,24 +396,24 @@ function HTML(props) {
       </div>
       
       <div>
-      <h2><a>Passwords</a></h2>
+      <h3><a>Passwords</a></h3>
           <p>
               For the security purposes of the accounts, all users are required to change 
               their respective passwords at least once every six (6) months. 
               <h3><a name="changepass">Password Change</a></h3>
-              <p>To change you password:</p>
+              <p>To change your password:</p>
               <ol>
                   <li>Click the dropdown icon on the upper right side and choose "Preferences".</li><br/>
                   <img src="/images/preferences.PNG"/><br/>
                   <li>You will be redirected to the change password window.<br/> 
-                   Fill out the form with your old and new password then click<span>SAVE</span>.</li><br/>
+                   Fill out the form with your old and new password then click<span> SAVE</span>.</li><br/>
                   <img src="/images/changepass.PNG"/>
               </ol>
           </p>
       </div>
       
       <div>	
-      <h2> <a name="dashboard">Dashboard</a> </h2>
+      <h3> <a name="dashboard">Dashboard</a> </h3>
           <p>
           After a successful login, the dashboard or home page is displayed with all the upcoming classes.<br/>
           <img src="/images/dashboard.PNG"/>
@@ -439,9 +450,9 @@ function HTML(props) {
               <p>
                   Upload a profile picture by following these steps.
                   <ol>
-                      <li>Click the<span>UPLOAD</span>button.</li>
+                      <li>Click the<span> UPLOAD </span>button.</li>
                       <li>Browse your profile picture.</li>
-                      <li>Click the<span>SAVE</span>button.</li>
+                      <li>Click the<span> SAVE </span>button.</li>
                       <img src="/images/profile.PNG"/>
                   </ol>
               </p>
@@ -456,7 +467,7 @@ function HTML(props) {
       </div>
       
       <div>	
-      <h2> View Class </h2>
+      <h3><a>View Class</a></h3>
           <p>
               There are two (2) ways to open and view the class.
               <ol>
@@ -507,16 +518,16 @@ function HTML(props) {
                   <img src="/images/startclass.PNG"/><br/>
                   A video conference will open once the class is started.<br/>
                   <img src="/images/startclassvid.PNG"/><br/>
-                  On the other hand, students will click on<span>Join Class</span>button in order to join.<br/>
+                  On the other hand, students will click on<span> Join Class </span>button in order to join.<br/>
                   <img src="/images/joinclass.PNG"/><br/>
-                  Finally, when the teacher wants to end the class, he or she can simply click the<span>End Class</span> button.<br/>
+                  Finally, when the teacher wants to end the class, he or she can simply click the<span> End Class </span> button.<br/>
                   <img src="/images/endclass.PNG"/>
                   
               </p>
       </div>
           
       <div>
-      <h2> Video Conferencing and Chat </h2>
+      <h3><a>Video Conferencing and Chat</a></h3>
           <p>
               This video conference can handle upto 50 participants only as of the moment.<br/>
               <img src="/images/vidconference.PNG"/>
@@ -581,7 +592,7 @@ function HTML(props) {
       </div>	
       
       <div>
-      <h2><a name="posts">Posts</a></h2>
+          <h3><a name="posts">Posts</a></h3>
           <p>
           Teachers can post announcements and updates in this feature. 
           <img src="/images/posts.PNG"/>
@@ -589,7 +600,7 @@ function HTML(props) {
       </div>
       
       <div>
-      <h2> Student Activities </h2>
+      <h3><a>Student Activities</a></h3>
           <p>
               Teachers can create different types of activity, while students can only view and submit a file.<br/>
               The activities are listed with the latest one on top.<br/>
@@ -624,7 +635,7 @@ function HTML(props) {
               <p>
                   To publish an activity, you can do either of the following :
                   <ol>
-                      <li>Click the<span>PUBLISH</span>button upon adding new activity.</li>
+                      <li>Click the<span> PUBLISH </span>button upon adding new activity.</li>
                       <li>Choose an activity, click the … icon and choose Publish from the option.</li>
                       <img src="/images/publishactivity.PNG"/>
                   </ol>
@@ -643,20 +654,20 @@ function HTML(props) {
       </div>
       
       <div>
-      <h2>Questionnaires</h2>
+          <h3><a>Questionnaires</a></h3>
           <p>
               <h3><a name="viewq">View Questionnaire</a></h3>
-              <p>Displays all the questionnaires that the teacher have made.<br/>
+              <p>Displays all the questionnaires that the teacher has made.<br/>
               <img src="/images/vieq.PNG"/></p>
               
               <h3><a name="createq">Create Questionnaire</a></h3>
-              <p>To create a questionnaire, under the Questionnaires menu, select<span>Create Questionnaire</span>.<br/>
+              <p>To create a questionnaire, under the Questionnaires menu, select<span> Create Questionnaire</span>.<br/>
               <img src="/images/createq.PNG"/></p>
           </p>
       </div>
       
       <div>
-      <h2><a name="instructional"> Instructional Materials </a></h2>
+      <h3><a name="instructional"> Instructional Materials </a></h3>
           <p>
               Holds all the instructional materials for the class.<br/> 
               This is the same the lesson plan, teachers can add a web link or upload a file.<br/>
@@ -665,13 +676,13 @@ function HTML(props) {
       </div>
       
       <div>	
-      <h2> Lesson Plan </h2>
+          <h3><a>Lesson Plan</a></h3>
           <p>
                The teacher's guide for the students' course of learning. This is not viewable by students.<br/>
               <img src="/images/lessonplan.PNG"/>
           </p>
           
-          <h3> Add New File</h3>
+          <h3><a>Add New File</a></h3>
               <p>
                   Teachers can upload their lesson plans on this page or just add in the link.<br/>
                   <img src="/images/lessonplanaddfile.PNG"/>
@@ -699,10 +710,10 @@ function HTML(props) {
       </div>
       
       <div>
-      <h2>Reports</h2>
+      <h3><a>Reports</a></h3>
           <p>
               <h3><a name="attendance">Attendance</a></h3>
-                  <p>Keeps track of the students absences and presence in the class.</p><br/>
+                  <p>Keeps track of the students' absences and presence in the class.</p><br/>
                   <img src="/images/attendance.PNG"/><br/>
                   <p>Below are the legends together with their corresponding interpretations.</p><br/>
                   <img src="/images/reports_sched.PNG"/>
@@ -712,12 +723,12 @@ function HTML(props) {
                   
               <h3><a name="scores">Scores</a></h3>
                   <p>Contains the list of students' scores from different activities.</p><br/>
-                  <img src="/images/scores.PNG"></a>
+                  <img src="/images/scores.PNG"/><br/>
           </p>
       </div>
       
       <div>	
-      <h2><a name="sched"> Schedule </a></h2>
+          <h3><a name="sched"> Schedule </a></h3>
           <p>
               This is the list of schedules for the specific class. It shows the ff:
               <ol>
@@ -727,27 +738,28 @@ function HTML(props) {
                   <li>Status</li>
                   <img src="/images/schedules.PNG"/>
               </ol>
-              
           </p>
       </div>
       
       <div>
-      <h2><a name="student"> Students List </a></h2>
+      <h3><a name="student"> Students List </a></h3>
           <p>
               This contains a list of students under the specific class.<br/>
               It includes the student's additional information such as phone number and email for the teacher's reference should he or she needs to contact the student.<br/>
               <img src="/images/students.PNG"/>
           </p>
       </div>
-      </div>
-      </div>
-      </div>
+      
+    </div>
+    </div>
+    </div>
       
       <button id="scrolltotop" onclick='
         var scroller = document.querySelector(".wrapper");
         scroller.scrollTop = 0;
           document.documentElement.scrollTop = 0;
-        '> Scroll to Top</button>
+        '> Scroll to Top
+        </button>
       </body>
       </html>`,
       }}
