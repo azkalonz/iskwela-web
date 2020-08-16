@@ -1520,7 +1520,6 @@ function GradingCategories(props) {
 
   return (
     <Box>
-      {JSON.stringify(currentCategory)}
       <Snackbar
         open={success}
         autoHideDuration={6000}
