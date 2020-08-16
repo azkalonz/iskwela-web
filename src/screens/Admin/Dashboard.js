@@ -84,6 +84,69 @@ function Dashboard(props) {
 
   return (
     <Drawer {...props}>
+      <BlankDialog
+        title={
+          <Box display="flex" alignItems="center">
+            <Avatar
+              style={{ width: 80, height: 80 }}
+              src={window.currentItem?.preferences?.profile_picture}
+              alt={window.currentItem?.name}
+            />
+            <Typography
+              style={{ fontSize: 18, fontWeight: 500, marginLeft: 13 }}
+            >
+              {window.currentItem?.name}
+            </Typography>
+          </Box>
+        }
+        open={(window.currentItem && query.action === "view-user") || false}
+        onClose={() =>
+          props.history.push(
+            window.location.search.replaceUrlParam("action", "")
+          )
+        }
+      >
+        {window.currentItem && (
+          <List>
+            <ListItem>
+              <ListItemText
+                primary={window.currentItem.id}
+                secondary="User ID"
+              />
+            </ListItem>
+            <ListItem>
+              <ListItemText
+                primary={window.currentItem.username}
+                secondary="Username"
+              />
+            </ListItem>
+            <ListItem>
+              <ListItemText
+                primary={window.currentItem.first_name}
+                secondary="First Name"
+              />
+            </ListItem>
+            <ListItem>
+              <ListItemText
+                primary={window.currentItem.last_name}
+                secondary="Last Name"
+              />
+            </ListItem>
+            <ListItem>
+              <ListItemText
+                primary={window.currentItem.phone_number}
+                secondary="Phone Number"
+              />
+            </ListItem>
+            <ListItem>
+              <ListItemText
+                primary={window.currentItem.email}
+                secondary="Email"
+              />
+            </ListItem>
+          </List>
+        )}
+      </BlankDialog>
       <Backdrop
         open={isMobile && opened}
         style={{ zIndex: 16 }}
@@ -1031,8 +1094,12 @@ function StudentGroups(props) {
               </BlankDialog>
               <Box p={4}>
                 <UserTable
+                  {...props}
                   getRef={(ref) => (tableRef["section-" + section.id] = ref)}
                   key={index}
+                  onRowClick={(item, itemController) =>
+                    itemController("view-user", item)
+                  }
                   options={[
                     {
                       name: "Reset Password",
@@ -2280,7 +2347,11 @@ function ClassDetails(props) {
               </TabPanel>
               <TabPanel value={value} index={2}>
                 <UserTable
+                  {...props}
                   name="students"
+                  onRowClick={(item, itemController) =>
+                    itemController("view-user", item)
+                  }
                   options={[
                     {
                       name: "Reset Password",
@@ -2562,6 +2633,9 @@ function Accounts(props) {
       <React.Fragment>
         <UserTable
           name={name + "s"}
+          onRowClick={(item, itemController) =>
+            itemController("view-user", item)
+          }
           options={tableProps?.options || []}
           actions={[
             {
@@ -2948,6 +3022,12 @@ function UserTable(props) {
     modifiedChildren = false;
     props.onSelect && props.onSelect(item);
     switch (opt) {
+      case "view-user":
+        window.currentItem = item;
+        props.history.push(
+          window.location.search.replaceUrlParam("action", "view-user")
+        );
+        return;
       case "delete-category":
         if (actions.delete) {
           actions.delete(item);
@@ -3163,7 +3243,11 @@ function UserTable(props) {
               props.rowRenderMobile(item, _handleFileOption)
             ) : (
               <Box
-                onClick={() => _handleFileOption("view", item)}
+                onClick={() =>
+                  (props.onRowClick &&
+                    props.onRowClick(item, _handleFileOption)) ||
+                  _handleFileOption("view", item)
+                }
                 display="flex"
                 flexWrap="wrap"
                 width="90%"
@@ -3258,7 +3342,16 @@ function UserTable(props) {
             props.rowRender ? (
               props.rowRender(item, _handleFileOption)
             ) : (
-              <Box p={2} display="flex" width="100%">
+              <Box
+                p={2}
+                display="flex"
+                width="100%"
+                onClick={() =>
+                  (props.onRowClick &&
+                    props.onRowClick(item, _handleFileOption)) ||
+                  _handleFileOption("view", item)
+                }
+              >
                 <Box width="5%">
                   <Typography style={{ fontWeight: 600 }}>{item.id}</Typography>
                 </Box>
