@@ -196,7 +196,7 @@ function Dashboard(props) {
                       popupState.open();
                     }}
                     display={"flex"}
-                    justifyContent="flex-end"
+                    justifyContent="center"
                     alignItems="center"
                     style={{ cursor: "pointer" }}
                     {...bindTrigger(popupState)}
@@ -220,7 +220,7 @@ function Dashboard(props) {
                           props.childInfo.last_name}
                       </Typography>
                     </Box>
-                    <IconButton color="primary" {...bindTrigger(popupState)}>
+                    <IconButton color="secondary" {...bindTrigger(popupState)}>
                       <Icon>expand_more</Icon>
                     </IconButton>
                   </Box>
