@@ -708,19 +708,17 @@ function Quizzes(props) {
             </Grow>
           </Box>
 
-          <Box p={2} style={{ marginBottom: 50 }}>
-            <Pagination
-              icon={search ? "search" : "library_books"}
-              emptyTitle={search ? "Nothing Found" : false}
-              emptyMessage={
-                search ? "Try a different keyword." : "There's no Quizzes yet."
-              }
-              match={props.match}
-              page={page}
-              onChange={(p) => setPage(p)}
-              count={getFilteredMaterials().length}
-            />
-          </Box>
+          <Pagination
+            icon={search ? "search" : "library_books"}
+            emptyTitle={search ? "Nothing Found" : false}
+            emptyMessage={
+              search ? "Try a different keyword." : "There's no Quizzes yet."
+            }
+            match={props.match}
+            page={page}
+            onChange={(p) => setPage(p)}
+            count={getFilteredMaterials().length}
+          />
         </Box>
       )}
 
