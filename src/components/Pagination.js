@@ -18,40 +18,42 @@ export default function Pagination(props) {
   const totalItems = props.count;
   const totalPages = Math.ceil(totalItems / itemsPerPage);
   return totalPages ? (
-    <MuiPagination
-      page={props.page}
-      color="primary"
-      count={totalPages}
-      onChange={(e, p) => {
-        if (!props.nolink) {
-          props.onChange(p);
-          history.push(
-            makeLinkTo(
-              [
-                "class",
-                class_id,
-                schedule_id,
-                option_name,
-                "room",
-                "page",
-                "date",
-                "status",
-                "queries",
-              ],
-              {
-                queries: props.queries ? props.queries : "",
-                room: room_name ? room_name : "",
-                page: "?page=" + p,
-                date: query.date ? "&date=" + query.date : "",
-                status: query.status ? "&status=" + query.status : "",
-              }
-            )
-          );
-        } else {
-          props.onChange(p);
-        }
-      }}
-    />
+    <Box style={{ marginBottom: 50 }}>
+      <MuiPagination
+        page={props.page}
+        color="primary"
+        count={totalPages}
+        onChange={(e, p) => {
+          if (!props.nolink) {
+            props.onChange(p);
+            history.push(
+              makeLinkTo(
+                [
+                  "class",
+                  class_id,
+                  schedule_id,
+                  option_name,
+                  "room",
+                  "page",
+                  "date",
+                  "status",
+                  "queries",
+                ],
+                {
+                  queries: props.queries ? props.queries : "",
+                  room: room_name ? room_name : "",
+                  page: "?page=" + p,
+                  date: query.date ? "&date=" + query.date : "",
+                  status: query.status ? "&status=" + query.status : "",
+                }
+              )
+            );
+          } else {
+            props.onChange(p);
+          }
+        }}
+      />
+    </Box>
   ) : !props.noEmptyMessage ? (
     <Grow in={true}>
       <Box

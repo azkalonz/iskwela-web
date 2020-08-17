@@ -705,35 +705,33 @@ function Assignment(props) {
             savingId={savingId}
             pagination={{
               render: (
-                <Box style={{ marginBottom: 50 }}>
-                  <Pagination
-                    page={page}
-                    match={props.match}
-                    icon={
-                      search ? (
-                        <img
-                          src="/hero-img/search.svg"
-                          width={180}
-                          style={{ padding: "50px 0" }}
-                        />
-                      ) : (
-                        <img
-                          src="/hero-img/undraw_Progress_tracking_re_ulfg.svg"
-                          width={180}
-                          style={{ padding: "50px 0" }}
-                        />
-                      )
-                    }
-                    emptyTitle={search ? "Nothing Found" : false}
-                    emptyMessage={
-                      search
-                        ? "Try a different keyword."
-                        : "There's no Assignment yet."
-                    }
-                    onChange={(p) => setPage(p)}
-                    count={getFilteredITEMS().length}
-                  />
-                </Box>
+                <Pagination
+                  page={page}
+                  match={props.match}
+                  icon={
+                    search ? (
+                      <img
+                        src="/hero-img/search.svg"
+                        width={180}
+                        style={{ padding: "50px 0" }}
+                      />
+                    ) : (
+                      <img
+                        src="/hero-img/undraw_Progress_tracking_re_ulfg.svg"
+                        width={180}
+                        style={{ padding: "50px 0" }}
+                      />
+                    )
+                  }
+                  emptyTitle={search ? "Nothing Found" : false}
+                  emptyMessage={
+                    search
+                      ? "Try a different keyword."
+                      : "There's no Assignment yet."
+                  }
+                  onChange={(p) => setPage(p)}
+                  count={getFilteredITEMS().length}
+                />
               ),
               page,
               onChange: (p) => setPage(p),
