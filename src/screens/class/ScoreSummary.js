@@ -15,10 +15,8 @@ import {
   Button,
   Menu,
   MenuItem,
-  Dialog,
-  DialogContent,
-  DialogActions,
   Paper,
+  useMediaQuery,
 } from "@material-ui/core";
 import Rating from "@material-ui/lab/Rating";
 import MoreHorizIcon from "@material-ui/icons/MoreHoriz";
@@ -46,6 +44,7 @@ const activityTypes = [
 ];
 const ScoreSummary = (props) => {
   const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const query = qs.parse(window.location.search);
   const { class_id } = props.match.params;
   const [currentActivity, setCurrentActivity] = useState(query.activity);
@@ -84,7 +83,7 @@ const ScoreSummary = (props) => {
   };
   useEffect(() => {
     getActivityScores();
-  }, []);
+  }, [class_id]);
   useEffect(() => {
     if (query.activity && activityTypes.indexOf(query.activity) >= 0) {
       setCurrentActivity(query.activity);
@@ -92,6 +91,11 @@ const ScoreSummary = (props) => {
   }, [query.activity]);
   return (
     <React.Fragment>
+      {loading && (
+        <Box display="flex" justifyContent="center" width="100%" marginTop={4}>
+          <CircularProgress />
+        </Box>
+      )}
       {!currentActivity && !loading && scores?.scores && (
         <Grid container direction="column" className={classes.parentWrapper}>
           <Grid item>
@@ -99,92 +103,169 @@ const ScoreSummary = (props) => {
               <Typography
                 style={{ fontWeight: 500, fontSize: 18, marginRight: 13 }}
               >
-                {props.parentData?.childInfo?.first_name + "'s"} Score Summmary
+                {props.parentData?.childInfo
+                  ? props.parentData?.childInfo.first_name + "'s"
+                  : "My"}{" "}
+                Score Summmary
               </Typography>
-              <Button
-                variant="outlined"
-                style={{ marginLeft: "auto", width: "auto" }}
-                onClick={() => setOpen(true)}
-              >
-                View Chart
-              </Button>
             </Box>
-            <List>
-              {Object.keys(scores.scores).map((activity, index) => {
-                return (
-                  <ListItem
-                    onClick={() =>
-                      props.history.push(
-                        window.location.search.replaceUrlParam(
-                          "activity",
-                          activity
-                        )
-                      )
-                    }
-                    button
-                    component={Paper}
-                    divider
-                    key={index}
-                    style={{
-                      marginBottom: "7px",
-                      background:
-                        theme.palette.type === "dark" ? "#222" : "#fff",
+            <Box
+              p={2}
+              display="flex"
+              textAlign="center"
+              justifyContent="center"
+              position="relative"
+              style={{
+                flexWrap: isMobile ? "wrap" : "no-wrap",
+              }}
+            >
+              <Paper
+                style={{
+                  marginRight: isMobile ? "0px" : "10px",
+                  width: "100%",
+                }}
+              >
+                {scores?.scores && (
+                  <Chart
+                    type="bar"
+                    height={430}
+                    options={{
+                      theme: {
+                        mode: theme.palette.type,
+                      },
+                      yaxis: {
+                        title: {
+                          text: "Average Scores",
+                        },
+                        max: 100,
+                        labels: {
+                          formatter: function (val, index) {
+                            return val.toFixed(0) + "%";
+                          },
+                        },
+                      },
+                      xaxis: {
+                        categories: Object.keys(scores.scores).map((k) =>
+                          k.ucfirst()
+                        ),
+                      },
+                      colors: [
+                        "#7539ff",
+                        "#FFD026",
+                        "#7539ff",
+                        "#FFD026",
+                        "#7539ff",
+                      ],
+                      plotOptions: {
+                        bar: {
+                          horizontal: false,
+                        },
+                      },
+                      dataLabels: {
+                        enabled: true,
+                        formatter: function (val) {
+                          return val.toFixed(0) + "%";
+                        },
+                      },
                     }}
-                  >
-                    <ListItemText
-                      primary={activity.ucfirst()}
-                      secondary={
-                        <Rating
-                          value={Math.map(
-                            scores.scores[activity] * 100,
-                            0,
-                            100,
-                            0,
-                            5
-                          )}
-                          readOnly
-                          size="small"
-                          precision={0.1}
-                        />
+                    series={[
+                      {
+                        name: "Average",
+                        data: Object.keys(scores.scores).map(
+                          (k) => scores.scores[k] * 100
+                        ),
+                      },
+                    ]}
+                  />
+                )}
+              </Paper>
+              <List
+                style={{
+                  minWidth: "30%",
+                  maxWidth: "100%",
+                  flex: "1 1 auto",
+                  paddingBottom: "20px",
+                }}
+              >
+                {Object.keys(scores.scores).map((activity, index) => {
+                  return (
+                    <ListItem
+                      onClick={() =>
+                        props.history.push(
+                          window.location.search.replaceUrlParam(
+                            "activity",
+                            activity
+                          )
+                        )
                       }
-                      style={{ width: "100%", paddingRight: "20px" }}
-                    />
-                    <p key="index" className={classes.scores}>
-                      {(scores.scores[activity] * 100).toFixed(2)}%
-                    </p>
-                    <ListItemSecondaryAction>
-                      <PopupState
-                        variant="popover"
-                        popupId={"details-" + index}
-                      >
-                        {(popupState) => (
-                          <div>
-                            <IconButton {...bindTrigger(popupState)}>
-                              <MoreHorizIcon style={{ color: "#7539ff" }} />
-                            </IconButton>
-                            <Menu {...bindMenu(popupState)}>
-                              <MenuItem
-                                onClick={() => {
-                                  props.history.push(
-                                    window.location.search.replaceUrlParam(
-                                      "activity",
-                                      activity
-                                    )
-                                  );
-                                  popupState.close();
-                                }}
-                              >
-                                Details
-                              </MenuItem>
-                            </Menu>
-                          </div>
-                        )}
-                      </PopupState>
-                    </ListItemSecondaryAction>
-                  </ListItem>
-                );
-              })}
-            </List>
+                      button
+                      component={Paper}
+                      divider
+                      key={index}
+                      style={{
+                        marginBottom: "7px",
+                        background:
+                          theme.palette.type === "dark" ? "#222" : "#fff",
+                        width: "100%",
+                      }}
+                    >
+                      <ListItemText
+                        primary={activity.ucfirst()}
+                        secondary={
+                          <Rating
+                            value={Math.map(
+                              scores.scores[activity] * 100,
+                              0,
+                              100,
+                              0,
+                              5
+                            )}
+                            readOnly
+                            size="small"
+                            precision={0.1}
+                          />
+                        }
+                        style={{
+                          width: "100%",
+                        }}
+                      />
+                      <p key="index" className={classes.scores}>
+                        {(scores.scores[activity] * 100).toFixed(2)}%
+                      </p>
+                      <ListItemSecondaryAction>
+                        <PopupState
+                          variant="popover"
+                          popupId={"details-" + index}
+                        >
+                          {(popupState) => (
+                            <div>
+                              <IconButton {...bindTrigger(popupState)}>
+                                <MoreHorizIcon style={{ color: "#7539ff" }} />
+                              </IconButton>
+                              <Menu {...bindMenu(popupState)}>
+                                <MenuItem
+                                  onClick={() => {
+                                    props.history.push(
+                                      window.location.search.replaceUrlParam(
+                                        "activity",
+                                        activity
+                                      )
+                                    );
+                                    popupState.close();
+                                  }}
+                                >
+                                  Details
+                                </MenuItem>
+                              </Menu>
+                            </div>
+                          )}
+                        </PopupState>
+                      </ListItemSecondaryAction>
+                    </ListItem>
+                  );
+                })}
+              </List>
+            </Box>
           </Grid>
         </Grid>
       )}
@@ -201,62 +282,6 @@ const ScoreSummary = (props) => {
           }}
         />
       )}
-      <Dialog open={open} onClose={() => setOpen(false)}>
-        <DialogTitle onClose={() => setOpen(false)}>
-          Score Summary Chart
-        </DialogTitle>
-        <DialogContent>
-          {scores?.scores && (
-            <Chart
-              type="bar"
-              width="100%"
-              height={350}
-              options={{
-                theme: { mode: theme.palette.type },
-                yaxis: {
-                  title: {
-                    text: "Average Scores",
-                  },
-                  max: 100,
-                  labels: {
-                    formatter: function (val, index) {
-                      return val.toFixed(2) + "%";
-                    },
-                  },
-                },
-                xaxis: {
-                  categories: Object.keys(scores.scores).map((k) =>
-                    k.ucfirst()
-                  ),
-                },
-                colors: ["#7539ff", "#FFD026", "#7539ff", "#FFD026", "#7539ff"],
-                plotOptions: {
-                  bar: {
-                    horizontal: false,
-                  },
-                },
-                dataLabels: {
-                  enabled: true,
-                  formatter: function (val) {
-                    return val.toFixed(2) + "%";
-                  },
-                },
-              }}
-              series={[
-                {
-                  name: "Average",
-                  data: Object.keys(scores.scores).map(
-                    (k) => scores.scores[k] * 100
-                  ),
-                },
-              ]}
-            />
-          )}
-        </DialogContent>
-        <DialogActions>
-          {/* <Button onClose={() => setOpen(false)}>Done</Button> */}
-        </DialogActions>
-      </Dialog>
     </React.Fragment>
   );
 };
@@ -481,20 +506,15 @@ function DetailedScores(props) {
 }
 const useStyles = makeStyles((theme) => ({
   parentWrapper: {
-    width: "90%",
+    width: "100%",
     margin: "0 auto",
-  },
-  itemWrapper: {
-    margin: "10px",
-    padding: "3px",
-    alignItems: "center",
   },
   title: {
     fontWeight: "bold",
   },
   scores: {
     textAlign: "right",
-    width: "100%",
+    width: "45%",
     marginRight: theme.spacing(3),
     fontWeight: "normal",
     fontSize: "20px",

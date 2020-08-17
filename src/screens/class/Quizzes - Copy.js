@@ -708,7 +708,7 @@ function Quizzes(props) {
             </Grow>
           </Box>
 
-          <Box p={2}>
+          <Box p={2} style={{ marginBottom: 50 }}>
             <Pagination
               icon={search ? "search" : "library_books"}
               emptyTitle={search ? "Nothing Found" : false}

@@ -191,10 +191,10 @@ function Attendance(props) {
             <Box
               flexDirection="row"
               display="flex"
-              justifyContent="space-between"
+              justifyContent="flex-end"
               alignItems="center"
             >
-              <div>
+              {/* <div>
                 {!currentStudent && (
                   <FormControl variant="outlined">
                     <InputLabel>Status</InputLabel>
@@ -205,7 +205,7 @@ function Attendance(props) {
                     </Select>
                   </FormControl>
                 )}
-              </div>
+              </div> */}
               {!currentStudent && (
                 <SearchInput
                   style={{ marginLeft: 16 }}
@@ -236,29 +236,31 @@ function Attendance(props) {
               savingId={savingId}
               pagination={{
                 render: (
-                  <Pagination
-                    page={page}
-                    match={props.match}
-                    icon={
-                      search ? (
-                        <img
-                          src="/hero-img/search.svg"
-                          width={180}
-                          style={{ padding: "50px 0" }}
-                        />
-                      ) : (
-                        <img
-                          src="/hero-img/undraw_Progress_tracking_re_ulfg.svg"
-                          width={180}
-                          style={{ padding: "50px 0" }}
-                        />
-                      )
-                    }
-                    emptyTitle={search ? "Nothing Found" : false}
-                    emptyMessage={search ? "Try a different keyword." : false}
-                    onChange={(p) => setPage(p)}
-                    count={getFilteredAttendance().length}
-                  />
+                  <Box style={{ marginBottom: 50 }}>
+                    <Pagination
+                      page={page}
+                      match={props.match}
+                      icon={
+                        search ? (
+                          <img
+                            src="/hero-img/search.svg"
+                            width={180}
+                            style={{ padding: "50px 0" }}
+                          />
+                        ) : (
+                          <img
+                            src="/hero-img/undraw_Progress_tracking_re_ulfg.svg"
+                            width={180}
+                            style={{ padding: "50px 0" }}
+                          />
+                        )
+                      }
+                      emptyTitle={search ? "Nothing Found" : false}
+                      emptyMessage={search ? "Try a different keyword." : false}
+                      onChange={(p) => setPage(p)}
+                      count={getFilteredAttendance().length}
+                    />
+                  </Box>
                 ),
                 page,
                 onChangePage: (p) => setPage(p),

@@ -630,33 +630,35 @@ function LessonPlan(props) {
           savingId={savingId}
           pagination={{
             render: (
-              <Pagination
-                icon={
-                  search ? (
-                    <img
-                      src="/hero-img/search.svg"
-                      width={180}
-                      style={{ padding: "50px 0" }}
-                    />
-                  ) : (
-                    <img
-                      src="/hero-img/undraw_Progress_tracking_re_ulfg.svg"
-                      width={180}
-                      style={{ padding: "50px 0" }}
-                    />
-                  )
-                }
-                emptyTitle={search ? "Nothing Found" : false}
-                emptyMessage={
-                  search
-                    ? "Try a different keyword."
-                    : "There's no Class Materials yet."
-                }
-                match={props.match}
-                page={page}
-                onChange={(p) => setPage(p)}
-                count={getFilteredMaterials().length}
-              />
+              <Box style={{ marginBottom: 50 }}>
+                <Pagination
+                  icon={
+                    search ? (
+                      <img
+                        src="/hero-img/search.svg"
+                        width={180}
+                        style={{ padding: "50px 0" }}
+                      />
+                    ) : (
+                      <img
+                        src="/hero-img/undraw_Progress_tracking_re_ulfg.svg"
+                        width={180}
+                        style={{ padding: "50px 0" }}
+                      />
+                    )
+                  }
+                  emptyTitle={search ? "Nothing Found" : false}
+                  emptyMessage={
+                    search
+                      ? "Try a different keyword."
+                      : "There's no Class Materials yet."
+                  }
+                  match={props.match}
+                  page={page}
+                  onChange={(p) => setPage(p)}
+                  count={getFilteredMaterials().length}
+                />
+              </Box>
             ),
             page,
             onChangePage: (p) => setPage(p),

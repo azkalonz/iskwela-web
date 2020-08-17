@@ -597,15 +597,17 @@ function Questionnaires(props) {
           savingId={savingId}
           pagination={{
             render: (
-              <Pagination
-                page={page}
-                match={props.match}
-                icon={search ? "search" : ""}
-                emptyTitle={search ? "Nothing Found" : false}
-                emptyMessage={search ? "Try a different keyword." : false}
-                onChange={(p) => setPage(p)}
-                count={getFilteredActivities().length}
-              />
+              <Box style={{ marginBottom: 70 }}>
+                <Pagination
+                  page={page}
+                  match={props.match}
+                  icon={search ? "search" : ""}
+                  emptyTitle={search ? "Nothing Found" : false}
+                  emptyMessage={search ? "Try a different keyword." : false}
+                  onChange={(p) => setPage(p)}
+                  count={getFilteredActivities().length}
+                />
+              </Box>
             ),
             page,
             onChangePage: (p) => setPage(p),

@@ -47,7 +47,7 @@ import {
 import $ from "jquery";
 import PopupState, { bindMenu, bindTrigger } from "material-ui-popup-state";
 import moment from "moment";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { connect } from "react-redux";
 import { useHistory } from "react-router-dom";
 import Api from "../../api";
@@ -272,6 +272,22 @@ function Project(props) {
       });
     }
   };
+  const getCategories = useCallback(() => {
+    let sub = props.subjectGradingCategories || [];
+    let cat = props.gradingCategories || [];
+    cat = cat.map((q) => {
+      let i = sub.findIndex(
+        (qq) => parseInt(q.id) === parseInt(qq.category_id)
+      );
+      if (i >= 0) {
+        return {
+          ...q,
+          category_percentage: parseFloat(sub[i].category_percentage),
+        };
+      } else return q;
+    });
+    return cat;
+  }, [props.subjectGradingCategories, props.gradingCategories]);
   const getAnswers = async () => {
     currentActivity.answers = null;
     let a = await Api.get(
@@ -1715,29 +1731,31 @@ function Project(props) {
           savingId={savingId}
           pagination={{
             render: (
-              <Pagination
-                page={page}
-                match={props.match}
-                icon={
-                  search ? (
-                    <img
-                      src="/hero-img/search.svg"
-                      width={180}
-                      style={{ padding: "50px 0" }}
-                    />
-                  ) : (
-                    <img
-                      src="/hero-img/undraw_Progress_tracking_re_ulfg.svg"
-                      width={180}
-                      style={{ padding: "50px 0" }}
-                    />
-                  )
-                }
-                emptyTitle={search ? "Nothing Found" : false}
-                emptyMessage={search ? "Try a different keyword." : false}
-                onChange={(p) => setPage(p)}
-                count={getFilteredActivities().length}
-              />
+              <Box style={{ marginBottom: 50 }}>
+                <Pagination
+                  page={page}
+                  match={props.match}
+                  icon={
+                    search ? (
+                      <img
+                        src="/hero-img/search.svg"
+                        width={180}
+                        style={{ padding: "50px 0" }}
+                      />
+                    ) : (
+                      <img
+                        src="/hero-img/undraw_Progress_tracking_re_ulfg.svg"
+                        width={180}
+                        style={{ padding: "50px 0" }}
+                      />
+                    )
+                  }
+                  emptyTitle={search ? "Nothing Found" : false}
+                  emptyMessage={search ? "Try a different keyword." : false}
+                  onChange={(p) => setPage(p)}
+                  count={getFilteredActivities().length}
+                />
+              </Box>
             ),
             page,
             onChangePage: (p) => setPage(p),
@@ -2075,25 +2093,27 @@ function Project(props) {
                     style={{ flex: 1 }}
                   >
                     <InputLabel>Grading Category</InputLabel>
-                    <Select
-                      label="Grading Category"
-                      variant="outlined"
-                      padding={10}
-                      value={parseInt(form.grading_category)}
-                      onChange={(e) => {
-                        setForm({
-                          ...form,
-                          grading_category: e.target.value,
-                        });
-                      }}
-                      style={{ paddingTop: 17 }}
-                    >
-                      {props.gradingCategories.map((c, index) => (
-                        <MenuItem value={c.id} key={index}>
-                          {c.category}
-                        </MenuItem>
-                      ))}
-                    </Select>
+                    {getCategories() && (
+                      <Select
+                        label="Grading Category"
+                        variant="outlined"
+                        padding={10}
+                        value={parseInt(form.grading_category)}
+                        onChange={(e) => {
+                          setForm({
+                            ...form,
+                            grading_category: e.target.value,
+                          });
+                        }}
+                        style={{ paddingTop: 17 }}
+                      >
+                        {getCategories().map((c, index) => (
+                          <MenuItem value={c.id} key={index}>
+                            {c.category}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    )}
                   </FormControl>
                 </Box>
               </Box>

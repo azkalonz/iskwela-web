@@ -47,6 +47,8 @@ import UserData from "../components/UserData";
 import VideoConference from "../containers/VideoConference";
 import { setTitle } from "../App";
 import Scrollbar from "../components/Scrollbar";
+import { defaultClassScreen } from "../screens/Home";
+import { fetchData } from "../screens/Admin/Dashboard";
 
 const classPanelWidth = 355;
 
@@ -107,6 +109,7 @@ function Class(props) {
   const query = require("query-string").parse(window.location.search);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  const [subjectGradingCat, setSubjectGradingCat] = useState([]);
   const [draggable, setDraggable] = useState(false);
   const isTablet = useMediaQuery(theme.breakpoints.down("md"));
   const { room_name, class_id, schedule_id, option_name } = props.match.params;
@@ -160,10 +163,23 @@ function Class(props) {
   }, [CLASS]);
   const _getClass = async () => {
     try {
-      if (props.classDetails[class_id]) {
-        setCLASS(props.classDetails[class_id]);
+      let klass = props.classDetails[class_id];
+      if (klass) {
+        if (klass.subject?.id) {
+          fetchData({
+            send: async () =>
+              await Api.get(
+                "/api/schooladmin/subject-grading-categories/" +
+                  klass.subject.id
+              ),
+            after: (data) => {
+              setSubjectGradingCat(data);
+            },
+          });
+        }
+        setCLASS(klass);
         setTitle(
-          [props.classDetails[class_id].name].concat([
+          [klass.name].concat([
             isValidOption(option_name)
               ? isValidOption(option_name).navTitle
                 ? isValidOption(option_name).navTitle
@@ -172,10 +188,30 @@ function Class(props) {
             room_name ? "Video Conference" : undefined,
           ])
         );
+        if (!schedule_id) {
+          await UserData.updateClassDetails(class_id, null, (d) => {
+            if (!schedule_id)
+              history.push(
+                makeLinkTo([
+                  "class",
+                  class_id,
+                  d.id,
+                  defaultClassScreen[props.userInfo.user_type],
+                ])
+              );
+          });
+        }
       } else {
         await UserData.updateClassDetails(class_id, null, (d) => {
           if (!schedule_id)
-            history.push(makeLinkTo(["class", class_id, d.id, "posts"]));
+            history.push(
+              makeLinkTo([
+                "class",
+                class_id,
+                d.id,
+                defaultClassScreen[props.userInfo.user_type],
+              ])
+            );
         });
         // setCLASS(undefined);
       }
@@ -554,7 +590,8 @@ function Class(props) {
                               props.classes[class_id].bg_image ||
                               props.classes[class_id].image ||
                               "https://www.iskwela.net/img/on-iskwela.svg"
-                            }) no-repeat`,
+                            })`,
+                            backgroundRepeat: "no-repeat",
                             backgroundPosition: props.classes[class_id].bg_image
                               ? "right top"
                               : "center",
@@ -602,7 +639,7 @@ function Class(props) {
                             {moment(
                               props.classDetails[class_id].schedules[
                                 schedule_id
-                              ].from
+                              ]?.from
                             ).format("LL")}
                           </Typography>
                         </Box>
@@ -627,13 +664,13 @@ function Class(props) {
                             {moment(
                               props.classDetails[class_id].schedules[
                                 schedule_id
-                              ].from
+                              ]?.from
                             ).format("hh:mm A")}
                             {" - "}
                             {moment(
                               props.classDetails[class_id].schedules[
                                 schedule_id
-                              ].to
+                              ]?.to
                             ).format("hh:mm A")}
                           </Typography>
                         </Box>
@@ -662,11 +699,11 @@ function Class(props) {
                           overflow="hidden"
                         >
                           <Avatar
-                            src={CLASS.teacher.profile_picture}
+                            src={CLASS.teacher?.profile_picture}
                             alt={
-                              CLASS.teacher.first_name +
+                              CLASS.teacher?.first_name +
                               " " +
-                              CLASS.teacher.last_name
+                              CLASS.teacher?.last_name
                             }
                             style={{
                               width: "100%",
@@ -680,7 +717,8 @@ function Class(props) {
                             variant="body1"
                             style={{ fontWeight: 500, fontSize: 18 }}
                           >
-                            {CLASS.teacher.first_name} {CLASS.teacher.last_name}
+                            {CLASS.teacher?.first_name}{" "}
+                            {CLASS.teacher?.last_name}
                           </Typography>
                           <Typography
                             variant="body1"
@@ -690,7 +728,7 @@ function Class(props) {
                               fontWeight: 500,
                             }}
                           >
-                            {CLASS.subject.name} Teacher
+                            {CLASS.subject?.name} Teacher
                           </Typography>
                         </Box>
                       </Box>
@@ -712,9 +750,9 @@ function Class(props) {
                               }}
                               className={
                                 isTeacher &&
-                                props.classDetails[class_id].schedules[
+                                props.classDetails[class_id]?.schedules[
                                   schedule_id
-                                ].status === "ONGOING"
+                                ]?.status === "ONGOING"
                                   ? room_name
                                     ? styles.endClass
                                     : styles.startClass
@@ -738,9 +776,9 @@ function Class(props) {
                             >
                               <span
                                 className={
-                                  props.classDetails[class_id].schedules[
+                                  props.classDetails[class_id]?.schedules[
                                     schedule_id
-                                  ].status === "ONGOING"
+                                  ]?.status === "ONGOING"
                                     ? "icon-stop-conference"
                                     : "icon-start-conference"
                                 }
@@ -752,9 +790,9 @@ function Class(props) {
                               ></span>
 
                               {isTeacher
-                                ? props.classDetails[class_id].schedules[
+                                ? props.classDetails[class_id]?.schedules[
                                     schedule_id
-                                  ].status === "ONGOING"
+                                  ]?.status === "ONGOING"
                                   ? room_name
                                     ? "End Class"
                                     : "Return to Class"
@@ -919,7 +957,7 @@ function Class(props) {
     !isValidOption(option_name)?.solo &&
     CLASS &&
     schedule_id &&
-    props.classDetails[class_id].schedules[schedule_id].status === "ONGOING";
+    props.classDetails[class_id]?.schedules[schedule_id]?.status === "ONGOING";
   return (
     <div>
       <Drawer {...props}>
@@ -986,7 +1024,8 @@ function Class(props) {
                             "class",
                             class_id,
                             schedule_id,
-                            option_name || "posts",
+                            option_name ||
+                              defaultClassScreen[props.userInfo.user_type],
                           ])
                         );
                     }}
@@ -1082,6 +1121,7 @@ function Class(props) {
                     isConferencing={isConferencing()}
                     loading={(e) => setRightPanelLoading(e)}
                     fullWidth={query.full_width ? true : false}
+                    subjectGradingCategories={subjectGradingCat}
                     {...props}
                     openFile={(f) => {
                       setFile(f);

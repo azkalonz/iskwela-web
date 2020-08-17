@@ -39,7 +39,11 @@ import { SearchInput } from "../Selectors";
 import Recorder from "../../components/Recorder";
 import Messages from "../Messages";
 import moment from "moment";
+import MuiAlert from "@material-ui/lab/Alert";
 
+export function Alert(props) {
+  return <MuiAlert elevation={6} variant="filled" {...props} />;
+}
 function VideoCall(props) {
   const { caller = {}, receiver = {}, status } = props;
   const isCaller = props.userInfo.id === caller.id;
@@ -165,7 +169,15 @@ export function RecorderDialog(props) {
     </Dialog>
   );
 }
-
+export function BlankDialog(props) {
+  return (
+    <Dialog onClose={props.onClose} open={props.open || false}>
+      <DialogTitle onClose={props.onClose}>{props.title}</DialogTitle>
+      <DialogContent>{props.children}</DialogContent>
+      <DialogActions>{props.actions}</DialogActions>
+    </Dialog>
+  );
+}
 function AttachQuestionnaireDialog(props) {
   const history = useHistory();
   const theme = useTheme();

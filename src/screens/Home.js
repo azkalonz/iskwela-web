@@ -374,7 +374,7 @@ function Home(props) {
     let r = props.classes
       .filter((q) => {
         if (showClasses === "today") {
-          if (q.next_schedule) {
+          if (q.next_schedule?.length) {
             return (
               moment(q.next_schedule.from).format("MMM DD, YYYY") ===
               moment().format("MMM DD, YYYY")
@@ -631,7 +631,7 @@ function Home(props) {
                   itemsPerPage
                 ).map((c, index) => classItem(c, index))}
               {!loading && (
-                <Box m={2} width="100%">
+                <Box m={2} width="100%" style={{ margin: isMobile ? "" : 50 }}>
                   <Pagination
                     match={props.match}
                     count={getFilteredClass().length}

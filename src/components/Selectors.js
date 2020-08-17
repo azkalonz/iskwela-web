@@ -171,7 +171,7 @@ function SearchInput(props) {
         <InputBase
           className={styles.searchInput}
           style={{ width: "100%" }}
-          placeholder="Search"
+          placeholder={props.label || "Search"}
           onBlur={(e) => {
             let parent = e.target?.parentElement?.parentElement;
             if (parent) {
@@ -202,6 +202,7 @@ function SearchInput(props) {
             aria-label="search"
             style={{ padding: 0 }}
             onClick={(e) => {
+              props.onReset && props.onReset(val);
               searchRef.current.querySelector("input").value = "";
               props.onChange("");
               setval("");

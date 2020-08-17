@@ -312,9 +312,11 @@ function Table(props) {
                   style={{
                     boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
                     borderColor:
-                      item.done !== "true"
-                        ? theme.palette.success.main
-                        : theme.palette.error.main,
+                      item.done !== undefined
+                        ? item.done !== "true"
+                          ? theme.palette.success.main
+                          : theme.palette.error.main
+                        : theme.palette.primary.main,
                     backgroundColor:
                       index % 2
                         ? props.theme === "dark"
@@ -380,8 +382,9 @@ function Table(props) {
                             })
                           }
                         >
-                          {(props.options || []).map((t) => (
+                          {(props.options || []).map((t, index) => (
                             <StyledMenuItem
+                              key={index}
                               onClick={() => {
                                 if (props.actions["_handleFileOption"]) {
                                   props.actions["_handleFileOption"](
