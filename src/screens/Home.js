@@ -27,7 +27,7 @@ import Grow from "@material-ui/core/Grow";
 import VideocamIcon from "@material-ui/icons/Videocam";
 import MuiAlert from "@material-ui/lab/Alert";
 import moment from "moment";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import Jitsi from "react-jitsi";
 import Skeleton from "react-loading-skeleton";
 import { connect } from "react-redux";
@@ -370,11 +370,11 @@ function Home(props) {
     cardPerPage();
     window.onresize = () => cardPerPage();
   }, []);
-  const getFilteredClass = () => {
+  const getFilteredClass = useCallback(() => {
     let r = props.classes
       .filter((q) => {
         if (showClasses === "today") {
-          if (q.next_schedule?.length) {
+          if (q.next_schedule?.from) {
             return (
               moment(q.next_schedule.from).format("MMM DD, YYYY") ===
               moment().format("MMM DD, YYYY")
@@ -419,7 +419,7 @@ function Home(props) {
       .sort((a, b) => a.id - b.id)
       .sort((a, b) => (a.next_schedule.status === "ONGOING" ? -1 : 0));
     return r;
-  };
+  }, [showClasses, props.classes, search]);
   return (
     <React.Fragment>
       <Snackbar
