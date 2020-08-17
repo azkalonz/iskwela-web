@@ -1065,7 +1065,11 @@ function Class(props) {
           setvidConURL(null);
           setPreferedVidCon(null);
         }}
-        title="Which video conferencing tool would you like to use?"
+        title={
+          <Typography style={{ maxWidth: "70%", whiteSpace: "pre-wrap" }}>
+            Which video conferencing tool would you like to use?
+          </Typography>
+        }
         actions={
           <SavingButton
             saving={saving}
@@ -1093,26 +1097,19 @@ function Class(props) {
               label="Iskwela"
             />
             <FormControlLabel
-              value="JITSI_MEET"
-              control={<Radio />}
-              label="Jitsi Meet"
-            />
-            <FormControlLabel
               value="GOOGLE_MEET"
               control={<Radio />}
-              label="Google Meet"
+              label="Enter a Link"
             />
             {preferedVidCon === "GOOGLE_MEET" && (
               <TextField
                 className="themed-input"
                 onChange={(e) => {
-                  if (e.target.value?.indexOf("meet.google.com") >= 0)
-                    setvidConURL(e.target.value);
+                  if (e.target.value?.length > 0) setvidConURL(e.target.value);
                   else setvidConURL(null);
                 }}
                 variant="outlined"
-                label="Google Meet URL"
-                placeholder="meet.google.com/yjr-quif-tsb"
+                label="URL"
                 type="text"
                 required={true}
               />
