@@ -457,7 +457,7 @@ function Class(props) {
     setSaving(false);
   };
   const _handleJoinClass = async (method, url, forceend = false) => {
-    url = socket.emit("get vidcon state", {
+    socket.emit("get vidcon state", {
       class_id,
       method,
       url,
