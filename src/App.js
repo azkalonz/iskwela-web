@@ -358,6 +358,12 @@ Math.rand = (min, max) => {
   max = Math.floor(max);
   return Math.floor(Math.random() * (max - min)) + min;
 };
+window.openExternal = function (url, name, specs) {
+  if (!url.match(/^https?:\/\//i)) {
+    url = "http://" + url;
+  }
+  return window.open(url, name, specs);
+};
 String.prototype.replaceUrlParam = function (paramName, paramValue) {
   let url = this.valueOf();
   if (paramValue == null) {

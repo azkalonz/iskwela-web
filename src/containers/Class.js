@@ -457,7 +457,7 @@ function Class(props) {
     setSaving(false);
   };
   const _handleJoinClass = async (method, url, forceend = false) => {
-    socket.emit("get vidcon state", {
+    url = socket.emit("get vidcon state", {
       class_id,
       method,
       url,
@@ -479,7 +479,7 @@ function Class(props) {
           if (CLASS.room_number)
             window.open("https://meet.jit.si/" + CLASS.room_number, "_blank");
         } else if (method === "GOOGLE_MEET") {
-          if (url) window.open("//" + url, "_blank");
+          if (url) window.openExternal(url);
         }
         if (isMobile) setCollapsePanel(false);
         return;
@@ -510,7 +510,7 @@ function Class(props) {
             if (CLASS.room_number)
               window.open("https://meet.jit.si/" + CLASS.room_number, "_blank");
           } else if (method === "GOOGLE_MEET") {
-            if (url) window.open("//" + url, "_blank");
+            if (url) window.openExternal(url);
           }
           if (isMobile) setCollapsePanel(false);
           return;
@@ -534,7 +534,7 @@ function Class(props) {
           if (CLASS.room_number)
             window.open("https://meet.jit.si/" + CLASS.room_number, "_blank");
         } else if (method === "GOOGLE_MEET") {
-          if (url) window.open("//" + url, "_blank");
+          if (url) window.openExternal(url);
         }
         if (isMobile) setCollapsePanel(false);
       }
