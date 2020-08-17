@@ -383,7 +383,6 @@ const ChangePasswordDialog = React.memo(function (props) {
       return;
     }
     setSaving(true);
-    console.log(f);
     await Api.auth();
     try {
       let req = await new Form(f).send("/api/user/change-password");

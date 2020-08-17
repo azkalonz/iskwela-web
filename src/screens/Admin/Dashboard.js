@@ -1312,7 +1312,6 @@ function GradingCategories(props) {
       after: (data) => {
         if (data?.length) {
           setSubjectGrading(data.sort((a, b) => b.id - a.id));
-          console.log(data);
         } else setSubjectGrading([]);
         setLoading(false);
       },
@@ -1405,20 +1404,16 @@ function GradingCategories(props) {
         let pp = parseFloat(body.category_percentage) / 100;
         body.category_percentage = pp;
         if (currentCategory && !isSubject) {
-          console.log(1);
           finalBody.id = currentCategory.id;
           finalBody.category = body.category;
         } else if (!currentCategory && !isSubject) {
-          console.log(2);
           finalBody.category = body.category;
         } else if (currentCategory && isSubject) {
-          console.log(3);
           finalBody.category_percentage = pp;
           finalBody.id = currentCategory.id;
           finalBody.subject_id = parseInt(currentCategory.subject_id);
           finalBody.category_id = parseInt(currentCategory.category_id);
         } else if (!currentCategory && isSubject) {
-          console.log(4);
           finalBody.category_id = body.category;
           finalBody.subject_id = parseInt(query.subject_id);
         }
@@ -1437,7 +1432,6 @@ function GradingCategories(props) {
           after: (data) => {
             if (data && data.id) {
               if (currentCategory && !isSubject) {
-                console.log(5);
                 let d = [...grading];
                 let index = d.findIndex((q) => q.id === data.id);
                 if (index >= 0) {
@@ -1445,13 +1439,10 @@ function GradingCategories(props) {
                   setGrading(d);
                 }
               } else if (!currentCategory && !isSubject) {
-                console.log(6);
                 setGrading([data, ...grading]);
               } else if (currentCategory && isSubject) {
-                console.log(7);
                 tableRef["subject-grading"].modifyData(data.id, data);
               } else if (!currentCategory && isSubject) {
-                console.log(8);
                 tableRef["subject-grading"].appendData(data);
               }
               form[name].forEach((field) => {
@@ -1606,7 +1597,6 @@ function GradingCategories(props) {
                 fullWidth
                 required={field.required}
                 onChange={(e) => {
-                  console.log(form.subjectCategory2);
                   field.value = e.target.value;
                 }}
                 label={field.name}
@@ -1628,7 +1618,6 @@ function GradingCategories(props) {
                   required={field.required}
                   disabled={saving}
                   onChange={(e) => {
-                    console.log(form.subjectCategory2);
                     field.value = e.target.value;
                   }}
                   label={field.name}
@@ -3662,9 +3651,6 @@ function UserTable(props) {
   const modifyData = (id, d) => {
     let dd = [...data];
     let index = dd.findIndex((q) => q.id === id);
-    console.log(data);
-    console.log(id);
-    console.log(d);
     if (index >= 0) {
       dd[index] = d;
       setData(dd);

@@ -51,8 +51,21 @@ const classes = (state = [], payload) => {
           payload.classes[k].image = i;
         }
       });
-      // payload.callback && payload.callback();
       return payload.classes;
+    default:
+      return state;
+  }
+};
+const vidCon = (state = [], payload) => {
+  switch (payload.type) {
+    case "SET_VIDCON":
+      let d = [...state];
+      let i = d.findIndex((q) => q.class_id === payload.data.class_id);
+      if (i >= 0) {
+        d.splice(i, 1);
+      }
+      d.push(payload.data);
+      return d;
     default:
       return state;
   }
@@ -291,6 +304,7 @@ export default combineReducers({
   questionnaires,
   classDetails,
   posts,
+  vidCon,
   parentData,
   theme,
   pics,

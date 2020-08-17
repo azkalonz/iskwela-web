@@ -82,6 +82,14 @@ function App(props) {
               UserData.updateClass(c.id, c.details[c.id]);
             }
           });
+          socket.on("get vidcon state", (data) => {
+            if (data.method) {
+              store.dispatch({
+                type: "SET_VIDCON",
+                data,
+              });
+            }
+          });
           socket.on("get questionnaires", (q) => {
             let questionnaires = [...store.getState().questionnaires];
             let qIndex = questionnaires.findIndex((qq) => q.id === qq.id);

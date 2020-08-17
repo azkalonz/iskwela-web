@@ -91,7 +91,6 @@ module.exports = {
         }
       }
       socket.emit("get whiteboard", whiteBoard[id]);
-      console.log(whiteBoard);
     });
     socket.on("delete boards", (id) => {
       if (whiteBoard[id]) {

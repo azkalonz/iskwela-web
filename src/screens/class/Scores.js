@@ -106,7 +106,6 @@ function Scores(props) {
       let data = await Api.get(
         `/api/reports/activity-scores?${dateFilter}class_id=${class_id}`
       );
-      console.log(data);
       data = data
         .filter((q) =>
           isTeacher
