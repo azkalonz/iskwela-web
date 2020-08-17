@@ -1063,13 +1063,15 @@ function Class(props) {
         onClose={() => {
           props.history.push("#");
           setvidConURL(null);
-          setPreferedVidCon(null);
+          setPreferedVidCon("ISKWELA");
         }}
-        title={
-          <Typography style={{ maxWidth: "70%", whiteSpace: "pre-wrap" }}>
-            Which video conferencing tool would you like to use?
-          </Typography>
-        }
+        titleProps={{
+          style: {
+            maxWidth: "70%",
+            whiteSpace: "pre-wrap",
+          },
+        }}
+        title={"Which video conferencing tool would you like to use?"}
         actions={
           <SavingButton
             saving={saving}
