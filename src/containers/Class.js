@@ -1006,8 +1006,8 @@ function Class(props) {
               >
                 {isConferencing() && (
                   <VideoConference
+                    {...props}
                     draggable={!isMobile ? draggable : false}
-                    match={props.match}
                     location={props.location}
                     room={{
                       name: CLASS.room_number,

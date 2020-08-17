@@ -363,7 +363,8 @@ const ChangePasswordDialog = React.memo(function (props) {
 
   const _handleChangePass = async () => {
     setErrors(false);
-    if (!form.current_password) {
+    let f = { ...form };
+    if (!f.current_password) {
       if (!window.localStorage["first_loggon_pass"]) {
         setErrors(["Enter your current password."]);
         return;
@@ -372,18 +373,20 @@ const ChangePasswordDialog = React.memo(function (props) {
           ...form,
           current_password: window.localStorage["first_loggon_pass"],
         });
+        f.current_password = window.localStorage["first_loggon_pass"];
       }
-    } else if (!form.password) {
+    } else if (!f.password) {
       setErrors(["Enter new password."]);
       return;
-    } else if (form.password !== form.confirm_password) {
+    } else if (f.password !== f.confirm_password) {
       setErrors(["New password must be a match."]);
       return;
     }
     setSaving(true);
+    console.log(f);
     await Api.auth();
     try {
-      let req = await new Form(form).send("/api/user/change-password");
+      let req = await new Form(f).send("/api/user/change-password");
       if (!req.errors) {
         if (req.error) {
           setErrors(["Invalid password."]);
