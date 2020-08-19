@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import NavBar from "../components/NavBar";
 import FullscreenIcon from "@material-ui/icons/Fullscreen";
 import Draggable from "react-draggable";
@@ -16,6 +16,7 @@ import {
   useMediaQuery,
   Icon,
   Typography,
+  CircularProgress,
 } from "@material-ui/core";
 import ShareOutlinedIcon from "@material-ui/icons/ShareOutlined";
 import Jitsi from "react-jitsi";
@@ -51,6 +52,7 @@ function VideoConference(props) {
   const [confirmed, setConfirmed] = useState();
   const [jApi, setjApi] = useState();
   const [visible, setVisible] = useState(false);
+  const [reconnecting, setReconnecting] = useState(false);
   const isTeacher =
     props.userInfo.user_type === "t" || props.userInfo.user_type === "a";
   const handleAPI = (JitsiApi) => {
@@ -128,6 +130,7 @@ function VideoConference(props) {
         document
           .querySelectorAll(".safe-to-url")
           .forEach((i) => (i.style.display = "none"));
+        setConfirmed(null);
       },
       no: () => {
         setConfirmed(null);
@@ -150,6 +153,15 @@ function VideoConference(props) {
       } else jApi.executeCommand("toggleTileView");
     }
   }, [props.draggable, jApi]);
+  const reconnect = useCallback(() => {
+    window.clearTimeout(window.recon);
+    setVisible(false);
+    setReconnecting(true);
+    window.recon = setTimeout(() => {
+      setVisible(true);
+      setReconnecting(false);
+    }, 3000);
+  }, [reconnecting, visible]);
   return loading ? null : (
     <Box
       width="100%"
@@ -160,6 +172,44 @@ function VideoConference(props) {
       position="relative"
       className={styles.vcontainer}
     >
+      <NavBar
+        title="Video Conference"
+        right={
+          <Box display="flex" alignItems="center">
+            {isTeacher && (
+              <IconButton disabled={!visible} onClick={() => muteSelf()}>
+                <Icon>
+                  {jState.audio && jState.audio.muted
+                    ? "volume_mute"
+                    : "volume_up"}
+                </Icon>
+              </IconButton>
+            )}
+            <Box>
+              <IconButton
+                disabled={!visible}
+                onClick={() => reconnect()}
+                className="warn-to-leave"
+              >
+                <Icon>refresh</Icon>
+              </IconButton>
+            </Box>
+            <IconButton
+              disabled={!visible}
+              onClick={() => {
+                try {
+                  document
+                    .getElementById("react-jitsi-container")
+                    .requestFullscreen();
+                } catch (e) {}
+              }}
+            >
+              <FullscreenIcon color="textPrimary" />
+            </IconButton>
+          </Box>
+        }
+        left={props.left}
+      />
       {!visible && (
         <Box
           width="inherit"
@@ -168,19 +218,31 @@ function VideoConference(props) {
           alignItems="center"
           justifyContent="center"
         >
-          <Box display="flex" flexDirection="column" alignItems="center">
-            <Box textAlign="center">
-              <Button
-                variant="contained"
-                color="primary"
-                onClick={() => setVisible(true)}
-              >
-                Show in App
-              </Button>
-              <Typography>or</Typography>
-              <Button onClick={openNewTab}>Show in new tab</Button>
+          {!reconnecting && (
+            <Box display="flex" flexDirection="column" alignItems="center">
+              <Box textAlign="center">
+                <Button
+                  variant="contained"
+                  color="primary"
+                  onClick={() => setVisible(true)}
+                >
+                  Show in App
+                </Button>
+                <Typography>or</Typography>
+                <Button onClick={openNewTab}>Show in new tab</Button>
+              </Box>
             </Box>
-          </Box>
+          )}
+          {reconnecting && (
+            <Box display="flex" flexDirection="column" alignItems="center">
+              <Box textAlign="center">
+                <CircularProgress size={15} />
+                <Typography style={{ marginLeft: 13, fontWeight: 500 }}>
+                  Reconnecting...
+                </Typography>
+              </Box>
+            </Box>
+          )}
         </Box>
       )}
       {visible && (
@@ -211,38 +273,6 @@ function VideoConference(props) {
               </DialogActions>
             </Dialog>
           )}
-          <NavBar
-            title="Video Conference"
-            right={
-              <Box display="flex" alignItems="center">
-                {isTeacher && (
-                  <IconButton onClick={() => muteSelf()}>
-                    <Icon>
-                      {jState.audio && jState.audio.muted
-                        ? "volume_mute"
-                        : "volume_up"}
-                    </Icon>
-                  </IconButton>
-                )}
-                <IconButton
-                  onClick={() => {
-                    try {
-                      document
-                        .getElementById("react-jitsi-container")
-                        .requestFullscreen();
-                    } catch (e) {}
-                  }}
-                >
-                  <FullscreenIcon color="textPrimary" />
-                </IconButton>
-              </Box>
-            }
-            left={props.left}
-          />
-          {/* width="100%"
-        height="100%"
-        justifyContent="center"
-        alignItems="center" */}
 
           {room.name && (
             <React.Fragment>

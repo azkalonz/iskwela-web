@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import PropTypes from "prop-types";
 import {
   Divider,
@@ -63,6 +63,17 @@ function Drawer(props) {
       } else t.parentElement.scrollTop = t.offsetTop - t.clientHeight * 2;
     }
   };
+  const getClassName = useCallback(
+    (name) => (
+      <React.Fragment>
+        <span style={{ fontWeight: "bold" }}>{name[0].toUpperCase()}</span>
+        <span style={{ fontSize: "0.8em" }}>
+          {name.substr(name.search(/\d/), 3).replace(" ", "-")}
+        </span>
+      </React.Fragment>
+    ),
+    []
+  );
   const drawer = (
     <React.Fragment>
       <Box>
@@ -170,15 +181,7 @@ function Drawer(props) {
                     }}
                   >
                     <Typography variant="body1" component="h2">
-                      <span style={{ fontWeight: "bold" }}>
-                        {item.name[0].toUpperCase()}
-                      </span>
-                      <span style={{ fontSize: "0.8em" }}>
-                        {item.name.substr(
-                          item.name.search(/\d/),
-                          item.name.length
-                        )}
-                      </span>
+                      {getClassName(item.name)}
                     </Typography>
                   </Box>
                 </Tooltip>
@@ -221,15 +224,7 @@ function Drawer(props) {
                         }}
                       >
                         <Typography variant="body1" component="h2">
-                          <span style={{ fontWeight: "bold" }}>
-                            {item.name[0].toUpperCase()}
-                          </span>
-                          <span style={{ fontSize: "0.8em" }}>
-                            {item.name.substr(
-                              item.name.search(/\d/),
-                              item.name.length
-                            )}
-                          </span>
+                          {getClassName(item.name)}
                         </Typography>
                       </Box>
                     </Tooltip>
@@ -526,15 +521,7 @@ function Drawer(props) {
                       }}
                     >
                       <Typography variant="body1" component="h2">
-                        <span style={{ fontWeight: "bold" }}>
-                          {item.name[0].toUpperCase()}
-                        </span>
-                        <span style={{ fontSize: "0.8em" }}>
-                          {item.name.substr(
-                            item.name.search(/\d/),
-                            item.name.length
-                          )}
-                        </span>
+                        {getClassName(item.name)}
                       </Typography>
                     </Box>
                   </Tooltip>
@@ -602,15 +589,7 @@ function Drawer(props) {
                           }}
                         >
                           <Typography variant="body1" component="h2">
-                            <span style={{ fontWeight: "bold" }}>
-                              {item.name[0].toUpperCase()}
-                            </span>
-                            <span style={{ fontSize: "0.8em" }}>
-                              {item.name.substr(
-                                item.name.search(/\d/),
-                                item.name.length
-                              )}
-                            </span>
+                            {getClassName(item.name)}
                           </Typography>
                         </Box>
                       </Tooltip>
