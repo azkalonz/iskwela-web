@@ -26,9 +26,12 @@ import Login from "./screens/Login";
 import getTheme from "./styles/muiTheme";
 import Dashboard from "./screens/Admin/Dashboard";
 import UserManual from "./screens/user-manual/UserManual";
+import AdminManual from "./screens/admin-manual/AdminManual";
+import ApiExample from "./screens/api-example";
+
 const qs = require("query-string");
 
-const publicRoutes = ["/user-manual/"];
+const publicRoutes = ["/user-manual/", "/admin-manual/"];
 export const isPublicRoute = () =>
   publicRoutes.indexOf(window.location.pathname) >= 0;
 function App(props) {
@@ -161,9 +164,18 @@ function App(props) {
                       return <Home {...p} />;
                     }}
                   />
+                  <Route
+                    exact
+                    path="/api-example"
+                    render={(p) => {
+                      setTitle("Api Example");
+                      return <ApiExample {...p} />;
+                    }}
+                  />
                   <Route exact path="/chat/:chat_id?" component={Chat} />
                   <Route exact path="/calendar" component={Calendar} />
                   <Route exact path="/user-manual" component={UserManual} />
+                  <Route exact path="/admin-manual" component={AdminManual} />
                   <Route
                     exact
                     path="/videocall"

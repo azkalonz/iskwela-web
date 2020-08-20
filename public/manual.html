@@ -41,6 +41,21 @@
 			display:none;
 		}
 
+		button:hover{
+			background-color: #250A52;
+		}
+
+		.buttonPrint{
+			display: flex;
+			margin: 6px;
+			padding:5px;
+			font-weight: bold;
+			background-color: #6A2BD9;
+		    color:#FBF5FE;
+			border: none;
+			font-size: 15px; 
+			border-radius: 5px; }
+
 		.wrapper{
 			display:flex;
 		}
@@ -257,12 +272,16 @@
 </div>
 
 <div class="content">
-	<div class="top" style="display: flex;align-items: center;justify-content: flex-start;">
+	<div class="top" style="display: flex;align-items: center;justify-content: flex-end;">
 		<div class="logo-white" style="display: flex;margin-left: 13px">
 			<img src="/logo/logo-full.svg" width="150" />
 			<h1>|</h1>
 		</div>
-		<h1 style="margin:0;">User Manual</h1>
+		<h1 style="margin:0;margin-right: auto;">User Manual</h1>
+		<button onclick="window.print()" class="buttonPrint print">
+			PRINT
+		</button>
+		
 	</div>
 	<hr/>
 <div>
@@ -283,7 +302,7 @@
 			<li>Open your browser.</li>
 			<li>Enter this link.<a href="https://portal.iskwela.net">https://portal.iskwela.net</a></li>
 			<li>Enter your valid username and password.</li>
-			<li>Click the<span>SIGN IN</span>button.</li>
+			<li>Click the<span> SIGN IN </span>button.</li>
 		</ol>
 	</p>
 	<p>Login is the same for school admin, teacher and student.<br/>
@@ -301,7 +320,7 @@
 			<li>Click the dropdown icon on the upper right side and choose "Preferences".</li><br/>
 			<img src="/images/user-manual/preferences.png"/><br/>
 			<li>You will be redirected to the change password window.<br/> 
-			 Fill out the form with your old and new password then click<span>SAVE</span>.</li><br/>
+			 Fill out the form with your old and new password then click<span> SAVE</span>.</li><br/>
 			<img src="/images/user-manual/changepass.png"/>
 		</ol>
 	</p>
@@ -345,9 +364,9 @@
 		<p>
 			Upload a profile picture by following these steps.
 			<ol>
-				<li>Click the<span>UPLOAD</span>button.</li>
+				<li>Click the<span> UPLOAD </span>button.</li>
 				<li>Browse your profile picture.</li>
-				<li>Click the<span>SAVE</span>button.</li>
+				<li>Click the<span> SAVE </span>button.</li>
 				<img src="/images/user-manual/profile.png"/>
 			</ol>
 		</p>
@@ -413,9 +432,9 @@
 			<img src="/images/user-manual/startclass.png"/><br/>
 			A video conference will open once the class is started.<br/>
 			<img src="/images/user-manual/startclassvid.png"/><br/>
-			On the other hand, students will click on<span>Join Class</span>button in order to join.<br/>
+			On the other hand, students will click on<span> Join Class </span>button in order to join.<br/>
 			<img src="/images/user-manual/joinclass.png"/><br/>
-			Finally, when the teacher wants to end the class, he or she can simply click the<span>End Class</span> button.<br/>
+			Finally, when the teacher wants to end the class, he or she can simply click the<span> End Class </span> button.<br/>
 			<img src="/images/user-manual/endclass.png"/>
 			
 		</p>
@@ -530,7 +549,7 @@
 		<p>
 			To publish an activity, you can do either of the following :
 			<ol>
-				<li>Click the<span>PUBLISH</span>button upon adding new activity.</li>
+				<li>Click the<span> PUBLISH </span>button upon adding new activity.</li>
 				<li>Choose an activity, click the … icon and choose Publish from the option.</li>
 				<img src="/images/user-manual/publishactivity.png"/>
 			</ol>
@@ -556,7 +575,7 @@
 		<img src="/images/user-manual/vieq.png"/></p>
 		
 		<h3><a name="createq">Create Questionnaire</a></h3>
-		<p>To create a questionnaire, under the Questionnaires menu, select<span>Create Questionnaire</span>.<br/>
+		<p>To create a questionnaire, under the Questionnaires menu, select<span> Create Questionnaire</span>.<br/>
 		<img src="/images/user-manual/createq.png"/></p>
 	</p>
 </div>
@@ -609,7 +628,12 @@
 	<p>
 		<h3><a name="attendance">Attendance</a></h3>
 			<p>Keeps track of the students absences and presence in the class.</p><br/>
-			<img src="/images/user-manual/attendance.png"/>
+			<img src="/images/user-manual/attendance.png"/><br/>
+			<p>Below are the legends with their corresponding interpretations.</p><br/>
+			<img src="/images/user-manual/reports_sched.PNG"/>
+			<img src="/images/user-manual/reports_unmarked.PNG"/>
+			<img src="/images/user-manual/reports_present.PNG"/>
+			<img src="/images/user-manual/reports_absent.PNG"/>
 			
 		<h3><a name="scores">Scores</a></h3>
 			<p>Contains the list of students' scores from different activities.</p><br/>
