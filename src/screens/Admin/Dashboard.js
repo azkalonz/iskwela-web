@@ -3493,6 +3493,14 @@ function Accounts(props) {
             tableProps: {
               options: [
                 {
+                  name: "Deactivate",
+                  value: "deactivate",
+                },
+                {
+                  name: "Activate",
+                  value: "activate",
+                },
+                {
                   name: "Reset Password",
                   value: "reset-password",
                 },
@@ -3506,6 +3514,14 @@ function Accounts(props) {
             name: "parent",
             tableProps: {
               options: [
+                {
+                  name: "Deactivate",
+                  value: "deactivate",
+                },
+                {
+                  name: "Activate",
+                  value: "activate",
+                },
                 { name: "Add a Child", value: "add-child" },
                 { name: "Remove a Child", value: "remove-child" },
                 {
@@ -3546,6 +3562,14 @@ function Accounts(props) {
             tableProps: {
               options: [
                 {
+                  name: "Deactivate",
+                  value: "deactivate",
+                },
+                {
+                  name: "Activate",
+                  value: "activate",
+                },
+                {
                   name: "Reset Password",
                   value: "reset-password",
                 },
@@ -3584,11 +3608,36 @@ function UserTable(props) {
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [success, setSuccess] = useState(false);
+
+  const activate = (isActivate, student) => {
+    const stat = isActivate ? "activate" : "deactivate";
+    fetchData({
+      before: () => {
+        setSaving(true);
+        setSavingId([student.id]);
+      },
+      send: async () =>
+        await Api.post("/api/admin/user/" + stat + "/" + student.id),
+      after: (data) => {
+        if (data) {
+          setSuccess(true);
+        }
+        setSaving(false);
+        setSavingId([]);
+      },
+    });
+  };
   const _handleFileOption = (opt, item) => {
     const actions = props.optionActions || {};
     modifiedChildren = false;
     props.onSelect && props.onSelect(item);
     switch (opt) {
+      case "deactivate":
+        activate(false, item);
+        break;
+      case "activate":
+        activate(true, item);
+        break;
       case "view-user":
         window.currentItem = item;
         props.history.push(
@@ -3599,28 +3648,28 @@ function UserTable(props) {
         if (actions.delete) {
           actions.delete(item);
         }
-        return;
+        break;
       case "edit-category":
         props.history.push(
           window.location.search
             .replaceUrlParam("action", "edit-category")
             .replaceUrlParam("category", item.id)
         );
-        return;
+        break;
       case "add-child":
         props.history.push(
           window.location.search
             .replaceUrlParam("action", "add-child")
             .replaceUrlParam("parent", item.id)
         );
-        return;
+        break;
       case "remove-child":
         props.history.push(
           window.location.search
             .replaceUrlParam("action", "remove-child")
             .replaceUrlParam("parent", item.id)
         );
-        return;
+        break;
       case "reset-password":
         fetchData({
           before: () => {
@@ -3642,7 +3691,7 @@ function UserTable(props) {
             setSavingId([]);
           },
         });
-        return;
+        break;
     }
   };
   const appendData = (d) => {

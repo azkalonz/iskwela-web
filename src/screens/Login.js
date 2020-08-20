@@ -93,29 +93,27 @@ function LoginContainer(props) {
     props.setLoading(true);
     e.preventDefault();
     window.login_error = undefined;
-    try {
-      let res = await Api.post(
-        "/api/login?username=" + username + "&password=" + password
-      );
-      if (!res.error) {
-        let redirect_url = queryString.parse(window.location.search).r;
-        localStorage["auth"] = JSON.stringify(res);
-        if (res?.change_password_required) {
-          window.localStorage["first_loggon_pass"] = password;
-        } else {
-          window.localStorage.removeItem("first_loggon_pass");
-        }
-        window.location = redirect_url ? redirect_url : "/";
-        return;
-      } else {
-        window.login_error =
-          "Your username or password is incorrect. Please try again.";
+
+    let res = await Api.post(
+      "/api/login?username=" + username + "&password=" + password
+    ).catch((error) => {
+      const { response } = error;
+      if (response?.data?.error) {
+        window.login_error = response.data.error;
       }
-    } catch (e) {
-      window.login_error =
-        "Your username or password is incorrect. Please try again.";
+    });
+    if (res?.access_token) {
+      let redirect_url = queryString.parse(window.location.search).r;
+      localStorage["auth"] = JSON.stringify(res);
+      if (res?.change_password_required) {
+        window.localStorage["first_loggon_pass"] = password;
+      } else {
+        window.localStorage.removeItem("first_loggon_pass");
+      }
+      window.location = redirect_url ? redirect_url : "/";
+    } else {
+      props.setLoading(false);
     }
-    props.setLoading(false);
   };
   return (
     <React.Fragment>
