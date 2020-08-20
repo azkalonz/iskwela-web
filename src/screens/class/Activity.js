@@ -296,12 +296,12 @@ function Activity(props) {
     let a = await Api.get(
       "/api/teacher/seatwork-answers/" +
         currentActivity.id +
-        (props.childInfo ? "?student_id=" + props.childInfo.id : "")
+        (props.childInfo ? "?user_id=" + props.childInfo.id : "")
     );
     let scores = await Api.get(
       "/api/class/seatwork/get-score/" +
         currentActivity.id +
-        (props.childInfo ? "?student_id=" + props.childInfo.id : "")
+        (props.childInfo ? "?user_id=" + props.childInfo.id : "")
     );
     a = props.classDetails[class_id].students.map((s) => {
       let sa = a.filter((st) => st.student.id === s.id);
