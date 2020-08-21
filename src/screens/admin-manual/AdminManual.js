@@ -139,16 +139,7 @@ function HTML(props) {
                     cursor: pointer;
                     font-weight: bold;
                 }
-        
-                .collapsible{
-                    text-indent: -2px;
-                }
-        
-                .dropdown-content {
-                    padding: 0 18px;
-                      display: none;
-                      overflow: hidden;
-                }
+
                 .content {
                     padding: 60px;
                     padding-top: 40px;
