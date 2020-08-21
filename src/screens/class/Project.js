@@ -293,12 +293,12 @@ function Project(props) {
     let a = await Api.get(
       "/api/teacher/project-answers/" +
         currentActivity.id +
-        (props.childInfo ? "?student_id=" + props.childInfo.id : "")
+        (props.childInfo ? "?user_id=" + props.childInfo.id : "")
     );
     let scores = await Api.get(
       "/api/class/project/get-score/" +
         currentActivity.id +
-        (props.childInfo ? "?student_id=" + props.childInfo.id : "")
+        (props.childInfo ? "?user_id=" + props.childInfo.id : "")
     );
     a = props.classDetails[class_id].students.map((s) => {
       let sa = a.filter((st) => st.student.id === s.id);

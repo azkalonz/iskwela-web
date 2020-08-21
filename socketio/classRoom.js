@@ -1,5 +1,25 @@
+const classRoomVidcon = {};
 module.exports = {
   classRoom: (io, socket) => {
+    socket.on("get vidcon state", ({ class_id, method, url, update }) => {
+      let c = classRoomVidcon[class_id];
+      if (c) {
+        if (update) {
+          if (method) c.method = method;
+          if (url) c.url = url;
+        }
+      } else {
+        classRoomVidcon[class_id] = { method, url, class_id };
+      }
+      if (c) {
+        if (update) {
+          socket.broadcast.emit("get vidcon state", c);
+        } else {
+          socket.emit("get vidcon state", c);
+        }
+      }
+    });
+
     socket.on("new class details", (c) => {
       c = JSON.parse(c);
       socket.broadcast.emit("get class details", c);

@@ -85,6 +85,14 @@ function App(props) {
               UserData.updateClass(c.id, c.details[c.id]);
             }
           });
+          socket.on("get vidcon state", (data) => {
+            if (data.method) {
+              store.dispatch({
+                type: "SET_VIDCON",
+                data,
+              });
+            }
+          });
           socket.on("get questionnaires", (q) => {
             let questionnaires = [...store.getState().questionnaires];
             let qIndex = questionnaires.findIndex((qq) => q.id === qq.id);
@@ -361,6 +369,12 @@ Math.rand = (min, max) => {
   min = Math.ceil(min);
   max = Math.floor(max);
   return Math.floor(Math.random() * (max - min)) + min;
+};
+window.openExternal = function (url, name, specs) {
+  if (!url.match(/^https?:\/\//i)) {
+    url = "http://" + url;
+  }
+  return window.open(url, name, specs);
 };
 String.prototype.replaceUrlParam = function (paramName, paramValue) {
   let url = this.valueOf();

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import NavBar from "../components/NavBar";
 import FullscreenIcon from "@material-ui/icons/Fullscreen";
 import Draggable from "react-draggable";
@@ -15,12 +15,15 @@ import {
   useTheme,
   useMediaQuery,
   Icon,
+  Typography,
+  CircularProgress,
 } from "@material-ui/core";
 import ShareOutlinedIcon from "@material-ui/icons/ShareOutlined";
 import Jitsi from "react-jitsi";
 import store from "../components/redux/store";
 import { safeURLChange } from "../components/safeUrl";
 import { connect } from "react-redux";
+import { makeLinkTo } from "../components/router-dom";
 
 const resize = (e) => {
   let v = document.querySelector("#video-conference-container");
@@ -36,9 +39,11 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 const jState = {};
+const jwt =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJqaXRzaSIsImlzcyI6InNjaG9vbGh1YiIsInN1YiI6Imp0cy5pc2t3ZWxhLm5ldCIsInJvb20iOiIqIn0.3BQBpXgHFM51Al1qjPz-sCFDPEnuKwKb47-h2Dctsqg";
 function VideoConference(props) {
   const theme = useTheme();
-  const { room_name } = props.match.params;
+  const { room_name, class_id, schedule_id, option_name } = props.match.params;
   const styles = useStyles();
   const room = props.room;
   const [loading, setLoading] = useState(false);
@@ -46,6 +51,8 @@ function VideoConference(props) {
   const [isResizing, setisResizing] = useState(false);
   const [confirmed, setConfirmed] = useState();
   const [jApi, setjApi] = useState();
+  const [visible, setVisible] = useState(false);
+  const [reconnecting, setReconnecting] = useState(false);
   const isTeacher =
     props.userInfo.user_type === "t" || props.userInfo.user_type === "a";
   const handleAPI = (JitsiApi) => {
@@ -98,13 +105,9 @@ function VideoConference(props) {
       window.removeEventListener("mousemove", resize);
     }
   }, [isResizing]);
-
   useEffect(() => {
-    safeURLChange(room_name, HandleURLChange);
-  }, []);
-  useEffect(() => {
-    safeURLChange(room_name, HandleURLChange);
-  }, [props.location]);
+    if (visible) safeURLChange(room_name, HandleURLChange);
+  }, [props.location, visible]);
   useEffect(() => {
     if (jApi) {
       jApi.removeEventListener("audioMuteStatusChanged");
@@ -127,11 +130,18 @@ function VideoConference(props) {
         document
           .querySelectorAll(".safe-to-url")
           .forEach((i) => (i.style.display = "none"));
+        setConfirmed(null);
       },
       no: () => {
         setConfirmed(null);
       },
     });
+  };
+  const openNewTab = () => {
+    window.open("https://jts.iskwela.net/" + room.name + "?jwt=" + jwt);
+    props.history.push(
+      makeLinkTo(["class", class_id, schedule_id, option_name])
+    );
   };
   useEffect(() => {
     if (props.draggable && jApi) {
@@ -143,6 +153,15 @@ function VideoConference(props) {
       } else jApi.executeCommand("toggleTileView");
     }
   }, [props.draggable, jApi]);
+  const reconnect = useCallback(() => {
+    window.clearTimeout(window.recon);
+    setVisible(false);
+    setReconnecting(true);
+    window.recon = setTimeout(() => {
+      setVisible(true);
+      setReconnecting(false);
+    }, 3000);
+  }, [reconnecting, visible]);
   return loading ? null : (
     <Box
       width="100%"
@@ -153,35 +172,12 @@ function VideoConference(props) {
       position="relative"
       className={styles.vcontainer}
     >
-      {confirmed && (
-        <Dialog open={confirmed ? true : false} onClose={() => confirmed.no()}>
-          <DialogTitle>{confirmed.title}</DialogTitle>
-          <DialogContent>{confirmed.message}</DialogContent>
-          <DialogActions>
-            <Button
-              onClick={() => {
-                confirmed.no();
-              }}
-            >
-              No
-            </Button>
-
-            <Button
-              color="primary"
-              variant="contained"
-              onClick={() => confirmed.yes()}
-            >
-              Yes
-            </Button>
-          </DialogActions>
-        </Dialog>
-      )}
       <NavBar
         title="Video Conference"
         right={
           <Box display="flex" alignItems="center">
             {isTeacher && (
-              <IconButton onClick={() => muteSelf()}>
+              <IconButton disabled={!visible} onClick={() => muteSelf()}>
                 <Icon>
                   {jState.audio && jState.audio.muted
                     ? "volume_mute"
@@ -189,7 +185,17 @@ function VideoConference(props) {
                 </Icon>
               </IconButton>
             )}
+            <Box>
+              <IconButton
+                disabled={!visible}
+                onClick={() => reconnect()}
+                className="warn-to-leave"
+              >
+                <Icon>refresh</Icon>
+              </IconButton>
+            </Box>
             <IconButton
+              disabled={!visible}
               onClick={() => {
                 try {
                   document
@@ -204,81 +210,140 @@ function VideoConference(props) {
         }
         left={props.left}
       />
-      {/* width="100%"
-        height="100%"
-        justifyContent="center"
-        alignItems="center" */}
-
-      {room.name && (
+      {!visible && (
+        <Box
+          width="inherit"
+          height="inherit"
+          display="flex"
+          alignItems="center"
+          justifyContent="center"
+        >
+          {!reconnecting && (
+            <Box display="flex" flexDirection="column" alignItems="center">
+              <Box textAlign="center">
+                <Button
+                  variant="contained"
+                  color="primary"
+                  onClick={() => setVisible(true)}
+                >
+                  Show in App
+                </Button>
+                <Typography>or</Typography>
+                <Button onClick={openNewTab}>Show in new tab</Button>
+              </Box>
+            </Box>
+          )}
+          {reconnecting && (
+            <Box display="flex" flexDirection="column" alignItems="center">
+              <Box textAlign="center">
+                <CircularProgress size={15} />
+                <Typography style={{ marginLeft: 13, fontWeight: 500 }}>
+                  Reconnecting...
+                </Typography>
+              </Box>
+            </Box>
+          )}
+        </Box>
+      )}
+      {visible && (
         <React.Fragment>
-          {React.createElement(
-            Draggable,
-            !props.draggable
-              ? {
-                  position: { x: 0, y: 0 },
-                  disabled: true,
-                }
-              : {
-                  bounds: "#root",
-                  onDrag: () => {
-                    document.querySelector(
-                      "#react-jitsi-container"
-                    ).style.pointerEvents = "none";
-                  },
-                  onStop: () => {
-                    document.querySelector(
-                      "#react-jitsi-container"
-                    ).style.pointerEvents = "initial";
-                  },
-                },
-            <Box
-              id="draggable-jitsi-container"
-              height="100%"
-              width="100%"
-              bgcolor="#7539ff"
-              color="#fff"
-              className={props.draggable ? "floating" : ""}
-              style={!props.draggable ? { transform: "none!important" } : {}}
+          {confirmed && (
+            <Dialog
+              open={confirmed ? true : false}
+              onClose={() => confirmed.no()}
             >
-              {props.draggable && (
-                <Box display="flex" alignItems="center">
-                  <IconButton
-                    onClick={() => {
-                      try {
-                        document
-                          .getElementById("react-jitsi-container")
-                          .requestFullscreen();
-                      } catch (e) {}
+              <DialogTitle>{confirmed.title}</DialogTitle>
+              <DialogContent>{confirmed.message}</DialogContent>
+              <DialogActions>
+                <Button
+                  onClick={() => {
+                    confirmed.no();
+                  }}
+                >
+                  No
+                </Button>
+
+                <Button
+                  color="primary"
+                  variant="contained"
+                  onClick={() => confirmed.yes()}
+                >
+                  Yes
+                </Button>
+              </DialogActions>
+            </Dialog>
+          )}
+
+          {room.name && (
+            <React.Fragment>
+              {React.createElement(
+                Draggable,
+                !props.draggable
+                  ? {
+                      position: { x: 0, y: 0 },
+                      disabled: true,
+                    }
+                  : {
+                      bounds: "#root",
+                      onDrag: () => {
+                        document.querySelector(
+                          "#react-jitsi-container"
+                        ).style.pointerEvents = "none";
+                      },
+                      onStop: () => {
+                        document.querySelector(
+                          "#react-jitsi-container"
+                        ).style.pointerEvents = "initial";
+                      },
+                    },
+                <Box
+                  id="draggable-jitsi-container"
+                  height="100%"
+                  width="100%"
+                  bgcolor="#7539ff"
+                  color="#fff"
+                  className={props.draggable ? "floating" : ""}
+                  style={
+                    !props.draggable ? { transform: "none!important" } : {}
+                  }
+                >
+                  {props.draggable && (
+                    <Box display="flex" alignItems="center">
+                      <IconButton
+                        onClick={() => {
+                          try {
+                            document
+                              .getElementById("react-jitsi-container")
+                              .requestFullscreen();
+                          } catch (e) {}
+                        }}
+                      >
+                        <Icon style={{ color: "#000", opacity: 0.2 }}>
+                          fullscreen
+                        </Icon>
+                      </IconButton>
+                      <Icon style={{ color: "#000", opacity: 0.2 }}>
+                        drag_indicator
+                      </Icon>
+                    </Box>
+                  )}
+                  <Jitsi
+                    domain="jts.iskwela.net"
+                    jwt={jwt}
+                    displayName={room.displayName}
+                    roomName={room.name}
+                    onAPILoad={handleAPI}
+                    containerStyle={{
+                      margin: "0 auto",
+                      width: "100%",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
                     }}
-                  >
-                    <Icon style={{ color: "#000", opacity: 0.2 }}>
-                      fullscreen
-                    </Icon>
-                  </IconButton>
-                  <Icon style={{ color: "#000", opacity: 0.2 }}>
-                    drag_indicator
-                  </Icon>
+                  />
                 </Box>
               )}
-              <Jitsi
-                domain="jts.iskwela.net"
-                jwt={
-                  true || store.getState().userInfo.user_type === "t"
-                    ? "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJqaXRzaSIsImlzcyI6InNjaG9vbGh1YiIsInN1YiI6Imp0cy5pc2t3ZWxhLm5ldCIsInJvb20iOiIqIn0.3BQBpXgHFM51Al1qjPz-sCFDPEnuKwKb47-h2Dctsqg"
-                    : null
-                }
-                displayName={room.displayName}
-                roomName={room.name}
-                onAPILoad={handleAPI}
-                containerStyle={{
-                  margin: "0 auto",
-                  width: "100%",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              />
-            </Box>
+            </React.Fragment>
           )}
         </React.Fragment>
       )}

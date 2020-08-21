@@ -21,11 +21,17 @@ import {
   Typography,
   useMediaQuery,
   useTheme,
+  FormControl,
+  FormLabel,
+  RadioGroup,
+  FormControlLabel,
+  Radio,
+  TextField,
 } from "@material-ui/core";
 import CreateOutlined from "@material-ui/icons/CreateOutlined";
 import VideocamOutlinedIcon from "@material-ui/icons/VideocamOutlined";
 import moment from "moment";
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useMemo } from "react";
 import Skeleton from "react-loading-skeleton";
 import { connect } from "react-redux";
 import { useHistory } from "react-router-dom";
@@ -49,6 +55,8 @@ import { setTitle } from "../App";
 import Scrollbar from "../components/Scrollbar";
 import { defaultClassScreen } from "../screens/Home";
 import { fetchData } from "../screens/Admin/Dashboard";
+import { BlankDialog } from "../components/dialogs";
+import SavingButton from "../components/SavingButton";
 
 const classPanelWidth = 355;
 
@@ -126,6 +134,47 @@ function Class(props) {
   const [savingImg, setSavingImg] = useState(false);
   const [currentID, setCurrentID] = useState(class_id);
   const [rightPanelLoading, setRightPanelLoading] = useState(true);
+  const [preferedVidCon, setPreferedVidCon] = useState("ISKWELA");
+  const [vidConURL, setvidConURL] = useState();
+  const classButton = useMemo(() => {
+    const sched = props.classDetails[class_id]?.schedules[schedule_id] || {};
+    const pref = props.vidCon.find(
+      (q) => q.class_id === class_id.toString()
+    ) || { method: "ISKWELA" };
+    return {
+      sched,
+      pref,
+      class:
+        isTeacher && sched?.status === "ONGOING"
+          ? room_name && pref?.method === "ISKWELA"
+            ? styles.endClass
+            : styles.startClass
+          : styles.startClass,
+      isDisabled:
+        saving || (props.parentData?.childInfo && !isTeacher)
+          ? true
+          : isTeacher
+          ? false
+          : room_name
+          ? true
+          : sched?.status !== "ONGOING",
+      status: isTeacher
+        ? sched?.status === "ONGOING"
+          ? room_name && pref?.method === "ISKWELA"
+            ? "End Class"
+            : "Return to Class"
+          : "Start Class"
+        : "Join Class",
+    };
+  }, [
+    saving,
+    isTeacher,
+    props.parentData,
+    props.classDetails[class_id],
+    room_name,
+    schedule_id,
+    props.vidCon,
+  ]);
   useEffect(() => {
     if (isMobile) setCollapsePanel(false);
     else setCollapsePanel(true);
@@ -140,6 +189,7 @@ function Class(props) {
   }, [isMobile]);
   useEffect(() => {
     if (class_id) {
+      setPreferedVidCon("ISKWELA");
       if (!props.classDetails[class_id] || currentID !== class_id) {
         setCLASS(undefined);
         setLoading(true);
@@ -155,6 +205,16 @@ function Class(props) {
       setCollapsePanel(false);
     }
   }, []);
+  useEffect(() => {
+    const sched = props.classDetails[class_id]?.schedules[schedule_id] || {};
+    if (props.classDetails[class_id]) {
+      if (!saving) socket.emit("get vidcon state", { class_id, update: false });
+      setSaving(true);
+      if (classButton?.pref?.method) {
+        setSaving(false);
+      }
+    }
+  }, [props.classDetails[class_id]]);
   useEffect(() => {
     if (CLASS) {
       if (CLASS.next_schedule.status !== "ONGOING" && room_name)
@@ -396,33 +456,17 @@ function Class(props) {
     if (isMobile) setCollapsePanel(false);
     setSaving(false);
   };
-  const _handleJoinClass = async () => {
+  const _handleJoinClass = async (method, url, forceend = false) => {
+    socket.emit("get vidcon state", {
+      class_id,
+      method,
+      url,
+      update: true,
+    });
     if (isTeacher) {
       let stat = props.classDetails[class_id].schedules[schedule_id].status;
-      if (stat === "ONGOING" && !room_name) {
-        history.push(
-          makeLinkTo(
-            ["class", CLASS.id, "sc", option_name, "video-conference"],
-            {
-              sc: schedule_id ? schedule_id : "",
-            }
-          )
-        );
-        if (isMobile) setCollapsePanel(false);
-        return;
-      }
-      switch (stat) {
-        case "ONGOING":
-          await updateClass("PENDING");
-          history.push(
-            makeLinkTo(["class", CLASS.id, "sc", option_name], {
-              sc: schedule_id ? schedule_id : "",
-            })
-          );
-          if (isMobile) setCollapsePanel(false);
-          return;
-        case "PENDING":
-          await updateClass("ONGOING");
+      if (stat === "ONGOING" && !room_name && !forceend) {
+        if (method === "ISKWELA")
           history.push(
             makeLinkTo(
               ["class", CLASS.id, "sc", option_name, "video-conference"],
@@ -431,6 +475,43 @@ function Class(props) {
               }
             )
           );
+        else if (method === "JITSI_MEET") {
+          if (CLASS.room_number)
+            window.open("https://meet.jit.si/" + CLASS.room_number, "_blank");
+        } else if (method === "GOOGLE_MEET") {
+          if (url) window.openExternal(url);
+        }
+        if (isMobile) setCollapsePanel(false);
+        return;
+      }
+      switch (stat) {
+        case "ONGOING":
+          await updateClass("PENDING");
+          if (method === "ISKWELA")
+            history.push(
+              makeLinkTo(["class", CLASS.id, "sc", option_name], {
+                sc: schedule_id ? schedule_id : "",
+              })
+            );
+          if (isMobile) setCollapsePanel(false);
+          return;
+        case "PENDING":
+          await updateClass("ONGOING");
+          if (method === "ISKWELA")
+            history.push(
+              makeLinkTo(
+                ["class", CLASS.id, "sc", option_name, "video-conference"],
+                {
+                  sc: schedule_id ? schedule_id : "",
+                }
+              )
+            );
+          else if (method === "JITSI_MEET") {
+            if (CLASS.room_number)
+              window.open("https://meet.jit.si/" + CLASS.room_number, "_blank");
+          } else if (method === "GOOGLE_MEET") {
+            if (url) window.openExternal(url);
+          }
           if (isMobile) setCollapsePanel(false);
           return;
         default:
@@ -440,14 +521,21 @@ function Class(props) {
       if (
         props.classDetails[class_id].schedules[schedule_id].status === "ONGOING"
       ) {
-        history.push(
-          makeLinkTo(
-            ["class", CLASS.id, "sc", option_name, "video-conference"],
-            {
-              sc: schedule_id ? schedule_id : "",
-            }
-          )
-        );
+        if (method === "ISKWELA")
+          history.push(
+            makeLinkTo(
+              ["class", CLASS.id, "sc", option_name, "video-conference"],
+              {
+                sc: schedule_id ? schedule_id : "",
+              }
+            )
+          );
+        else if (method === "JITSI_MEET") {
+          if (CLASS.room_number)
+            window.open("https://meet.jit.si/" + CLASS.room_number, "_blank");
+        } else if (method === "GOOGLE_MEET") {
+          if (url) window.openExternal(url);
+        }
         if (isMobile) setCollapsePanel(false);
       }
     }
@@ -743,62 +831,68 @@ function Class(props) {
                           style={{ width: "100%", margin: "0 13px" }}
                         >
                           <div className={styles.wrapper}>
-                            <Button
-                              style={{
-                                width: "100%",
-                                fontWeight: "bold",
-                              }}
-                              className={
-                                isTeacher &&
-                                props.classDetails[class_id]?.schedules[
-                                  schedule_id
-                                ]?.status === "ONGOING"
-                                  ? room_name
-                                    ? styles.endClass
-                                    : styles.startClass
-                                  : styles.startClass
-                              }
-                              size="small"
-                              variant="contained"
-                              disabled={
-                                saving ||
-                                (props.parentData?.childInfo && !isTeacher)
-                                  ? true
-                                  : isTeacher
-                                  ? false
-                                  : room_name
-                                  ? true
-                                  : props.classDetails[class_id].schedules[
-                                      schedule_id
-                                    ].status !== "ONGOING"
-                              }
-                              onClick={() => _handleJoinClass()}
+                            <Box
+                              display="flex"
+                              alignItems="center"
+                              width="100%"
                             >
-                              <span
-                                className={
-                                  props.classDetails[class_id]?.schedules[
-                                    schedule_id
-                                  ]?.status === "ONGOING"
-                                    ? "icon-stop-conference"
-                                    : "icon-start-conference"
-                                }
+                              <Button
                                 style={{
-                                  marginRight: 8,
-                                  color: "inherit",
-                                  fontSize: "2em",
+                                  width: "100%",
+                                  fontWeight: "bold",
                                 }}
-                              ></span>
-
-                              {isTeacher
-                                ? props.classDetails[class_id]?.schedules[
-                                    schedule_id
-                                  ]?.status === "ONGOING"
-                                  ? room_name
-                                    ? "End Class"
-                                    : "Return to Class"
-                                  : "Start Class"
-                                : "Join Class"}
-                            </Button>
+                                className={classButton.class}
+                                size="small"
+                                onClick={() => {
+                                  if (classButton?.sched?.status === "ONGOING")
+                                    _handleJoinClass(
+                                      classButton.pref?.method,
+                                      classButton.pref?.url
+                                    );
+                                  else
+                                    props.history.push("#selectpreferedvidcon");
+                                }}
+                                variant="contained"
+                                disabled={classButton.isDisabled}
+                              >
+                                <span
+                                  className={
+                                    props.classDetails[class_id]?.schedules[
+                                      schedule_id
+                                    ]?.status === "ONGOING"
+                                      ? "icon-stop-conference"
+                                      : "icon-start-conference"
+                                  }
+                                  style={{
+                                    marginRight: 8,
+                                    color: "inherit",
+                                    fontSize: "2em",
+                                  }}
+                                ></span>
+                                {classButton.status}
+                              </Button>
+                              {isTeacher &&
+                                classButton?.pref.method !== "ISKWELA" &&
+                                classButton?.sched?.status === "ONGOING" && (
+                                  <IconButton
+                                    onClick={() => {
+                                      _handleJoinClass(
+                                        classButton.pref?.method,
+                                        classButton.pref?.url,
+                                        true
+                                      );
+                                    }}
+                                    disabled={saving}
+                                  >
+                                    <Icon
+                                      fontSize="small"
+                                      style={{ color: "#fff" }}
+                                    >
+                                      close
+                                    </Icon>
+                                  </IconButton>
+                                )}
+                            </Box>
                             {saving && (
                               <CircularProgress
                                 className={styles.buttonProgress}
@@ -960,6 +1054,71 @@ function Class(props) {
     props.classDetails[class_id]?.schedules[schedule_id]?.status === "ONGOING";
   return (
     <div>
+      <BlankDialog
+        open={
+          isTeacher &&
+          classButton?.sched?.status !== "ONGOING" &&
+          props.location.hash === "#selectpreferedvidcon"
+        }
+        onClose={() => {
+          props.history.push("#");
+          setvidConURL(null);
+          setPreferedVidCon("ISKWELA");
+        }}
+        titleProps={{
+          style: {
+            maxWidth: "70%",
+            whiteSpace: "pre-wrap",
+          },
+        }}
+        title={"Which video conferencing tool would you like to use?"}
+        actions={
+          <SavingButton
+            saving={saving}
+            onClick={() => _handleJoinClass(preferedVidCon, vidConURL)}
+            disabled={preferedVidCon === "GOOGLE_MEET" && !vidConURL}
+            variant="contained"
+            color="secondary"
+          >
+            Start Class
+          </SavingButton>
+        }
+      >
+        <FormControl component="fieldset" fullWidth>
+          <RadioGroup
+            color="primary"
+            value={preferedVidCon}
+            onChange={(e) => {
+              setvidConURL(null);
+              setPreferedVidCon(e.target.value);
+            }}
+          >
+            <FormControlLabel
+              value="ISKWELA"
+              control={<Radio />}
+              label="Iskwela"
+            />
+            <FormControlLabel
+              value="GOOGLE_MEET"
+              control={<Radio />}
+              label="Enter a Link"
+            />
+            {preferedVidCon === "GOOGLE_MEET" && (
+              <TextField
+                className="themed-input"
+                onChange={(e) => {
+                  if (e.target.value?.length > 0) setvidConURL(e.target.value);
+                  else setvidConURL(null);
+                }}
+                variant="outlined"
+                label="URL"
+                type="text"
+                required={true}
+              />
+            )}
+          </RadioGroup>
+        </FormControl>
+      </BlankDialog>
       <Drawer {...props}>
         <Box
           flexDirection="row"
@@ -1006,8 +1165,8 @@ function Class(props) {
               >
                 {isConferencing() && (
                   <VideoConference
+                    {...props}
                     draggable={!isMobile ? draggable : false}
-                    match={props.match}
                     location={props.location}
                     room={{
                       name: CLASS.room_number,
@@ -1255,4 +1414,5 @@ export default connect((states) => ({
   classes: states.classes,
   theme: states.theme,
   dataProgress: states.dataProgress,
+  vidCon: states.vidCon,
 }))(Class);

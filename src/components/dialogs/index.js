@@ -172,7 +172,9 @@ export function RecorderDialog(props) {
 export function BlankDialog(props) {
   return (
     <Dialog onClose={props.onClose} open={props.open || false}>
-      <DialogTitle onClose={props.onClose}>{props.title}</DialogTitle>
+      <DialogTitle onClose={props.onClose} titleProps={props.titleProps?.style}>
+        {props.title}
+      </DialogTitle>
       <DialogContent>{props.children}</DialogContent>
       <DialogActions>{props.actions}</DialogActions>
     </Dialog>
@@ -437,7 +439,10 @@ export const DialogTitle = withStyles(styles)((props) => {
   const { children, classes, onClose, ...other } = props;
   return (
     <MuiDialogTitle disableTypography className={classes.root} {...other}>
-      <Typography variant="h2" style={{ fontSize: 21, fontWeight: 600 }}>
+      <Typography
+        variant="h2"
+        style={{ fontSize: 21, fontWeight: 600, ...(props.titleProps || {}) }}
+      >
         {children}
       </Typography>
       {onClose ? (
