@@ -277,7 +277,7 @@ function HTML(props) {
                 <div class="logo-white" style="display: flex;margin-left: 13px">
                     <img src="/logo/logo-full.svg" width="150" />
                 </div>
-                <h1 style="margin:0;margin-right:auto;"><a name="admin">Admin Manual</a></h1>
+                <h1 style="margin:0;margin-right:auto;">Admin Manual</h1>
                 <h2 style="color:whitesmoke;">|</h2>
                 <button onclick=window.openPdf() class="buttonPrint">
                   PRINT
