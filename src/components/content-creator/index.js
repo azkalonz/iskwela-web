@@ -138,7 +138,7 @@ function ContentCreator(fabric, id, params = {}) {
             height: myImg._originalElement.height,
             ...style,
           });
-          img1.scaleToWidth(500);
+          img1.scaleToWidth(250);
           this.canvas.add(img1);
         } catch (e) {
           callback && callback(["Invalid Image"]);
