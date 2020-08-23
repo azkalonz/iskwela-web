@@ -191,39 +191,6 @@ function Dashboard(props) {
             <PopupState variant="popover" popupId="viewing-as">
               {(popupState) => (
                 <React.Fragment>
-                  <Box
-                    onClick={() => {
-                      popupState.open();
-                    }}
-                    display={"flex"}
-                    justifyContent="center"
-                    alignItems="center"
-                    style={{ cursor: "pointer" }}
-                    {...bindTrigger(popupState)}
-                  >
-                    <Avatar
-                      src={props.childInfo.preferences?.profile_picture}
-                      alt={props.childInfo.first_name}
-                    />
-                    <Box marginLeft={2}>
-                      <Typography style={{ fontSize: 12 }}>
-                        Viewing as
-                      </Typography>
-                      <Typography
-                        style={{
-                          fontWeight: 16,
-                          fontWeight: 500,
-                        }}
-                      >
-                        {props.childInfo.first_name +
-                          " " +
-                          props.childInfo.last_name}
-                      </Typography>
-                    </Box>
-                    <IconButton color="secondary" {...bindTrigger(popupState)}>
-                      <Icon>expand_more</Icon>
-                    </IconButton>
-                  </Box>
                   <Menu
                     {...bindMenu(popupState)}
                     style={{
@@ -347,9 +314,7 @@ function Classes(props) {
   const { option_name } = props.match.params;
   const [currentClass, setCurrentClass] = useState();
   const [loading, setLoading] = useState(true);
-  const data = Object.keys(props.classes)
-    .map((q) => props.classes[q])
-    .sort((a, b) => b.id - a.id);
+  const [classList, setClassList] = useState([]);
   const [sections, setSections] = useState([]);
   const [years, setYears] = useState([]);
   const [search, setSearch] = useState("");
@@ -380,7 +345,7 @@ function Classes(props) {
         return;
     }
   };
-  const getFilteredClasses = (c = data) =>
+  const getFilteredClasses = (c = classList) =>
     [...c].filter(
       (q) => JSON.stringify(q).toLowerCase().indexOf(search.toLowerCase()) >= 0
     );
@@ -390,9 +355,11 @@ function Classes(props) {
       let sec = await Api.get("/api/schooladmin/sections");
       let yrs = await Api.get("/api/years");
       let sbj = await Api.get("/api/subjects");
+      let classes = await Api.get("/api/schooladmin/classes");
       setSections(sec);
       setSubjects(sbj);
       setYears(yrs);
+      setClassList(classes.sort((a, b) => b.id - a.id));
     } catch (e) {}
     setLoading(false);
   };
@@ -401,7 +368,7 @@ function Classes(props) {
       let i = query.classId;
       if (!isNaN(parseInt(i))) {
         i = parseInt(i);
-        let d = data.find((q) => q.id === i);
+        let d = classList.find((q) => q.id === i);
         setCurrentClass(d);
       }
     } else {
@@ -410,7 +377,7 @@ function Classes(props) {
   }, [query.classId]);
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [option_name, query.classId]);
   return props.userInfo?.user_type === "a" ? (
     <React.Fragment>
       {option_name === "new-class" ? (
@@ -463,7 +430,7 @@ function Classes(props) {
                 loading={loading}
                 headers={columnHeaders}
                 filtered={(t) => getFilteredClasses(t)}
-                data={data}
+                data={classList}
                 actions={{
                   _handleFileOption: (opt, item) =>
                     _handleFileOption(opt, item),
@@ -822,40 +789,6 @@ function StudentGroups(props) {
     } else {
       setErrors(errors);
     }
-  };
-  const removeFromSection = async (student, callback) => {
-    if (window.confirm("Are you sure to remove this student?")) {
-      let section = parseInt(query.section);
-      let ss = [...sections];
-      let sectionIndex = ss.findIndex((q) => q.id === section);
-      section = ss.find((q) => q.id === section);
-      console.log(section);
-      if (section) {
-        let studentIndex = section.students?.find(
-          (q) => q?.user.id === student.id
-        );
-        console.log(studentIndex);
-        if (studentIndex) {
-          await fetchData({
-            send: async () =>
-              await Api.delete(
-                "/api/schooladmin/section/remove-student/?section_id=" +
-                  section.id +
-                  "&student_id=" +
-                  student.id
-              ),
-            after: (response) => {
-              if (response?.id) {
-                ss[sectionIndex] = response;
-                setSections(ss);
-                setSuccess(true);
-              }
-            },
-          });
-        }
-      }
-    }
-    callback && callback();
   };
   const deleteSection = () => {
     let section = parseInt(query.section);
@@ -1254,15 +1187,7 @@ function StudentGroups(props) {
                   onRowClick={(item, itemController) =>
                     itemController("view-user", item)
                   }
-                  optionActions={{
-                    removeFromSection: (item, callback) =>
-                      removeFromSection(item, callback),
-                  }}
                   options={[
-                    {
-                      name: "Remove Student",
-                      value: "remove-student",
-                    },
                     {
                       name: "Reset Password",
                       value: "reset-password",
@@ -2264,11 +2189,7 @@ function ClassDetails(props) {
         let newDetails = await Api.get("/api/teacher/class/" + res.id);
         if (newDetails) {
           let t = props.parentData?.childInfo;
-          if (t?.id && newDetails.teacher?.id !== t.id) {
-            await UserData.getUserData(t, null, t.id);
-            if (props.editOnly)
-              window.location = `/class/${res.id}?userId=${newDetails.teacher?.id}`;
-          } else {
+          if (t?.id === newDetails?.teacher?.id) {
             UserData.updateClass(
               res.id,
               {
@@ -2278,7 +2199,11 @@ function ClassDetails(props) {
               true
             );
             if (props.editOnly)
-              props.history.push(makeLinkTo(["class", res.id]));
+              props.history.push(
+                makeLinkTo(["class", res.id, res?.next_schedule?.id])
+              );
+          } else {
+            props.history.push("/dashboard/");
           }
         }
       }
@@ -3535,14 +3460,6 @@ function Accounts(props) {
             tableProps: {
               options: [
                 {
-                  name: "Deactivate",
-                  value: "deactivate",
-                },
-                {
-                  name: "Activate",
-                  value: "activate",
-                },
-                {
                   name: "Reset Password",
                   value: "reset-password",
                 },
@@ -3556,14 +3473,6 @@ function Accounts(props) {
             name: "parent",
             tableProps: {
               options: [
-                {
-                  name: "Deactivate",
-                  value: "deactivate",
-                },
-                {
-                  name: "Activate",
-                  value: "activate",
-                },
                 { name: "Add a Child", value: "add-child" },
                 { name: "Remove a Child", value: "remove-child" },
                 {
@@ -3604,14 +3513,6 @@ function Accounts(props) {
             tableProps: {
               options: [
                 {
-                  name: "Deactivate",
-                  value: "deactivate",
-                },
-                {
-                  name: "Activate",
-                  value: "activate",
-                },
-                {
                   name: "Reset Password",
                   value: "reset-password",
                 },
@@ -3650,46 +3551,11 @@ function UserTable(props) {
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [success, setSuccess] = useState(false);
-
-  const activate = (isActivate, student) => {
-    const stat = isActivate ? "activate" : "deactivate";
-    fetchData({
-      before: () => {
-        setSaving(true);
-        setSavingId([student.id]);
-      },
-      send: async () =>
-        await Api.post("/api/admin/user/" + stat + "/" + student.id),
-      after: (data) => {
-        if (data) {
-          setSuccess(true);
-        }
-        setSaving(false);
-        setSavingId([]);
-      },
-    });
-  };
   const _handleFileOption = (opt, item) => {
     const actions = props.optionActions || {};
     modifiedChildren = false;
     props.onSelect && props.onSelect(item);
     switch (opt) {
-      case "remove-student":
-        if (actions.removeFromSection) {
-          setSavingId([item.id]);
-          setSaving(true);
-          actions.removeFromSection(item, () => {
-            setSavingId([]);
-            setSaving(false);
-          });
-        }
-        break;
-      case "deactivate":
-        activate(false, item);
-        break;
-      case "activate":
-        activate(true, item);
-        break;
       case "view-user":
         window.currentItem = item;
         props.history.push(
@@ -3700,28 +3566,28 @@ function UserTable(props) {
         if (actions.delete) {
           actions.delete(item);
         }
-        break;
+        return;
       case "edit-category":
         props.history.push(
           window.location.search
             .replaceUrlParam("action", "edit-category")
             .replaceUrlParam("category", item.id)
         );
-        break;
+        return;
       case "add-child":
         props.history.push(
           window.location.search
             .replaceUrlParam("action", "add-child")
             .replaceUrlParam("parent", item.id)
         );
-        break;
+        return;
       case "remove-child":
         props.history.push(
           window.location.search
             .replaceUrlParam("action", "remove-child")
             .replaceUrlParam("parent", item.id)
         );
-        break;
+        return;
       case "reset-password":
         fetchData({
           before: () => {
@@ -3743,7 +3609,7 @@ function UserTable(props) {
             setSavingId([]);
           },
         });
-        break;
+        return;
     }
   };
   const appendData = (d) => {
