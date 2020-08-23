@@ -117,6 +117,7 @@ function ContentCreator(fabric, id, params = {}) {
     });
   };
   this.save = (callback = null) => {
+    console.log("done");
     window.localStorage["content-creator"] = JSON.stringify({
       ...this.canvas.toJSON(),
       width: this.canvas.width,
@@ -138,7 +139,7 @@ function ContentCreator(fabric, id, params = {}) {
             height: myImg._originalElement.height,
             ...style,
           });
-          img1.scaleToWidth(500);
+          img1.scaleToWidth(250);
           this.canvas.add(img1);
         } catch (e) {
           callback && callback(["Invalid Image"]);
