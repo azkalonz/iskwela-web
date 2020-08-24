@@ -3007,10 +3007,10 @@ const form = {
   teacher: [
     createFormField("username", "Username", {
       required: true,
-      titleCase: true,
+      titleCase: false,
       minChar: 4,
-      maxChar: 11,
-      pattern: /[a-zA-Z]+/,
+      maxChar: 20,
+      pattern: /^[a-zA-Z0-9]*$/,
     }),
     createFormField("password", "Password", {
       required: true,
