@@ -1,41 +1,11 @@
-import React, { useState, useEffect } from "react";
-import {
-  List,
-  ListItem,
-  ListItemText,
-  ListItemIcon,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogContentText,
-  DialogTitle,
-  TableSortLabel,
-  Chip,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Menu,
-  MenuItem,
-  withStyles,
-  Slide,
-  Box,
-  Button,
-  TextField,
-  IconButton,
-  InputBase,
-  ListItemSecondaryAction,
-  makeStyles,
-  Typography,
-  Paper,
-} from "@material-ui/core";
-import RootRef from "@material-ui/core/RootRef";
-import MoreHorizOutlinedIcon from "@material-ui/icons/MoreHorizOutlined";
-import moment from "moment";
+import React, { useState } from "react";
+import { Box, Grow, makeStyles, Typography } from "@material-ui/core";
+import { connect } from "react-redux";
+import Pagination from "../../components/Pagination";
 import store from "../../components/redux/store";
-import SearchIcon from "@material-ui/icons/Search";
+import { SearchInput } from "../../components/Selectors";
+import { Table as MTable } from "../../components/Table";
+import Api from "../../api";
 
 const useStyles = makeStyles((theme) => ({
   hideonmobile: {
@@ -62,17 +32,25 @@ const useStyles = makeStyles((theme) => ({
     width: 1,
   },
 }));
-console.log(store.getState().classDetails);
 function Students(props) {
-  const [students, setStudents] = useState(
-    store.getState().classDetails[props.match.params.id].students
-  );
-  const [orderBy, setOrderBy] = React.useState("calories");
-  const [order, setOrder] = React.useState("asc");
+  const query = require("query-string").parse(window.location.search);
+  const { class_id } = props.match.params;
+  const [saving, setSaving] = useState(false);
+  const [savingId, setSavingId] = useState([]);
+  const [students, setStudents] = useState();
+  const [orderBy, setOrderBy] = useState("first_name");
+  const [order, setOrder] = useState("asc");
   const [search, setSearch] = useState("");
-
+  const [page, setPage] = useState(query.page ? parseInt(query.page) : 1);
   const styles = useStyles();
 
+  const getStudents = async () => {
+    let a = store.getState().classDetails[class_id].students;
+    setStudents(a);
+  };
+  useState(() => {
+    getStudents();
+  }, []);
   const _handleSort = (sortBy, order) => {
     setOrderBy(sortBy);
     if (order === "asc") {
@@ -90,6 +68,28 @@ function Students(props) {
   const _handleSearch = (e) => {
     setSearch(e.toLowerCase());
   };
+  const resetPassword = async (user) => {
+    let { id, username } = user;
+    if (!username) return;
+    setSaving(true);
+    setSavingId([id]);
+    try {
+      await Api.post("/api/schooladmin/change-user-password", {
+        body: {
+          username,
+          password: username,
+        },
+      });
+    } catch (e) {}
+    setSaving(false);
+    setSavingId([]);
+  };
+  const _handleFileOption = (opt, item) => {
+    switch (opt) {
+      case "reset-password":
+        resetPassword(item);
+    }
+  };
   const headCells = [
     { id: "first_name", numeric: false, disablePadding: true, label: "Name" },
     {
@@ -100,77 +100,150 @@ function Students(props) {
     },
     { id: "email", numeric: true, disablePadding: false, label: "Email" },
   ];
+  const getFilteredStudents = (st = students) =>
+    st.filter(
+      (s) => JSON.stringify(s).toLowerCase().indexOf(search.toLowerCase()) >= 0
+    );
   return (
     <Box width="100%" alignSelf="flex-start">
       <Box m={2} display="flex" justifyContent="flex-end" flexWrap="wrap">
-        <Box border={1} p={0.3} borderRadius={7}>
-          <InputBase
-            onChange={(e) => _handleSearch(e.target.value)}
-            placeholder="Search"
-            inputProps={{ "aria-label": "search activity" }}
-          />
-          <IconButton type="submit" aria-label="search" style={{ padding: 0 }}>
-            <SearchIcon />
-          </IconButton>
-        </Box>
+        <SearchInput onChange={(e) => _handleSearch(e)} />
       </Box>
 
       <Box m={2}>
-        <TableContainer>
-          <Table aria-label="simple table">
-            <TableHead>
-              <TableRow>
-                {headCells.map((headCell) => (
-                  <TableCell
-                    key={headCell.id}
-                    align={headCell.numeric ? "right" : "left"}
-                    padding={headCell.disablePadding ? "none" : "default"}
-                    sortDirection={orderBy === headCell.id ? order : false}
-                    onClick={() => _handleSort(headCell.id, order)}
-                  >
-                    <TableSortLabel
-                      active={orderBy === headCell.id}
-                      direction={orderBy === headCell.id ? order : "asc"}
+        {students && (
+          <Grow in={true}>
+            <MTable
+              headers={[
+                { id: "first_name", title: "Name", width: "33%" },
+                {
+                  id: "phone_number",
+                  title: "Phone",
+                  width: "33%",
+                  align: "flex-end",
+                },
+                {
+                  id: "email",
+                  title: "Email",
+                  width: "33%",
+                  align: "flex-end",
+                },
+              ]}
+              actions={{
+                _handleFileOption: (opt, file) => _handleFileOption(opt, file),
+              }}
+              options={[
+                {
+                  name: "Reset Password",
+                  value: "reset-password",
+                },
+              ]}
+              saving={saving}
+              savingId={savingId}
+              filtered={(a) => getFilteredStudents(a)}
+              data={students}
+              noSelect={true}
+              pagination={{
+                render: (
+                  <Pagination
+                    emptyMessage={
+                      search
+                        ? "Try a different keyword"
+                        : "There's no students in your class yet."
+                    }
+                    icon={search ? "person_search" : "face"}
+                    emptyTitle={search ? "Nothing Found" : ""}
+                    match={props.match}
+                    page={page}
+                    onChange={(e) => setPage(e)}
+                    count={getFilteredStudents().length}
+                  />
+                ),
+                page,
+                onChangePage: (p) => setPage(p),
+              }}
+              rowRenderMobile={(item) => (
+                <Box
+                  display="flex"
+                  flexWrap="wrap"
+                  flexDirection="column"
+                  justifyContent="space-between"
+                  width="90%"
+                  style={{ padding: "30px 0" }}
+                >
+                  <Box width="100%" marginBottom={1}>
+                    <Typography
+                      style={{
+                        fontWeight: "bold",
+                        color: "#38108d",
+                        fontSize: "1em",
+                      }}
                     >
-                      {headCell.label}
-                      {orderBy === headCell.id ? (
-                        <span className={styles.visuallyHidden}>
-                          {order === "desc"
-                            ? "sorted descending"
-                            : "sorted ascending"}
-                        </span>
-                      ) : null}
-                    </TableSortLabel>
-                  </TableCell>
-                ))}
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {students &&
-                students
-                  .filter(
-                    (s) =>
-                      JSON.stringify(s)
-                        .toLowerCase()
-                        .indexOf(search.toLowerCase()) >= 0
-                  )
-                  .map((row) => {
-                    return (
-                      <TableRow key={row.id} className={styles.row}>
-                        <TableCell component="th" scope="row">
-                          {row.first_name} {row.last_name}
-                        </TableCell>
-                        <TableCell align="right">{row.phone_number}</TableCell>
-                        <TableCell align="right">{row.email}</TableCell>
-                      </TableRow>
-                    );
-                  })}
-            </TableBody>
-          </Table>
-        </TableContainer>
+                      NAME
+                    </Typography>
+                    <Typography variant="body1">
+                      {item.first_name} {item.last_name}
+                    </Typography>
+                  </Box>
+                  <Box width="100%">
+                    <Typography
+                      style={{
+                        fontWeight: "bold",
+                        color: "#38108d",
+                        fontSize: "1em",
+                      }}
+                    >
+                      PHONE
+                    </Typography>
+                    <Box display="flex" alignItems="center">
+                      {item.phone_number}
+                    </Box>
+                  </Box>
+                  <Box width="100%">
+                    <Typography
+                      style={{
+                        fontWeight: "bold",
+                        color: "#38108d",
+                        fontSize: "1em",
+                      }}
+                    >
+                      EMAIL
+                    </Typography>
+                    <Box display="flex" alignItems="center">
+                      {item.email}
+                    </Box>
+                  </Box>
+                </Box>
+              )}
+              rowRender={(item) => (
+                <Box display="flex" width="100%" style={{ padding: "13px 0" }}>
+                  <Box width="33%" maxWidth="33%" overflow="hidden">
+                    {item.first_name} {item.last_name}
+                  </Box>
+                  <Box
+                    width="33%"
+                    maxWidth="33%"
+                    overflow="hidden"
+                    textAlign="right"
+                  >
+                    {item.phone_number}
+                  </Box>
+                  <Box
+                    width="33%"
+                    maxWidth="33%"
+                    overflow="hidden"
+                    textAlign="right"
+                  >
+                    {item.email}
+                  </Box>
+                </Box>
+              )}
+            />
+          </Grow>
+        )}
       </Box>
     </Box>
   );
 }
 
-export default Students;
+export default connect((states) => ({}))(Students);

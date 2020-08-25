@@ -9,6 +9,11 @@ const actions = (dispatch) => ({
       type: "SET_CLASSES",
       classes,
     }),
+  setClassDetails: (classDetails) =>
+    dispatch({
+      type: "SET_CLASS_DETAILS",
+      class_details: classDetails,
+    }),
   setRoute: (route) =>
     dispatch({
       type: "SET_ROUTE",

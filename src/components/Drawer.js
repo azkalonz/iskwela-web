@@ -1,203 +1,890 @@
-import React, { useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import PropTypes from "prop-types";
 import {
   Divider,
   Drawer as MuiDrawer,
-  List,
-  ListItem,
   Box,
   Typography,
+  Grow,
+  Tooltip,
   Toolbar,
   makeStyles,
+  IconButton,
+  Avatar,
+  Icon,
   useTheme,
+  useMediaQuery,
+  Slide,
+  Button,
+  Paper,
 } from "@material-ui/core";
-import MailIcon from "@material-ui/icons/Mail";
-import InboxIcon from "@material-ui/icons/MoveToInbox";
-import MenuIcon from "@material-ui/icons/Menu";
 import DashboardOutlined from "@material-ui/icons/DashboardOutlined";
 import { connect } from "react-redux";
-import actions from "./redux/actions";
-import { Link as RouteLink, useHistory } from "react-router-dom";
-import store from "./redux/store";
+import { useHistory } from "react-router-dom";
+import { makeLinkTo } from "./router-dom";
+import ExpandLessOutlinedIcon from "@material-ui/icons/ExpandLessOutlined";
+import ExpandMoreOutlinedIcon from "@material-ui/icons/ExpandMoreOutlined";
+import Scrollbar from "./Scrollbar";
+import { defaultClassScreen } from "../screens/Home";
 
 function Drawer(props) {
   const styles = useStyles();
-  const history = useHistory();
   const theme = useTheme();
-  const listItems = [
-    {
-      item: <DashboardOutlined />,
-      link: "/",
-      title: "Class",
-    },
-  ];
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  const isTablet = useMediaQuery(theme.breakpoints.down("md"));
+  const history = useHistory();
+  const { class_id, room_name, screen_name } = props.match.params;
+  const [more, setMore] = useState(false);
+  const classes = props.classes
+    .sort((a, b) => b.id - a.id)
+    .sort((a, b) => (a.next_schedule.status === "ONGOING" ? -1 : 0));
   useEffect(() => {
-    listItems.forEach((item, index) => {
-      if (window.location.pathname === item.link) {
-        props.setRoute({ index, title: item.title });
+    focusCurrentTab();
+    if (!room_name)
+      document
+        .querySelectorAll(".safe-to-url")
+        .forEach((i) => (i.style.display = "none"));
+  }, [isTablet, props.location]);
+  useEffect(() => {
+    if (room_name) history.push(more ? "#more" : "#less");
+  }, [more]);
+  const focusCurrentTab = () => {
+    let t = document.querySelector(".selected.tab");
+    if (!t) {
+      if (props.location.pathname.indexOf("class") >= 0) {
+        setMore(true);
+        setTimeout(() => focusCurrentTab(), 0);
       }
-    });
-  }, []);
+    } else {
+      let cont = document.querySelector("#tabs-container");
+      if (cont && !isTablet) {
+        cont.parentElement.parentElement.parentElement.scrollTop =
+          t.offsetTop - t.clientHeight * 2;
+      } else t.parentElement.scrollTop = t.offsetTop - t.clientHeight * 2;
+    }
+  };
+  const getClassName = useCallback(
+    (name) => (
+      <React.Fragment>
+        <span style={{ fontWeight: "bold" }}>{name[0].toUpperCase()}</span>
+        <span style={{ fontSize: "0.8em" }}>
+          {name.substr(name.search(/\d/), 3).replace(" ", "-")}
+        </span>
+      </React.Fragment>
+    ),
+    []
+  );
   const drawer = (
-    <div>
-      <Toolbar style={{ minHeight: 50, paddingLeft: 0, paddingRight: 0 }}>
-        <Typography
-          variant="h6"
-          align="center"
-          style={{ width: "100%", cursor: "pointer" }}
-          onClick={() => {
-            props.setRoute({ index: 0, title: "Class" });
-            history.push("/");
+    <React.Fragment>
+      <Box>
+        <Box
+          p={1}
+          id="logo-drawer"
+          className="sticky"
+          style={{
+            top: 0,
+            left: 0,
+            right: 0,
+            zIndex: 1,
+            background: props.theme === "dark" ? "#1d1d1d" : "#ffffff",
           }}
         >
-          SH
-        </Typography>
-      </Toolbar>
-      <Divider />
-      <List>
-        {listItems.map((item, index) => (
+          <Typography
+            variant="h6"
+            align="center"
+            style={{ width: "100%", cursor: "pointer" }}
+          >
+            <Box
+              className="logo-btn"
+              onClick={() => {
+                history.push("/");
+              }}
+              style={{
+                width: "100%",
+                height: 50,
+                transform: "scale(0.7)",
+                ...(props.theme === "dark"
+                  ? {
+                      background: "url(/logo/logo192.png) no-repeat",
+                      backgroundSize: "cover",
+                    }
+                  : {
+                      background: "url(/logo/logo-full-colored.svg) no-repeat",
+                      backgroundSize: 200,
+                    }),
+              }}
+            />
+          </Typography>
+        </Box>
+        <div style={{ textAlign: "center" }} id="tabs-container">
           <Box
-            {...listItem.container}
-            key={index}
-            borderLeft={5}
-            onClick={() => props.setRoute({ index, title: item.title })}
-            borderColor={
-              item.link.indexOf("/" + window.location.pathname.split("/")[1]) >=
-              0
-                ? "primary.main"
-                : "transparent"
+            className={
+              window.location.pathname === "/" ? "selected tab bordered" : "tab"
             }
           >
             <Box
               onClick={() => {
-                props.setRoute({ index: 0, title: "Class" });
-                history.push(item.link);
+                history.push("/");
               }}
-              {...listItem.item}
-              {...item.props}
+              className="tab-btn screen-btn"
               style={{
                 alignItems: "center",
                 cursor: "pointer",
                 justifyContent: "center",
                 display: "flex",
-                transform: "translateX(-5px)",
+                transform: "translateX(-1.5px)",
               }}
             >
-              {item.item}
+              <span
+                className="icon-classes"
+                style={{
+                  color:
+                    props.theme === "dark"
+                      ? isTablet
+                        ? "#282828"
+                        : "#f1f1f1"
+                      : "#38108d",
+                  fontSize: "2em",
+                }}
+              />
             </Box>
           </Box>
-        ))}
-        {store.getState().classes.map((item, index) => (
-          <Box
-            {...listItem.container}
-            key={index}
-            borderLeft={5}
-            onClick={() => {
-              props.setRoute({ index, title: item.title });
-              history.push(
-                "/class/" +
-                  item.id +
-                  "/" +
-                  item.name.replace(" ", "-") +
-                  "/Activity"
+          {classes.slice(0, 5).map((item, index) => {
+            return (
+              <Box
+                key={index}
+                className={
+                  class_id && parseInt(class_id) === parseInt(item.id)
+                    ? "selected tab"
+                    : "tab"
+                }
+                style={{ cursor: "pointer" }}
+              >
+                <Tooltip title={item.name} placement="right">
+                  <Box
+                    {...item.props}
+                    className="tab-btn"
+                    style={{
+                      backgroundColor: item.color,
+                    }}
+                    onClick={() => {
+                      history.push(
+                        makeLinkTo(
+                          ["class", item.id, item.next_schedule.id, "opt"],
+                          {
+                            opt: item.next_schedule.id
+                              ? defaultClassScreen[props.userInfo?.user_type]
+                              : "",
+                          }
+                        )
+                      );
+                    }}
+                  >
+                    <Typography variant="body1" component="h2">
+                      {getClassName(item.name)}
+                    </Typography>
+                  </Box>
+                </Tooltip>
+              </Box>
+            );
+          })}
+          {more &&
+            classes.slice(5, props.classes.length).map((item, index) => {
+              return (
+                <Grow in={more} key={index}>
+                  <Box
+                    className={
+                      class_id && parseInt(class_id) === parseInt(item.id)
+                        ? "selected tab"
+                        : "tab"
+                    }
+                    key={index}
+                    style={{ cursor: "pointer" }}
+                  >
+                    <Tooltip title={item.name} placement="right">
+                      <Box
+                        {...item.props}
+                        className="tab-btn"
+                        style={{
+                          backgroundColor: item.color,
+                        }}
+                        onClick={() => {
+                          history.push(
+                            makeLinkTo(
+                              ["class", item.id, item.next_schedule.id, "opt"],
+                              {
+                                opt: item.next_schedule.id
+                                  ? defaultClassScreen[
+                                      props.userInfo?.user_type
+                                    ]
+                                  : "",
+                              }
+                            )
+                          );
+                        }}
+                      >
+                        <Typography variant="body1" component="h2">
+                          {getClassName(item.name)}
+                        </Typography>
+                      </Box>
+                    </Tooltip>
+                  </Box>
+                </Grow>
               );
-            }}
-            borderColor={
-              ("/class/" + item.id + "/" + item.name.replace(" ", "-")).indexOf(
-                "/" +
-                  window.location.pathname.split("/")[1] +
-                  "/" +
-                  window.location.pathname.split("/")[2]
-              ) >= 0
-                ? "primary.main"
-                : "transparent"
-            }
-            style={{ cursor: "pointer" }}
-          >
+            })}
+          {classes && classes.length >= 6 && (
+            <React.Fragment>
+              {!more ? (
+                <IconButton
+                  onClick={() => setMore(true)}
+                  className="sticky"
+                  style={{
+                    background: props.theme === "dark" ? "#282828" : "#ffffff",
+                    bottom: 0,
+                    zIndex: 1,
+                  }}
+                >
+                  <ExpandMoreOutlinedIcon />
+                </IconButton>
+              ) : (
+                <IconButton
+                  onClick={() => setMore(false)}
+                  className="sticky"
+                  style={{
+                    background: props.theme === "dark" ? "#282828" : "#ffffff",
+                    bottom: 0,
+                    zIndex: 1,
+                  }}
+                >
+                  <ExpandLessOutlinedIcon />
+                </IconButton>
+              )}
+            </React.Fragment>
+          )}
+          <Box m={2}>
+            <Divider
+              style={{ opacity: 0.14, backgroundColor: "rgb(55, 19, 138)" }}
+            />
+          </Box>
+          {props.userInfo?.user_type === "a" && (
             <Box
-              {...listItem.item}
-              {...item.props}
+              className={
+                window.location.pathname.indexOf("/dashboard") >= 0
+                  ? "selected tab bordered"
+                  : "tab"
+              }
+            >
+              <Box
+                onClick={() => {
+                  history.push("/dashboard");
+                }}
+                className="tab-btn screen-btn"
+                style={{
+                  alignItems: "center",
+                  cursor: "pointer",
+                  justifyContent: "center",
+                  display: "flex",
+                  transform: "translateX(-1.5px)",
+                }}
+              >
+                <Icon
+                  style={{
+                    fontSize: "2.3rem",
+                    color:
+                      props.theme === "dark"
+                        ? isTablet
+                          ? "#282828"
+                          : "#f1f1f1"
+                        : "#38108d",
+                  }}
+                >
+                  admin_panel_settings
+                </Icon>
+              </Box>
+            </Box>
+          )}
+          <Box className={screen_name ? "selected tab bordered" : "tab"}>
+            <Box
+              onClick={() => {
+                history.push("/explore/jumpstart");
+              }}
+              className="tab-btn screen-btn"
               style={{
                 alignItems: "center",
+                cursor: "pointer",
                 justifyContent: "center",
                 display: "flex",
-                transform: "translateX(-5px)",
+                transform: "translateX(-1.5px)",
               }}
-              bgcolor="grey.700"
             >
-              <Typography
-                variant="body1"
-                component="h2"
-                style={{ color: "#fff" }}
-              >
-                {item.name[0].toUpperCase()}
-                {item.name.split(" ")[1]}
-              </Typography>
+              <span
+                className="icon-explore"
+                style={{
+                  color:
+                    props.theme === "dark"
+                      ? isTablet
+                        ? "#282828"
+                        : "#f1f1f1"
+                      : "#38108d",
+                  fontSize: "2em",
+                }}
+              />
             </Box>
           </Box>
-        ))}
-      </List>
-    </div>
+        </div>
+      </Box>
+      <Box textAlign="center">
+        <Tooltip title="Help" placement="right">
+          <IconButton
+            onClick={() =>
+              window.open(
+                props.userInfo?.user_type === "a"
+                  ? "/admin-manual"
+                  : "/user-manual",
+                "_blank"
+              )
+            }
+          >
+            <Icon
+              fontSize="inherit"
+              style={{
+                color:
+                  props.theme === "dark"
+                    ? isTablet
+                      ? "#282828"
+                      : "#f1f1f1"
+                    : "#38108d",
+              }}
+            >
+              help_outline
+            </Icon>
+          </IconButton>
+        </Tooltip>
+      </Box>
+    </React.Fragment>
   );
-
-  const container =
-    window !== undefined ? () => window().document.body : undefined;
 
   return (
     <div className={styles.root}>
-      <nav className={styles.drawer} aria-label="mailbox folders">
-        <MuiDrawer
-          styles={{
-            paper: styles.drawerPaper,
+      {!isTablet ? (
+        <nav className={styles.drawer}>
+          <Box
+            id="drawer-container"
+            style={{
+              height: "100%",
+              zIndex: 1200,
+              position: "relative",
+            }}
+            variant="permanent"
+          >
+            <Paper style={{ height: "100%", width: "100%" }}>
+              <Scrollbar
+                autoHide
+                onScroll={() => {
+                  let $ = (a) => document.querySelector(a);
+                  if ($("#drawer-container > div").scrollTop > 0)
+                    $("#logo-drawer").style.borderBottom =
+                      "1px solid rgba(0,0,0,0.17)";
+                  else $("#logo-drawer").style.borderBottom = "none";
+                }}
+              >
+                <Box
+                  height="100%"
+                  display="flex"
+                  justifyContent="space-between"
+                  flexDirection="column"
+                >
+                  {drawer}
+                </Box>
+              </Scrollbar>
+            </Paper>
+          </Box>
+        </nav>
+      ) : (
+        <Slide
+          direction="right"
+          in={props.location.hash === "#menu"}
+          mountOnEnter
+          unmountOnExit
+          style={{
+            boxshadow:
+              props.theme === "dark"
+                ? "none"
+                : "4px 0 10px rgba(143, 45, 253, 0.16)",
+            height: "100vh",
+            zIndex: 30,
+            overflow: "auto",
+            background: props.theme === "dark" ? "#282828" : "#ffffff",
+            position: "fixed",
           }}
-          variant="permanent"
-          open
+          id="mobile-drawer"
         >
-          {drawer}
-        </MuiDrawer>
-      </nav>
-      <main className={styles.content} style={{ padding: 0 }}>
+          <Box
+            width={345}
+            minWidth={345}
+            maxWidth={345}
+            height="100%"
+            onScroll={() => {
+              let t = document.querySelector("#mobile-drawer-toolbar");
+              if (document.querySelector("#mobile-drawer").scrollTop > 0) {
+                t.style.borderColor = "rgba(0,0,0,0.12)";
+                t.style.boxShadow = "rgba(167, 79, 248, 0.15) 0px 8px 23px";
+              } else {
+                t.style.borderColor = "transparent";
+                t.style.boxShadow = "none";
+              }
+            }}
+          >
+            <Toolbar
+              id="mobile-drawer-toolbar"
+              className="sticky"
+              style={{
+                display: "flex",
+                alignItems: "center",
+                top: 0,
+                borderColor: "transparent",
+                left: 0,
+                right: 0,
+                background: props.theme === "dark" ? "#282828" : "#ffffff",
+                zIndex: 1,
+                justifyContent: "space-between",
+              }}
+            >
+              <Box
+                display="flex"
+                alignItems="center"
+                style={{ pointerEvents: "none", userSelect: "none" }}
+              >
+                <img
+                  src="/logo/logo-full-colored.svg"
+                  width={120}
+                  alt="iSkwela"
+                />
+              </Box>
+              <IconButton onClick={() => props.history.push("#")}>
+                <Icon color="primary">close</Icon>
+              </IconButton>
+            </Toolbar>
+            <Box
+              className={
+                window.location.pathname === "/"
+                  ? "selected tab bordered"
+                  : "tab"
+              }
+              onClick={() => {
+                history.push("/");
+              }}
+            >
+              <Box className="tab-btn screen-btn">
+                <span
+                  className="icon-classes"
+                  style={{
+                    color:
+                      props.theme === "dark"
+                        ? isTablet
+                          ? "#282828"
+                          : "#f1f1f1"
+                        : "#38108d",
+                    fontSize: "2em",
+                  }}
+                />
+              </Box>
+              <Typography
+                style={{
+                  color: props.theme === "dark" ? "#f1f1f1" : "#38108d",
+                  fontWeight: "bold",
+                }}
+              >
+                Classes
+              </Typography>
+            </Box>
+            {classes.slice(0, 5).map((item, index) => {
+              return (
+                <Box
+                  key={index}
+                  className={
+                    class_id && parseInt(class_id) === parseInt(item.id)
+                      ? "selected tab"
+                      : "tab"
+                  }
+                  style={{ cursor: "pointer" }}
+                >
+                  <Tooltip title={item.name} placement="right">
+                    <Box
+                      {...item.props}
+                      className="tab-btn"
+                      style={{
+                        backgroundColor: item.color,
+                      }}
+                      onClick={() => {
+                        history.push(
+                          makeLinkTo(
+                            ["class", item.id, item.next_schedule.id, "opt"],
+                            {
+                              opt: item.next_schedule.id
+                                ? defaultClassScreen[props.userInfo?.user_type]
+                                : "",
+                            }
+                          )
+                        );
+                      }}
+                    >
+                      <Typography variant="body1" component="h2">
+                        {getClassName(item.name)}
+                      </Typography>
+                    </Box>
+                  </Tooltip>
+                  <Typography
+                    style={{
+                      color: props.theme === "dark" ? "#f1f1f1" : "#38108d",
+                      fontWeight: "bold",
+                    }}
+                    onClick={() => {
+                      history.push(
+                        makeLinkTo(
+                          ["class", item.id, item.next_schedule.id, "opt"],
+                          {
+                            opt: item.next_schedule.id
+                              ? defaultClassScreen[props.userInfo?.user_type]
+                              : "",
+                          }
+                        )
+                      );
+                    }}
+                  >
+                    {item.name}
+                  </Typography>
+                </Box>
+              );
+            })}
+            {more &&
+              classes.slice(5, props.classes.length).map((item, index) => {
+                return (
+                  <Grow in={more} key={index}>
+                    <Box
+                      className={
+                        class_id && parseInt(class_id) === parseInt(item.id)
+                          ? "selected tab"
+                          : "tab"
+                      }
+                      key={index}
+                      style={{ cursor: "pointer" }}
+                    >
+                      <Tooltip title={item.name} placement="right">
+                        <Box
+                          {...item.props}
+                          className="tab-btn"
+                          style={{
+                            backgroundColor: item.color,
+                          }}
+                          onClick={() => {
+                            history.push(
+                              makeLinkTo(
+                                [
+                                  "class",
+                                  item.id,
+                                  item.next_schedule.id,
+                                  "opt",
+                                ],
+                                {
+                                  opt: item.next_schedule.id
+                                    ? defaultClassScreen[
+                                        props.userInfo?.user_type
+                                      ]
+                                    : "",
+                                }
+                              )
+                            );
+                          }}
+                        >
+                          <Typography variant="body1" component="h2">
+                            {getClassName(item.name)}
+                          </Typography>
+                        </Box>
+                      </Tooltip>
+                      <Typography
+                        style={{
+                          color: props.theme === "dark" ? "#f1f1f1" : "#38108d",
+                          fontWeight: "bold",
+                        }}
+                        onClick={() => {
+                          history.push(
+                            makeLinkTo(
+                              ["class", item.id, item.next_schedule.id, "opt"],
+                              {
+                                opt: item.next_schedule.id
+                                  ? defaultClassScreen[
+                                      props.userInfo?.user_type
+                                    ]
+                                  : "",
+                              }
+                            )
+                          );
+                        }}
+                      >
+                        {item.name}
+                      </Typography>
+                    </Box>
+                  </Grow>
+                );
+              })}
+            {classes && classes.length >= 6 && (
+              <React.Fragment>
+                {!more ? (
+                  <Button
+                    onClick={() => setMore(true)}
+                    style={{ width: "100%" }}
+                  >
+                    Show more
+                    <ExpandMoreOutlinedIcon />
+                  </Button>
+                ) : (
+                  <Button
+                    onClick={() => setMore(false)}
+                    style={{ width: "100%" }}
+                  >
+                    Show less
+                    <ExpandLessOutlinedIcon />
+                  </Button>
+                )}
+              </React.Fragment>
+            )}
+            <Divider
+              style={{ opacity: 0.14, backgroundColor: "rgb(55, 19, 138)" }}
+            />
+            {props.userInfo?.user_type === "a" && (
+              <Box
+                className={
+                  window.location.pathname.indexOf("/dashboard") >= 0
+                    ? "selected tab bordered"
+                    : "tab"
+                }
+              >
+                <Box
+                  onClick={() => {
+                    history.push("/dashboard");
+                  }}
+                  className="tab-btn screen-btn"
+                  style={{
+                    alignItems: "center",
+                    cursor: "pointer",
+                    justifyContent: "center",
+                    display: "flex",
+                    transform: "translateX(-1.5px)",
+                  }}
+                >
+                  <Icon
+                    style={{
+                      fontSize: "2.3rem",
+                      color:
+                        props.theme === "dark"
+                          ? isTablet
+                            ? "#282828"
+                            : "#f1f1f1"
+                          : "#38108d",
+                    }}
+                  >
+                    admin_panel_settings
+                  </Icon>
+                </Box>
+                <Typography
+                  style={{
+                    color: props.theme === "dark" ? "#f1f1f1" : "#38108d",
+                    fontWeight: "bold",
+                  }}
+                  onClick={() => {
+                    history.push("/dashboard");
+                  }}
+                >
+                  Admin Panel
+                </Typography>
+              </Box>
+            )}
+            <Box className={screen_name ? "selected tab bordered" : "tab"}>
+              <Box
+                onClick={() => {
+                  history.push("/explore/jumpstart");
+                }}
+                className="tab-btn screen-btn"
+                style={{
+                  alignItems: "center",
+                  cursor: "pointer",
+                  justifyContent: "center",
+                  display: "flex",
+                  transform: "translateX(-1.5px)",
+                }}
+              >
+                <span
+                  className="icon-explore"
+                  style={{
+                    color:
+                      props.theme === "dark"
+                        ? isTablet
+                          ? "#282828"
+                          : "#f1f1f1"
+                        : "#38108d",
+                    fontSize: "2em",
+                  }}
+                />
+              </Box>
+              <Typography
+                style={{
+                  color: props.theme === "dark" ? "#f1f1f1" : "#38108d",
+                  fontWeight: "bold",
+                }}
+                onClick={() => {
+                  history.push("/explore/jumpstart");
+                }}
+              >
+                Explore
+              </Typography>
+            </Box>
+            <Box
+              className={"tab"}
+              onClick={() => {
+                window.open(
+                  props.userInfo?.user_type === "a"
+                    ? "/admin-manual"
+                    : "/user-manual",
+                  "_blank"
+                );
+              }}
+            >
+              <Box className="tab-btn screen-btn">
+                <Icon
+                  fontSize="large"
+                  style={{
+                    color:
+                      props.theme === "dark"
+                        ? isTablet
+                          ? "#282828"
+                          : "#f1f1f1"
+                        : "#38108d",
+                  }}
+                >
+                  help_outline
+                </Icon>
+              </Box>
+              <Typography
+                style={{
+                  color: props.theme === "dark" ? "#f1f1f1" : "#38108d",
+                  fontWeight: "bold",
+                }}
+              >
+                Help
+              </Typography>
+            </Box>
+          </Box>
+        </Slide>
+      )}
+      <main
+        className={styles.content}
+        style={{ padding: 0, minHeight: "100vh" }}
+      >
         {props.children}
       </main>
     </div>
   );
 }
 
-const listItem = {
-  container: {
-    display: "flex",
-    justifyContent: "center",
-    borderColor: "primary.main",
-    style: { display: "block" },
-  },
-  item: {
-    borderRadius: "50%",
-    borderRadius: "50%",
-    border: 1,
-    borderColor: "grey.500",
-    m: 1,
-    width: 40,
-    height: 40,
-  },
-};
-const drawerWidth = 60;
+const drawerWidth = 66;
 const useStyles = makeStyles((theme) => ({
+  toolbar: {
+    minHeight: 50,
+    paddingLeft: 0,
+    paddingRight: 0,
+    background: theme.palette.grey[100],
+    zIndex: 2,
+    top: 0,
+    left: 0,
+    right: 0,
+  },
   root: {
+    "& .tab .tab-btn": {
+      alignItems: "center",
+      justifyContent: "center",
+      display: "flex",
+      transform: "translateX(-1.5px)",
+      borderRadius: 7,
+      position: "relative",
+      margin: "8px 15px",
+      width: 50,
+      minWidth: 50,
+      height: 50,
+      [theme.breakpoints.down("md")]: {
+        marginRight: 16,
+        "&.screen-btn": {
+          borderRadius: 11,
+          background: "rgb(231, 223, 250)",
+          boxshadow:
+            theme.palette.type === "dark"
+              ? "none"
+              : "0 2px 10px rgb(224, 224, 224)",
+          color: "rgb(55, 19, 138)!important",
+        },
+      },
+      "&:not(.screen-btn)": {
+        boxshadow:
+          theme.palette.type === "dark"
+            ? "none"
+            : "0 2px 4px rgb(241, 230, 255)",
+        borderRadius: 6,
+        opacity: 0.86,
+        color: "#ffffff",
+      },
+    },
+    "& .tab": {
+      display: "flex",
+      position: "relative",
+      justifyContent: "center",
+      [theme.breakpoints.down("md")]: {
+        justifyContent: "flex-start",
+        alignItems: "center",
+      },
+      "&.selected": {
+        position: "relative",
+        "&:not(.bordered)>div:first-of-type": {
+          transform: "scale(0.9)",
+          "&::before": {
+            content: "''",
+            position: "absolute",
+            left: 0,
+            right: 0,
+            bottom: 0,
+            top: 0,
+            borderRadius: 8,
+            border: "4px solid " + theme.palette.primary.main,
+            transform: "scale(1.3)",
+          },
+        },
+        "&.bordered::after": {
+          content: "''",
+          position: "absolute",
+          right: 0,
+          top: 0,
+          bottom: 0,
+          width: 6,
+          background: theme.palette.secondary.main,
+          borderRadius: "6px 0 0 6px",
+        },
+      },
+    },
     display: "flex",
   },
   drawer: {
     width: drawerWidth,
     flexShrink: 0,
   },
-  toolbar: theme.mixins.toolbar,
   drawerPaper: {
     width: drawerWidth,
+    height: "100%",
     overflow: "hidden",
   },
   content: {
     [theme.breakpoints.down("xs")]: {
-      width: "85%",
+      width: "84%",
     },
+    background: theme.palette.type === "dark" ? "#000" : "#f9f5fe",
     flexGrow: 1,
     padding: theme.spacing(3),
     width: "100%",
@@ -208,9 +895,7 @@ Drawer.propTypes = {
   window: PropTypes.func,
 };
 
-export default connect(
-  (states) => ({
-    route: states.route,
-  }),
-  actions
-)(Drawer);
+export default connect((states) => ({
+  classes: Object.keys(states.classes).map((k) => states.classes[k]),
+  theme: states.theme,
+}))(Drawer);

@@ -1,6 +1,8 @@
 import React from "react";
 import ReactDOM from "react-dom";
 import "./index.css";
+import "./components/calendar.css";
+import "./iskwela-icons.css";
 import App from "./App";
 import * as serviceWorker from "./serviceWorker";
 import { I18nextProvider } from "react-i18next";
@@ -9,6 +11,8 @@ import common_en from "./translations/en/common.json";
 import { initReactI18next } from "react-i18next";
 import { Provider } from "react-redux";
 import store from "./components/redux/store";
+
+const _DEV = true;
 
 i18next.use(initReactI18next).init({
   resources: {
@@ -23,12 +27,19 @@ i18next.use(initReactI18next).init({
   },
 });
 
+if (!_DEV) {
+  console.log = () => {};
+  console.error = () => {};
+  console.warn = () => {};
+  console.clear();
+}
+
 ReactDOM.render(
   <Provider store={store}>
     <I18nextProvider i18n={i18next}>
-      <React.StrictMode>
-        <App />
-      </React.StrictMode>
+      {/* <React.StrictMode> */}
+      <App />
+      {/* </React.StrictMode> */}
     </I18nextProvider>
   </Provider>,
   document.getElementById("root")
