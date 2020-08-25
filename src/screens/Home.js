@@ -211,7 +211,16 @@ function Home(props) {
               {/* <div className={styles.mediaOverlay} /> */}
             </div>
             <CardContent
-              style={{ position: "absolute", top: 0, left: 0, width: "100%" }}
+              style={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                width: "100%",
+                backgroundImage:
+                  "linear-gradient(to bottom, rgba(0, 0, 0, 0.26), rgba(0, 0, 0, 0))",
+                height: "100%",
+                borderRadius: "20px 20px 0 0",
+              }}
             >
               <Typography
                 gutterBottom
@@ -221,6 +230,7 @@ function Home(props) {
                   color: "#fff",
                   fontWeight: 600,
                   letterSpacing: "0.3px",
+                  textShadow: "1px 1px 1px rgba(0,0,0,0.1)",
                 }}
               >
                 {c.name}
@@ -736,9 +746,7 @@ const useStyles = makeStyles((theme) => ({
     position: "absolute",
     cursor: "pointer",
     left: 0,
-    bottom: -40,
     zIndex: 0,
-    height: 70,
     width: "90%",
     textDecoration: "none",
     padding: 7,
@@ -748,6 +756,11 @@ const useStyles = makeStyles((theme) => ({
     alignItems: "center",
     justifyContent: "space-between",
     borderRadius: 13,
+    bottom: "-35px",
+    height: "72px",
+    background: "#807794",
+    fontSize: "0.8rem",
+    fontWeight: "500",
   },
 }));
 
