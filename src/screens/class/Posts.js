@@ -1036,7 +1036,7 @@ function WhatsDue(props) {
       </Toolbar>
       <Box p={2} display="flex" alignItems="center" justifyContent="center">
         <Typography color="textSecondary">
-          No Assignment due this week
+          Check your student activities
         </Typography>
       </Box>
     </Paper>

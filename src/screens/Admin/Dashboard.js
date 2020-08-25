@@ -191,39 +191,6 @@ function Dashboard(props) {
             <PopupState variant="popover" popupId="viewing-as">
               {(popupState) => (
                 <React.Fragment>
-                  <Box
-                    onClick={() => {
-                      popupState.open();
-                    }}
-                    display={"flex"}
-                    justifyContent="center"
-                    alignItems="center"
-                    style={{ cursor: "pointer" }}
-                    {...bindTrigger(popupState)}
-                  >
-                    <Avatar
-                      src={props.childInfo.preferences?.profile_picture}
-                      alt={props.childInfo.first_name}
-                    />
-                    <Box marginLeft={2}>
-                      <Typography style={{ fontSize: 12 }}>
-                        Viewing as
-                      </Typography>
-                      <Typography
-                        style={{
-                          fontWeight: 16,
-                          fontWeight: 500,
-                        }}
-                      >
-                        {props.childInfo.first_name +
-                          " " +
-                          props.childInfo.last_name}
-                      </Typography>
-                    </Box>
-                    <IconButton color="secondary" {...bindTrigger(popupState)}>
-                      <Icon>expand_more</Icon>
-                    </IconButton>
-                  </Box>
                   <Menu
                     {...bindMenu(popupState)}
                     style={{

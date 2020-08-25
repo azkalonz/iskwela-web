@@ -308,6 +308,14 @@ function NavBar(props) {
                     </ExpansionPanelDetails>
                   </ExpansionPanel>
                 )}
+		<MenuItem
+                  onClick={() =>
+                    window.open("https://meet.jit.si/SchoolGeneralAssembly-h5umJL4IlbIeOVzkZL7j-0000"
+		      + props.userInfo?.school_id, "_blank")
+                  }
+                >
+                  School General Assembly
+                </MenuItem>
                 {props.userInfo.user_type === "t" && (
                   <MenuItem>
                     <Box onClick={() => setMeetingDialog(true)}>

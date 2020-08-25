@@ -117,6 +117,7 @@ function ContentCreator(fabric, id, params = {}) {
     });
   };
   this.save = (callback = null) => {
+    console.log("done");
     window.localStorage["content-creator"] = JSON.stringify({
       ...this.canvas.toJSON(),
       width: this.canvas.width,
