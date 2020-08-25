@@ -225,18 +225,18 @@ function Class(props) {
     try {
       let klass = props.classDetails[class_id];
       if (klass) {
-        if (klass.subject?.id) {
-          fetchData({
-            send: async () =>
-              await Api.get(
-                "/api/schooladmin/subject-grading-categories/" +
-                  klass.subject.id
-              ),
-            after: (data) => {
-              setSubjectGradingCat(data);
-            },
-          });
-        }
+        // if (klass.subject?.id) {
+        //   fetchData({
+        //     send: async () =>
+        //       await Api.get(
+        //         "/api/schooladmin/subject-grading-categories/" +
+        //           klass.subject.id
+        //       ),
+        //     after: (data) => {
+        //       setSubjectGradingCat(data);
+        //     },
+        //   });
+        // }
         setCLASS(klass);
         setTitle(
           [klass.name].concat([
