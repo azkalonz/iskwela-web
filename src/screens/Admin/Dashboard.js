@@ -187,56 +187,7 @@ function Dashboard(props) {
               <span className="icon-menu-close"></span>
             </IconButton>
           </Toolbar>
-          <Box marginTop={3} marginBottom={3}>
-            <PopupState variant="popover" popupId="viewing-as">
-              {(popupState) => (
-                <React.Fragment>
-                  <Menu
-                    {...bindMenu(popupState)}
-                    style={{
-                      maxWidth: 300,
-                    }}
-                  >
-                    {props.parentData?.children?.map((child, index) => {
-                      return (
-                        <MenuItem
-                          key={index}
-                          selected={props.childInfo?.id === child.childInfo.id}
-                          onClick={async () => {
-                            popupState.close();
-                            if (props.childInfo?.id === child.childInfo.id) {
-                              return;
-                            }
-                            window.localStorage["chatID"] = child.childInfo.id;
-                            props.history.push(
-                              window.location.search.replaceUrlParam(
-                                "userId",
-                                child.childInfo.id
-                              )
-                            );
-                            setLoading(true);
-                            await UserData.getUserData(props.userInfo, () => {
-                              setLoading(false);
-                            });
-                          }}
-                        >
-                          <Avatar
-                            src={child.childInfo?.preferences?.profile_picture}
-                            alt={child.childInfo.first_name}
-                          />
-                          <Typography style={{ marginLeft: 13 }}>
-                            {child.childInfo.first_name +
-                              " " +
-                              child.childInfo.last_name}
-                          </Typography>
-                        </MenuItem>
-                      );
-                    })}
-                  </Menu>
-                </React.Fragment>
-              )}
-            </PopupState>
-          </Box>
+
           <Tabs
             orientation="vertical"
             variant="scrollable"
@@ -310,6 +261,8 @@ function Dashboard(props) {
 }
 
 function Classes(props) {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const query = qs.parse(window.location.search);
   const { option_name } = props.match.params;
   const [currentClass, setCurrentClass] = useState();
@@ -407,12 +360,19 @@ function Classes(props) {
           {!currentClass && !loading && (
             <Box p={4}>
               <Box
-                width="100%"
                 display="flex"
-                justifyContent="space-between"
-                marginBottom={4}
+                textAlign="center"
+                justifyContent="center"
+                position="relative"
+                alignItems={isMobile ? "center" : ""}
+                flexDirection={isMobile ? "column-reverse" : ""}
+                style={{ marginBottom: 20 }}
               >
-                <Box>
+                <Box
+                  style={{
+                    marginRight: 10,
+                  }}
+                >
                   <Button
                     variant="contained"
                     color="secondary"
@@ -420,6 +380,107 @@ function Classes(props) {
                   >
                     New Class
                   </Button>
+                </Box>
+
+                <Box
+                  style={{
+                    marginLeft: isMobile ? 0 : "auto",
+                    marginBottom: isMobile ? 10 : "auto",
+                    marginTop: isMobile ? 10 : "auto",
+                  }}
+                >
+                  <PopupState variant="popover" popupId="viewing-as">
+                    {(popupState) => (
+                      <React.Fragment>
+                        <Box
+                          onClick={() => {
+                            popupState.open();
+                          }}
+                          display={"flex"}
+                          justifyContent="center"
+                          alignItems="center"
+                          style={{ cursor: "pointer" }}
+                          {...bindTrigger(popupState)}
+                        >
+                          <Avatar
+                            src={props.childInfo.preferences?.profile_picture}
+                            alt={props.childInfo.first_name}
+                          />
+                          <Box marginLeft={2}>
+                            <Typography style={{ fontSize: 12 }}>
+                              Viewing as
+                            </Typography>
+                            <Typography
+                              style={{ fontWeight: 16, fontWeight: 500 }}
+                            >
+                              {props.childInfo.first_name +
+                                " " +
+                                props.childInfo.last_name}
+                            </Typography>
+                          </Box>
+                          <IconButton
+                            color="secondary"
+                            {...bindTrigger(popupState)}
+                          >
+                            <Icon>expand_more</Icon>
+                          </IconButton>
+                        </Box>
+                        <Menu
+                          {...bindMenu(popupState)}
+                          style={{
+                            maxWidth: 300,
+                          }}
+                        >
+                          {props.parentData?.children?.map((child, index) => {
+                            return (
+                              <MenuItem
+                                key={index}
+                                selected={
+                                  props.childInfo?.id === child.childInfo.id
+                                }
+                                onClick={async () => {
+                                  popupState.close();
+                                  if (
+                                    props.childInfo?.id === child.childInfo.id
+                                  ) {
+                                    return;
+                                  }
+                                  window.localStorage["chatID"] =
+                                    child.childInfo.id;
+                                  props.history.push(
+                                    window.location.search.replaceUrlParam(
+                                      "userId",
+                                      child.childInfo.id
+                                    )
+                                  );
+                                  setLoading(true);
+                                  await UserData.getUserData(
+                                    props.userInfo,
+                                    () => {
+                                      setLoading(false);
+                                    }
+                                  );
+                                }}
+                              >
+                                <Avatar
+                                  src={
+                                    child.childInfo?.preferences
+                                      ?.profile_picture
+                                  }
+                                  alt={child.childInfo.first_name}
+                                />
+                                <Typography style={{ marginLeft: 13 }}>
+                                  {child.childInfo.first_name +
+                                    " " +
+                                    child.childInfo.last_name}
+                                </Typography>
+                              </MenuItem>
+                            );
+                          })}
+                        </Menu>
+                      </React.Fragment>
+                    )}
+                  </PopupState>
                 </Box>
                 <Box>
                   <SearchInput onChange={(e) => setSearch(e)} />
@@ -653,6 +714,8 @@ function Classes(props) {
 }
 
 function StudentGroups(props) {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const query = qs.parse(window.location.search);
   const [sections, setSections] = useState([]);
   const [years, setYears] = useState();
@@ -885,6 +948,20 @@ function StudentGroups(props) {
             </IconButton>
           )}
         </Box>
+
+        <Button
+          style={{ marginRight: isMobile ? 10 : "auto" }}
+          variant="contained"
+          color="secondary"
+          onClick={() => {
+            props.history.push(
+              window.location.search.replaceUrlParam("add_section", true)
+            );
+          }}
+        >
+          New Section
+        </Button>
+
         <Box>
           <SearchInput
             onChange={(e) => setSearchSections(e)}
@@ -1193,6 +1270,7 @@ function StudentGroups(props) {
                       value: "reset-password",
                     },
                   ]}
+                  //ahhhhhh oki markk
                   actions={[
                     {
                       name: "Add Student",
@@ -1203,20 +1281,22 @@ function StudentGroups(props) {
                             "true"
                           )
                         ),
+                      props: {
+                        style: {
+                          background: "green",
+                          color: "#fff",
+                        },
+                      },
                     },
                     {
-                      name: "New Section",
-                      onClick: () =>
-                        props.history.push(
-                          window.location.search.replaceUrlParam(
-                            "add_section",
-                            "true"
-                          )
-                        ),
-                    },
-                    {
-                      name: "Delete",
+                      name: "Delete Section",
                       onClick: () => deleteSection(),
+                      props: {
+                        style: {
+                          background: "green",
+                          color: "#fff",
+                        },
+                      },
                     },
                   ]}
                   data={section.students?.map(
@@ -3688,12 +3768,22 @@ function UserTable(props) {
           style={{ order: isMobile ? 2 : 0 }}
         >
           {props.actions?.length ? (
-            <ButtonGroup fullWidth variant="contained" color="secondary">
+            <ButtonGroup
+              fullWidth
+              variant="contained"
+              style={{ background: "green", color: "#fff" }}
+            >
               {(props.actions || []).map((a, i) => (
                 <Button
                   key={i}
                   onClick={a.onClick}
-                  style={{ margin: 0, whiteSpace: "pre" }}
+                  {...(a?.props || {})}
+                  style={{
+                    margin: 0,
+                    whiteSpace: "pre",
+                    fontWeight: 700,
+                    ...(a?.props?.style || {}),
+                  }}
                 >
                   {isMobile && a.icon ? <Icon>{a.icon}</Icon> : a.name}
                 </Button>
@@ -3706,7 +3796,7 @@ function UserTable(props) {
           flex={isMobile ? 1 : "none"}
           width={isMobile ? "100%" : "auto"}
         >
-          <SearchInput onChange={(e) => setSearch(e)} />
+          {data?.length ? <SearchInput onChange={(e) => setSearch(e)} /> : null}
         </Box>
       </Box>
       {loading && (
@@ -3720,6 +3810,7 @@ function UserTable(props) {
           <CircularProgress />
         </Box>
       )}
+
       {!loading && (
         <Table
           {...(props.tableProps ? props.tableProps : {})}
