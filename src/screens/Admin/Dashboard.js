@@ -1774,71 +1774,46 @@ function GradingCategories(props) {
                     delete: (item) => removeCategory(item),
                   }}
                   actions={[]}
-                  rowRenderMobile={(item, itemController) => {
-                    const cat = grading.find(
-                      (q) => parseInt(q.id) === parseInt(item.category_id)
-                    );
-                    return (
-                      <Box
-                        display="flex"
-                        flexWrap="wrap"
-                        width="90%"
-                        flexDirection="column"
-                        onClick={() => {
-                          props.history.push(
-                            window.location.search.replaceUrlParam(
-                              "subject_id",
-                              item.id
-                            )
-                          );
-                          getSubjectCategories(item.id);
-                        }}
-                        justifyContent="space-between"
-                        style={{ padding: "30px 0" }}
-                      >
-                        <Box width="100%" marginBottom={1}>
-                          <Typography
-                            style={{
-                              fontWeight: "bold",
-                              color: "#38108d",
-                              fontSize: "1em",
-                            }}
-                          >
-                            CATEGORY NAME
-                          </Typography>
-                          <Typography
-                            variant="body1"
-                            style={{
-                              fontWeight: "bold",
-                              fontSize: "0.9em",
-                            }}
-                          >
-                            {cat.name}
-                          </Typography>
-                        </Box>
-                        <Box width="100%" marginBottom={1}>
-                          <Typography
-                            style={{
-                              fontWeight: "bold",
-                              color: "#38108d",
-                              fontSize: "1em",
-                            }}
-                          >
-                            PERCENTAGE
-                          </Typography>
-                          <Typography
-                            variant="body1"
-                            style={{
-                              fontWeight: "bold",
-                              fontSize: "0.9em",
-                            }}
-                          >
-                            {item.category_percentage}
-                          </Typography>
-                        </Box>
+                  rowRenderMobile={(item, itemController) => (
+                    <Box
+                      display="flex"
+                      flexWrap="wrap"
+                      width="90%"
+                      flexDirection="column"
+                      onClick={() => {
+                        props.history.push(
+                          window.location.search.replaceUrlParam(
+                            "subject_id",
+                            item.id
+                          )
+                        );
+                        getSubjectCategories(item.id);
+                      }}
+                      justifyContent="space-between"
+                      style={{ padding: "30px 0" }}
+                    >
+                      <Box width="100%" marginBottom={1}>
+                        <Typography
+                          style={{
+                            fontWeight: "bold",
+                            color: "#38108d",
+                            fontSize: "1em",
+                          }}
+                        >
+                          SUBJECT
+                        </Typography>
+                        <Typography
+                          variant="body1"
+                          style={{
+                            fontWeight: "bold",
+                            fontSize: "0.9em",
+                          }}
+                        >
+                          {item.name}
+                        </Typography>
                       </Box>
-                    );
-                  }}
+                    </Box>
+                  )}
                   rowRender={(item, itemController) => {
                     return (
                       <Box
@@ -1904,46 +1879,71 @@ function GradingCategories(props) {
                         ),
                     },
                   ]}
-                  rowRenderMobile={(item, itemController) => (
-                    <Box
-                      display="flex"
-                      flexWrap="wrap"
-                      width="90%"
-                      flexDirection="column"
-                      onClick={() => {
-                        props.history.push(
-                          window.location.search.replaceUrlParam(
-                            "subject_id",
-                            item.id
-                          )
-                        );
-                        getSubjectCategories(item.id);
-                      }}
-                      justifyContent="space-between"
-                      style={{ padding: "30px 0" }}
-                    >
-                      <Box width="100%" marginBottom={1}>
-                        <Typography
-                          style={{
-                            fontWeight: "bold",
-                            color: "#38108d",
-                            fontSize: "1em",
-                          }}
-                        >
-                          SUBJECT
-                        </Typography>
-                        <Typography
-                          variant="body1"
-                          style={{
-                            fontWeight: "bold",
-                            fontSize: "0.9em",
-                          }}
-                        >
-                          {item.name}
-                        </Typography>
+                  rowRenderMobile={(item, itemController) => {
+                    const cat = grading.find(
+                      (q) => parseInt(q.id) === parseInt(item.category_id)
+                    );
+                    return (
+                      <Box
+                        display="flex"
+                        flexWrap="wrap"
+                        width="90%"
+                        flexDirection="column"
+                        onClick={() => {
+                          props.history.push(
+                            window.location.search.replaceUrlParam(
+                              "subject_id",
+                              item.id
+                            )
+                          );
+                          getSubjectCategories(item.id);
+                        }}
+                        justifyContent="space-between"
+                        style={{ padding: "30px 0" }}
+                      >
+                        <Box width="100%" marginBottom={1}>
+                          <Typography
+                            style={{
+                              fontWeight: "bold",
+                              color: "#38108d",
+                              fontSize: "1em",
+                            }}
+                          >
+                            CATEGORY NAME
+                          </Typography>
+                          <Typography
+                            variant="body1"
+                            style={{
+                              fontWeight: "bold",
+                              fontSize: "0.9em",
+                            }}
+                          >
+                            {cat?.category}
+                          </Typography>
+                        </Box>
+                        <Box width="100%" marginBottom={1}>
+                          <Typography
+                            style={{
+                              fontWeight: "bold",
+                              color: "#38108d",
+                              fontSize: "1em",
+                            }}
+                          >
+                            PERCENTAGE
+                          </Typography>
+                          <Typography
+                            variant="body1"
+                            style={{
+                              fontWeight: "bold",
+                              fontSize: "0.9em",
+                            }}
+                          >
+                            {(item.category_percentage * 100).toFixed(2)} %
+                          </Typography>
+                        </Box>
                       </Box>
-                    </Box>
-                  )}
+                    );
+                  }}
                   rowRender={(item, itemController) => {
                     return SubjectGradingCategory(item);
                   }}
