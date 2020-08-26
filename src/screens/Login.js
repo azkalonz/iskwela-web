@@ -143,7 +143,8 @@ function LoginContainer(props) {
           }
         >
           <Alert severity="error" style={{ margin: "30px 0" }}>
-            {window.login_error}
+            {/* {window.login_error} */}
+            Invalid Username or Password
           </Alert>
         </Snackbar>
       )}

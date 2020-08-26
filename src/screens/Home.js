@@ -527,7 +527,7 @@ function Home(props) {
                           />
                           <Box marginLeft={2}>
                             <Typography style={{ fontSize: 12 }}>
-                              Viewing as huehue
+                              Viewing as
                             </Typography>
                             <Typography
                               style={{

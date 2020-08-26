@@ -3771,7 +3771,8 @@ function UserTable(props) {
             <ButtonGroup
               fullWidth
               variant="contained"
-              style={{ background: "green", color: "#fff" }}
+              color="secondary"
+              // style={{ background: "green", color: "#fff" }}
             >
               {(props.actions || []).map((a, i) => (
                 <Button
