@@ -3,6 +3,7 @@ import { createMuiTheme } from "@material-ui/core";
 
 const primaryColor = "#7539ff";
 const secondaryColor = "#FFD026";
+const green = "#00CC00";
 const defaultTheme = createMuiTheme();
 
 export default function getTheme() {
