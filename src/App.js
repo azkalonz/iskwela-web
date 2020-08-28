@@ -27,6 +27,7 @@ import getTheme from "./styles/muiTheme";
 import Dashboard from "./screens/Admin/Dashboard";
 import UserManual from "./screens/user-manual/UserManual";
 import AdminManual from "./screens/admin-manual/AdminManual";
+import ApiExample from "./screens/api-example";
 
 const qs = require("query-string");
 
@@ -161,6 +162,14 @@ function App(props) {
                     render={(p) => {
                       setTitle("Dashboard");
                       return <Home {...p} />;
+                    }}
+                  />
+                  <Route
+                    exact
+                    path="/api-example"
+                    render={(p) => {
+                      setTitle("Api Example");
+                      return <ApiExample {...p} />;
                     }}
                   />
                   <Route exact path="/chat/:chat_id?" component={Chat} />
