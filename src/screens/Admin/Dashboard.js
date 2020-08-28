@@ -757,6 +757,8 @@ function StudentGroups(props) {
   const [loadingChildren, setLoadingChildren] = useState(false);
   const [students, setStudents] = useState([]);
   const [success, setSuccess] = useState(false);
+  const [successAdmin, setSuccessAdmin] = useState(false);
+
   const handleChange = (event, newValue) => {
     setValue(newValue);
   };
@@ -1312,7 +1314,6 @@ function StudentGroups(props) {
                       value: "reset-password",
                     },
                   ]}
-                  //ahhhhhh oki markk
                   actions={[
                     {
                       name: "Add Student",
@@ -3115,6 +3116,7 @@ function Accounts(props) {
     createTab("students", "Students"),
   ];
   const [success, setSuccess] = useState(false);
+  const [successAdmin, setSuccessAdmin] = useState(false);
   const [errors, setErrors] = useState({});
   const tabid = tabMap.findIndex((q) => q.key === query.section);
   const [value, setValue] = useState(tabid >= 0 ? tabid : 0);
@@ -3697,7 +3699,7 @@ function UserTable(props) {
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [success, setSuccess] = useState(false);
-
+  const [successAdmin, setSuccessAdmin] = useState(false);
   const activate = (isActivate, student) => {
     const stat = isActivate ? "activate" : "deactivate";
     fetchData({
@@ -3722,6 +3724,12 @@ function UserTable(props) {
     modifiedChildren = false;
     props.onSelect && props.onSelect(item);
     switch (opt) {
+      case "deactivate":
+        activate(false, item);
+        break;
+      case "activate":
+        activate(true, item);
+        break;
       case "view-user":
         window.currentItem = item;
         props.history.push(
@@ -3769,7 +3777,7 @@ function UserTable(props) {
             }),
           after: (data) => {
             if (data && data?.success) {
-              setSuccess(true);
+              setSuccessAdmin(true);
             }
             setSaving(false);
             setSavingId([]);
@@ -3843,6 +3851,15 @@ function UserTable(props) {
           Success
         </Alert>
       </Snackbar>
+      <Snackbar
+        open={successAdmin}
+        autoHideDuration={6000}
+        onClose={() => setSuccessAdmin(false)}
+      >
+        <Alert severity="success" onClose={() => setSuccessAdmin(false)}>
+          Success! Password is the same as the username.{" "}
+        </Alert>
+      </Snackbar>
       <Box
         paddingBottom={2}
         display="flex"
@@ -3854,12 +3871,7 @@ function UserTable(props) {
           style={{ order: isMobile ? 2 : 0 }}
         >
           {props.actions?.length ? (
-            <ButtonGroup
-              fullWidth
-              variant="contained"
-              color="secondary"
-              // style={{ background: "green", color: "#fff" }}
-            >
+            <ButtonGroup fullWidth variant="contained" color="secondary">
               {(props.actions || []).map((a, i) => (
                 <Button
                   key={i}
