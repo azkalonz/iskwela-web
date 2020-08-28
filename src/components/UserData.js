@@ -258,12 +258,12 @@ const UserData = {
         }
       }
     }
-    let questionnaires = await Api.get(
-      "/api/questionnaires?types[]=myQnrs&limit=100"
-    );
-    let gradingCategories = await Api.get(
-      "/api/schooladmin/school-grading-categories"
-    );
+    // let questionnaires = await Api.get(
+    //   "/api/questionnaires?types[]=myQnrs&limit=100"
+    // );
+    // let gradingCategories = await Api.get(
+    //   "/api/schooladmin/school-grading-categories"
+    // );
 
     let allclasses = {};
     await asyncForEach(data.classes, async (c) => {
@@ -274,14 +274,14 @@ const UserData = {
       type: "SET_PARENT_DATA",
       data: data.parentData,
     });
-    store.dispatch({
-      type: "SET_GRADING_CATEGORIES",
-      categories: gradingCategories,
-    });
-    store.dispatch({
-      type: "SET_QUESTIONNAIRES",
-      questionnaires,
-    });
+    // store.dispatch({
+    //   type: "SET_GRADING_CATEGORIES",
+    //   categories: gradingCategories,
+    // });
+    // store.dispatch({
+    //   type: "SET_QUESTIONNAIRES",
+    //   questionnaires,
+    // });
     if (user_type === "s" || user_type === "t") {
       store.dispatch({
         type: "SET_CLASSES",

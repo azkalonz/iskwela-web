@@ -148,6 +148,7 @@ function Activity(props) {
   const [selectedSched, setSelectedSched] = useState(
     query.date && query.date !== -1 ? parseInt(query.date) : -1
   );
+  const [categories, setCategories] = useState([]);
   const formTemplate = {
     title: "",
     description: "",
@@ -275,22 +276,31 @@ function Activity(props) {
       });
     }
   };
-  const getCategories = useCallback(() => {
-    let sub = props.subjectGradingCategories || [];
-    let cat = props.gradingCategories || [];
-    cat = cat.map((q) => {
-      let i = sub.findIndex(
-        (qq) => parseInt(q.id) === parseInt(qq.category_id)
+  const getCategories = async () => {
+    props.onLoad(true);
+    try {
+      let sub = await Api.get(
+        "/api/schooladmin/subject-grading-categories/" +
+          props.classes[class_id]?.subject?.id
       );
-      if (i >= 0) {
-        return {
-          ...q,
-          category_percentage: parseFloat(sub[i].category_percentage),
-        };
-      } else return q;
-    });
-    return cat;
-  }, [props.subjectGradingCategories, props.gradingCategories]);
+      let cat = await Api.get("/api/schooladmin/school-grading-categories");
+      cat = cat.map((q) => {
+        let i = sub.findIndex(
+          (qq) => parseInt(q.id) === parseInt(qq.category_id)
+        );
+        if (i >= 0) {
+          return {
+            ...q,
+            category_percentage: parseFloat(sub[i].category_percentage),
+          };
+        } else return q;
+      });
+      setCategories(cat);
+    } catch (e) {
+      console.log(e);
+    }
+    props.onLoad(false);
+  };
   const getAnswers = async () => {
     currentActivity.answers = null;
     let a = await Api.get(
@@ -906,6 +916,7 @@ function Activity(props) {
   useEffect(() => {
     socket.off("get item");
     socket.on("get item", getItem);
+    getCategories();
     if (document.querySelector("#activity-material") && !saving)
       removeFiles("activity-materials", "#activity-material");
   }, []);
@@ -2096,7 +2107,7 @@ function Activity(props) {
                     style={{ flex: 1 }}
                   >
                     <InputLabel>Grading Category</InputLabel>
-                    {getCategories() && (
+                    {categories && (
                       <Select
                         label="Grading Category"
                         variant="outlined"
@@ -2110,7 +2121,7 @@ function Activity(props) {
                         }}
                         style={{ paddingTop: 17 }}
                       >
-                        {getCategories().map((c, index) => (
+                        {categories.map((c, index) => (
                           <MenuItem value={c.id} key={index}>
                             {c.category}
                           </MenuItem>

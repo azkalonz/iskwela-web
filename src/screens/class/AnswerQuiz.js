@@ -328,7 +328,7 @@ function AnswerQuiz(props) {
         {quiz && (
           <React.Fragment>
             <Box width={isMobile ? "100%" : "70%"}>
-              {isMobile && (
+              {isMobile && (props.quiz && props.quiz.duration * 60000) > 0 && (
                 <Box textAlign="right" m={3}>
                   <Paper>
                     <Box p={2}>
@@ -339,8 +339,7 @@ function AnswerQuiz(props) {
                         <CountDown
                           onTimesUp={() => setAvailable(false)}
                           time={
-                            (props.quiz && props.quiz.duration * 60000) ||
-                            60000 * 60
+                            (props.quiz && props.quiz.duration * 60000)
                           }
                           started={quiz.date_started || new Date()}
                         />
@@ -546,7 +545,7 @@ function AnswerQuiz(props) {
               minWidth={isMobile ? "100%" : 330}
               width={isMobile ? "100%" : 330}
             >
-              {!isMobile && (
+              {!isMobile && (props.quiz && props.quiz.duration * 60000) > 0 && (
                 <Box textAlign="right" m={2}>
                   <Paper>
                     <Box p={2}>
@@ -557,8 +556,7 @@ function AnswerQuiz(props) {
                         <CountDown
                           onTimesUp={() => setAvailable(false)}
                           time={
-                            (props.quiz && props.quiz.duration * 60000) ||
-                            60000 * 60
+                            (props.quiz && props.quiz.duration * 60000)
                           }
                           started={quiz.date_started || new Date()}
                         />

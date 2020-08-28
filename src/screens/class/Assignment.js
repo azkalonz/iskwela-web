@@ -114,7 +114,7 @@ function Assignment(props) {
   const formTemplate = {
     title: "",
     instruction: "",
-    duration: 60,
+    duration: 0,
     category_id: props.gradingCategories[0] && props.gradingCategories[0].id,
   };
   const [form, setForm] = useState(formTemplate);

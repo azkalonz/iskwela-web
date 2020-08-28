@@ -169,8 +169,9 @@ function Questionnaires(props) {
       ),
     [query.date]
   );
-  const _getActivities = () => {
-    setActivities(props.questionnaires);
+  const _getActivities = async (questionnaires) => {
+    let res = await Api.get("/api/questionnaires?types[]=myQnrs&limit=100");
+    setActivities(res);
   };
   useEffect(() => {
     if (props.classDetails[class_id]) {
