@@ -3540,6 +3540,14 @@ function Accounts(props) {
             tableProps: {
               options: [
                 {
+                  name: "Deactivate",
+                  value: "deactivate",
+                },
+                {
+                  name: "Activate",
+                  value: "activate",
+                },
+                {
                   name: "Reset Password",
                   value: "reset-password",
                 },
@@ -3553,6 +3561,14 @@ function Accounts(props) {
             name: "parent",
             tableProps: {
               options: [
+                {
+                  name: "Deactivate",
+                  value: "deactivate",
+                },
+                {
+                  name: "Activate",
+                  value: "activate",
+                },
                 { name: "Add a Child", value: "add-child" },
                 { name: "Remove a Child", value: "remove-child" },
                 {
@@ -3593,6 +3609,14 @@ function Accounts(props) {
             tableProps: {
               options: [
                 {
+                  name: "Deactivate",
+                  value: "deactivate",
+                },
+                {
+                  name: "Activate",
+                  value: "activate",
+                },
+                {
                   name: "Reset Password",
                   value: "reset-password",
                 },
@@ -3631,6 +3655,26 @@ function UserTable(props) {
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [success, setSuccess] = useState(false);
+
+  const activate = (isActivate, student) => {
+    const stat = isActivate ? "activate" : "deactivate";
+    fetchData({
+      before: () => {
+        setSaving(true);
+        setSavingId([student.id]);
+      },
+      send: async () =>
+        await Api.post("/api/admin/user/" + stat + "/" + student.id),
+      after: (data) => {
+        if (data) {
+          setSuccess(true);
+        }
+        setSaving(false);
+        setSavingId([]);
+      },
+    });
+  };
+
   const _handleFileOption = (opt, item) => {
     const actions = props.optionActions || {};
     modifiedChildren = false;
