@@ -3724,6 +3724,16 @@ function UserTable(props) {
     modifiedChildren = false;
     props.onSelect && props.onSelect(item);
     switch (opt) {
+      case "remove-student":
+        if (actions.removeFromSection) {
+          setSavingId([item.id]);
+          setSaving(true);
+          actions.removeFromSection(item, () => {
+            setSavingId([]);
+            setSaving(false);
+          });
+        }
+        break;
       case "deactivate":
         activate(false, item);
         break;
