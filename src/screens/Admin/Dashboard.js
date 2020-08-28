@@ -3684,6 +3684,7 @@ function UserTable(props) {
           });
         }
         break;
+      //actions
       case "deactivate":
         activate(false, item);
         break;
