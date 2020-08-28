@@ -853,6 +853,40 @@ function StudentGroups(props) {
       setErrors(errors);
     }
   };
+  const removeFromSection = async (student, callback) => {
+    if (window.confirm("Are you sure to remove this student?")) {
+      let section = parseInt(query.section);
+      let ss = [...sections];
+      let sectionIndex = ss.findIndex((q) => q.id === section);
+      section = ss.find((q) => q.id === section);
+      console.log(section);
+      if (section) {
+        let studentIndex = section.students?.find(
+          (q) => q?.user.id === student.id
+        );
+        console.log(studentIndex);
+        if (studentIndex) {
+          await fetchData({
+            send: async () =>
+              await Api.delete(
+                "/api/schooladmin/section/remove-student/?section_id=" +
+                  section.id +
+                  "&student_id=" +
+                  student.id
+              ),
+            after: (response) => {
+              if (response?.id) {
+                ss[sectionIndex] = response;
+                setSections(ss);
+                setSuccess(true);
+              }
+            },
+          });
+        }
+      }
+    }
+    callback && callback();
+  };
   const deleteSection = () => {
     let section = parseInt(query.section);
     let ss = [...sections];
@@ -1264,7 +1298,15 @@ function StudentGroups(props) {
                   onRowClick={(item, itemController) =>
                     itemController("view-user", item)
                   }
+                  optionActions={{
+                    removeFromSection: (item, callback) =>
+                      removeFromSection(item, callback),
+                  }}
                   options={[
+                    {
+                      name: "Remove Student",
+                      value: "remove-student",
+                    },
                     {
                       name: "Reset Password",
                       value: "reset-password",
@@ -3540,6 +3582,14 @@ function Accounts(props) {
             tableProps: {
               options: [
                 {
+                  name: "Deactivate",
+                  value: "deactivate",
+                },
+                {
+                  name: "Activate",
+                  value: "activate",
+                },
+                {
                   name: "Reset Password",
                   value: "reset-password",
                 },
@@ -3553,6 +3603,14 @@ function Accounts(props) {
             name: "parent",
             tableProps: {
               options: [
+                {
+                  name: "Deactivate",
+                  value: "deactivate",
+                },
+                {
+                  name: "Activate",
+                  value: "activate",
+                },
                 { name: "Add a Child", value: "add-child" },
                 { name: "Remove a Child", value: "remove-child" },
                 {
@@ -3593,6 +3651,14 @@ function Accounts(props) {
             tableProps: {
               options: [
                 {
+                  name: "Deactivate",
+                  value: "deactivate",
+                },
+                {
+                  name: "Activate",
+                  value: "activate",
+                },
+                {
                   name: "Reset Password",
                   value: "reset-password",
                 },
@@ -3631,6 +3697,26 @@ function UserTable(props) {
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [success, setSuccess] = useState(false);
+
+  const activate = (isActivate, student) => {
+    const stat = isActivate ? "activate" : "deactivate";
+    fetchData({
+      before: () => {
+        setSaving(true);
+        setSavingId([student.id]);
+      },
+      send: async () =>
+        await Api.post("/api/admin/user/" + stat + "/" + student.id),
+      after: (data) => {
+        if (data) {
+          setSuccess(true);
+        }
+        setSaving(false);
+        setSavingId([]);
+      },
+    });
+  };
+
   const _handleFileOption = (opt, item) => {
     const actions = props.optionActions || {};
     modifiedChildren = false;
