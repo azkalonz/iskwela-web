@@ -303,6 +303,25 @@ function Drawer(props) {
               </Box>
             </Box>
           )}
+          <Box textAlign="center">
+            <Tooltip title="Bulletin Board" placement="right">
+              <IconButton onClick={() => window.open("/bulletin", "_blank")}>
+                <Icon
+                  fontSize="inherit"
+                  style={{
+                    color:
+                      props.theme === "dark"
+                        ? isTablet
+                          ? "#282828"
+                          : "#f1f1f1"
+                        : "#38108d",
+                  }}
+                >
+                  help_outline
+                </Icon>
+              </IconButton>
+            </Tooltip>
+          </Box>
           <Box className={screen_name ? "selected tab bordered" : "tab"}>
             <Box
               onClick={() => {
@@ -700,6 +719,47 @@ function Drawer(props) {
                 </Typography>
               </Box>
             )}
+
+            <Box className={screen_name ? "selected tab bordered" : "tab"}>
+              <Box
+                onClick={() => {
+                  history.push("/bulletin", "_blank");
+                }}
+                className="tab-btn screen-btn"
+                style={{
+                  alignItems: "center",
+                  cursor: "pointer",
+                  justifyContent: "center",
+                  display: "flex",
+                  transform: "translateX(-1.5px)",
+                }}
+              >
+                <span
+                  className="icon-explore"
+                  style={{
+                    color:
+                      props.theme === "dark"
+                        ? isTablet
+                          ? "#282828"
+                          : "#f1f1f1"
+                        : "#38108d",
+                    fontSize: "2em",
+                  }}
+                />
+              </Box>
+              <Typography
+                style={{
+                  color: props.theme === "dark" ? "#f1f1f1" : "#38108d",
+                  fontWeight: "bold",
+                }}
+                onClick={() => {
+                  history.push("/explore/jumpstart");
+                }}
+              >
+                Bulletin Board
+              </Typography>
+            </Box>
+
             <Box className={screen_name ? "selected tab bordered" : "tab"}>
               <Box
                 onClick={() => {

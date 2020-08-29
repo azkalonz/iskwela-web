@@ -28,6 +28,7 @@ import Dashboard from "./screens/Admin/Dashboard";
 import UserManual from "./screens/user-manual/UserManual";
 import AdminManual from "./screens/admin-manual/AdminManual";
 import ApiExample from "./screens/api-example";
+import Bulletin from "./screens/Bulletin";
 
 const qs = require("query-string");
 
@@ -174,6 +175,7 @@ function App(props) {
                   />
                   <Route exact path="/chat/:chat_id?" component={Chat} />
                   <Route exact path="/calendar" component={Calendar} />
+                  <Route exact path="/bulletin" component={Bulletin} />
                   <Route exact path="/user-manual" component={UserManual} />
                   <Route exact path="/admin-manual" component={AdminManual} />
                   <Route
