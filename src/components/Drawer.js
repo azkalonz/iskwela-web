@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
+import AddAlertIcon from "@material-ui/icons/AddAlert";
 import PropTypes from "prop-types";
 import {
   Divider,
@@ -311,7 +312,7 @@ function Drawer(props) {
                 : "tab"
             }
           >
-            <Tooltip title="Bulletin Board" placement="right">
+            <Tooltip title="School Bulletin" placement="right">
               <IconButton onClick={() => history.push("/bulletin", "_blank")}>
                 <Icon
                   fontSize="inherit"
@@ -324,7 +325,7 @@ function Drawer(props) {
                         : "#38108d",
                   }}
                 >
-                  help_outline
+                  <AddAlertIcon />
                 </Icon>
               </IconButton>
             </Tooltip>
@@ -747,8 +748,8 @@ function Drawer(props) {
                   transform: "translateX(-1.5px)",
                 }}
               >
-                <span
-                  className="icon-explore"
+                <Icon
+                  fontSize="large"
                   style={{
                     color:
                       props.theme === "dark"
@@ -756,10 +757,15 @@ function Drawer(props) {
                           ? "#282828"
                           : "#f1f1f1"
                         : "#38108d",
-                    fontSize: "2em",
+                    alignItems: "center",
+                    textALign: "center",
+                    display: "contents",
                   }}
-                />
+                >
+                  <AddAlertIcon />
+                </Icon>
               </Box>
+
               <Typography
                 style={{
                   color: props.theme === "dark" ? "#f1f1f1" : "#38108d",
@@ -769,7 +775,7 @@ function Drawer(props) {
                   history.push("/explore/jumpstart");
                 }}
               >
-                Bulletin Board
+                School Bulletin
               </Typography>
             </Box>
 

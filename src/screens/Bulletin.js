@@ -265,6 +265,8 @@ function StartADiscussion(props) {
   const [editorRef, setEditorRef] = useState({});
   const [uploadAnchor, setUploadAnchor] = useState();
   const classesAutocomplete = getAutocomplete(props.allClasses);
+  const isTeacher =
+    props.userInfo.user_type === "t" || props.userInfo.user_type === "a";
   const [states, setStates] = useState({
     DISCUSSION: false,
   });
@@ -399,6 +401,7 @@ function StartADiscussion(props) {
           </Button>
         </Box>
       </Popover>
+
       <div
         style={{
           position: "relative",
@@ -419,128 +422,133 @@ function StartADiscussion(props) {
               }),
         }}
       >
-        <Box p={2}>
-          <Box width="100%" display="flex" alignItems="center">
-            {!states.DISCUSSION ? (
-              <React.Fragment>
-                <Box style={{ marginRight: 13 }}>
-                  <Avatar
-                    src={
-                      (props.userInfo &&
-                        props.userInfo.preferences.profile_picture) ||
-                      "/"
-                    }
-                    alt="Picture"
-                  />
-                </Box>
-                <Box
-                  width="100%"
-                  id="start-a-discussion"
-                  style={{ cursor: "pointer" }}
-                  onClick={() => handleOpen("DISCUSSION")}
+        {isTeacher && (
+          <Box p={2}>
+            <Box width="100%" display="flex" alignItems="center">
+              {!states.DISCUSSION ? (
+                <React.Fragment>
+                  <Box style={{ marginRight: 13 }}>
+                    <Avatar
+                      src={
+                        (props.userInfo &&
+                          props.userInfo.preferences.profile_picture) ||
+                        "/"
+                      }
+                      alt="Picture"
+                    />
+                  </Box>
+                  <Box
+                    width="100%"
+                    id="start-a-discussion"
+                    style={{ cursor: "pointer" }}
+                    onClick={() => handleOpen("DISCUSSION")}
+                  >
+                    <TextField
+                      variant="outlined"
+                      className="themed-input no-margin"
+                      type="text"
+                      placeholder="Start a discussion"
+                      fullWidth
+                      style={{ pointerEvents: "none" }}
+                      inputProps={{ styles: { padding: 13 } }}
+                    />
+                  </Box>
+                </React.Fragment>
+              ) : (
+                <motion.div
+                  initial={{ scaleX: 0.8, scaleY: 0.5, opacity: 0 }}
+                  animate={{ scaleX: 1, scaleY: 1, opacity: 1 }}
+                  style={{
+                    width: "100%",
+                    position: "relative",
+                    minHeight: isMobile ? 125 : 90,
+                  }}
                 >
-                  <TextField
-                    variant="outlined"
-                    className="themed-input no-margin"
-                    type="text"
-                    placeholder="Start a discussion"
-                    fullWidth
-                    style={{ pointerEvents: "none" }}
-                    inputProps={{ styles: { padding: 13 } }}
-                  />
-                </Box>
-              </React.Fragment>
-            ) : (
-              <motion.div
-                initial={{ scaleX: 0.8, scaleY: 0.5, opacity: 0 }}
-                animate={{ scaleX: 1, scaleY: 1, opacity: 1 }}
-                style={{
-                  width: "100%",
-                  position: "relative",
-                  minHeight: isMobile ? 125 : 90,
-                }}
-              >
-                <Editor
-                  focused={true}
-                  label="Try @Student, :English, #HashTag"
-                  controls={[...toolbarcontrols, "insert-photo"]}
-                  inlineToolbarControls={inlinetoolbarcontrols}
-                  getRef={(ref) => setEditorRef(ref)}
-                  inlineToolbar={true}
-                  onSave={(data) => handleSave(data)}
-                  customControls={[
-                    {
-                      name: "insert-photo",
-                      icon: <Icon>insert_photo</Icon>,
-                      type: "callback",
-                      onClick: (editorState, name, anchor) => {
-                        setUploadAnchor(anchor);
+                  <Editor
+                    focused={true}
+                    label="Try @Student, :English, #HashTag"
+                    controls={[...toolbarcontrols, "insert-photo"]}
+                    inlineToolbarControls={inlinetoolbarcontrols}
+                    getRef={(ref) => setEditorRef(ref)}
+                    inlineToolbar={true}
+                    onSave={(data) => handleSave(data)}
+                    customControls={[
+                      {
+                        name: "insert-photo",
+                        icon: <Icon>insert_photo</Icon>,
+                        type: "callback",
+                        onClick: (editorState, name, anchor) => {
+                          setUploadAnchor(anchor);
+                        },
                       },
-                    },
-                  ]}
-                  // autocomplete={{
-                  //   strategies: [
-                  //     {
-                  //       items: classesAutocomplete,
-                  //       triggerChar: ":",
-                  //       atomicBlockName: "class",
-                  //     },
-                  //     {
-                  //       items: props.class.students.map((c) => ({
-                  //         keys: [
-                  //           "students",
-                  //           c.first_name,
-                  //           c.last_name,
-                  //           c.last_name.toLowerCase(),
-                  //           c.first_name.toLowerCase(),
-                  //           c.username,
-                  //         ],
-                  //         value: "@" + c.username,
-                  //         content: <TagItem user={c} />,
-                  //       })),
-                  //       triggerChar: "@",
-                  //     },
-                  //   ],
-                  // }}
-                />
-              </motion.div>
+                    ]}
+                    // autocomplete={{
+                    //   strategies: [
+                    //     {
+                    //       items: classesAutocomplete,
+                    //       triggerChar: ":",
+                    //       atomicBlockName: "class",
+                    //     },
+                    //     {
+                    //       items: props.class.students.map((c) => ({
+                    //         keys: [
+                    //           "students",
+                    //           c.first_name,
+                    //           c.last_name,
+                    //           c.last_name.toLowerCase(),
+                    //           c.first_name.toLowerCase(),
+                    //           c.username,
+                    //         ],
+                    //         value: "@" + c.username,
+                    //         content: <TagItem user={c} />,
+                    //       })),
+                    //       triggerChar: "@",
+                    //     },
+                    //   ],
+                    // }}
+                  />
+                </motion.div>
+              )}
+            </Box>
+            {isTeacher && (
+              <Box
+                display="flex"
+                width="100%"
+                alignItems="center"
+                style={{ marginTop: 13, paddingLeft: 52 }}
+              >
+                <Box width="100%">{!states.DISCUSSION && props.children}</Box>
+                <Box>
+                  <motion.button
+                    style={{ background: "none", border: "none", padding: 0 }}
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.9 }}
+                  >
+                    <Button
+                      color="secondary"
+                      variant="contained"
+                      style={{
+                        boxShadow: "none",
+                        marginLeft: 13,
+                        fontWeight: "bold",
+                      }}
+                      onClick={handlePost}
+                    >
+                      POST
+                    </Button>
+                  </motion.button>
+                </Box>
+              </Box>
             )}
           </Box>
-          <Box
-            display="flex"
-            width="100%"
-            alignItems="center"
-            style={{ marginTop: 13, paddingLeft: 52 }}
-          >
-            <Box width="100%">{!states.DISCUSSION && props.children}</Box>
-            <Box>
-              <motion.button
-                style={{ background: "none", border: "none", padding: 0 }}
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
-              >
-                <Button
-                  color="secondary"
-                  variant="contained"
-                  style={{
-                    boxShadow: "none",
-                    marginLeft: 13,
-                    fontWeight: "bold",
-                  }}
-                  onClick={handlePost}
-                >
-                  POST
-                </Button>
-              </motion.button>
-            </Box>
-          </Box>
-        </Box>
+        )}
       </div>
       <Backdrop
         open={states.DISCUSSION || false}
         onClick={() => handleClose("DISCUSSION")}
         style={{ zIndex: 1301 }}
       />
+      {/* end */}
     </React.Fragment>
   );
 }
@@ -650,7 +658,7 @@ function WriteAComment(props) {
             label="Write a comment"
             value={content}
             onSave={(data) => {
-              handleAddComment(props.class.id, props.post.id, data);
+              handleAddComment(props.school_id, props.post.id, data);
               key.which = -1;
             }}
             onChange={(state) => {
@@ -689,9 +697,9 @@ function Discussion(props) {
   const [saving, setSaving] = useState();
   const [deleting, setDeleting] = useState(false);
   const [editing, setEditing] = useState(false);
-  const classesAutocomplete = getAutocomplete(props.allClasses);
   const [postValue, setPostValue] = useState(props.post.body);
   const [editorRef, setEditorRef] = useState();
+
   const slicedComments = useCallback(() => {
     if (props.post.comments && commentsPerPage) {
       return props.post.comments
@@ -958,12 +966,10 @@ function Bulletin(props) {
     (!isNaN(parseInt(query.page)) && parseInt(query.page)) || 1
   );
   const isLoading = (l) => {
-    // props.onLoad(l);
     setLoading(l);
   };
   const getPosts = async () => {
     if (!school_id) return;
-    // props.onLoad(false);
     isLoading(true);
     try {
       let p = await Api.get(
@@ -1087,7 +1093,7 @@ function Bulletin(props) {
                             school_id,
                             schedule_id,
                             "posts",
-                            room_name || "",
+                            "",
                             "?page=" + p,
                           ])
                         );
