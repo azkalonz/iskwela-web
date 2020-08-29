@@ -45,6 +45,9 @@ import socket from "../components/socket.io";
 import UserData from "../components/UserData";
 import { isMobileDevice } from "../App";
 import { Link } from "react-router-dom";
+import Drawer from "../components/Drawer";
+import NavBar from "../components/NavBar";
+import Scrollbar from "../components/Scrollbar";
 
 const key = {};
 function keyPress(e) {
@@ -257,6 +260,7 @@ function Comment(props) {
 }
 function StartADiscussion(props) {
   const theme = useTheme();
+  const { school_id } = props.userInfo;
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const [editorRef, setEditorRef] = useState({});
   const [uploadAnchor, setUploadAnchor] = useState();
@@ -285,10 +289,10 @@ function StartADiscussion(props) {
       body: {
         body: data,
         itemable_type: "school",
-        itemable_id: props.school_id,
+        itemable_id: school_id,
       },
     });
-    socket.emit("new post", { school_id: props.school.id, post });
+    socket.emit("new post", { school_id, post });
     // socket.emit("save post", {
     //   school_i: props.class.id,
     //   value: data,
@@ -659,25 +663,6 @@ function WriteAComment(props) {
                 if (c) c.scrollTop = c.scrollHeight;
               }
             }}
-            autocomplete={{
-              strategies: [
-                {
-                  items: props.class.students.map((c) => ({
-                    keys: [
-                      "students",
-                      c.first_name,
-                      c.last_name,
-                      c.last_name.toLowerCase(),
-                      c.first_name.toLowerCase(),
-                      c.username,
-                    ],
-                    value: "@" + c.username,
-                    content: <TagItem user={c} />,
-                  })),
-                  triggerChar: "@",
-                },
-              ],
-            }}
           />
         </Box>
         {isMobileDevice() && (
@@ -699,6 +684,7 @@ function WriteAComment(props) {
 function Discussion(props) {
   const [expanded, setExpanded] = useState(false);
   const styles = useStyles();
+  const { school_id } = props.userInfo;
   const [commentsPerPage, setCommentsPerPage] = useState(1);
   const [saving, setSaving] = useState();
   const [deleting, setDeleting] = useState(false);
@@ -719,7 +705,7 @@ function Discussion(props) {
     setDeleting(true);
     try {
       await Api.delete("/api/post/remove/" + post.id);
-      socket.emit("delete post", { school_id: props.class.id, post });
+      socket.emit("delete post", { school_id, post });
     } catch (e) {}
     setDeleting(false);
   };
@@ -734,10 +720,10 @@ function Discussion(props) {
         id: editing.id,
         body: data,
         itemable_type: "school",
-        itemable_id: props.school_id,
+        itemable_id: school_id,
       },
     });
-    socket.emit("update post", { school_id: props.school_id, post });
+    socket.emit("update post", { school_id, post });
     setSaving(null);
     setEditing(null);
   };
@@ -961,7 +947,8 @@ function Discussion(props) {
 }
 function Bulletin(props) {
   const query = require("query-string").parse(window.location.search);
-  const { school_id, schedule_id, room_name } = props.match.params;
+  const { schedule_id, room_name } = props.match.params;
+  const { school_id } = props.userInfo;
   const theme = useTheme();
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState();
@@ -977,18 +964,17 @@ function Bulletin(props) {
   const getPosts = async () => {
     if (!school_id) return;
     // props.onLoad(false);
-    isLoading(false);
+    isLoading(true);
     try {
       let p = await Api.get(
         "/api/post/school/" + school_id + "?include=comments"
       );
       UserData.setPosts(school_id, p);
-      isLoading(true);
+      isLoading(false);
     } catch (e) {}
   };
   useEffect(() => {
     UserData.setPosts(school_id, []);
-    isLoading(true);
     getPosts();
   }, [school_id]);
   useEffect(() => {
@@ -996,104 +982,136 @@ function Bulletin(props) {
     window.addEventListener("keydown", keyPress);
   }, []);
   return (
-    <React.Fragment>
-      {/* {props.classes[school_id] && props.classes[school_id].students && (  */}
-      <Box
-        p={2}
-        className={styles.root}
-        style={{ maxWidth: props.maxWidth || "auto", margin: "0 auto" }}
-      >
-        <Box display="flex" justifyContent="center" alignItems="flex-start">
-          <Box width="100%" maxWidth={765}>
-            <ConnectedStartADiscussion
-              class={props.classes[school_id]}
-              author={props.userInfo}
-              onPost={() => setDiscussionPage(1)}
-              onSaving={(post) => setSaving(post)}
-            >
-              {/* <IconButton>
+    <Drawer {...props}>
+      <Box display="flex" flexDirection="column" height="100vh">
+        <NavBar
+          title="Bulletin"
+          left={
+            isTablet && (
+              <IconButton
+                aria-label="Collapse Panel"
+                onClick={() => {
+                  props.history.push("#menu");
+                }}
+                style={{ marginLeft: -15 }}
+              >
+                <Icon>menu</Icon>
+              </IconButton>
+            )
+          }
+        />
+        {/* {props.classes[school_id] && props.classes[school_id].students && (  */}
+        <Box
+          p={2}
+          className={styles.root}
+          style={{
+            maxWidth: props.maxWidth || "auto",
+            margin: "0 auto",
+            height: "100%",
+            overflow: "auto",
+            width: "100%",
+          }}
+        >
+          <Scrollbar autoHide>
+            <Box display="flex" justifyContent="center" alignItems="flex-start">
+              <Box width="100%" maxWidth={765}>
+                <ConnectedStartADiscussion
+                  class={props.classes[school_id]}
+                  author={props.userInfo}
+                  onPost={() => setDiscussionPage(1)}
+                  onSaving={(post) => setSaving(post)}
+                >
+                  {/* <IconButton>
                       <Icon color="primary">insert_photo_outline</Icon>
                     </IconButton> */}
-            </ConnectedStartADiscussion>
-            {saving && (
-              <Discussion
-                {...props}
-                class={props.classes[school_id]}
-                post={saving}
-                saving={true}
-                disabledComment={true}
-              />
-            )}
-            {getPageItems(
-              props.posts.current
-                .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
-                .map((p, index) => (
+                </ConnectedStartADiscussion>
+                {saving && (
                   <Discussion
-                    key={index}
                     {...props}
                     class={props.classes[school_id]}
-                    post={p}
+                    post={saving}
+                    saving={true}
+                    disabledComment={true}
                   />
-                )),
-              discussionPage,
-              10
-            )}
-            <Box marginTop={2} marginBottom={2}>
-              {!loading ? (
-                <Pagination
-                  count={props.posts.current.length}
-                  itemsPerPage={10}
-                  icon={
-                    <img
-                      src="/hero-img/no-posts.svg"
-                      width={180}
-                      style={{ padding: "50px 0" }}
-                    />
-                  }
-                  emptyTitle="No discussions yet"
-                  emptyMessage={
-                    <Button
-                      onClick={() => {
-                        document.querySelector("#right-panel").scrollTop = 0;
-                        document.querySelector("#start-a-discussion").click();
+                )}
+                {getPageItems(
+                  props.posts.current
+                    .sort(
+                      (a, b) => new Date(b.created_at) - new Date(a.created_at)
+                    )
+                    .map((p, index) => (
+                      <Discussion
+                        key={index}
+                        {...props}
+                        class={props.classes[school_id]}
+                        post={p}
+                      />
+                    )),
+                  discussionPage,
+                  10
+                )}
+                <Box marginTop={2} marginBottom={2}>
+                  {!loading ? (
+                    <Pagination
+                      count={props.posts.current.length}
+                      itemsPerPage={10}
+                      icon={
+                        <img
+                          src="/hero-img/no-posts.svg"
+                          width={180}
+                          style={{ padding: "50px 0" }}
+                        />
+                      }
+                      emptyTitle="No discussions yet"
+                      emptyMessage={
+                        <Button
+                          onClick={() => {
+                            document.querySelector(
+                              "#right-panel"
+                            ).scrollTop = 0;
+                            document
+                              .querySelector("#start-a-discussion")
+                              .click();
+                          }}
+                        >
+                          Start one
+                        </Button>
+                      }
+                      nolink
+                      page={discussionPage}
+                      onChange={(p) => {
+                        setDiscussionPage(p);
+                        props.history.push(
+                          makeLinkTo([
+                            "class",
+                            school_id,
+                            schedule_id,
+                            "posts",
+                            room_name || "",
+                            "?page=" + p,
+                          ])
+                        );
+                        let r = document.querySelector("#right-panel");
+                        if (r) {
+                          r =
+                            r.firstElementChild.firstElementChild
+                              .firstElementChild;
+                          r.scrollTop = 0;
+                        }
                       }}
-                    >
-                      Start one
-                    </Button>
-                  }
-                  nolink
-                  page={discussionPage}
-                  onChange={(p) => {
-                    setDiscussionPage(p);
-                    props.history.push(
-                      makeLinkTo([
-                        "class",
-                        school_id,
-                        schedule_id,
-                        "posts",
-                        room_name || "",
-                        "?page=" + p,
-                      ])
-                    );
-                    let r = document.querySelector("#right-panel");
-                    if (r) {
-                      r =
-                        r.firstElementChild.firstElementChild.firstElementChild;
-                      r.scrollTop = 0;
-                    }
-                  }}
-                />
-              ) : (
-                <Box width="100%" display="flex" justifyContent="center">
-                  <CircularProgress />
+                    />
+                  ) : (
+                    <Box width="100%" display="flex" justifyContent="center">
+                      <CircularProgress />
+                    </Box>
+                  )}
                 </Box>
-              )}
+              </Box>
             </Box>
-          </Box>
+          </Scrollbar>
         </Box>
       </Box>
-      {/* )}  */}
-    </React.Fragment>
+    </Drawer>
   );
 }
 const useStyles = makeStyles((theme) => ({
@@ -1182,7 +1200,7 @@ export const createImagePost = (url, description = null) => {
       },
     ],
     entityMap: {
-      "0": {
+      0: {
         type: "IMAGE",
         mutability: "IMMUTABLE",
         data: {

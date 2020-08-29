@@ -303,9 +303,16 @@ function Drawer(props) {
               </Box>
             </Box>
           )}
-          <Box textAlign="center">
+          <Box
+            textAlign="center"
+            className={
+              window.location.pathname === "/bulletin"
+                ? "selected tab bordered"
+                : "tab"
+            }
+          >
             <Tooltip title="Bulletin Board" placement="right">
-              <IconButton onClick={() => window.open("/bulletin", "_blank")}>
+              <IconButton onClick={() => history.push("/bulletin", "_blank")}>
                 <Icon
                   fontSize="inherit"
                   style={{
@@ -720,7 +727,13 @@ function Drawer(props) {
               </Box>
             )}
 
-            <Box className={screen_name ? "selected tab bordered" : "tab"}>
+            <Box
+              className={
+                window.location.pathname === "/bulletin"
+                  ? "selected tab bordered"
+                  : "tab"
+              }
+            >
               <Box
                 onClick={() => {
                   history.push("/bulletin", "_blank");

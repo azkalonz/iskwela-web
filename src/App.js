@@ -67,8 +67,10 @@ function App(props) {
             });
           });
           UserData.posts.subscribe((res) => {
-            const { class_id, payload, action } = res;
-            UserData.updatePosts(class_id, payload, action);
+            const { class_id, payload, action, school_id } = res;
+            let id = class_id || school_id;
+            if (!id) return;
+            UserData.updatePosts(id, payload, action);
           });
           socket.on("videocall", ({ caller, receiver, status }) => {
             setVideocall({
