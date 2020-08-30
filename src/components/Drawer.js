@@ -307,7 +307,7 @@ function Drawer(props) {
           <Box
             textAlign="center"
             className={
-              window.location.pathname === "/bulletin"
+              window.location.pathname.indexOf("/bulletin") >= 0
                 ? "selected tab bordered"
                 : "tab"
             }
@@ -730,7 +730,7 @@ function Drawer(props) {
 
             <Box
               className={
-                window.location.pathname === "/bulletin"
+                window.location.pathname.indexOf("/bulletin") >= 0
                   ? "selected tab bordered"
                   : "tab"
               }
