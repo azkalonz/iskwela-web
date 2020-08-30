@@ -1089,10 +1089,8 @@ function Bulletin(props) {
                         setDiscussionPage(p);
                         props.history.push(
                           makeLinkTo([
-                            "class",
-                            school_id,
+                            "bulletin",
                             schedule_id,
-                            "posts",
                             "",
                             "?page=" + p,
                           ])
