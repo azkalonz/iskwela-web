@@ -187,56 +187,7 @@ function Dashboard(props) {
               <span className="icon-menu-close"></span>
             </IconButton>
           </Toolbar>
-          <Box marginTop={3} marginBottom={3}>
-            <PopupState variant="popover" popupId="viewing-as">
-              {(popupState) => (
-                <React.Fragment>
-                  <Menu
-                    {...bindMenu(popupState)}
-                    style={{
-                      maxWidth: 300,
-                    }}
-                  >
-                    {props.parentData?.children?.map((child, index) => {
-                      return (
-                        <MenuItem
-                          key={index}
-                          selected={props.childInfo?.id === child.childInfo.id}
-                          onClick={async () => {
-                            popupState.close();
-                            if (props.childInfo?.id === child.childInfo.id) {
-                              return;
-                            }
-                            window.localStorage["chatID"] = child.childInfo.id;
-                            props.history.push(
-                              window.location.search.replaceUrlParam(
-                                "userId",
-                                child.childInfo.id
-                              )
-                            );
-                            setLoading(true);
-                            await UserData.getUserData(props.userInfo, () => {
-                              setLoading(false);
-                            });
-                          }}
-                        >
-                          <Avatar
-                            src={child.childInfo?.preferences?.profile_picture}
-                            alt={child.childInfo.first_name}
-                          />
-                          <Typography style={{ marginLeft: 13 }}>
-                            {child.childInfo.first_name +
-                              " " +
-                              child.childInfo.last_name}
-                          </Typography>
-                        </MenuItem>
-                      );
-                    })}
-                  </Menu>
-                </React.Fragment>
-              )}
-            </PopupState>
-          </Box>
+
           <Tabs
             orientation="vertical"
             variant="scrollable"
@@ -310,6 +261,8 @@ function Dashboard(props) {
 }
 
 function Classes(props) {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const query = qs.parse(window.location.search);
   const { option_name } = props.match.params;
   const [currentClass, setCurrentClass] = useState();
@@ -407,12 +360,19 @@ function Classes(props) {
           {!currentClass && !loading && (
             <Box p={4}>
               <Box
-                width="100%"
                 display="flex"
-                justifyContent="space-between"
-                marginBottom={4}
+                textAlign="center"
+                justifyContent="center"
+                position="relative"
+                alignItems={isMobile ? "center" : ""}
+                flexDirection={isMobile ? "column-reverse" : ""}
+                style={{ marginBottom: 20 }}
               >
-                <Box>
+                <Box
+                  style={{
+                    marginRight: 10,
+                  }}
+                >
                   <Button
                     variant="contained"
                     color="secondary"
@@ -420,6 +380,107 @@ function Classes(props) {
                   >
                     New Class
                   </Button>
+                </Box>
+
+                <Box
+                  style={{
+                    marginLeft: isMobile ? 0 : "auto",
+                    marginBottom: isMobile ? 10 : "auto",
+                    marginTop: isMobile ? 10 : "auto",
+                  }}
+                >
+                  <PopupState variant="popover" popupId="viewing-as">
+                    {(popupState) => (
+                      <React.Fragment>
+                        <Box
+                          onClick={() => {
+                            popupState.open();
+                          }}
+                          display={"flex"}
+                          justifyContent="center"
+                          alignItems="center"
+                          style={{ cursor: "pointer" }}
+                          {...bindTrigger(popupState)}
+                        >
+                          <Avatar
+                            src={props.childInfo.preferences?.profile_picture}
+                            alt={props.childInfo.first_name}
+                          />
+                          <Box marginLeft={2}>
+                            <Typography style={{ fontSize: 12 }}>
+                              Viewing as
+                            </Typography>
+                            <Typography
+                              style={{ fontWeight: 16, fontWeight: 500 }}
+                            >
+                              {props.childInfo.first_name +
+                                " " +
+                                props.childInfo.last_name}
+                            </Typography>
+                          </Box>
+                          <IconButton
+                            color="secondary"
+                            {...bindTrigger(popupState)}
+                          >
+                            <Icon>expand_more</Icon>
+                          </IconButton>
+                        </Box>
+                        <Menu
+                          {...bindMenu(popupState)}
+                          style={{
+                            maxWidth: 300,
+                          }}
+                        >
+                          {props.parentData?.children?.map((child, index) => {
+                            return (
+                              <MenuItem
+                                key={index}
+                                selected={
+                                  props.childInfo?.id === child.childInfo.id
+                                }
+                                onClick={async () => {
+                                  popupState.close();
+                                  if (
+                                    props.childInfo?.id === child.childInfo.id
+                                  ) {
+                                    return;
+                                  }
+                                  window.localStorage["chatID"] =
+                                    child.childInfo.id;
+                                  props.history.push(
+                                    window.location.search.replaceUrlParam(
+                                      "userId",
+                                      child.childInfo.id
+                                    )
+                                  );
+                                  setLoading(true);
+                                  await UserData.getUserData(
+                                    props.userInfo,
+                                    () => {
+                                      setLoading(false);
+                                    }
+                                  );
+                                }}
+                              >
+                                <Avatar
+                                  src={
+                                    child.childInfo?.preferences
+                                      ?.profile_picture
+                                  }
+                                  alt={child.childInfo.first_name}
+                                />
+                                <Typography style={{ marginLeft: 13 }}>
+                                  {child.childInfo.first_name +
+                                    " " +
+                                    child.childInfo.last_name}
+                                </Typography>
+                              </MenuItem>
+                            );
+                          })}
+                        </Menu>
+                      </React.Fragment>
+                    )}
+                  </PopupState>
                 </Box>
                 <Box>
                   <SearchInput onChange={(e) => setSearch(e)} />
@@ -653,6 +714,8 @@ function Classes(props) {
 }
 
 function StudentGroups(props) {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const query = qs.parse(window.location.search);
   const [sections, setSections] = useState([]);
   const [years, setYears] = useState();
@@ -694,6 +757,8 @@ function StudentGroups(props) {
   const [loadingChildren, setLoadingChildren] = useState(false);
   const [students, setStudents] = useState([]);
   const [success, setSuccess] = useState(false);
+  const [successAdmin, setSuccessAdmin] = useState(false);
+
   const handleChange = (event, newValue) => {
     setValue(newValue);
   };
@@ -790,6 +855,40 @@ function StudentGroups(props) {
       setErrors(errors);
     }
   };
+  const removeFromSection = async (student, callback) => {
+    if (window.confirm("Are you sure to remove this student?")) {
+      let section = parseInt(query.section);
+      let ss = [...sections];
+      let sectionIndex = ss.findIndex((q) => q.id === section);
+      section = ss.find((q) => q.id === section);
+      console.log(section);
+      if (section) {
+        let studentIndex = section.students?.find(
+          (q) => q?.user.id === student.id
+        );
+        console.log(studentIndex);
+        if (studentIndex) {
+          await fetchData({
+            send: async () =>
+              await Api.delete(
+                "/api/schooladmin/section/remove-student/?section_id=" +
+                  section.id +
+                  "&student_id=" +
+                  student.id
+              ),
+            after: (response) => {
+              if (response?.id) {
+                ss[sectionIndex] = response;
+                setSections(ss);
+                setSuccess(true);
+              }
+            },
+          });
+        }
+      }
+    }
+    callback && callback();
+  };
   const deleteSection = () => {
     let section = parseInt(query.section);
     let ss = [...sections];
@@ -885,6 +984,20 @@ function StudentGroups(props) {
             </IconButton>
           )}
         </Box>
+
+        <Button
+          style={{ marginRight: isMobile ? 10 : "auto" }}
+          variant="contained"
+          color="secondary"
+          onClick={() => {
+            props.history.push(
+              window.location.search.replaceUrlParam("add_section", true)
+            );
+          }}
+        >
+          New Section
+        </Button>
+
         <Box>
           <SearchInput
             onChange={(e) => setSearchSections(e)}
@@ -1187,7 +1300,15 @@ function StudentGroups(props) {
                   onRowClick={(item, itemController) =>
                     itemController("view-user", item)
                   }
+                  optionActions={{
+                    removeFromSection: (item, callback) =>
+                      removeFromSection(item, callback),
+                  }}
                   options={[
+                    {
+                      name: "Remove Student",
+                      value: "remove-student",
+                    },
                     {
                       name: "Reset Password",
                       value: "reset-password",
@@ -1203,20 +1324,22 @@ function StudentGroups(props) {
                             "true"
                           )
                         ),
+                      props: {
+                        style: {
+                          background: "green",
+                          color: "#fff",
+                        },
+                      },
                     },
                     {
-                      name: "New Section",
-                      onClick: () =>
-                        props.history.push(
-                          window.location.search.replaceUrlParam(
-                            "add_section",
-                            "true"
-                          )
-                        ),
-                    },
-                    {
-                      name: "Delete",
+                      name: "Delete Section",
                       onClick: () => deleteSection(),
+                      props: {
+                        style: {
+                          background: "green",
+                          color: "#fff",
+                        },
+                      },
                     },
                   ]}
                   data={section.students?.map(
@@ -1774,71 +1897,46 @@ function GradingCategories(props) {
                     delete: (item) => removeCategory(item),
                   }}
                   actions={[]}
-                  rowRenderMobile={(item, itemController) => {
-                    const cat = grading.find(
-                      (q) => parseInt(q.id) === parseInt(item.category_id)
-                    );
-                    return (
-                      <Box
-                        display="flex"
-                        flexWrap="wrap"
-                        width="90%"
-                        flexDirection="column"
-                        onClick={() => {
-                          props.history.push(
-                            window.location.search.replaceUrlParam(
-                              "subject_id",
-                              item.id
-                            )
-                          );
-                          getSubjectCategories(item.id);
-                        }}
-                        justifyContent="space-between"
-                        style={{ padding: "30px 0" }}
-                      >
-                        <Box width="100%" marginBottom={1}>
-                          <Typography
-                            style={{
-                              fontWeight: "bold",
-                              color: "#38108d",
-                              fontSize: "1em",
-                            }}
-                          >
-                            CATEGORY NAME
-                          </Typography>
-                          <Typography
-                            variant="body1"
-                            style={{
-                              fontWeight: "bold",
-                              fontSize: "0.9em",
-                            }}
-                          >
-                            {cat.name}
-                          </Typography>
-                        </Box>
-                        <Box width="100%" marginBottom={1}>
-                          <Typography
-                            style={{
-                              fontWeight: "bold",
-                              color: "#38108d",
-                              fontSize: "1em",
-                            }}
-                          >
-                            PERCENTAGE
-                          </Typography>
-                          <Typography
-                            variant="body1"
-                            style={{
-                              fontWeight: "bold",
-                              fontSize: "0.9em",
-                            }}
-                          >
-                            {item.category_percentage}
-                          </Typography>
-                        </Box>
+                  rowRenderMobile={(item, itemController) => (
+                    <Box
+                      display="flex"
+                      flexWrap="wrap"
+                      width="90%"
+                      flexDirection="column"
+                      onClick={() => {
+                        props.history.push(
+                          window.location.search.replaceUrlParam(
+                            "subject_id",
+                            item.id
+                          )
+                        );
+                        getSubjectCategories(item.id);
+                      }}
+                      justifyContent="space-between"
+                      style={{ padding: "30px 0" }}
+                    >
+                      <Box width="100%" marginBottom={1}>
+                        <Typography
+                          style={{
+                            fontWeight: "bold",
+                            color: "#38108d",
+                            fontSize: "1em",
+                          }}
+                        >
+                          SUBJECT
+                        </Typography>
+                        <Typography
+                          variant="body1"
+                          style={{
+                            fontWeight: "bold",
+                            fontSize: "0.9em",
+                          }}
+                        >
+                          {item.name}
+                        </Typography>
                       </Box>
-                    );
-                  }}
+                    </Box>
+                  )}
                   rowRender={(item, itemController) => {
                     return (
                       <Box
@@ -1904,46 +2002,71 @@ function GradingCategories(props) {
                         ),
                     },
                   ]}
-                  rowRenderMobile={(item, itemController) => (
-                    <Box
-                      display="flex"
-                      flexWrap="wrap"
-                      width="90%"
-                      flexDirection="column"
-                      onClick={() => {
-                        props.history.push(
-                          window.location.search.replaceUrlParam(
-                            "subject_id",
-                            item.id
-                          )
-                        );
-                        getSubjectCategories(item.id);
-                      }}
-                      justifyContent="space-between"
-                      style={{ padding: "30px 0" }}
-                    >
-                      <Box width="100%" marginBottom={1}>
-                        <Typography
-                          style={{
-                            fontWeight: "bold",
-                            color: "#38108d",
-                            fontSize: "1em",
-                          }}
-                        >
-                          SUBJECT
-                        </Typography>
-                        <Typography
-                          variant="body1"
-                          style={{
-                            fontWeight: "bold",
-                            fontSize: "0.9em",
-                          }}
-                        >
-                          {item.name}
-                        </Typography>
+                  rowRenderMobile={(item, itemController) => {
+                    const cat = grading.find(
+                      (q) => parseInt(q.id) === parseInt(item.category_id)
+                    );
+                    return (
+                      <Box
+                        display="flex"
+                        flexWrap="wrap"
+                        width="90%"
+                        flexDirection="column"
+                        onClick={() => {
+                          props.history.push(
+                            window.location.search.replaceUrlParam(
+                              "subject_id",
+                              item.id
+                            )
+                          );
+                          getSubjectCategories(item.id);
+                        }}
+                        justifyContent="space-between"
+                        style={{ padding: "30px 0" }}
+                      >
+                        <Box width="100%" marginBottom={1}>
+                          <Typography
+                            style={{
+                              fontWeight: "bold",
+                              color: "#38108d",
+                              fontSize: "1em",
+                            }}
+                          >
+                            CATEGORY NAME
+                          </Typography>
+                          <Typography
+                            variant="body1"
+                            style={{
+                              fontWeight: "bold",
+                              fontSize: "0.9em",
+                            }}
+                          >
+                            {cat?.category}
+                          </Typography>
+                        </Box>
+                        <Box width="100%" marginBottom={1}>
+                          <Typography
+                            style={{
+                              fontWeight: "bold",
+                              color: "#38108d",
+                              fontSize: "1em",
+                            }}
+                          >
+                            PERCENTAGE
+                          </Typography>
+                          <Typography
+                            variant="body1"
+                            style={{
+                              fontWeight: "bold",
+                              fontSize: "0.9em",
+                            }}
+                          >
+                            {(item.category_percentage * 100).toFixed(2)} %
+                          </Typography>
+                        </Box>
                       </Box>
-                    </Box>
-                  )}
+                    );
+                  }}
                   rowRender={(item, itemController) => {
                     return SubjectGradingCategory(item);
                   }}
@@ -2993,6 +3116,7 @@ function Accounts(props) {
     createTab("students", "Students"),
   ];
   const [success, setSuccess] = useState(false);
+  const [successAdmin, setSuccessAdmin] = useState(false);
   const [errors, setErrors] = useState({});
   const tabid = tabMap.findIndex((q) => q.key === query.section);
   const [value, setValue] = useState(tabid >= 0 ? tabid : 0);
@@ -3460,6 +3584,14 @@ function Accounts(props) {
             tableProps: {
               options: [
                 {
+                  name: "Deactivate",
+                  value: "deactivate",
+                },
+                {
+                  name: "Activate",
+                  value: "activate",
+                },
+                {
                   name: "Reset Password",
                   value: "reset-password",
                 },
@@ -3473,6 +3605,14 @@ function Accounts(props) {
             name: "parent",
             tableProps: {
               options: [
+                {
+                  name: "Deactivate",
+                  value: "deactivate",
+                },
+                {
+                  name: "Activate",
+                  value: "activate",
+                },
                 { name: "Add a Child", value: "add-child" },
                 { name: "Remove a Child", value: "remove-child" },
                 {
@@ -3513,6 +3653,14 @@ function Accounts(props) {
             tableProps: {
               options: [
                 {
+                  name: "Deactivate",
+                  value: "deactivate",
+                },
+                {
+                  name: "Activate",
+                  value: "activate",
+                },
+                {
                   name: "Reset Password",
                   value: "reset-password",
                 },
@@ -3551,11 +3699,47 @@ function UserTable(props) {
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [success, setSuccess] = useState(false);
+  const [successAdmin, setSuccessAdmin] = useState(false);
+  const activate = (isActivate, student) => {
+    const stat = isActivate ? "activate" : "deactivate";
+    fetchData({
+      before: () => {
+        setSaving(true);
+        setSavingId([student.id]);
+      },
+      send: async () =>
+        await Api.post("/api/admin/user/" + stat + "/" + student.id),
+      after: (data) => {
+        if (data) {
+          setSuccess(true);
+        }
+        setSaving(false);
+        setSavingId([]);
+      },
+    });
+  };
+
   const _handleFileOption = (opt, item) => {
     const actions = props.optionActions || {};
     modifiedChildren = false;
     props.onSelect && props.onSelect(item);
     switch (opt) {
+      case "remove-student":
+        if (actions.removeFromSection) {
+          setSavingId([item.id]);
+          setSaving(true);
+          actions.removeFromSection(item, () => {
+            setSavingId([]);
+            setSaving(false);
+          });
+        }
+        break;
+      case "deactivate":
+        activate(false, item);
+        break;
+      case "activate":
+        activate(true, item);
+        break;
       case "view-user":
         window.currentItem = item;
         props.history.push(
@@ -3603,7 +3787,7 @@ function UserTable(props) {
             }),
           after: (data) => {
             if (data && data?.success) {
-              setSuccess(true);
+              setSuccessAdmin(true);
             }
             setSaving(false);
             setSavingId([]);
@@ -3677,6 +3861,15 @@ function UserTable(props) {
           Success
         </Alert>
       </Snackbar>
+      <Snackbar
+        open={successAdmin}
+        autoHideDuration={6000}
+        onClose={() => setSuccessAdmin(false)}
+      >
+        <Alert severity="success" onClose={() => setSuccessAdmin(false)}>
+          Success! Password is the same as the username.{" "}
+        </Alert>
+      </Snackbar>
       <Box
         paddingBottom={2}
         display="flex"
@@ -3693,7 +3886,13 @@ function UserTable(props) {
                 <Button
                   key={i}
                   onClick={a.onClick}
-                  style={{ margin: 0, whiteSpace: "pre" }}
+                  {...(a?.props || {})}
+                  style={{
+                    margin: 0,
+                    whiteSpace: "pre",
+                    fontWeight: 700,
+                    ...(a?.props?.style || {}),
+                  }}
                 >
                   {isMobile && a.icon ? <Icon>{a.icon}</Icon> : a.name}
                 </Button>
@@ -3706,7 +3905,7 @@ function UserTable(props) {
           flex={isMobile ? 1 : "none"}
           width={isMobile ? "100%" : "auto"}
         >
-          <SearchInput onChange={(e) => setSearch(e)} />
+          {data?.length ? <SearchInput onChange={(e) => setSearch(e)} /> : null}
         </Box>
       </Box>
       {loading && (
@@ -3720,6 +3919,7 @@ function UserTable(props) {
           <CircularProgress />
         </Box>
       )}
+
       {!loading && (
         <Table
           {...(props.tableProps ? props.tableProps : {})}
