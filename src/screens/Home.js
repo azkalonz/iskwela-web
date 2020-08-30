@@ -562,6 +562,7 @@ function Home(props) {
                                 }
                                 onClick={async () => {
                                   popupState.close();
+
                                   if (
                                     props.childInfo?.id === child.childInfo.id
                                   ) {
