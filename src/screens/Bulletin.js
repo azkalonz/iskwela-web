@@ -466,7 +466,7 @@ function StartADiscussion(props) {
                 >
                   <Editor
                     focused={true}
-                    label="Try @Student, :English, #HashTag"
+                    label="Try :English, #HashTag"
                     controls={[...toolbarcontrols, "insert-photo"]}
                     inlineToolbarControls={inlinetoolbarcontrols}
                     getRef={(ref) => setEditorRef(ref)}
