@@ -787,7 +787,7 @@ function StudentGroups(props) {
         } else if (minChar && value?.length < minChar) {
           e = "Please enter at least " + minChar + " length " + field.name;
         } else if (maxChar && value?.length > maxChar) {
-          e = "Maximum characters execeed.";
+          e = "Maximum characters for username is only 20.";
         } else if (pattern && !new RegExp(pattern).test(value)) {
           e = "Please enter a valid " + field.name;
         }
@@ -1432,7 +1432,7 @@ function GradingCategories(props) {
           } else if (minChar && value?.length < minChar) {
             e = "Please enter at least " + minChar + " length " + field.name;
           } else if (maxChar && value?.length > maxChar) {
-            e = "Maximum characters execeed.";
+            e = "Maximum characters for username is only 20.";
           } else if (pattern && !new RegExp(pattern).test(value)) {
             e = "Please enter a valid " + field.name;
           }
@@ -3168,7 +3168,7 @@ function Accounts(props) {
         } else if (minChar && value?.length < minChar) {
           e = "Please enter at least " + minChar + " length " + field.name;
         } else if (maxChar && value?.length > maxChar) {
-          e = "Maximum characters execeed.";
+          e = "Maximum characters for username is only 20.";
         } else if (pattern && !new RegExp(pattern).test(value)) {
           e = "Please enter a valid " + field.name;
         }
