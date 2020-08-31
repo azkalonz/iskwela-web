@@ -59,6 +59,7 @@ import SavingButton from "../../components/SavingButton";
 import moment from "moment";
 import { makeLinkTo } from "../../components/router-dom";
 import { BlankDialog, Alert } from "../../components/dialogs";
+import { id } from "date-fns/locale";
 
 const qs = require("query-string");
 
@@ -273,6 +274,9 @@ function Classes(props) {
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [subjects, setSubjects] = useState([]);
+  const [success, setSuccess] = useState(false);
+  const [savingId, setSavingId] = useState([]);
+  const [saving, setSaving] = useState(false);
   let subArray = Object.keys(props.classes).map(
     (k) => props.classes[k].subject
   );
@@ -296,13 +300,17 @@ function Classes(props) {
           window.location.search.replaceUrlParam("classId", item.id)
         );
         return;
+      case "delete-class":
+        deleteClass(item);
+        return;
     }
   };
+
   const getFilteredClasses = (c = classList) =>
     [...c].filter(
       (q) => JSON.stringify(q).toLowerCase().indexOf(search.toLowerCase()) >= 0
     );
-  const fetchData = async () => {
+  const fetch = async () => {
     setLoading(true);
     try {
       let sec = await Api.get("/api/schooladmin/sections");
@@ -315,6 +323,25 @@ function Classes(props) {
       setClassList(classes.sort((a, b) => b.id - a.id));
     } catch (e) {}
     setLoading(false);
+  };
+  const deleteClass = (item) => {
+    let classes = [...classList];
+    let classIndex = classList.findIndex((q) => q.id === item.id);
+    if (window.confirm("Are you sure to delete this class?")) {
+      fetchData({
+        before: () => setLoading(true),
+        send: async () =>
+          await Api.delete("/api/schooladmin/class/remove/" + item.id),
+        after: () => {
+          if (classes[classIndex]) {
+            classes.splice(classIndex, 1);
+            if (classes[0]) setClassList(classes);
+            setLoading(false);
+            //setSuccess(true);
+          }
+        },
+      });
+    }
   };
   useEffect(() => {
     if (query.classId) {
@@ -329,7 +356,7 @@ function Classes(props) {
     }
   }, [query.classId]);
   useEffect(() => {
-    fetchData();
+    fetch();
   }, [option_name, query.classId]);
   return props.userInfo?.user_type === "a" ? (
     <React.Fragment>
@@ -389,7 +416,7 @@ function Classes(props) {
                     marginTop: isMobile ? 10 : "auto",
                   }}
                 >
-                  <PopupState variant="popover" popupId="viewing-as">
+                  {/* <PopupState variant="popover" popupId="viewing-as">
                     {(popupState) => (
                       <React.Fragment>
                         <Box
@@ -480,8 +507,8 @@ function Classes(props) {
                         </Menu>
                       </React.Fragment>
                     )}
-                  </PopupState>
-                </Box> */}
+                  </PopupState> */}
+                </Box>
                 <Box>
                   <SearchInput onChange={(e) => setSearch(e)} />
                 </Box>
@@ -496,7 +523,10 @@ function Classes(props) {
                   _handleFileOption: (opt, item) =>
                     _handleFileOption(opt, item),
                 }}
-                options={[{ name: "Edit", value: "edit" }]}
+                options={[
+                  { name: "Edit", value: "edit" },
+                  { name: "Delete", value: "delete-class" },
+                ]}
                 style={{ margin: 0 }}
                 pagination={{
                   page,
@@ -544,7 +574,7 @@ function Classes(props) {
                         props.history.push(
                           window.location.search.replaceUrlParam(
                             "classId",
-                            item.id
+                            item.id //mao ni class id
                           )
                         )
                       }
@@ -897,6 +927,7 @@ function StudentGroups(props) {
       fetchData({
         send: async () =>
           await Api.delete("/api/schooladmin/section/remove/" + section.id),
+
         after: () => {
           let secIndex = ss.findIndex((q) => q.id === section.id);
           if (ss[secIndex]) {
