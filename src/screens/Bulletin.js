@@ -89,50 +89,57 @@ function TagItem(props) {
     </React.Fragment>
   );
 }
-function TagSomeone(props) {
-  const theme = useTheme();
-  const url = "http://google.com/" + props.decoratedText;
-  const getTitle = () => {
-    let s = props.classes[
-      window.location.pathname.split("/").filter((q) => (q ? true : false))[1]
-    ].students.find((s) => s.username === props.decoratedText.replace("@", ""));
-    return s.first_name + " " + s.last_name;
-  };
-  return (
-    <React.Fragment>
-      {props.classes[
-        window.location.pathname.split("/").filter((q) => (q ? true : false))[1]
-      ].students.findIndex(
-        (s) => s.username === props.decoratedText.replace("@", "")
-      ) >= 0 ? (
-        <Tooltip title={props.decoratedText} placement="top">
-          <a
-            style={{
-              textDecoration: "none",
-              color: theme.palette.primary.main,
-              fontWeight: "bold",
-            }}
-            href={"#" + props.decoratedText}
-          >
-            {React.Children.map(props.children, (child) => (
-              <React.Fragment>
-                {React.cloneElement(child, {
-                  text: getTitle(),
-                })}
-              </React.Fragment>
-            ))}
-          </a>
-        </Tooltip>
-      ) : (
-        <a>{props.children}</a>
-      )}
-    </React.Fragment>
-  );
-}
-const ConnectedTagSomeone = connect((states) => ({
-  classes: states.classDetails,
-  allClasses: states.classes,
-}))(TagSomeone);
+// function TagSomeone(props) {
+//   const theme = useTheme();
+//   const url = "http://google.com/" + props.decoratedText;
+//   const getTitle = () => {
+//     let s = props.school_id.students.find(
+//       (s) => s.username === props.decoratedText.replace("@", "")
+//     );
+//     return s.first_name + " " + s.last_name;
+//     // let s = props.classes[
+//     //   window.location.pathname.split("/").filter((q) => (q ? true : false))[1]
+//     // ].students.find((s) => s.username === props.decoratedText.replace("@", ""));
+//     // return s.first_name + " " + s.last_name;
+//   };
+//   return (
+//     <React.Fragment>
+//       {/* {props.classes[
+//         window.location.pathname.split("/").filter((q) => (q ? true : false))[1]
+//       ].students.findIndex(
+//         (s) => s.username === props.decoratedText.replace("@", "")
+//       )  */}
+//       {props.schooladmin.students.findIndex(
+//         (s) => s.username === props.decoratedText.replace("@", "")
+//       ) >= 0 ? (
+//         <Tooltip title={props.decoratedText} placement="top">
+//           <a
+//             style={{
+//               textDecoration: "none",
+//               color: theme.palette.primary.main,
+//               fontWeight: "bold",
+//             }}
+//             href={"#" + props.decoratedText}
+//           >
+//             {React.Children.map(props.children, (child) => (
+//               <React.Fragment>
+//                 {React.cloneElement(child, {
+//                   text: getTitle(),
+//                 })}
+//               </React.Fragment>
+//             ))}
+//           </a>
+//         </Tooltip>
+//       ) : (
+//         <a>{props.children}</a>
+//       )}
+//     </React.Fragment>
+//   );
+// }
+// const ConnectedTagSomeone = connect((states) => ({
+//   classes: states.classDetails,
+//   allClasses: states.classes,
+// }))(TagSomeone);
 function HashTag(props) {
   const theme = useTheme();
   const url = "http://google.com/" + props.decoratedText;
@@ -178,10 +185,10 @@ function Editor(props) {
       {...props}
       ref={editorRef}
       decorators={[
-        {
-          component: ConnectedTagSomeone,
-          regex: /\@[\w]{2,}/g,
-        },
+        // {
+        //   component: ConnectedTagSomeone,
+        //   regex: /\@[\w]{2,}/g,
+        // },
         {
           component: HashTag,
           regex: /\#[\w]{1,}/g,
@@ -466,7 +473,7 @@ function StartADiscussion(props) {
                 >
                   <Editor
                     focused={true}
-                    label="Try @Student, :English, #HashTag"
+                    label="Try :English, #HashTag"
                     controls={[...toolbarcontrols, "insert-photo"]}
                     inlineToolbarControls={inlinetoolbarcontrols}
                     getRef={(ref) => setEditorRef(ref)}
