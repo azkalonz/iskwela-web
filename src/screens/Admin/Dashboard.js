@@ -370,7 +370,7 @@ function Classes(props) {
               >
                 <Box
                   style={{
-                    marginRight: 10,
+                    marginRight: "auto",
                   }}
                 >
                   <Button
@@ -382,7 +382,7 @@ function Classes(props) {
                   </Button>
                 </Box>
 
-                <Box
+                {/* <Box
                   style={{
                     marginLeft: isMobile ? 0 : "auto",
                     marginBottom: isMobile ? 10 : "auto",
@@ -481,7 +481,7 @@ function Classes(props) {
                       </React.Fragment>
                     )}
                   </PopupState>
-                </Box>
+                </Box> */}
                 <Box>
                   <SearchInput onChange={(e) => setSearch(e)} />
                 </Box>
