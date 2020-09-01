@@ -110,6 +110,7 @@ function Assignment(props) {
   const [savingId, setSavingId] = useState([]);
   const [page, setPage] = useState(query.page ? parseInt(query.page) : 1);
   const [questionnairesToAnswer, setQuestionnairesToAnswer] = useState([]);
+  const [categories, setCategories] = useState([]);
 
   const formTemplate = {
     title: "",
@@ -146,6 +147,31 @@ function Assignment(props) {
       default:
         return;
     }
+  };
+  const getCategories = async () => {
+    props.onLoad(true);
+    try {
+      let sub = await Api.get(
+        "/api/schooladmin/subject-grading-categories/" +
+          props.classes[class_id]?.subject?.id
+      );
+      let cat = await Api.get("/api/schooladmin/school-grading-categories");
+      cat = cat.map((q) => {
+        let i = sub.findIndex(
+          (qq) => parseInt(q.id) === parseInt(qq.category_id)
+        );
+        if (i >= 0) {
+          return {
+            ...q,
+            category_percentage: parseFloat(sub[i].category_percentage),
+          };
+        } else return q;
+      });
+      setCategories(cat);
+    } catch (e) {
+      console.log(e);
+    }
+    props.onLoad(false);
   };
   const _getITEMS = async () => {
     props.onLoad(true);
@@ -190,6 +216,7 @@ function Assignment(props) {
   useEffect(() => {
     socket.off("delete items");
     socket.off("add items");
+    getCategories();
     socket.on("delete items", (data) => {
       if (data.type === "ASSIGNMENT" && !isTeacher) {
         if (ITEMS) setITEMS(ITEMS.filter((q) => data.items.indexOf(q.id) < 0));
@@ -910,29 +937,27 @@ function Assignment(props) {
                   className="themed-input select"
                 >
                   <InputLabel>Grading Category</InputLabel>
-                  <Select
-                    label="Grading Category"
-                    variant="outlined"
-                    padding={10}
-                    value={
-                      form.id
-                        ? parseInt(form.category.id)
-                        : parseInt(form.category_id)
-                    }
-                    onChange={(e) => {
-                      setForm({
-                        ...form,
-                        category_id: e.target.value,
-                      });
-                    }}
-                    style={{ paddingTop: 17 }}
-                  >
-                    {props.gradingCategories.map((c, index) => (
-                      <MenuItem value={c.id} key={index}>
-                        {c.category}
-                      </MenuItem>
-                    ))}
-                  </Select>
+                  {categories && (
+                    <Select
+                      label="Grading Category"
+                      variant="outlined"
+                      padding={10}
+                      value={parseInt(form.category_id)}
+                      onChange={(e) => {
+                        setForm({
+                          ...form,
+                          category_id: e.target.value,
+                        });
+                      }}
+                      style={{ paddingTop: 17 }}
+                    >
+                      {categories.map((c, index) => (
+                        <MenuItem value={c.id} key={index}>
+                          {c.category}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  )}
                 </FormControl>
               </Box>
             </Box>

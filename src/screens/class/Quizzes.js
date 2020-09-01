@@ -110,6 +110,7 @@ function Quizzes(props) {
   const [savingId, setSavingId] = useState([]);
   const [page, setPage] = useState(query.page ? parseInt(query.page) : 1);
   const [questionnairesToAnswer, setQuestionnairesToAnswer] = useState([]);
+  const [categories, setCategories] = useState([]);
 
   const formTemplate = {
     title: "",
@@ -146,6 +147,31 @@ function Quizzes(props) {
       default:
         return;
     }
+  };
+  const getCategories = async () => {
+    props.onLoad(true);
+    try {
+      let sub = await Api.get(
+        "/api/schooladmin/subject-grading-categories/" +
+          props.classes[class_id]?.subject?.id
+      );
+      let cat = await Api.get("/api/schooladmin/school-grading-categories");
+      cat = cat.map((q) => {
+        let i = sub.findIndex(
+          (qq) => parseInt(q.id) === parseInt(qq.category_id)
+        );
+        if (i >= 0) {
+          return {
+            ...q,
+            category_percentage: parseFloat(sub[i].category_percentage),
+          };
+        } else return q;
+      });
+      setCategories(cat);
+    } catch (e) {
+      console.log(e);
+    }
+    props.onLoad(false);
   };
   const _getITEMS = async () => {
     props.onLoad(true);
@@ -190,6 +216,7 @@ function Quizzes(props) {
   useEffect(() => {
     socket.off("delete items");
     socket.off("add items");
+    getCategories();
     socket.on("delete items", (data) => {
       if (data.type === "QUIZ" && !isTeacher) {
         if (ITEMS) setITEMS(ITEMS.filter((q) => data.items.indexOf(q.id) < 0));
@@ -238,6 +265,7 @@ function Quizzes(props) {
   const handleAddQuestionnaires = async (id, questionnaires) => {
     setSaving(true);
     setSavingId([id]);
+    let questionnaireId;
     try {
       await Api.post("/api/quiz/questionnaire/add", {
         body: {
@@ -247,6 +275,7 @@ function Quizzes(props) {
       });
     } catch (e) {
       setErrors(["Oops! Something went wrong. Please try again."]);
+      console.log(console.error());
     }
     setSaving(false);
     setSavingId([]);
@@ -842,8 +871,12 @@ function Quizzes(props) {
             setForm({ ...form, questionnaires: s });
           } else {
             if (s.length > form.questionnaires.length) {
+              let questionnaire_id;
               let newQ = s.filter(
-                (q) => form.questionnaires.findIndex((qq) => qq.id === q.id) < 0
+                (q) =>
+                  form.questionnaires.findIndex(
+                    (qq) => (questionnaire_id = qq.id === q.id)
+                  ) < 0
               );
               await handleAddQuestionnaires(form.id, newQ);
               setForm({
@@ -914,29 +947,27 @@ function Quizzes(props) {
                   className="themed-input select"
                 >
                   <InputLabel>Grading Category</InputLabel>
-                  <Select
-                    label="Grading Category"
-                    variant="outlined"
-                    padding={10}
-                    value={
-                      form.id
-                        ? parseInt(form.category.id)
-                        : parseInt(form.category_id)
-                    }
-                    onChange={(e) => {
-                      setForm({
-                        ...form,
-                        category_id: e.target.value,
-                      });
-                    }}
-                    style={{ paddingTop: 17 }}
-                  >
-                    {props.gradingCategories.map((c, index) => (
-                      <MenuItem value={c.id} key={index}>
-                        {c.category}
-                      </MenuItem>
-                    ))}
-                  </Select>
+                  {categories && (
+                    <Select
+                      label="Grading Category"
+                      variant="outlined"
+                      padding={10}
+                      value={parseInt(form.category_id)}
+                      onChange={(e) => {
+                        setForm({
+                          ...form,
+                          category_id: e.target.value,
+                        });
+                      }}
+                      style={{ paddingTop: 17 }}
+                    >
+                      {categories.map((c, index) => (
+                        <MenuItem value={c.id} key={index}>
+                          {c.category}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  )}
                 </FormControl>
               </Box>
             </Box>
