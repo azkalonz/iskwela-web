@@ -3225,6 +3225,7 @@ function Accounts(props) {
       },
     });
   };
+
   const registerUser = (name) => {
     if (!form[name]) return;
     let errors = {};
@@ -3615,6 +3616,10 @@ function Accounts(props) {
             tableProps: {
               options: [
                 {
+                  name: "Update",
+                  value: "update",
+                },
+                {
                   name: "Deactivate",
                   value: "deactivate",
                 },
@@ -3636,6 +3641,10 @@ function Accounts(props) {
             name: "parent",
             tableProps: {
               options: [
+                {
+                  name: "Update",
+                  value: "update",
+                },
                 {
                   name: "Deactivate",
                   value: "deactivate",
@@ -3684,6 +3693,10 @@ function Accounts(props) {
             tableProps: {
               options: [
                 {
+                  name: "Update",
+                  value: "update",
+                },
+                {
                   name: "Deactivate",
                   value: "deactivate",
                 },
@@ -3731,6 +3744,17 @@ function UserTable(props) {
   const [page, setPage] = useState(1);
   const [success, setSuccess] = useState(false);
   const [successAdmin, setSuccessAdmin] = useState(false);
+
+  const updateAccount = (item) => {
+    return (
+      <BlankDialog>
+        <Box>
+          <form></form>
+        </Box>
+      </BlankDialog>
+    );
+  };
+
   const activate = (isActivate, student) => {
     const stat = isActivate ? "activate" : "deactivate";
     fetchData({
@@ -3755,6 +3779,10 @@ function UserTable(props) {
     modifiedChildren = false;
     props.onSelect && props.onSelect(item);
     switch (opt) {
+      case "update":
+        alert("update");
+        updateAccount(item);
+        break;
       case "remove-student":
         if (actions.removeFromSection) {
           setSavingId([item.id]);
