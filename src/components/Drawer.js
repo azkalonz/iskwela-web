@@ -772,7 +772,7 @@ function Drawer(props) {
                   fontWeight: "bold",
                 }}
                 onClick={() => {
-                  history.push("/explore/jumpstart");
+                  history.push("/bulletin");
                 }}
               >
                 School Bulletin
