@@ -508,7 +508,7 @@ function Classes(props) {
                       </React.Fragment>
                     )}
                   </PopupState> */}
-                </Box>
+                {/* </Box> */}
                 <Box>
                   <SearchInput onChange={(e) => setSearch(e)} />
                 </Box>
