@@ -3734,10 +3734,6 @@ function Accounts(props) {
             tableProps: {
               options: [
                 {
-                  name: "Update",
-                  value: "update",
-                },
-                {
                   name: "Deactivate",
                   value: "deactivate",
                 },
@@ -3784,10 +3780,6 @@ function Accounts(props) {
             onSelect: (item) => setCurrentUser(item),
             tableProps: {
               options: [
-                {
-                  name: "Update",
-                  value: "update",
-                },
                 {
                   name: "Deactivate",
                   value: "deactivate",
