@@ -79,13 +79,97 @@ function Dashboard(props) {
   const isTablet = useMediaQuery(theme.breakpoints.down("md"));
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const classes = useStyles();
+  const [saving, setSaving] = useState(false);
+  const [savingId, setSavingId] = useState([]);
+  const [editing, setEditing] = useState(false || !!props.editOnly);
   const [opened, setOpened] = useState(true);
+  const [success, setSuccess] = useState(false);
+  const [state, setState] = React.useState({
+    username: "",
+    fname: "",
+    lname: "",
+    email: "",
+    pnumber: "",
+  });
+
+  const handleUpdate = () => {
+    setSaving(true);
+    setSavingId([window.currentItem.id]);
+
+    fetchData({
+      send: async () =>
+        await Api.post("/api/admin/user/update/" + window.currentItem.id, {
+          body: {
+            username: state.username,
+            first_name: state.fname,
+            last_name: state.lname,
+            phone_number:
+              state.pnumber !== ""
+                ? parseInt(state.pnumber)
+                : window.currentItem.phone_number === null
+                ? 0
+                : window.currentItem.phone_number,
+            email: state.email,
+          },
+        }),
+      before: () => setLoading(true),
+      after: () => {
+        setSuccess(true);
+        setSaving(false);
+        setSavingId([]);
+        setLoading(false);
+      },
+    });
+    // setSaving(true);
+    // setSavingId([window.currentItem.id]);
+    // try {
+    //   setSaving(true);
+    //   setSavingId([window.currentItem.id]);
+    //   await Api.post("/api/admin/user/update/" + window.currentItem.id, {
+    //     body: {
+    //       username: state.username,
+    //       first_name: state.fname,
+    //       last_name: state.lname,
+    //       phone_number:
+    //         state.pnumber !== ""
+    //           ? parseInt(state.pnumber)
+    //           : window.currentItem.phone_number === null
+    //           ? 0
+    //           : window.currentItem.phone_number,
+    //       email: state.email,
+    //     },
+    //   });
+    //   setSuccess(true);
+    //   setSaving(false);
+    //   setSavingId([]);
+    // } catch (e) {
+    //   console.log(console.error());
+    // }
+    // setSaving(false);
+    // setSavingId([]);
+  };
   const handleChange = (event, newValue) => {
     setValue(newValue);
+  };
+  const handleEditChange = (event) => {
+    const value = event.target.value;
+    setState({
+      ...state,
+      [event.target.name]: value,
+    });
   };
 
   return (
     <Drawer {...props}>
+      <Snackbar
+        open={success}
+        autoHideDuration={6000}
+        onClose={() => setSuccess(false)}
+      >
+        <Alert severity="success" onClose={() => setSuccess(false)}>
+          Success
+        </Alert>
+      </Snackbar>
       <BlankDialog
         title={
           <Box display="flex" alignItems="center">
@@ -95,58 +179,162 @@ function Dashboard(props) {
               alt={window.currentItem?.name}
             />
             <Typography
-              style={{ fontSize: 18, fontWeight: 500, marginLeft: 13 }}
+              style={{
+                fontSize: 18,
+                fontWeight: 500,
+                marginLeft: 13,
+                marginRight: "auto",
+              }}
             >
               {window.currentItem?.name}
             </Typography>
+
+            <SavingButton
+              saving={saving}
+              style={{ marginLeft: 13, width: "auto" }}
+              onClick={() => {
+                if (editing) {
+                  handleUpdate();
+                } else if (!props.editOnly) {
+                  setEditing(true);
+                }
+              }}
+            >
+              {editing || props.editOnly ? (
+                "Save  "
+              ) : (
+                <React.Fragment>
+                  Edit <Icon fontSize="small">create_outlined</Icon>
+                </React.Fragment>
+              )}
+            </SavingButton>
+            {editing && !props.editOnly && (
+              <Button
+                style={{ color: "red", width: "auto" }}
+                onClick={() => {
+                  setEditing(false);
+                }}
+              >
+                Cancel
+              </Button>
+            )}
           </Box>
         }
         open={(window.currentItem && query.action === "view-user") || false}
-        onClose={() =>
+        onClose={() => {
+          setEditing(false);
           props.history.push(
             window.location.search.replaceUrlParam("action", "")
-          )
-        }
+          );
+        }}
       >
         {window.currentItem && (
-          <List>
-            <ListItem>
-              <ListItemText
-                primary={window.currentItem.id}
-                secondary="User ID"
-              />
-            </ListItem>
-            <ListItem>
-              <ListItemText
-                primary={window.currentItem.username}
-                secondary="Username"
-              />
-            </ListItem>
-            <ListItem>
-              <ListItemText
-                primary={window.currentItem.first_name}
-                secondary="First Name"
-              />
-            </ListItem>
-            <ListItem>
-              <ListItemText
-                primary={window.currentItem.last_name}
-                secondary="Last Name"
-              />
-            </ListItem>
-            <ListItem>
-              <ListItemText
-                primary={window.currentItem.phone_number}
-                secondary="Phone Number"
-              />
-            </ListItem>
-            <ListItem>
-              <ListItemText
-                primary={window.currentItem.email}
-                secondary="Email"
-              />
-            </ListItem>
-          </List>
+          <Box>
+            <fieldset disabled={editing ? false : true}>
+              <form
+                className={classes.root}
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}
+              >
+                <TextField
+                  variant="filled"
+                  defaultValue={window.currentItem.id}
+                  label="User ID"
+                  size="small"
+                  width="100"
+                  disabled
+                  style={{ width: "80%" }}
+                />
+                <TextField
+                  name="username"
+                  onChange={handleEditChange}
+                  variant="filled"
+                  defaultValue={window.currentItem.username}
+                  label="Username"
+                  size="small"
+                  style={{ width: "80%" }}
+                />
+                <TextField
+                  name="fname"
+                  onChange={handleEditChange}
+                  variant="filled"
+                  defaultValue={window.currentItem.first_name}
+                  label="First Name"
+                  size="small"
+                  style={{ width: "80%" }}
+                />
+                <TextField
+                  name="lname"
+                  onChange={handleEditChange}
+                  variant="filled"
+                  defaultValue={window.currentItem.last_name}
+                  label="Last Name"
+                  size="small"
+                  style={{ width: "80%" }}
+                />
+                <TextField
+                  name="pnumber"
+                  onChange={handleEditChange}
+                  variant="filled"
+                  defaultValue={window.currentItem.phone_number}
+                  label="Phone Number"
+                  size="small"
+                  style={{ width: "80%" }}
+                />
+                <TextField
+                  name="email"
+                  onChange={handleEditChange}
+                  variant="filled"
+                  label="Email"
+                  defaultValue={window.currentItem.email}
+                  size="small"
+                  style={{ width: "80%" }}
+                />
+              </form>
+            </fieldset>
+          </Box>
+          // <List>
+          //   <ListItem>
+          //     <ListItemText
+          //       primary={window.currentItem.id}
+          //       secondary="User ID"
+          //     />
+          //   </ListItem>
+          //   <ListItem>
+          //     <ListItemText
+          //       primary={window.currentItem.username}
+          //       secondary="Username"
+          //     />
+          //   </ListItem>
+          //   <ListItem>
+          //     <ListItemText
+          //       primary={window.currentItem.first_name}
+          //       secondary="First Name"
+          //     />
+          //   </ListItem>
+          //   <ListItem>
+          //     <ListItemText
+          //       primary={window.currentItem.last_name}
+          //       secondary="Last Name"
+          //     />
+          //   </ListItem>
+          //   <ListItem>
+          //     <ListItemText
+          //       primary={window.currentItem.phone_number}
+          //       secondary="Phone Number"
+          //     />
+          //   </ListItem>
+          //   <ListItem>
+          //     <ListItemText
+          //       primary={window.currentItem.email}
+          //       secondary="Email"
+          //     />
+          //   </ListItem>
+          // </List>
         )}
       </BlankDialog>
       <Backdrop
@@ -415,100 +603,7 @@ function Classes(props) {
                     marginBottom: isMobile ? 10 : "auto",
                     marginTop: isMobile ? 10 : "auto",
                   }}
-                >
-                  {/* <PopupState variant="popover" popupId="viewing-as">
-                    {(popupState) => (
-                      <React.Fragment>
-                        <Box
-                          onClick={() => {
-                            popupState.open();
-                          }}
-                          display={"flex"}
-                          justifyContent="center"
-                          alignItems="center"
-                          style={{ cursor: "pointer" }}
-                          {...bindTrigger(popupState)}
-                        >
-                          <Avatar
-                            src={props.childInfo.preferences?.profile_picture}
-                            alt={props.childInfo.first_name}
-                          />
-                          <Box marginLeft={2}>
-                            <Typography style={{ fontSize: 12 }}>
-                              Viewing as
-                            </Typography>
-                            <Typography
-                              style={{ fontWeight: 16, fontWeight: 500 }}
-                            >
-                              {props.childInfo.first_name +
-                                " " +
-                                props.childInfo.last_name}
-                            </Typography>
-                          </Box>
-                          <IconButton
-                            color="secondary"
-                            {...bindTrigger(popupState)}
-                          >
-                            <Icon>expand_more</Icon>
-                          </IconButton>
-                        </Box>
-                        <Menu
-                          {...bindMenu(popupState)}
-                          style={{
-                            maxWidth: 300,
-                          }}
-                        >
-                          {props.parentData?.children?.map((child, index) => {
-                            return (
-                              <MenuItem
-                                key={index}
-                                selected={
-                                  props.childInfo?.id === child.childInfo.id
-                                }
-                                onClick={async () => {
-                                  popupState.close();
-                                  if (
-                                    props.childInfo?.id === child.childInfo.id
-                                  ) {
-                                    return;
-                                  }
-                                  window.localStorage["chatID"] =
-                                    child.childInfo.id;
-                                  props.history.push(
-                                    window.location.search.replaceUrlParam(
-                                      "userId",
-                                      child.childInfo.id
-                                    )
-                                  );
-                                  setLoading(true);
-                                  await UserData.getUserData(
-                                    props.userInfo,
-                                    () => {
-                                      setLoading(false);
-                                    }
-                                  );
-                                }}
-                              >
-                                <Avatar
-                                  src={
-                                    child.childInfo?.preferences
-                                      ?.profile_picture
-                                  }
-                                  alt={child.childInfo.first_name}
-                                />
-                                <Typography style={{ marginLeft: 13 }}>
-                                  {child.childInfo.first_name +
-                                    " " +
-                                    child.childInfo.last_name}
-                                </Typography>
-                              </MenuItem>
-                            );
-                          })}
-                        </Menu>
-                      </React.Fragment>
-                    )}
-                  </PopupState> */}
-                </Box>
+                ></Box>
                 <Box>
                   <SearchInput onChange={(e) => setSearch(e)} />
                 </Box>
@@ -574,7 +669,7 @@ function Classes(props) {
                         props.history.push(
                           window.location.search.replaceUrlParam(
                             "classId",
-                            item.id //mao ni class id
+                            item.id
                           )
                         )
                       }
@@ -2390,6 +2485,7 @@ function ClassDetails(props) {
       return events;
     }
   }, [CLASS]);
+
   const editClassPicture = (callback) => {
     let input = document.querySelector("#edit-class-pic-input");
     if (!input) {
@@ -3616,10 +3712,6 @@ function Accounts(props) {
             tableProps: {
               options: [
                 {
-                  name: "Update",
-                  value: "update",
-                },
-                {
                   name: "Deactivate",
                   value: "deactivate",
                 },
@@ -3745,15 +3837,7 @@ function UserTable(props) {
   const [success, setSuccess] = useState(false);
   const [successAdmin, setSuccessAdmin] = useState(false);
 
-  const updateAccount = (item) => {
-    return (
-      <BlankDialog>
-        <Box>
-          <form></form>
-        </Box>
-      </BlankDialog>
-    );
-  };
+  const updateAccount = (item) => {};
 
   const activate = (isActivate, student) => {
     const stat = isActivate ? "activate" : "deactivate";
@@ -4203,6 +4287,12 @@ function a11yProps(index) {
 }
 
 const useStyles = makeStyles((theme) => ({
+  root: {
+    "& > *": {
+      margin: theme.spacing(1),
+      width: "25ch",
+    },
+  },
   tab: {
     "& .MuiTabs-root:not(.MuiTabs-vertical)": {
       borderBottom: "1px solid " + theme.palette.divider,
