@@ -88,10 +88,12 @@ export function ChatUsers(props) {
   const { users } = props;
   const [search, setSearch] = useState("");
   const getFilteredUsers = () =>
+    // [...users]
+    //   .filter((q) => q.username !== props.userInfo.username)
+    //   .filter((q) => JSON.stringify(q).toLowerCase().indexOf(search) >= 0);
     [...users]
-      .filter((q) => q.username !== props.userInfo.username)
-      .filter((q) => JSON.stringify(q).toLowerCase().indexOf(search) >= 0);
-
+      .filter((q) => q.school_id === props.userInfo.school_id)
+      .filter((q) => q.id !== props.userInfo.id);
   const getRecentMessage = (user) => {
     let r =
       props.recent.find(
