@@ -35,7 +35,7 @@ import ArrowDropDownIcon from "@material-ui/icons/ArrowDropDown";
 import CloseIcon from "@material-ui/icons/Close";
 import MuiAlert from "@material-ui/lab/Alert";
 import PopupState, { bindMenu, bindTrigger } from "material-ui-popup-state";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { connect } from "react-redux";
 import { useHistory } from "react-router-dom";
 import Api from "../../api";
@@ -51,6 +51,7 @@ import { Table as MTable } from "../../components/Table";
 import UserData, { asyncForEach } from "../../components/UserData";
 import AnswerQuiz from "./AnswerQuiz";
 import { SearchInput } from "../../components/Selectors";
+import { fetchData } from "../Admin/Dashboard";
 const queryString = require("query-string");
 function Alert(props) {
   return <MuiAlert elevation={6} variant="filled" {...props} />;
@@ -110,6 +111,8 @@ function Periodical(props) {
   const [savingId, setSavingId] = useState([]);
   const [page, setPage] = useState(query.page ? parseInt(query.page) : 1);
   const [questionnairesToAnswer, setQuestionnairesToAnswer] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [questionnaires, setQuestionnaires] = useState([]);
 
   const formTemplate = {
     title: "",
@@ -147,16 +150,45 @@ function Periodical(props) {
         return;
     }
   };
+  const getCategories = async () => {
+    props.onLoad(true);
+    try {
+      let sub = await Api.get(
+        "/api/schooladmin/subject-grading-categories/" +
+          props.classes[class_id]?.subject?.id
+      );
+      let cat = await Api.get("/api/schooladmin/school-grading-categories");
+      cat = cat.map((q) => {
+        let i = sub.findIndex(
+          (qq) => parseInt(q.id) === parseInt(qq.category_id)
+        );
+        if (i >= 0) {
+          return {
+            ...q,
+            category_percentage: parseFloat(sub[i].category_percentage),
+          };
+        } else return q;
+      });
+      setCategories(cat);
+    } catch (e) {
+      console.log(e);
+    }
+    props.onLoad(false);
+  };
   const _getITEMS = async () => {
     props.onLoad(true);
     if (!classSched) return;
+    await fetchData({
+      send: async () => Api.get("/api/questionnaires?types[]=myQnrs&limit=100"),
+      after: (data) => setQuestionnaires(data || []),
+    });
     try {
       let res;
       let published;
       let teacherId = props.classDetails[class_id]?.teacher?.id;
       if (props.userInfo.user_type === "t") {
         res = await Api.get(
-          "/api/periodicals?include=questionnaire" +
+          "/api/periodicals?include=questionnaires" +
             (teacherId ? "&teacher_id=" + teacherId : "")
         );
         published = await Api.get(
@@ -190,6 +222,7 @@ function Periodical(props) {
   useEffect(() => {
     socket.off("delete items");
     socket.off("add items");
+    getCategories();
     socket.on("delete items", (data) => {
       if (data.type === "PERIODICAL" && !isTeacher) {
         if (ITEMS) setITEMS(ITEMS.filter((q) => data.items.indexOf(q.id) < 0));
@@ -207,7 +240,7 @@ function Periodical(props) {
     }
   }, [props.classDetails]);
   useEffect(() => {
-    if (ITEMS) {
+    if (ITEMS && questionnaires) {
       if (!isNaN(parseInt(query.id))) {
         setCurrentItem(ITEMS.find((q) => q.id === parseInt(query.id)));
       }
@@ -216,7 +249,7 @@ function Periodical(props) {
         setQuestionnairesToAnswer(a.questionnaires);
       }
     }
-  }, [ITEMS, query.id]);
+  }, [ITEMS, query.id, questionnaires]);
   const _handleSearch = (e) => {
     setSearch(e.toLowerCase());
     setPage(1);
@@ -636,7 +669,7 @@ function Periodical(props) {
                       {currentItem.questionnaires.map((m, i) => (
                         <Typography
                           style={{ cursor: "pointer", fontWeight: "bold" }}
-                          color="primar y"
+                          color="primary"
                           key={i}
                           onClick={() => {
                             props.userInfo.user_type !== "p" &&
@@ -647,7 +680,6 @@ function Periodical(props) {
                                   schedule_id,
                                   option_name,
                                   room_name || "",
-
                                   "?id=" + m.id,
                                   "&q=" + currentItem.id + "&start=true",
                                 ])
@@ -856,7 +888,7 @@ function Periodical(props) {
           }
         }}
         match={props.match}
-        data={props.questionnaires}
+        data={questionnaires}
       />
       {ITEMS && questionnairesToAnswer && query.start && (
         <AnswerQuiz
@@ -912,29 +944,27 @@ function Periodical(props) {
                   className="themed-input select"
                 >
                   <InputLabel>Grading Category</InputLabel>
-                  <Select
-                    label="Grading Category"
-                    variant="outlined"
-                    padding={10}
-                    value={
-                      form.id
-                        ? parseInt(form.category.id)
-                        : parseInt(form.category_id)
-                    }
-                    onChange={(e) => {
-                      setForm({
-                        ...form,
-                        category_id: e.target.value,
-                      });
-                    }}
-                    style={{ paddingTop: 17 }}
-                  >
-                    {props.gradingCategories.map((c, index) => (
-                      <MenuItem value={c.id} key={index}>
-                        {c.category}
-                      </MenuItem>
-                    ))}
-                  </Select>
+                  {categories && (
+                    <Select
+                      label="Grading Category"
+                      variant="outlined"
+                      padding={10}
+                      value={parseInt(form.category_id)}
+                      onChange={(e) => {
+                        setForm({
+                          ...form,
+                          category_id: e.target.value,
+                        });
+                      }}
+                      style={{ paddingTop: 17 }}
+                    >
+                      {categories.map((c, index) => (
+                        <MenuItem value={c.id} key={index}>
+                          {c.category}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  )}
                 </FormControl>
               </Box>
             </Box>

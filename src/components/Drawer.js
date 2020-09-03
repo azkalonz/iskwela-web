@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
+import AddAlertIcon from "@material-ui/icons/AddAlert";
 import PropTypes from "prop-types";
 import {
   Divider,
@@ -303,6 +304,32 @@ function Drawer(props) {
               </Box>
             </Box>
           )}
+          <Box
+            textAlign="center"
+            className={
+              window.location.pathname.indexOf("/bulletin") >= 0
+                ? "selected tab bordered"
+                : "tab"
+            }
+          >
+            <Tooltip title="School Bulletin" placement="right">
+              <IconButton onClick={() => history.push("/bulletin", "_blank")}>
+                <Icon
+                  fontSize="inherit"
+                  style={{
+                    color:
+                      props.theme === "dark"
+                        ? isTablet
+                          ? "#282828"
+                          : "#f1f1f1"
+                        : "#38108d",
+                  }}
+                >
+                  <AddAlertIcon />
+                </Icon>
+              </IconButton>
+            </Tooltip>
+          </Box>
           <Box className={screen_name ? "selected tab bordered" : "tab"}>
             <Box
               onClick={() => {
@@ -700,6 +727,58 @@ function Drawer(props) {
                 </Typography>
               </Box>
             )}
+
+            <Box
+              className={
+                window.location.pathname.indexOf("/bulletin") >= 0
+                  ? "selected tab bordered"
+                  : "tab"
+              }
+            >
+              <Box
+                onClick={() => {
+                  history.push("/bulletin", "_blank");
+                }}
+                className="tab-btn screen-btn"
+                style={{
+                  alignItems: "center",
+                  cursor: "pointer",
+                  justifyContent: "center",
+                  display: "flex",
+                  transform: "translateX(-1.5px)",
+                }}
+              >
+                <Icon
+                  fontSize="large"
+                  style={{
+                    color:
+                      props.theme === "dark"
+                        ? isTablet
+                          ? "#282828"
+                          : "#f1f1f1"
+                        : "#38108d",
+                    alignItems: "center",
+                    textALign: "center",
+                    display: "contents",
+                  }}
+                >
+                  <AddAlertIcon />
+                </Icon>
+              </Box>
+
+              <Typography
+                style={{
+                  color: props.theme === "dark" ? "#f1f1f1" : "#38108d",
+                  fontWeight: "bold",
+                }}
+                onClick={() => {
+                  history.push("/bulletin");
+                }}
+              >
+                School Bulletin
+              </Typography>
+            </Box>
+
             <Box className={screen_name ? "selected tab bordered" : "tab"}>
               <Box
                 onClick={() => {

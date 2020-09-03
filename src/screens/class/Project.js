@@ -73,6 +73,7 @@ import StudentRating from "../../components/StudentRating";
 import { Table as MTable } from "../../components/Table";
 import UserData, { asyncForEach } from "../../components/UserData";
 import { Rating as MuiRating } from "@material-ui/lab";
+import { setTitle, pageState } from "../../App";
 
 const queryString = require("query-string");
 function Alert(props) {
@@ -147,6 +148,7 @@ function Project(props) {
   const [selectedSched, setSelectedSched] = useState(
     query.date && query.date !== -1 ? parseInt(query.date) : -1
   );
+  const [categories, setCategories] = useState([]);
   const formTemplate = {
     title: "",
     description: "",
@@ -209,8 +211,14 @@ function Project(props) {
       let offset = $("#video-conference-container");
       offset = offset[0] ? offset[0].offsetHeight : 0;
       document.querySelector("#right-panel").scrollTop = offset;
+      setTitle(
+        pageState.subtitles.concat([currentActivity.title]),
+        "iSkwela",
+        false
+      );
     } else {
       setAnswersSearch("");
+      setTitle(pageState.subtitles);
     }
   }, [currentActivity]);
   const _getActivities = () => {
@@ -242,10 +250,6 @@ function Project(props) {
       }
     } catch (e) {}
   };
-  const getFiles = (id) => {
-    if (!filesForm[id]) filesForm[id] = new FormData();
-    return filesForm[id];
-  };
   useEffect(() => {
     if (props.classDetails[class_id]) {
       _getActivities();
@@ -272,22 +276,31 @@ function Project(props) {
       });
     }
   };
-  const getCategories = useCallback(() => {
-    let sub = props.subjectGradingCategories || [];
-    let cat = props.gradingCategories || [];
-    cat = cat.map((q) => {
-      let i = sub.findIndex(
-        (qq) => parseInt(q.id) === parseInt(qq.category_id)
+  const getCategories = async () => {
+    props.onLoad(true);
+    try {
+      let sub = await Api.get(
+        "/api/schooladmin/subject-grading-categories/" +
+          props.classes[class_id]?.subject?.id
       );
-      if (i >= 0) {
-        return {
-          ...q,
-          category_percentage: parseFloat(sub[i].category_percentage),
-        };
-      } else return q;
-    });
-    return cat;
-  }, [props.subjectGradingCategories, props.gradingCategories]);
+      let cat = await Api.get("/api/schooladmin/school-grading-categories");
+      cat = cat.map((q) => {
+        let i = sub.findIndex(
+          (qq) => parseInt(q.id) === parseInt(qq.category_id)
+        );
+        if (i >= 0) {
+          return {
+            ...q,
+            category_percentage: parseFloat(sub[i].category_percentage),
+          };
+        } else return q;
+      });
+      setCategories(cat);
+    } catch (e) {
+      console.log(e);
+    }
+    props.onLoad(false);
+  };
   const getAnswers = async () => {
     currentActivity.answers = null;
     let a = await Api.get(
@@ -903,12 +916,17 @@ function Project(props) {
   useEffect(() => {
     socket.off("get item");
     socket.on("get item", getItem);
+    getCategories();
     if (document.querySelector("#activity-material") && !saving)
       removeFiles("activity-materials", "#activity-material");
   }, []);
   useEffect(() => {
     _getActivities();
   }, [props.classDetails]);
+  const getFiles = (id) => {
+    if (!filesForm[id]) filesForm[id] = new FormData();
+    return filesForm[id];
+  };
   const getItem = async (details) => {
     const parsed = JSON.parse(details.data.b64);
     const blob = await fetch(parsed.blob).then((res) => res.blob());
@@ -1421,7 +1439,10 @@ function Project(props) {
                                   </Button>
                                   <Button
                                     onClick={() => {
-                                      FileUpload.removeFiles("activity-answer");
+                                      removeFiles(
+                                        "activity-answer",
+                                        "#activity-answer"
+                                      );
                                       setDragover(false);
                                       setFilesToUpload({
                                         ...filesToUpload,
@@ -1461,15 +1482,7 @@ function Project(props) {
                       textAlign: "right",
                     }}
                   >
-                    <IconButton
-                      onClick={() => {
-                        setCurrentActivity({
-                          ...currentActivity,
-                          answers: null,
-                        });
-                        getAnswers();
-                      }}
-                    >
+                    <IconButton onClick={() => handleRefreshAnswers(true)}>
                       <Icon color="primary">refresh</Icon>
                     </IconButton>
                     <Box width="100%">
@@ -1522,7 +1535,12 @@ function Project(props) {
                           key={index}
                           style={{
                             ...(index % 2
-                              ? { background: "rgb(248, 248, 248)" }
+                              ? {
+                                  background:
+                                    props.theme === "dark"
+                                      ? "#171717"
+                                      : "rgb(248, 248, 248)",
+                                }
                               : {}),
                           }}
                         >
@@ -1706,7 +1724,7 @@ function Project(props) {
                               : parseInt(a.student.id) ===
                                   parseInt(props.userInfo.id) ||
                                 parseInt(a.student.id) ===
-                                  parseInt(props.childInfo?.id)
+                                  parseInt(props.childInfo?.DialogTitle)
                           )
                           .filter(
                             (a) =>
@@ -2091,7 +2109,7 @@ function Project(props) {
                     style={{ flex: 1 }}
                   >
                     <InputLabel>Grading Category</InputLabel>
-                    {getCategories() && (
+                    {categories && (
                       <Select
                         label="Grading Category"
                         variant="outlined"
@@ -2105,7 +2123,7 @@ function Project(props) {
                         }}
                         style={{ paddingTop: 17 }}
                       >
-                        {getCategories().map((c, index) => (
+                        {categories.map((c, index) => (
                           <MenuItem value={c.id} key={index}>
                             {c.category}
                           </MenuItem>

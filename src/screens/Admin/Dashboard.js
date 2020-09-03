@@ -585,7 +585,7 @@ function Classes(props) {
               >
                 <Box
                   style={{
-                    marginRight: 10,
+                    marginRight: "auto",
                   }}
                 >
                   <Button
@@ -597,13 +597,110 @@ function Classes(props) {
                   </Button>
                 </Box>
 
-                <Box
+                {/* <Box
                   style={{
                     marginLeft: isMobile ? 0 : "auto",
                     marginBottom: isMobile ? 10 : "auto",
                     marginTop: isMobile ? 10 : "auto",
                   }}
+<<<<<<< HEAD
                 ></Box>
+=======
+                >
+                  {/* <PopupState variant="popover" popupId="viewing-as">
+                    {(popupState) => (
+                      <React.Fragment>
+                        <Box
+                          onClick={() => {
+                            popupState.open();
+                          }}
+                          display={"flex"}
+                          justifyContent="center"
+                          alignItems="center"
+                          style={{ cursor: "pointer" }}
+                          {...bindTrigger(popupState)}
+                        >
+                          <Avatar
+                            src={props.childInfo.preferences?.profile_picture}
+                            alt={props.childInfo.first_name}
+                          />
+                          <Box marginLeft={2}>
+                            <Typography style={{ fontSize: 12 }}>
+                              Viewing as
+                            </Typography>
+                            <Typography
+                              style={{ fontWeight: 16, fontWeight: 500 }}
+                            >
+                              {props.childInfo.first_name +
+                                " " +
+                                props.childInfo.last_name}
+                            </Typography>
+                          </Box>
+                          <IconButton
+                            color="secondary"
+                            {...bindTrigger(popupState)}
+                          >
+                            <Icon>expand_more</Icon>
+                          </IconButton>
+                        </Box>
+                        <Menu
+                          {...bindMenu(popupState)}
+                          style={{
+                            maxWidth: 300,
+                          }}
+                        >
+                          {props.parentData?.children?.map((child, index) => {
+                            return (
+                              <MenuItem
+                                key={index}
+                                selected={
+                                  props.childInfo?.id === child.childInfo.id
+                                }
+                                onClick={async () => {
+                                  popupState.close();
+                                  if (
+                                    props.childInfo?.id === child.childInfo.id
+                                  ) {
+                                    return;
+                                  }
+                                  window.localStorage["chatID"] =
+                                    child.childInfo.id;
+                                  props.history.push(
+                                    window.location.search.replaceUrlParam(
+                                      "userId",
+                                      child.childInfo.id
+                                    )
+                                  );
+                                  setLoading(true);
+                                  await UserData.getUserData(
+                                    props.userInfo,
+                                    () => {
+                                      setLoading(false);
+                                    }
+                                  );
+                                }}
+                              >
+                                <Avatar
+                                  src={
+                                    child.childInfo?.preferences
+                                      ?.profile_picture
+                                  }
+                                  alt={child.childInfo.first_name}
+                                />
+                                <Typography style={{ marginLeft: 13 }}>
+                                  {child.childInfo.first_name +
+                                    " " +
+                                    child.childInfo.last_name}
+                                </Typography>
+                              </MenuItem>
+                            );
+                          })}
+                        </Menu>
+                      </React.Fragment>
+                    )}
+                  </PopupState> */}
+                {/* </Box> */}
+>>>>>>> d324844816094c57137a5f0b0c8969081fa5d2ba
                 <Box>
                   <SearchInput onChange={(e) => setSearch(e)} />
                 </Box>
@@ -944,7 +1041,7 @@ function StudentGroups(props) {
         } else if (minChar && value?.length < minChar) {
           e = "Please enter at least " + minChar + " length " + field.name;
         } else if (maxChar && value?.length > maxChar) {
-          e = "Maximum characters execeed.";
+          e = "Maximum characters for username is only 20.";
         } else if (pattern && !new RegExp(pattern).test(value)) {
           e = "Please enter a valid " + field.name;
         }
@@ -1606,7 +1703,7 @@ function GradingCategories(props) {
           } else if (minChar && value?.length < minChar) {
             e = "Please enter at least " + minChar + " length " + field.name;
           } else if (maxChar && value?.length > maxChar) {
-            e = "Maximum characters execeed.";
+            e = "Maximum characters for username is only 20.";
           } else if (pattern && !new RegExp(pattern).test(value)) {
             e = "Please enter a valid " + field.name;
           }
@@ -3345,7 +3442,7 @@ function Accounts(props) {
         } else if (minChar && value?.length < minChar) {
           e = "Please enter at least " + minChar + " length " + field.name;
         } else if (maxChar && value?.length > maxChar) {
-          e = "Maximum characters execeed.";
+          e = "Maximum characters for username is only 20.";
         } else if (pattern && !new RegExp(pattern).test(value)) {
           e = "Please enter a valid " + field.name;
         }

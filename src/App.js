@@ -28,6 +28,7 @@ import Dashboard from "./screens/Admin/Dashboard";
 import UserManual from "./screens/user-manual/UserManual";
 import AdminManual from "./screens/admin-manual/AdminManual";
 import ApiExample from "./screens/api-example";
+import Bulletin from "./screens/Bulletin";
 
 const qs = require("query-string");
 
@@ -66,8 +67,10 @@ function App(props) {
             });
           });
           UserData.posts.subscribe((res) => {
-            const { class_id, payload, action } = res;
-            UserData.updatePosts(class_id, payload, action);
+            const { class_id, payload, action, school_id } = res;
+            let id = class_id || school_id;
+            if (!id) return;
+            UserData.updatePosts(id, payload, action);
           });
           socket.on("videocall", ({ caller, receiver, status }) => {
             setVideocall({
@@ -174,6 +177,7 @@ function App(props) {
                   />
                   <Route exact path="/chat/:chat_id?" component={Chat} />
                   <Route exact path="/calendar" component={Calendar} />
+                  <Route exact path="/bulletin" component={Bulletin} />
                   <Route exact path="/user-manual" component={UserManual} />
                   <Route exact path="/admin-manual" component={AdminManual} />
                   <Route

@@ -11,15 +11,17 @@ export async function asyncForEach(array, callback) {
   }
 }
 const UserData = {
-  setPosts: (class_id, posts) => {
+  setPosts: (id, posts, isSchool = false) => {
     store.dispatch({
       type: "SET_POSTS",
-      class_id,
+      ...(isSchool ? { school_id: id } : { class_id: id }),
       posts,
     });
   },
-  updatePosts: (class_id, payload, action) => {
-    if (store.getState().posts.class_id + "" === class_id + "") {
+  updatePosts: (id, payload, action) => {
+    const { school_id, class_id } = store.getState().posts;
+    let postId = class_id || school_id;
+    if (postId + "" === id + "") {
       store.dispatch({
         type: action,
         ...payload,
@@ -299,34 +301,38 @@ const UserData = {
 };
 UserData.posts = {
   subscribe: (callback = () => {}) => {
-    socket.on("new post", ({ class_id, post }) => {
-      if (!class_id || !post) return;
+    socket.on("new post", ({ class_id, school_id, post }) => {
+      if ((!class_id && !school_id) || !post) return;
       callback({
         class_id,
+        school_id,
         payload: { post },
         action: "ADD_POST",
       });
     });
-    socket.on("update post", ({ class_id, post }) => {
-      if (!class_id || !post) return;
+    socket.on("update post", ({ class_id, school_id, post }) => {
+      if ((!class_id && !school_id) || !post) return;
       callback({
         class_id,
+        school_id,
         payload: { post },
         action: "UPDATE_POST",
       });
     });
-    socket.on("delete post", ({ class_id, post }) => {
-      if (!class_id || !post) return;
+    socket.on("delete post", ({ class_id, school_id, post }) => {
+      if ((!class_id && !school_id) || !post) return;
       callback({
         class_id,
+        school_id,
         payload: { post },
         action: "DELETE_POST",
       });
     });
-    socket.on("new comment", ({ class_id, post, comment }) => {
-      if (!class_id || !post || !comment) return;
+    socket.on("new comment", ({ class_id, school_id, post, comment }) => {
+      if ((!class_id && !school_id) || !post || !comment) return;
       callback({
         class_id,
+        school_id,
         payload: { post, comment },
         action: "ADD_COMMENT",
       });

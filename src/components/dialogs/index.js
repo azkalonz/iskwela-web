@@ -15,6 +15,7 @@ import {
   ListItemText,
   MenuItem,
   Paper,
+  CircularProgress,
   Select,
   Slide,
   Typography,
@@ -29,6 +30,7 @@ import React, {
   Children,
   isValidElement,
   cloneElement,
+  useCallback,
 } from "react";
 import { connect } from "react-redux";
 import { useHistory } from "react-router-dom";
@@ -40,6 +42,8 @@ import Recorder from "../../components/Recorder";
 import Messages from "../Messages";
 import moment from "moment";
 import MuiAlert from "@material-ui/lab/Alert";
+import { fetchData } from "../../screens/Admin/Dashboard";
+import Api from "../../api";
 
 export function Alert(props) {
   return <MuiAlert elevation={6} variant="filled" {...props} />;
@@ -191,21 +195,27 @@ function AttachQuestionnaireDialog(props) {
   });
   const [selected, setSelected] = useState([]);
   const [page, setPage] = useState(1);
-  const getFilteredQuestionnaires = () =>
-    props.questionnaires
-      .filter((q) => selected.findIndex((qq) => qq.id === q.id) < 0)
-      .filter(
-        (q) =>
-          JSON.stringify(q)
-            .toLowerCase()
-            .indexOf(filter.SEARCH.toLowerCase()) >= 0
-      )
-      .filter((q) =>
-        filter.SUBJECT >= 0 ? q.subject_id === filter.SUBJECT : true
-      );
+  const [loading, setLoading] = useState(false);
+  const [questionnaires, setQuestionnares] = useState([]);
+  const getFilteredQuestionnaires = useCallback(
+    () =>
+      questionnaires
+        .filter((q) => selected.findIndex((qq) => qq.id === q.id) < 0)
+        .filter(
+          (q) =>
+            JSON.stringify(q)
+              .toLowerCase()
+              .indexOf(filter.SEARCH.toLowerCase()) >= 0
+        )
+        .filter((q) =>
+          filter.SUBJECT >= 0 ? q.subject_id === filter.SUBJECT : true
+        ),
+    [questionnaires]
+  );
   useEffect(() => {
     if (props.selected) setSelected(props.selected);
   }, [props.selected]);
+
   useEffect(() => {
     socket.off("get item");
     socket.on("get item", (details) => {
@@ -216,6 +226,19 @@ function AttachQuestionnaireDialog(props) {
       }
     });
   }, []);
+  useEffect(() => {
+    if (props.open === true) {
+      fetchData({
+        before: () => setLoading(true),
+        send: async () =>
+          Api.get("/api/questionnaires?types[]=myQnrs&limit=100"),
+        after: (data) => {
+          setQuestionnares(data || []);
+          setLoading(false);
+        },
+      });
+    }
+  }, [props.open]);
   const getPagination = () => (
     <Pagination
       page={page}
@@ -303,39 +326,54 @@ function AttachQuestionnaireDialog(props) {
                 </FormControl>
               </Box>
             </Box>
-            <List>
-              {getPageItems(getFilteredQuestionnaires(), page).map(
-                (q, index) => (
-                  <ListItem ContainerComponent={Paper} key={index}>
-                    <ListItemText primary={q.title} secondary={q.intro} />
-                    <ListItemSecondaryAction>
-                      <Button
-                        onClick={() =>
-                          setSelected(() => {
-                            let s = [...selected];
-                            let i = selected.findIndex((qq) => qq.id === q.id);
-                            if (i >= 0) s.splice(i, 1);
-                            else s.push(q);
-                            return s;
-                          })
-                        }
-                        variant="contained"
-                        color={
-                          selected.findIndex((qq) => qq.id === q.id) >= 0
-                            ? "default"
-                            : "primary"
-                        }
-                      >
-                        {selected.findIndex((qq) => qq.id === q.id) >= 0
-                          ? "REMOVE"
-                          : "SELECT"}
-                      </Button>
-                    </ListItemSecondaryAction>
-                  </ListItem>
-                )
-              )}
-            </List>
-            {!getFilteredQuestionnaires().length && getPagination()}
+            {!loading && (
+              <List>
+                {getPageItems(getFilteredQuestionnaires(), page).map(
+                  (q, index) => (
+                    <ListItem ContainerComponent={Paper} key={index}>
+                      <ListItemText primary={q.title} secondary={q.intro} />
+                      <ListItemSecondaryAction>
+                        <Button
+                          onClick={() =>
+                            setSelected(() => {
+                              let s = [...selected];
+                              let i = selected.findIndex(
+                                (qq) => qq.id === q.id
+                              );
+                              if (i >= 0) s.splice(i, 1);
+                              else s.push(q);
+                              return s;
+                            })
+                          }
+                          variant="contained"
+                          color={
+                            selected.findIndex((qq) => qq.id === q.id) >= 0
+                              ? "default"
+                              : "primary"
+                          }
+                        >
+                          {selected.findIndex((qq) => qq.id === q.id) >= 0
+                            ? "REMOVE"
+                            : "SELECT"}
+                        </Button>
+                      </ListItemSecondaryAction>
+                    </ListItem>
+                  )
+                )}
+              </List>
+            )}
+            {loading && (
+              <Box
+                fullWidth
+                height="100%"
+                display="flex"
+                alignItems="center"
+                justifyContent="center"
+              >
+                <CircularProgress />
+              </Box>
+            )}
+            {!loading && !getFilteredQuestionnaires().length && getPagination()}
           </React.Fragment>
         )}
       </DialogContent>
@@ -350,7 +388,6 @@ function AttachQuestionnaireDialog(props) {
 }
 const ConnectedAttachQuestionnaireDialog = connect((states) => ({
   classes: states.classes,
-  questionnaires: states.questionnaires,
 }))(AttachQuestionnaireDialog);
 export { ConnectedAttachQuestionnaireDialog as AttachQuestionnaireDialog };
 
