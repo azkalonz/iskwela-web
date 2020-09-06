@@ -121,6 +121,7 @@ function Quizzes(props) {
   const [form, setForm] = useState(formTemplate);
   const cellheaders = [
     { id: "title", title: "Title" },
+    { id: "status", title: isTeacher ? "Status" : "", align: "flex-end" },
     { id: "duration", title: "Duration", align: "flex-end" },
   ];
   const _handleFileOption = (option, file) => {
@@ -183,7 +184,10 @@ function Quizzes(props) {
       if (props.userInfo.user_type === "t") {
         res = await Api.get(
           "/api/quizzes?include=questionnaires" +
-            (teacherId ? "&teacher_id=" + teacherId : "")
+            (teacherId ? "&teacher_id=" + teacherId : "") +
+            "&class_id=" +
+            class_id +
+            ""
         );
         published = await Api.get(
           "/api/quizzes?include=questionnaires&class_id=" +
@@ -202,9 +206,9 @@ function Quizzes(props) {
           res.map((c) =>
             published
               ? published.findIndex((cc) => c.id === cc.id) >= 0
-                ? { ...c, published: true }
+                ? { ...c }
                 : c
-              : { ...c, published: true }
+              : { ...c }
           )
         );
       } else {
@@ -304,6 +308,8 @@ function Quizzes(props) {
         body: {
           ...form,
           subject_id: props.classDetails[class_id].subject.id,
+          schedule_id,
+          class_id,
         },
       });
       setITEMS([...ITEMS, res]);
@@ -345,6 +351,7 @@ function Quizzes(props) {
         title: stat + " Quiz",
         message: "Are you sure to " + stat + " this Quiz?",
         yes: async () => {
+          s ? (a.published = true) : (a.published = false);
           setErrors(null);
           setSaving(true);
           setConfirmed(null);
@@ -812,6 +819,28 @@ function Quizzes(props) {
                     {item.instruction}
                   </Typography>
                 </Box>
+                {isTeacher && (
+                  <Box width="100%" marginBottom={1}>
+                    <Typography
+                      style={{
+                        marginRight: 150,
+                        display: "flex",
+                        alignItems: "center",
+                        fontWeight: "bold",
+                        fontSize: "0.9em",
+                        color:
+                          item.published === true
+                            ? theme.palette.success.main
+                            : theme.palette.error.main,
+                      }}
+                    >
+                      STATUS
+                      <Typography variant="body1">
+                        {item.published ? "PUBLISHED" : "NOT PUBLISHED"}
+                      </Typography>
+                    </Typography>
+                  </Box>
+                )}
                 <Box width="100%">
                   <Typography
                     style={{
@@ -844,6 +873,25 @@ function Quizzes(props) {
                   }}
                   secondary={item.instruction.substr(0, 100)}
                 />
+                {isTeacher && (
+                  <Typography
+                    variant="body1"
+                    component="div"
+                    style={{
+                      marginRight: 150,
+                      display: "flex",
+                      alignItems: "center",
+                      fontWeight: "bold",
+                      fontSize: "0.9em",
+                      color:
+                        item.published === true
+                          ? theme.palette.success.main
+                          : theme.palette.error.main,
+                    }}
+                  >
+                    {item.published ? "PUBLISHED" : "NOT PUBLISHED"}
+                  </Typography>
+                )}
                 <Typography
                   variant="body1"
                   component="div"

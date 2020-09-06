@@ -603,9 +603,6 @@ function Classes(props) {
                     marginBottom: isMobile ? 10 : "auto",
                     marginTop: isMobile ? 10 : "auto",
                   }}
-<<<<<<< HEAD
-                ></Box>
-=======
                 >
                   {/* <PopupState variant="popover" popupId="viewing-as">
                     {(popupState) => (
@@ -700,7 +697,6 @@ function Classes(props) {
                     )}
                   </PopupState> */}
                 {/* </Box> */}
->>>>>>> d324844816094c57137a5f0b0c8969081fa5d2ba
                 <Box>
                   <SearchInput onChange={(e) => setSearch(e)} />
                 </Box>
