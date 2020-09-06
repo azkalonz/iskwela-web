@@ -823,7 +823,7 @@ function Quizzes(props) {
                   <Box width="100%" marginBottom={1}>
                     <Typography
                       style={{
-                        marginRight: 150,
+                        marginRight: 200,
                         display: "flex",
                         alignItems: "center",
                         fontWeight: "bold",
@@ -878,7 +878,7 @@ function Quizzes(props) {
                     variant="body1"
                     component="div"
                     style={{
-                      marginRight: 150,
+                      marginRight: 200,
                       display: "flex",
                       alignItems: "center",
                       fontWeight: "bold",
