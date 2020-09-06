@@ -293,8 +293,6 @@ function Assignment(props) {
       body: {
         id,
         questionnaire_id,
-        schedule_id,
-        class_id,
       },
     });
     setSaving(false);
@@ -308,6 +306,8 @@ function Assignment(props) {
         body: {
           ...form,
           subject_id: props.classDetails[class_id].subject.id,
+          schedule_id,
+          class_id,
         },
       });
       setITEMS([...ITEMS, res]);
