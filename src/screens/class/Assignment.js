@@ -293,6 +293,8 @@ function Assignment(props) {
       body: {
         id,
         questionnaire_id,
+        schedule_id,
+        class_id,
       },
     });
     setSaving(false);
