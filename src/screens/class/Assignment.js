@@ -35,12 +35,9 @@ import ArrowDropDownIcon from "@material-ui/icons/ArrowDropDown";
 import CloseIcon from "@material-ui/icons/Close";
 import MuiAlert from "@material-ui/lab/Alert";
 import PopupState, { bindMenu, bindTrigger } from "material-ui-popup-state";
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState } from "react";
 import { connect } from "react-redux";
 import { useHistory } from "react-router-dom";
-import Tabs from "@material-ui/core/Tabs";
-import Tab from "@material-ui/core/Tab";
-
 import Api from "../../api";
 import {
   AttachQuestionnaireDialog,
@@ -53,8 +50,6 @@ import socket from "../../components/socket.io";
 import { Table as MTable } from "../../components/Table";
 import UserData, { asyncForEach } from "../../components/UserData";
 import AnswerQuiz from "./AnswerQuiz";
-import Freestyle from "./Freestyle";
-
 import { SearchInput } from "../../components/Selectors";
 const queryString = require("query-string");
 function Alert(props) {
@@ -92,37 +87,9 @@ const DialogTitle = withStyles(styles)((props) => {
     </MuiDialogTitle>
   );
 });
-function a11yProps(index) {
-  return {
-    id: `vertical-tab-${index}`,
-
-    "aria-controls": `vertical-tabpanel-${index}`,
-  };
-}
-function TabPanel(props) {
-  const { children, value, index, ...other } = props;
-
-  return (
-    <div
-      role="tabpanel"
-      hidden={value !== index}
-      id={`simple-tabpanel-${index}`}
-      aria-labelledby={`simple-tab-${index}`}
-      {...other}
-    >
-      {value === index && (
-        <Box p={3}>
-          <Typography>{children}</Typography>
-        </Box>
-      )}
-    </div>
-  );
-}
 
 function Assignment(props) {
   const theme = useTheme();
-  const classes = useStyles();
-
   const history = useHistory();
   const query = queryString.parse(window.location.search);
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
@@ -141,35 +108,10 @@ function Assignment(props) {
   const [success, setSuccess] = useState(false);
   const [confirmed, setConfirmed] = useState(false);
   const [savingId, setSavingId] = useState([]);
-  const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(query.page ? parseInt(query.page) : 1);
   const [questionnairesToAnswer, setQuestionnairesToAnswer] = useState([]);
   const [categories, setCategories] = useState([]);
-  const createTab = (key, label, opts = {}) => ({ key, label, ...opts });
-  let index = 0;
-  const tabMap = useMemo(
-    () => [
-      createTab("assignments", "Assignment", {
-        onClick: () =>
-          props.history.push(
-            window.location.search.replaceUrlParam("tab", "assignments")
-          ),
-      }),
-      createTab("freestyle", "Freestyle Assignment", {
-        onClick: () =>
-          props.history.push(
-            window.location.search.replaceUrlParam("tab", "freestyle")
-          ),
-      }),
-    ],
-    []
-  );
-  const tabid = tabMap.findIndex((q) => q.key === query.tab);
-  const [value, setValue] = useState(tabid >= 0 ? tabid : 0);
 
-  const handleChange = (event, newValue) => {
-    setValue(newValue);
-  };
   const formTemplate = {
     title: "",
     instruction: "",
@@ -182,7 +124,6 @@ function Assignment(props) {
     { id: "status", title: isTeacher ? "Status" : "", align: "flex-end" },
     { id: "duration", title: "Duration", align: "flex-end" },
   ];
-
   const _handleFileOption = (option, file) => {
     switch (option) {
       case "view":
@@ -365,8 +306,6 @@ function Assignment(props) {
         body: {
           ...form,
           subject_id: props.classDetails[class_id].subject.id,
-          schedule_id,
-          class_id,
         },
       });
       setITEMS([...ITEMS, res]);
@@ -409,7 +348,6 @@ function Assignment(props) {
         message: "Are you sure to " + stat + " this Test?",
         yes: async () => {
           s ? (a.published = true) : (a.published = false);
-
           setErrors(null);
           setSaving(true);
           setConfirmed(null);
@@ -555,9 +493,8 @@ function Assignment(props) {
       .filter((a) => JSON.stringify(a).toLowerCase().indexOf(search) >= 0)
       .filter((a) => (isTeacher ? true : a.published))
       .reverse();
-
   return (
-    <Box width="100%" alignSelf="flex-start" height="100%" id="assignment">
+    <Box width="100%" alignSelf="flex-start" height="100%">
       {props.dataProgress[option_name] && (
         <Progress id={option_name} data={props.dataProgress[option_name]} />
       )}
@@ -760,24 +697,6 @@ function Assignment(props) {
       )}
       {ITEMS && !query.start && !currentItem && (
         <React.Fragment>
-          <Box width="100%" display="flex" direction="column" id="assignment">
-            {/* <Tabs
-              orientation="horizontal"
-              variant="scrollable"
-              value={value}
-              onChange={handleChange}
-            > */}
-            {/* {tabMap.map((tab, index) => (
-                <Tab
-                  key={tab.key}
-                  label={tab.label}
-                  {...a11yProps(index)}
-                  onClick={() => tab.onClick()}
-                />
-              ))}
-            </Tabs> */}
-          </Box>
-          {/* <TabPanel value={value} index={0}> */}
           <Box
             m={2}
             display="flex"
@@ -880,15 +799,9 @@ function Assignment(props) {
                 <Box width="100%" marginBottom={1}>
                   <Typography
                     style={{
-                      marginRight: 150,
-                      display: "flex",
-                      alignItems: "center",
                       fontWeight: "bold",
-                      fontSize: "0.9em",
-                      color:
-                        item.published === true
-                          ? theme.palette.success.main
-                          : theme.palette.error.main,
+                      color: "#38108d",
+                      fontSize: "1em",
                     }}
                   >
                     TITLE
@@ -902,9 +815,15 @@ function Assignment(props) {
                   <Box width="100%" marginBottom={1}>
                     <Typography
                       style={{
+                        marginRight: 150,
+                        display: "flex",
+                        alignItems: "center",
                         fontWeight: "bold",
-                        color: "#38108d",
-                        fontSize: "1em",
+                        fontSize: "0.9em",
+                        color:
+                          item.published === true
+                            ? theme.palette.success.main
+                            : theme.palette.error.main,
                       }}
                     >
                       STATUS
@@ -951,7 +870,7 @@ function Assignment(props) {
                     variant="body1"
                     component="div"
                     style={{
-                      marginRight: 150,
+                      marginRight: 180,
                       display: "flex",
                       alignItems: "center",
                       fontWeight: "bold",
@@ -980,10 +899,6 @@ function Assignment(props) {
               </React.Fragment>
             )}
           />
-          {/* </TabPanel>
-          <TabPanel value={value} index={1}>
-            <Freestyle {...props} />
-          </TabPanel> */}
         </React.Fragment>
       )}
       <AttachQuestionnaireDialog
