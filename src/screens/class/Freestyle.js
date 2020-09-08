@@ -165,9 +165,14 @@ function Freestyle(props) {
   };
   const [form, setForm] = useState(formTemplate);
   const cellheaders = [
-    { id: "title", title: "Title", width: "50%" },
-    { id: "status", title: "Status", align: "center", width: "15%" },
-    { id: "due_date", title: "Date", align: "flex-end", width: "35%" },
+    { id: "title", title: "Title", width: "30%" },
+    {
+      id: "status",
+      title: isTeacher ? "Status" : "",
+      align: "center",
+      width: "30%",
+    },
+    { id: "due_date", title: "Date", align: "flex-end", width: "20%" },
   ];
   const _handleFileOption = (option, file) => {
     switch (option) {
@@ -184,12 +189,12 @@ function Freestyle(props) {
           class_id,
         });
         return;
-      case "open-activity":
-        _markActivity(file, "not-done");
-        return;
-      case "close-activity":
-        _markActivity(file, "done");
-        return;
+      // case "open-activity":
+      //   _markActivity(file, "not-done");
+      //   return;
+      // case "close-activity":
+      //   _markActivity(file, "done");
+      //   return;
       case "publish":
         _handleUpdateActivityStatus(file, 1);
         return;
@@ -225,7 +230,8 @@ function Freestyle(props) {
       setTitle(pageState.subtitles);
     }
   }, [currentActivity]);
-  useEffect(() => {
+  // useEffect(() => {
+  const _getActivities = () => {
     fetchData({
       before: () => {
         setLoading(true);
@@ -260,13 +266,14 @@ function Freestyle(props) {
         setLoading(false);
       },
     });
-  }, []);
-  // useEffect(() => {
-  //   if (props.classDetails[class_id]) {
-  //     _getActivities();
-  //     setCurrentActivity(null);
-  //   }
-  // }, [props.classDetails[class_id]]);
+  };
+  // }, []);
+  useEffect(() => {
+    if (props.classDetails[class_id]) {
+      _getActivities();
+      setCurrentActivity(null);
+    }
+  }, [props.classDetails[class_id]]);
   useEffect(() => {
     if (currentActivity) {
       if (!currentActivity.answers) getAnswers();
@@ -405,7 +412,7 @@ function Freestyle(props) {
       res = await formData.send("/api/assignment/v2/save");
     } catch (e) {
       console.log(console.error);
-      alert(formData.dataschedule_id);
+      // alert(schedule_id);
       setErrors(["Oops! Something when wrong. Please try again."]);
     }
     if (res && !res.errors) {
@@ -505,37 +512,37 @@ function Freestyle(props) {
     if (inputID && document.querySelector(inputID))
       document.querySelector(inputID).value = "";
   };
-  const _markActivity = async (activity, mark) => {
-    let done = mark === "done" ? true : false;
-    setConfirmed({
-      title: (done ? "Close " : "Open ") + " Activity",
-      message:
-        "Are you sure to " + (done ? "Close" : "Open") + " this activity?",
-      yes: async () => {
-        setErrors(null);
-        setSaving(true);
-        setConfirmed(null);
-        setSavingId([...savingId, activity.id]);
-        let res = await Api.post(
-          "/api/assignment/v2/mark-" + mark + "/" + activity.id
-        );
-        if (res) {
-          let newScheduleDetails = await UserData.updateScheduleDetails(
-            class_id,
-            schedule_id
-          );
-          socket.emit("update schedule details", {
-            id: class_id,
-            details: newScheduleDetails,
-          });
-        }
+  // const _markActivity = async (activity, mark) => {
+  //   let done = mark === "done" ? true : false;
+  //   setConfirmed({
+  //     title: (done ? "Close " : "Open ") + " Activity",
+  //     message:
+  //       "Are you sure to " + (done ? "Close" : "Open") + " this activity?",
+  //     yes: async () => {
+  //       setErrors(null);
+  //       setSaving(true);
+  //       setConfirmed(null);
+  //       setSavingId([...savingId, activity.id]);
+  //       let res = await Api.post(
+  //         "/api/assignment/v2/mark-" + mark + "/" + activity.id
+  //       );
+  //       if (res) {
+  //         let newScheduleDetails = await UserData.updateScheduleDetails(
+  //           class_id,
+  //           schedule_id
+  //         );
+  //         socket.emit("update schedule details", {
+  //           id: class_id,
+  //           details: newScheduleDetails,
+  //         });
+  //       }
 
-        setSavingId([]);
+  //       setSavingId([]);
 
-        setSaving(false);
-      },
-    });
-  };
+  //       setSaving(false);
+  //     },
+  //   });
+  // };
   const _handleUpdateActivityStatus = async (a, s) => {
     let stat = s ? "Publish" : "Unpublish";
     setConfirmed({
@@ -555,14 +562,14 @@ function Freestyle(props) {
           class_id,
         });
 
-        let newScheduleDetails = await UserData.updateScheduleDetails(
-          class_id,
-          a.schedule_id
-        );
-        socket.emit("update schedule details", {
-          id: class_id,
-          details: newScheduleDetails,
-        });
+        // let newScheduleDetails = await UserData.updateScheduleDetails(
+        //   class_id,
+        //   a.schedule_id
+        // );
+        // socket.emit("update schedule details", {
+        //   id: class_id,
+        //   details: newScheduleDetails,
+        // });
         setSavingId([]);
         setSaving(false);
       },
@@ -623,17 +630,19 @@ function Freestyle(props) {
         setSavingId([...savingId, ...Object.keys(a).map((i) => a[i].id)]);
         await asyncForEach(Object.keys(a), async (i) => {
           try {
-            await Api.post("/api/assignment/v2/publish/" + a[i].id);
-            //, {
-            //   body: {
-            //     ...a[i],
-            //     published: s,
-            //     schedule_id: a[i].schedule_id,
-            //     subject_id: props.classDetails[class_id].subject.id,
-            //     id: a[i].id,
-            //     class_id,
-            //   },
-            // });
+            await Api.post(
+              "/api/assignment/v2/publish/", //+ a[i].id);
+              {
+                body: {
+                  ...a[i],
+                  published: s,
+                  schedule_id: a[i].schedule_id,
+                  subject_id: props.classDetails[class_id].subject.id,
+                  id: a[i].id,
+                  class_id,
+                },
+              }
+            );
           } catch (e) {
             console.log(console.error);
             setErrors(["Oops! Something went wrong. Please try again later."]);
@@ -988,6 +997,7 @@ function Freestyle(props) {
         <Progress id={option_name} data={props.dataProgress[option_name]} />
       )}
       <StudentRating
+        endpoint="assignment/v2"
         activity={currentActivity}
         open={currentActivity && currentActivity.rateStudent}
         onClose={(save = false) => {
@@ -1085,7 +1095,7 @@ function Freestyle(props) {
             alignItems="center"
             style={{ width: isMobile ? "100%" : "auto" }}
           >
-            <Box
+            {/* <Box
               style={{
                 ...(isMobile
                   ? {
@@ -1111,14 +1121,14 @@ function Freestyle(props) {
               {isTeacher && (
                 <Box flex={1} style={{ marginLeft: 10 }}>
                   <StatusSelector
-                    onChange={(statusId) => setSelectedStatus(statusId)}
+                  oI  onChange={(statusId) => setSelectedStatus(statusId)}
                     status={selectedStatus ? selectedStatus : "all"}
                     match={props.match}
                   />
                 </Box>
               )}
               {!isMobile && String.fromCharCode(160)}
-            </Box>
+            </Box> */}
             <SearchInput onChange={(e) => _handleSearch(e)} />
           </Box>
         </Box>
@@ -1808,8 +1818,8 @@ function Freestyle(props) {
             },
           ]}
           teacherOptions={[
-            { name: "Close Activity", value: "close-activity" },
-            { name: "Open Activity", value: "open-activity" },
+            // { name: "Close Activity", value: "close-activity" },
+            // { name: "Open Activity", value: "open-activity" },
             { name: "Edit", value: "edit" },
             { name: "Publish", value: "publish" },
             { name: "Unpublish", value: "unpublish" },
@@ -1856,13 +1866,15 @@ function Freestyle(props) {
                   style={{
                     fontWeight: "bold",
                     fontSize: "0.9em",
+                    textAlign: "center",
                     color:
-                      item.done !== "true"
+                      item.status === "published"
                         ? theme.palette.success.main
                         : theme.palette.error.main,
                   }}
                 >
-                  {item.done !== "true" ? "OPEN" : "CLOSED"}
+                  {isTeacher &&
+                    (item.status === "published" ? "PUBLISHED" : "UNPUBLISHED")}
                 </Typography>
               </Box>
               <Box width="100%">
@@ -1908,7 +1920,7 @@ function Freestyle(props) {
                 flex={1}
                 overflow="hidden"
                 width="15%"
-                maxWidth="15%"
+                maxWidth="40%"
                 display="flex"
                 alignItems="center"
                 justifyContent="center"
@@ -1918,13 +1930,15 @@ function Freestyle(props) {
                   style={{
                     fontWeight: "bold",
                     fontSize: "0.9em",
+                    textAlign: "center",
+                    marginRight: "20%",
                     color:
-                      item.done !== "true"
+                      item.status === "published"
                         ? theme.palette.success.main
                         : theme.palette.error.main,
                   }}
                 >
-                  {item.done !== "true" ? "OPEN" : "CLOSED"}
+                  {item.status === "published" ? "PUBLISHED" : "UNPUBLISHED"}
                 </Typography>
               </Box>
               <Box

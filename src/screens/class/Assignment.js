@@ -903,7 +903,7 @@ function Assignment(props) {
                       >
                         STATUS
                         <Typography variant="body1">
-                          {item.published ? "PUBLISHED" : "NOT PUBLISHED"}
+                          {item.published ? "PUBLISHED" : "UNPUBLISHED"}
                         </Typography>
                       </Typography>
                     </Box>
@@ -958,7 +958,7 @@ function Assignment(props) {
                             : theme.palette.error.main,
                       }}
                     >
-                      {item.published ? "PUBLISHED" : "NOT PUBLISHED"}
+                      {item.published ? "PUBLISHED" : "UNPUBLISHED"}
                     </Typography>
                   )}
                   <Typography
