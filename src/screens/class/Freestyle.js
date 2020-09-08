@@ -123,7 +123,7 @@ function Freestyle(props) {
     ACTIVITY_MATERIALS: false,
   });
   const { class_id, option_name, schedule_id, room_name } = props.match.params;
-  const [activities, setActivities] = useState();
+  const [activities, setActivities] = useState([]);
   const [dragover, setDragover] = useState(false);
   const [search, setSearch] = useState("");
   const [modals, setModals] = React.useState({});
@@ -165,14 +165,14 @@ function Freestyle(props) {
   };
   const [form, setForm] = useState(formTemplate);
   const cellheaders = [
-    { id: "title", title: "Title", width: "30%" },
+    { id: "title", title: "Title", width: "50%" },
     {
       id: "status",
       title: isTeacher ? "Status" : "",
       align: "center",
       width: "30%",
     },
-    { id: "due_date", title: "Date", align: "flex-end", width: "20%" },
+    { id: "due_date", title: "Date", align: "flex-end", width: "24%" },
   ];
   const _handleFileOption = (option, file) => {
     switch (option) {
@@ -405,7 +405,9 @@ function Freestyle(props) {
       try {
         await Api.post("/api/assignment/v2/publish/" + formData.data.id);
       } catch (e) {
-        setErrors(["Oops! Something when wrong. Please try again."]);
+        setErrors([
+          e.message || "Oops! Something when wrong. Please try again.",
+        ]);
       }
     }
     try {
@@ -413,13 +415,13 @@ function Freestyle(props) {
     } catch (e) {
       console.log(console.error);
       // alert(schedule_id);
-      setErrors(["Oops! Something when wrong. Please try again."]);
+      setErrors([e.message || "Oops! Something when wrong. Please try again."]);
     }
     if (res && !res.errors) {
       if (form.materials && newMaterial && Object.keys(newMaterial).length) {
         await asyncForEach(form.materials, async (m) => {
           if (m.uploaded_file) return;
-          await Api.post("/api/assignment/v2/upload/material", {
+          await Api.post("/api/assignment/v2/material/save", {
             body: {
               ...(m.id ? { id: m.id } : {}),
               url: m.resource_link,
@@ -480,30 +482,23 @@ function Freestyle(props) {
     } else {
       setErrors(["Oops! Something went wrong. Please try again."]);
     }
-    let newform;
-    if (res && !errors) {
+    if (res?.id && !errors) {
+      let res2 = await Api.get("/api/assignment/v2/" + res.id);
+      socket.emit("update fassignment", {
+        ...res2,
+        action: "UPDATE",
+        class_id,
+      });
+      setForm({
+        ...form,
+        ...res2,
+      });
       setSuccess(true);
-      try {
-        newform = props.classDetails[class_id].schedules[schedule_id][
-          isTeacher ? "seatworks" : "publishedSeatworks"
-        ].find((a) => a.id === res.id);
-      } catch (e) {
-        newform =
-          props.classDetails[class_id].F[schedule_id][
-            isTeacher ? "seatworks" : "publishedSeatworks"
-          ];
-        newform = newform[newform.length - 1];
-      }
-      if (newform) setForm(newform);
+      setSaving(false);
       removeFiles("activity-materials", "#activity-material");
       setNewMaterial({});
       setSavingId([]);
     }
-    setForm({
-      ...form,
-      ...(newform ? newform : {}),
-    });
-    setSaving(false);
   };
   const removeFiles = (id, inputID = null) => {
     setFilesToUpload({});
@@ -553,23 +548,13 @@ function Freestyle(props) {
         setSaving(true);
         setConfirmed(null);
         setSavingId([...savingId, a.id]);
-        await _handleCreateActivity({
+        await Api.post("/api/assignment/v2/publish/" + a.id);
+        socket.emit("update fassignment", {
           ...a,
-          published: s,
-          schedule_id: a.schedule_id,
-          subject_id: props.classDetails[class_id].subject.id,
-          id: a.id,
+          status: "published",
           class_id,
+          action: "UPDATE",
         });
-
-        // let newScheduleDetails = await UserData.updateScheduleDetails(
-        //   class_id,
-        //   a.schedule_id
-        // );
-        // socket.emit("update schedule details", {
-        //   id: class_id,
-        //   details: newScheduleDetails,
-        // });
         setSavingId([]);
         setSaving(false);
       },
@@ -593,27 +578,28 @@ function Freestyle(props) {
             },
           });
         } catch (e) {
-          setErrors(["Oops! Something went wrong. Please try again later."]);
+          setErrors([
+            e.message || "Oops! Something went wrong. Please try again later.",
+          ]);
           setSavingId([]);
           setSaving(false);
           return;
         }
         if (res && !res.errors) {
           setSuccess(true);
-          let newScheduleDetails = await UserData.updateScheduleDetails(
+          socket.emit("update fassignment", {
+            ...activity,
+            action: "DELETE",
             class_id,
-            activity.schedule_id
-          );
-          socket.emit("update schedule details", {
-            id: class_id,
-            details: newScheduleDetails,
           });
+          props.history.push(
+            window.location.search.replaceUrlParam("assignment_id", "")
+          );
+          setCurrentActivity(null);
         } else if (res.errors) {
-          console.log(console.error);
           setErrors(["Oops! Something went wrong. Please try again."]);
         }
         setSavingId([]);
-
         setSaving(false);
       },
     });
@@ -630,44 +616,23 @@ function Freestyle(props) {
         setSavingId([...savingId, ...Object.keys(a).map((i) => a[i].id)]);
         await asyncForEach(Object.keys(a), async (i) => {
           try {
-            await Api.post(
-              "/api/assignment/v2/publish/", //+ a[i].id);
-              {
-                body: {
-                  ...a[i],
-                  published: s,
-                  schedule_id: a[i].schedule_id,
-                  subject_id: props.classDetails[class_id].subject.id,
-                  id: a[i].id,
-                  class_id,
-                },
-              }
-            );
+            await Api.post("/api/assignment/v2/publish/" + a[i].id);
+            socket.emit("update fassignment", {
+              ...a[i],
+              status: "published",
+              class_id,
+              action: "UPDATE",
+            });
           } catch (e) {
-            console.log(console.error);
-            setErrors(["Oops! Something went wrong. Please try again later."]);
+            setErrors([
+              e.message ||
+                "Oops! Something went wrong. Please try again later.",
+            ]);
             setSaving(false);
             setSavingId([]);
             return;
           }
         });
-        if (selectedSched < 0) {
-          let newClassDetails = await UserData.updateClassDetails(class_id);
-          UserData.updateClass(class_id, newClassDetails[class_id]);
-          socket.emit(
-            "new class details",
-            JSON.stringify({ details: newClassDetails, id: class_id })
-          );
-        } else {
-          let newScheduleDetails = await UserData.updateScheduleDetails(
-            class_id,
-            selectedSched
-          );
-          socket.emit("update schedule details", {
-            id: class_id,
-            details: newScheduleDetails,
-          });
-        }
         callback && callback();
         setSavingId([]);
         setSaving(false);
@@ -691,10 +656,13 @@ function Freestyle(props) {
           let id = parseInt(i);
           let res;
           try {
-            res = await Api.post("/api/assignment/v2/remove/" + id, {
-              body: {
-                id,
-              },
+            res = await Api.post(
+              "/api/assignment/v2/remove/" + activities[i].id
+            );
+            socket.emit("update fassignment", {
+              ...activities[i],
+              class_id,
+              action: "DELETE",
             });
           } catch (e) {
             setErrors(["Oops! Something went wrong. Please try again later "]);
@@ -706,23 +674,6 @@ function Freestyle(props) {
             setErrors(["Oops! Something went wrong. Please try again."]);
           }
         });
-        if (selectedSched < 0) {
-          let newClassDetails = await UserData.updateClassDetails(class_id);
-          UserData.updateClass(class_id, newClassDetails[class_id]);
-          socket.emit(
-            "new class details",
-            JSON.stringify({ details: newClassDetails, id: class_id })
-          );
-        } else {
-          let newScheduleDetails = await UserData.updateScheduleDetails(
-            class_id,
-            selectedSched
-          );
-          socket.emit("update schedule details", {
-            id: class_id,
-            details: newScheduleDetails,
-          });
-        }
         if (!errors) {
           setSuccess(true);
         }
@@ -757,38 +708,16 @@ function Freestyle(props) {
         );
         if (!res.errors) {
           setSuccess(true);
-          let newScheduleDetails = await UserData.updateScheduleDetails(
+          let res2 = await Api.get("/api/assignment/v2/" + form.id);
+          socket.emit("update fassignment", {
+            ...res2,
+            action: "UPDATE",
             class_id,
-            selectedSched >= 0 ? selectedSched : schedule_id
-          );
-          socket.emit("update schedule details", {
-            id: class_id,
-            details: newScheduleDetails,
           });
-          for (
-            let i = 0;
-            i <
-            newScheduleDetails[isTeacher ? "seatworks" : "publishedSeatworks"]
-              .length;
-            i++
-          ) {
-            if (
-              newScheduleDetails[
-                isTeacher ? "seatworks" : "publishedSeatworks"
-              ][i].id === form.id
-            ) {
-              setForm({
-                ...newScheduleDetails[
-                  isTeacher ? "seatworks" : "publishedSeatworks"
-                ][i],
-                schedule_id: newScheduleDetails.id,
-                published: form.status === "unpublished" ? 0 : 1,
-                subject_id: props.classDetails[class_id].subject.id,
-                class_id,
-              });
-              setSaving(false);
-            }
-          }
+          setForm({
+            ...form,
+            ...res2,
+          });
         } else {
           let err = [];
           for (let e in res.errors) {
@@ -796,6 +725,7 @@ function Freestyle(props) {
           }
           setErrors(err);
         }
+
         setSavingId([]);
         setSaving(false);
       },
@@ -931,17 +861,20 @@ function Freestyle(props) {
     }
   };
 
-  const getFilteredActivities = (ac = activities) =>
-    ac
-      .filter((a) => JSON.stringify(a).toLowerCase().indexOf(search) >= 0)
-      .filter((a) => (isTeacher ? true : a.status === "published"))
-      .filter((a) =>
-        parseInt(selectedSched) >= 0
-          ? parseInt(selectedSched) === parseInt(a.schedule_id)
-          : true
-      )
-      .filter((a) => (selectedStatus ? selectedStatus === a.status : true))
-      .reverse();
+  const getFilteredActivities = useCallback(
+    (ac = activities) =>
+      ac
+        .filter((a) => JSON.stringify(a).toLowerCase().indexOf(search) >= 0)
+        .filter((a) => (isTeacher ? true : a.status === "published"))
+        .filter((a) =>
+          parseInt(selectedSched) >= 0
+            ? parseInt(selectedSched) === parseInt(a.schedule_id)
+            : true
+        )
+        .filter((a) => (selectedStatus ? selectedStatus === a.status : true))
+        .sort((a, b) => b.id - a.id),
+    [activities, selectedStatus, isTeacher, search, selectedSched]
+  );
 
   useEffect(() => {
     socket.off("get item");
@@ -950,6 +883,26 @@ function Freestyle(props) {
     if (document.querySelector("#activity-material") && !saving)
       removeFiles("activity-materials", "#activity-material");
   }, []);
+  useEffect(() => {
+    socket.off("update fassignment");
+    socket.on("update fassignment", (assignment) => {
+      if (assignment.class_id !== class_id) return;
+      let activitiesCopy = [...getFilteredActivities()];
+      let activityIndex = activitiesCopy.findIndex(
+        (q) => q.id === assignment.id
+      );
+      if (activityIndex >= 0) {
+        if (assignment.action === "UPDATE") {
+          activitiesCopy[activityIndex] = assignment;
+        } else if (assignment.action === "DELETE") {
+          activitiesCopy.splice(activityIndex, 1);
+        }
+      } else {
+        activitiesCopy = [assignment, ...activitiesCopy];
+      }
+      setActivities(activitiesCopy);
+    });
+  }, [activities]);
   // useEffect(() => {
   //   _getActivities();
   // }, [props.classDetails]);
@@ -1873,8 +1826,7 @@ function Freestyle(props) {
                         : theme.palette.error.main,
                   }}
                 >
-                  {isTeacher &&
-                    (item.status === "published" ? "PUBLISHED" : "UNPUBLISHED")}
+                  {isTeacher && item.status?.toUpperCase()}
                 </Typography>
               </Box>
               <Box width="100%">
@@ -1919,8 +1871,8 @@ function Freestyle(props) {
               <Box
                 flex={1}
                 overflow="hidden"
-                width="15%"
-                maxWidth="40%"
+                width="30%"
+                maxWidth="30%"
                 display="flex"
                 alignItems="center"
                 justifyContent="center"
@@ -1931,20 +1883,20 @@ function Freestyle(props) {
                     fontWeight: "bold",
                     fontSize: "0.9em",
                     textAlign: "center",
-                    marginRight: "20%",
+                    marginRight: "24%",
                     color:
                       item.status === "published"
                         ? theme.palette.success.main
                         : theme.palette.error.main,
                   }}
                 >
-                  {item.status === "published" ? "PUBLISHED" : "UNPUBLISHED"}
+                  {isTeacher && item.status?.toUpperCase()}
                 </Typography>
               </Box>
               <Box
                 overflow="hidden"
-                width="35%"
-                maxWidth="35%"
+                width="24%"
+                maxWidth="24%"
                 justifyContent="flex-end"
                 display="flex"
               >

@@ -205,7 +205,6 @@ function Assignment(props) {
     }
   };
   const getCategories = async () => {
-    props.onLoad(true);
     try {
       let sub = await Api.get(
         "/api/schooladmin/subject-grading-categories/" +
@@ -361,6 +360,8 @@ function Assignment(props) {
         body: {
           ...form,
           subject_id: props.classDetails[class_id].subject.id,
+          class_id: parseInt(class_id),
+          schedule_id: parseInt(schedule_id),
         },
       });
       setITEMS([...ITEMS, res]);
