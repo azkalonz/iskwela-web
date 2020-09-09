@@ -195,6 +195,10 @@ function AnswerQuiz(props) {
           type: props.type,
         });
         setQuizScore(res);
+
+        let submit = await Api.post(
+          "/api/" + props.endpoint + "/complete/" + props.quiz.id
+        );
       } catch (e) {
         alert("Please provide an answer to all questions");
       }
@@ -338,9 +342,7 @@ function AnswerQuiz(props) {
                       <Typography variant="h5">
                         <CountDown
                           onTimesUp={() => setAvailable(false)}
-                          time={
-                            (props.quiz && props.quiz.duration * 60000)
-                          }
+                          time={props.quiz && props.quiz.duration * 60000}
                           started={quiz.date_started || new Date()}
                         />
                       </Typography>
@@ -555,9 +557,7 @@ function AnswerQuiz(props) {
                       <Typography variant="h5">
                         <CountDown
                           onTimesUp={() => setAvailable(false)}
-                          time={
-                            (props.quiz && props.quiz.duration * 60000)
-                          }
+                          time={props.quiz && props.quiz.duration * 60000}
                           started={quiz.date_started || new Date()}
                         />
                       </Typography>
