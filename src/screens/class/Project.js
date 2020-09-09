@@ -536,14 +536,14 @@ function Project(props) {
           id: a.id,
           class_id,
         });
-        let newScheduleDetails = await UserData.updateScheduleDetails(
-          class_id,
-          a.schedule_id
-        );
-        socket.emit("update schedule details", {
-          id: class_id,
-          details: newScheduleDetails,
-        });
+        // let newScheduleDetails = await UserData.updateScheduleDetails(
+        //   class_id,
+        //   a.schedule_id
+        // );
+        // socket.emit("update schedule details", {
+        //   id: class_id,
+        //   details: newScheduleDetails,
+        // });
         setSavingId([]);
 
         setSaving(false);

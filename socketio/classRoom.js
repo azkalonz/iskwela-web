@@ -20,6 +20,10 @@ module.exports = {
       }
     });
 
+    socket.on("update fassignment", (assignment) => {
+      io.emit("update fassignment", assignment);
+    });
+
     socket.on("new class details", (c) => {
       c = JSON.parse(c);
       socket.broadcast.emit("get class details", c);
