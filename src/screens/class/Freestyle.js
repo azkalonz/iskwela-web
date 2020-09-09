@@ -1819,7 +1819,6 @@ function Freestyle(props) {
                   style={{
                     fontWeight: "bold",
                     fontSize: "0.9em",
-                    textAlign: "center",
                     color:
                       item.status === "published"
                         ? theme.palette.success.main
