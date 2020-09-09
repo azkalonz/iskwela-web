@@ -123,7 +123,7 @@ function Periodical(props) {
   const [form, setForm] = useState(formTemplate);
   const cellheaders = [
     { id: "title", title: "Title" },
-    { id: "status", title: isTeacher ? "Status" : "", align: "flex-end" },
+    { id: "status", title: "Status", align: "flex-end" },
     { id: "duration", title: "Duration", align: "flex-end" },
   ];
   const _handleFileOption = (option, file) => {
@@ -824,21 +824,53 @@ function Periodical(props) {
                   <Box width="100%" marginBottom={1}>
                     <Typography
                       style={{
-                        marginRight: 200,
-                        display: "flex",
-                        alignItems: "center",
+                        fontWeight: "bold",
+                        color: "#38108d",
+                        fontSize: "1em",
+                      }}
+                    >
+                      STATUS
+                      <Typography
+                        variant="body1"
+                        style={{
+                          fontWeight: "bold",
+                          fontSize: "0.9em",
+                          color:
+                            item.published === true
+                              ? theme.palette.success.main
+                              : theme.palette.error.main,
+                        }}
+                      >
+                        {item.published ? "PUBLISHED" : "UNPUBLISHED"}
+                      </Typography>
+                    </Typography>
+                  </Box>
+                )}
+                {!isTeacher && (
+                  <Box width="100%" marginBottom={1}>
+                    <Typography
+                      style={{
+                        fontWeight: "bold",
+                        color: "#38108d",
+                        fontSize: "1em",
+                      }}
+                    >
+                      STATUS
+                    </Typography>
+                    <Typography
+                      variant="body1"
+                      style={{
                         fontWeight: "bold",
                         fontSize: "0.9em",
                         color:
-                          item.published === true
+                          item.submission_status === "DONE"
                             ? theme.palette.success.main
                             : theme.palette.error.main,
                       }}
                     >
-                      STATUS
-                      <Typography variant="body1">
-                        {item.published ? "PUBLISHED" : "NOT PUBLISHED"}
-                      </Typography>
+                      {item.submission_status === "DONE"
+                        ? "COMPLETED"
+                        : "NOT COMPLETED"}
                     </Typography>
                   </Box>
                 )}
@@ -879,7 +911,7 @@ function Periodical(props) {
                     variant="body1"
                     component="div"
                     style={{
-                      marginRight: 200,
+                      marginRight: 150,
                       display: "flex",
                       alignItems: "center",
                       fontWeight: "bold",
@@ -891,6 +923,27 @@ function Periodical(props) {
                     }}
                   >
                     {item.published ? "PUBLISHED" : "NOT PUBLISHED"}
+                  </Typography>
+                )}
+                {!isTeacher && (
+                  <Typography
+                    variant="body1"
+                    component="div"
+                    style={{
+                      marginRight: 180,
+                      display: "flex",
+                      alignItems: "center",
+                      fontWeight: "bold",
+                      fontSize: "0.9em",
+                      color:
+                        item.submission_status === "DONE"
+                          ? theme.palette.success.main
+                          : theme.palette.error.main,
+                    }}
+                  >
+                    {item.submission_status === "DONE"
+                      ? "COMPLETED"
+                      : "NOT COMPLETED"}
                   </Typography>
                 )}
                 <Typography

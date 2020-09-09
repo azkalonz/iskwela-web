@@ -173,7 +173,7 @@ function Assignment(props) {
   };
   const cellheaders = [
     { id: "title", title: "Title" },
-    { id: "status", title: isTeacher ? "Status" : "", align: "flex-end" },
+    { id: "status", title: "Status", align: "flex-end" },
     { id: "duration", title: "Duration", align: "flex-end" },
   ];
 
@@ -907,9 +907,18 @@ function Assignment(props) {
                           {item.published ? "PUBLISHED" : "UNPUBLISHED"}
                         </Typography>
                       </Typography>
-                    </Box>
-                  )}
-                  <Box width="100%">
+
+                      TITLE
+                    </Typography>
+                    <Typography variant="body1">{item.title}</Typography>
+                    <Typography variant="body1" color="textSecondary">
+                      {item.instruction}
+                    </Typography>
+                  </Box>
+                )}
+                {isTeacher && (
+                  <Box width="100%" marginBottom={1}>
+
                     <Typography
                       style={{
                         fontWeight: "bold",
@@ -917,13 +926,54 @@ function Assignment(props) {
                         fontSize: "1em",
                       }}
                     >
-                      DURATION
+
+                      STATUS
+                      <Typography
+                        variant="body1"
+                        style={{
+                          fontWeight: "bold",
+                          fontSize: "0.9em",
+                          color:
+                            item.published === true
+                              ? theme.palette.success.main
+                              : theme.palette.error.main,
+                        }}
+                      >
+                        {item.published ? "PUBLISHED" : "UNPUBLISHED"}
+                      </Typography>
                     </Typography>
-                    <Typography variant="body1">
-                      {item.duration} mins
+                  </Box>
+                )}
+                {!isTeacher && (
+                  <Box width="100%" marginBottom={1}>
+                    <Typography
+                      style={{
+                        fontWeight: "bold",
+                        color: "#38108d",
+                        fontSize: "1em",
+                      }}
+                    >
+                      STATUS
+                    </Typography>
+                    <Typography
+                      variant="body1"
+                      style={{
+                        fontWeight: "bold",
+                        fontSize: "0.9em",
+                        color:
+                          item.submission_status === "DONE"
+                            ? theme.palette.success.main
+                            : theme.palette.error.main,
+                      }}
+                    >
+                      {item.submission_status === "DONE"
+                        ? "COMPLETED"
+                        : "NOT COMPLETED"}
+
                     </Typography>
                   </Box>
                 </Box>
+
               )}
               rowRender={(item) => (
                 <React.Fragment>
@@ -962,17 +1012,43 @@ function Assignment(props) {
                       {item.published ? "PUBLISHED" : "UNPUBLISHED"}
                     </Typography>
                   )}
+
                   <Typography
                     variant="body1"
                     component="div"
                     style={{
-                      marginRight: 45,
+
+                      marginRight: 150,
+
                       display: "flex",
                       alignItems: "center",
                       textAlign: "right",
                     }}
                   >
-                    {item.duration} mins
+
+                    {item.published ? "PUBLISHED" : "UNPUBLISHED"}
+                  </Typography>
+                )}
+                {!isTeacher && (
+                  <Typography
+                    variant="body1"
+                    component="div"
+                    style={{
+                      marginRight: 180,
+                      display: "flex",
+                      alignItems: "center",
+                      fontWeight: "bold",
+                      fontSize: "0.9em",
+                      color:
+                        item.submission_status === "DONE"
+                          ? theme.palette.success.main
+                          : theme.palette.error.main,
+                    }}
+                  >
+                    {item.submission_status === "DONE"
+                      ? "COMPLETED"
+                      : "NOT COMPLETED"}
+
                   </Typography>
                 </React.Fragment>
               )}
