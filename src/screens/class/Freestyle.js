@@ -165,14 +165,14 @@ function Freestyle(props) {
   };
   const [form, setForm] = useState(formTemplate);
   const cellheaders = [
-    { id: "title", title: "Title", width: "50%" },
+    { id: "title", title: "Title", width: "40%" },
     {
       id: "status",
       title: isTeacher ? "Status" : "",
-      align: "center",
-      width: "30%",
+      align: "flex-start",
+      width: "50%",
     },
-    { id: "due_date", title: "Date", align: "flex-end", width: "24%" },
+    { id: "duration", title: "Duration", align: "center", width: "35%" },
   ];
   const _handleFileOption = (option, file) => {
     switch (option) {
@@ -1871,7 +1871,7 @@ function Freestyle(props) {
                 flex={1}
                 overflow="hidden"
                 width="30%"
-                maxWidth="30%"
+                maxWidth="40%"
                 display="flex"
                 alignItems="center"
                 justifyContent="center"
@@ -1882,7 +1882,7 @@ function Freestyle(props) {
                     fontWeight: "bold",
                     fontSize: "0.9em",
                     textAlign: "center",
-                    marginRight: "24%",
+                    marginRight: "53%",
                     color:
                       item.status === "published"
                         ? theme.palette.success.main
@@ -1894,8 +1894,8 @@ function Freestyle(props) {
               </Box>
               <Box
                 overflow="hidden"
-                width="24%"
-                maxWidth="24%"
+                width="40%"
+                maxWidth="100%"
                 justifyContent="flex-end"
                 display="flex"
               >

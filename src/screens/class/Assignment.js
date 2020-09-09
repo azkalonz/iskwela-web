@@ -172,9 +172,9 @@ function Assignment(props) {
     setValue(newValue);
   };
   const cellheaders = [
-    { id: "title", title: "Title" },
-    { id: "status", title: "Status", align: "flex-end" },
-    { id: "duration", title: "Duration", align: "flex-end" },
+    { id: "title", title: "Title", width: "40%" },
+    { id: "status", title: "Status", align: "center", width: "25%" },
+    { id: "duration", title: "Duration", align: "flex-end", width: "35%" },
   ];
 
   let index = 0;
@@ -903,7 +903,16 @@ function Assignment(props) {
                         }}
                       >
                         STATUS
-                        <Typography variant="body1">
+                        <Typography
+                          variant="body1"
+                          style={{
+                            fontWeight: "bold",
+                            color:
+                              item.published === true
+                                ? theme.palette.success.main
+                                : theme.palette.error.main,
+                          }}
+                        >
                           {item.published ? "PUBLISHED" : "UNPUBLISHED"}
                         </Typography>
                       </Typography>
@@ -953,82 +962,100 @@ function Assignment(props) {
                   </Box>
                 </Box>
               )}
-              rowRender={(item) => (
-                <React.Fragment>
-                  <ListItemText
-                    onClick={() => _handleFileOption("view", item)}
-                    primary={item.title}
-                    secondaryTypographyProps={{
-                      style: {
-                        width: isMobile ? "80%" : "100%",
-                        whiteSpace: "pre-wrap",
-                      },
-                    }}
-                    primaryTypographyProps={{
-                      style: {
-                        whiteSpace: "pre-wrap",
-                      },
-                    }}
-                    secondary={item.instruction.substr(0, 100)}
-                  />
-                  {isTeacher && (
-                    <Typography
-                      variant="body1"
-                      component="div"
-                      style={{
-                        marginRight: 150,
-                        display: "flex",
-                        alignItems: "center",
-                        fontWeight: "bold",
-                        fontSize: "0.9em",
-                        color:
-                          item.published === true
-                            ? theme.palette.success.main
-                            : theme.palette.error.main,
+              rowRender={(item, { disabled = false }) => (
+                <Box
+                  width="100%"
+                  display="flex"
+                  onClick={() => !disabled && _handleFileOption("view", item)}
+                >
+                  <Box flex={1} overflow="hidden" width="50%" maxWidth="50%">
+                    <ListItemText
+                      primary={item.title}
+                      secondaryTypographyProps={{
+                        style: {
+                          width: isMobile ? "80%" : "100%",
+                          whiteSpace: "pre-wrap",
+                        },
                       }}
-                    >
-                      {item.published ? "PUBLISHED" : "UNPUBLISHED"}
-                    </Typography>
-                  )}
-                  {!isTeacher && (
-                    <Typography
-                      variant="body1"
-                      component="div"
-                      style={{
-                        marginRight: 180,
-                        display: "flex",
-                        alignItems: "center",
-                        fontWeight: "bold",
-                        fontSize: "0.9em",
-                        color:
-                          item.submission_status === "DONE"
-                            ? theme.palette.success.main
-                            : theme.palette.error.main,
+                      primaryTypographyProps={{
+                        style: {
+                          whiteSpace: "pre-wrap",
+                        },
                       }}
-                    >
-                      {item.submission_status === "DONE"
-                        ? "COMPLETED"
-                        : "NOT COMPLETED"}
-                    </Typography>
-                  )}
-
-                  <Typography
-                    variant="body1"
-                    component="div"
-                    style={{
-                      marginRight: 45,
-                      display: "flex",
-                      alignItems: "center",
-                      textAlign: "right",
-                    }}
+                      secondary={item.instruction.substr(0, 100) + "..."}
+                    />
+                  </Box>
+                  <Box
+                    flex={1}
+                    overflow="hidden"
+                    width="15%"
+                    maxWidth="45%"
+                    display="flex"
+                    alignItems="center"
+                    justifyContent="center"
                   >
-                    {item.duration} mins
-                  </Typography>
-                </React.Fragment>
+                    {isTeacher && (
+                      <Typography
+                        variant="body1"
+                        style={{
+                          fontWeight: "bold",
+                          fontSize: "0.9em",
+                          marginLeft: "15%",
+                          color:
+                            item.published === true
+                              ? theme.palette.success.main
+                              : theme.palette.error.main,
+                        }}
+                      >
+                        {item.published ? "PUBLISHED" : "UNPUBLISHED"}
+                      </Typography>
+                    )}
+                    {!isTeacher && (
+                      <Typography
+                        variant="body1"
+                        component="div"
+                        style={{
+                          marginLeft: "15%",
+                          display: "flex",
+                          alignItems: "center",
+                          fontWeight: "bold",
+                          fontSize: "0.9em",
+                          color:
+                            item.submission_status === "DONE"
+                              ? theme.palette.success.main
+                              : theme.palette.error.main,
+                        }}
+                      >
+                        {item.submission_status === "DONE"
+                          ? "COMPLETED"
+                          : "NOT COMPLETED"}
+                      </Typography>
+                    )}
+                  </Box>
+                  <Box
+                    overflow="hidden"
+                    width="35%"
+                    maxWidth="35%"
+                    justifyContent="flex-end"
+                    display="flex"
+                  >
+                    <Typography
+                      variant="body1"
+                      component="div"
+                      style={{
+                        marginRight: 45,
+                        display: "flex",
+                        alignItems: "center",
+                        textAlign: "right",
+                      }}
+                    >
+                      {item.duration} mins
+                    </Typography>
+                  </Box>
+                </Box>
               )}
             />
           </TabPanel>
-
           <TabPanel value={value} index={1}>
             <Freestyle {...props} />
           </TabPanel>
