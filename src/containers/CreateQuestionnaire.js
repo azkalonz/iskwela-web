@@ -191,6 +191,7 @@ function CreateQuestionnaire(props) {
         choices: q.choices,
       }));
       items.subject_id = props.classDetails[class_id].subject.id;
+      items.questions = items.questions.filter((q) => !!q.question);
       let res = await Api.post("/api/questionnaire/save", {
         body: items,
       });
@@ -229,7 +230,7 @@ function CreateQuestionnaire(props) {
       callback();
     } catch (e) {
       callback(false);
-      alert("Cannot save quiz. Please fill out the highlighted fields.");
+      alert(e?.message);
     }
   };
   const handleCreateSlide = (items = null) => {

@@ -22,16 +22,28 @@ export default function StudenRating(props) {
   const [hover, setHover] = React.useState(-1);
   const handleSave = async () => {
     if (!props.activity) return;
-    let res = await Api.post(
-      "/api/class/" + (props.endpoint || "seatwork") + "/set-score",
-      {
+
+    if (props.endpoint === "assignment/v2") {
+      let res = await Api.post("/api/assignment/v2/set-score", {
         body: {
           score: Math.map(value, 0, 5, 0, props.activity.total_score),
           activity_id: props.activity.id,
           student_id: props.activity.student.id,
         },
-      }
-    );
+      });
+    } else {
+      let res = await Api.post(
+        "/api/class/" + (props.endpoint || "seatwork") + "/set-score",
+        {
+          body: {
+            score: Math.map(value, 0, 5, 0, props.activity.total_score),
+            activity_id: props.activity.id,
+            student_id: props.activity.student.id,
+          },
+        }
+      );
+    }
+
     props.onClose(true);
   };
   return (

@@ -35,7 +35,7 @@ import ArrowDropDownIcon from "@material-ui/icons/ArrowDropDown";
 import CloseIcon from "@material-ui/icons/Close";
 import MuiAlert from "@material-ui/lab/Alert";
 import PopupState, { bindMenu, bindTrigger } from "material-ui-popup-state";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { connect } from "react-redux";
 import { useHistory } from "react-router-dom";
 import Api from "../../api";
@@ -48,9 +48,38 @@ import Progress from "../../components/Progress";
 import { makeLinkTo } from "../../components/router-dom";
 import socket from "../../components/socket.io";
 import { Table as MTable } from "../../components/Table";
+import Tabs from "@material-ui/core/Tabs";
+import Tab from "@material-ui/core/Tab";
 import UserData, { asyncForEach } from "../../components/UserData";
 import AnswerQuiz from "./AnswerQuiz";
 import { SearchInput } from "../../components/Selectors";
+import Freestyle from "./Freestyle";
+function a11yProps(index) {
+  return {
+    id: `vertical-tab-${index}`,
+
+    "aria-controls": `vertical-tabpanel-${index}`,
+  };
+}
+function TabPanel(props) {
+  const { children, value, index, ...other } = props;
+
+  return (
+    <div
+      role="tabpanel"
+      hidden={value !== index}
+      id={`simple-tabpanel-${index}`}
+      aria-labelledby={`simple-tab-${index}`}
+      {...other}
+    >
+      {value === index && (
+        <Box p={3}>
+          <Typography>{children}</Typography>
+        </Box>
+      )}
+    </div>
+  );
+}
 const queryString = require("query-string");
 function Alert(props) {
   return <MuiAlert elevation={6} variant="filled" {...props} />;
@@ -119,11 +148,37 @@ function Assignment(props) {
     category_id: props.gradingCategories[0] && props.gradingCategories[0].id,
   };
   const [form, setForm] = useState(formTemplate);
+  const createTab = (key, label, opts = {}) => ({ key, label, ...opts });
+  const tabMap = useMemo(
+    () => [
+      createTab("assignments", "Assignment", {
+        onClick: () =>
+          props.history.push(
+            window.location.search.replaceUrlParam("tab", "assignments")
+          ),
+      }),
+      createTab("freestyle", "Freestyle Assignment", {
+        onClick: () =>
+          props.history.push(
+            window.location.search.replaceUrlParam("tab", "freestyle")
+          ),
+      }),
+    ],
+    []
+  );
+  const tabid = tabMap.findIndex((q) => q.key === query.tab);
+  const [value, setValue] = useState(tabid >= 0 ? tabid : 0);
+  const handleChange = (event, newValue) => {
+    setValue(newValue);
+  };
   const cellheaders = [
     { id: "title", title: "Title" },
     { id: "status", title: "Status", align: "flex-end" },
     { id: "duration", title: "Duration", align: "flex-end" },
   ];
+
+  let index = 0;
+
   const _handleFileOption = (option, file) => {
     switch (option) {
       case "view":
@@ -150,7 +205,6 @@ function Assignment(props) {
     }
   };
   const getCategories = async () => {
-    props.onLoad(true);
     try {
       let sub = await Api.get(
         "/api/schooladmin/subject-grading-categories/" +
@@ -306,8 +360,8 @@ function Assignment(props) {
         body: {
           ...form,
           subject_id: props.classDetails[class_id].subject.id,
-          schedule_id,
-          class_id,
+          class_id: parseInt(class_id),
+          schedule_id: parseInt(schedule_id),
         },
       });
       setITEMS([...ITEMS, res]);
@@ -699,121 +753,123 @@ function Assignment(props) {
       )}
       {ITEMS && !query.start && !currentItem && (
         <React.Fragment>
-          <Box
-            m={2}
-            display="flex"
-            justifyContent={isTeacher ? "space-between" : "flex-end"}
-            flexWrap="wrap"
-            alignItems="center"
-          >
-            {isTeacher && (
-              <Button
-                variant="contained"
-                style={{ order: isMobile ? 2 : 0, fontWeight: "bold" }}
-                color="secondary"
-                onClick={() => {
-                  handleOpen("CREATE_DIALOG");
-                  setForm(formTemplate);
-                }}
-              >
-                Add New Assignment
-              </Button>
-            )}
-            <Box
-              flexDirection="row"
-              flexWrap="wrap"
-              display="flex"
-              justifyContent="space-between"
-              alignItems="center"
-              style={{ width: isMobile ? "100%" : "auto" }}
+          <Box width="100%" display="flex" direction="column" id="assignment">
+            <Tabs
+              orientation="horizontal"
+              variant="scrollable"
+              value={value}
+              onChange={handleChange}
             >
-              <SearchInput onChange={(e) => _handleSearch(e)} />
-            </Box>
-          </Box>
-          <MTable
-            page={page}
-            headers={cellheaders}
-            onPage={(p) => setPage(p)}
-            data={ITEMS}
-            saving={saving}
-            savingId={savingId}
-            pagination={{
-              render: (
-                <Pagination
-                  page={page}
-                  match={props.match}
-                  icon={
-                    search ? (
-                      <img
-                        src="/hero-img/search.svg"
-                        width={180}
-                        style={{ padding: "50px 0" }}
-                      />
-                    ) : (
-                      <img
-                        src="/hero-img/undraw_Progress_tracking_re_ulfg.svg"
-                        width={180}
-                        style={{ padding: "50px 0" }}
-                      />
-                    )
-                  }
-                  emptyTitle={search ? "Nothing Found" : false}
-                  emptyMessage={
-                    search
-                      ? "Try a different keyword."
-                      : "There's no Assignment yet."
-                  }
-                  onChange={(p) => setPage(p)}
-                  count={getFilteredITEMS().length}
+              {tabMap.map((tab, index) => (
+                <Tab
+                  key={tab.key}
+                  label={tab.label}
+                  {...a11yProps(index)}
+                  onClick={() => tab.onClick()}
                 />
-              ),
-              page,
-              onChange: (p) => setPage(p),
-            }}
-            actions={{
-              onDelete: (i, done) => _handleMultiDelete(i, done),
-              onUpdate: (a, s, done) => _handleMultiUpdate(a, s, done),
-              _handleFileOption: (opt, file) => _handleFileOption(opt, file),
-            }}
-            options={[
-              {
-                name: "View",
-                value: "view",
-              },
-            ]}
-            teacherOptions={[
-              { name: "Edit", value: "edit" },
-              { name: "Publish", value: "publish" },
-              { name: "Unpublish", value: "unpublish" },
-              { name: "Delete", value: "delete" },
-            ]}
-            filtered={(a) => getFilteredITEMS(a)}
-            rowRenderMobile={(item, { disabled = false }) => (
+              ))}
+            </Tabs>
+          </Box>
+          <TabPanel value={value} index={0}>
+            <Box
+              m={2}
+              display="flex"
+              justifyContent={isTeacher ? "space-between" : "flex-end"}
+              flexWrap="wrap"
+              alignItems="center"
+            >
+              {isTeacher && (
+                <Button
+                  variant="contained"
+                  style={{ order: isMobile ? 2 : 0, fontWeight: "bold" }}
+                  color="secondary"
+                  onClick={() => {
+                    handleOpen("CREATE_DIALOG");
+                    setForm(formTemplate);
+                  }}
+                >
+                  Add New Assignment
+                </Button>
+              )}
               <Box
-                onClick={() => !disabled && _handleFileOption("view", item)}
-                display="flex"
+                flexDirection="row"
                 flexWrap="wrap"
-                width="90%"
-                flexDirection="column"
+                display="flex"
                 justifyContent="space-between"
-                style={{ padding: "30px 0" }}
+                alignItems="center"
+                style={{ width: isMobile ? "100%" : "auto" }}
               >
-                <Box width="100%" marginBottom={1}>
-                  <Typography
-                    style={{
-                      fontWeight: "bold",
-                      color: "#38108d",
-                      fontSize: "1em",
-                    }}
-                  >
-                    TITLE
-                  </Typography>
-                  <Typography variant="body1">{item.title}</Typography>
-                  <Typography variant="body1" color="textSecondary">
-                    {item.instruction}
-                  </Typography>
-                </Box>
-                {isTeacher && (
+                <SearchInput onChange={(e) => _handleSearch(e)} />
+              </Box>
+            </Box>
+            <MTable
+              page={page}
+              headers={cellheaders}
+              onPage={(p) => setPage(p)}
+              data={ITEMS}
+              saving={saving}
+              savingId={savingId}
+              pagination={{
+                render: (
+                  <Pagination
+                    page={page}
+                    match={props.match}
+                    icon={
+                      search ? (
+                        <img
+                          src="/hero-img/search.svg"
+                          width={180}
+                          style={{ padding: "50px 0" }}
+                        />
+                      ) : (
+                        <img
+                          src="/hero-img/undraw_Progress_tracking_re_ulfg.svg"
+                          width={180}
+                          style={{ padding: "50px 0" }}
+                        />
+                      )
+                    }
+                    emptyTitle={search ? "Nothing Found" : false}
+                    emptyMessage={
+                      search
+                        ? "Try a different keyword."
+                        : "There's no Assignment yet."
+                    }
+                    onChange={(p) => setPage(p)}
+                    count={getFilteredITEMS().length}
+                  />
+                ),
+                page,
+                onChange: (p) => setPage(p),
+              }}
+              actions={{
+                onDelete: (i, done) => _handleMultiDelete(i, done),
+                onUpdate: (a, s, done) => _handleMultiUpdate(a, s, done),
+                _handleFileOption: (opt, file) => _handleFileOption(opt, file),
+              }}
+              options={[
+                {
+                  name: "View",
+                  value: "view",
+                },
+              ]}
+              teacherOptions={[
+                { name: "Edit", value: "edit" },
+                { name: "Publish", value: "publish" },
+                { name: "Unpublish", value: "unpublish" },
+                { name: "Delete", value: "delete" },
+              ]}
+              filtered={(a) => getFilteredITEMS(a)}
+              rowRenderMobile={(item, { disabled = false }) => (
+                <Box
+                  onClick={() => !disabled && _handleFileOption("view", item)}
+                  display="flex"
+                  flexWrap="wrap"
+                  width="90%"
+                  flexDirection="column"
+                  justifyContent="space-between"
+                  style={{ padding: "30px 0" }}
+                >
                   <Box width="100%" marginBottom={1}>
                     <Typography
                       style={{
@@ -821,6 +877,8 @@ function Assignment(props) {
                         display: "flex",
                         alignItems: "center",
                         fontWeight: "bold",
+                        color: "#38108d",
+                        fontSize: "1em",
                         fontSize: "0.9em",
                         color:
                           item.published === true
@@ -828,10 +886,28 @@ function Assignment(props) {
                             : theme.palette.error.main,
                       }}
                     >
-                      STATUS
-                      <Typography variant="body1">
-                        {item.published ? "PUBLISHED" : "NOT PUBLISHED"}
+                      TITLE
+                    </Typography>
+                    <Typography variant="body1">{item.title}</Typography>
+                    <Typography variant="body1" color="textSecondary">
+                      {item.instruction}
+                    </Typography>
+                  </Box>
+                  {isTeacher && (
+                    <Box width="100%" marginBottom={1}>
+                      <Typography
+                        style={{
+                          fontWeight: "bold",
+                          color: "#38108d",
+                          fontSize: "1em",
+                        }}
+                      >
+                        STATUS
+                        <Typography variant="body1">
+                          {item.published ? "PUBLISHED" : "UNPUBLISHED"}
+                        </Typography>
                       </Typography>
+
                       TITLE
                     </Typography>
                     <Typography variant="body1">{item.title}</Typography>
@@ -842,6 +918,7 @@ function Assignment(props) {
                 )}
                 {isTeacher && (
                   <Box width="100%" marginBottom={1}>
+
                     <Typography
                       style={{
                         fontWeight: "bold",
@@ -849,6 +926,7 @@ function Assignment(props) {
                         fontSize: "1em",
                       }}
                     >
+
                       STATUS
                       <Typography
                         variant="body1"
@@ -891,70 +969,63 @@ function Assignment(props) {
                       {item.submission_status === "DONE"
                         ? "COMPLETED"
                         : "NOT COMPLETED"}
+
                     </Typography>
                   </Box>
-                )}
-                <Box width="100%">
-                  <Typography
-                    style={{
-                      fontWeight: "bold",
-                      color: "#38108d",
-                      fontSize: "1em",
-                    }}
-                  >
-                    DURATION
-                  </Typography>
-                  <Typography variant="body1">{item.duration} mins</Typography>
                 </Box>
 
-                <Box width="100%">
-                  <Typography
-                    style={{
-                      fontWeight: "bold",
-                      color: "#38108d",
-                      fontSize: "1em",
+              )}
+              rowRender={(item) => (
+                <React.Fragment>
+                  <ListItemText
+                    onClick={() => _handleFileOption("view", item)}
+                    primary={item.title}
+                    secondaryTypographyProps={{
+                      style: {
+                        width: isMobile ? "80%" : "100%",
+                        whiteSpace: "pre-wrap",
+                      },
                     }}
-                  >
-                    DURATION
-                  </Typography>
-                  <Typography variant="body1">{item.duration} mins</Typography>
-                </Box>
-              </Box>
-            )}
-            rowRender={(item) => (
-              <React.Fragment>
-                <ListItemText
-                  onClick={() => _handleFileOption("view", item)}
-                  primary={item.title}
-                  secondaryTypographyProps={{
-                    style: {
-                      width: isMobile ? "80%" : "100%",
-                      whiteSpace: "pre-wrap",
-                    },
-                  }}
-                  primaryTypographyProps={{
-                    style: {
-                      whiteSpace: "pre-wrap",
-                    },
-                  }}
-                  secondary={item.instruction.substr(0, 100)}
-                />
-                {isTeacher && (
+                    primaryTypographyProps={{
+                      style: {
+                        whiteSpace: "pre-wrap",
+                      },
+                    }}
+                    secondary={item.instruction.substr(0, 100)}
+                  />
+                  {isTeacher && (
+                    <Typography
+                      variant="body1"
+                      component="div"
+                      style={{
+                        marginRight: 150,
+                        display: "flex",
+                        alignItems: "center",
+                        fontWeight: "bold",
+                        fontSize: "0.9em",
+                        color:
+                          item.published === true
+                            ? theme.palette.success.main
+                            : theme.palette.error.main,
+                      }}
+                    >
+                      {item.published ? "PUBLISHED" : "UNPUBLISHED"}
+                    </Typography>
+                  )}
+
                   <Typography
                     variant="body1"
                     component="div"
                     style={{
+
                       marginRight: 150,
+
                       display: "flex",
                       alignItems: "center",
-                      fontWeight: "bold",
-                      fontSize: "0.9em",
-                      color:
-                        item.published === true
-                          ? theme.palette.success.main
-                          : theme.palette.error.main,
+                      textAlign: "right",
                     }}
                   >
+
                     {item.published ? "PUBLISHED" : "UNPUBLISHED"}
                   </Typography>
                 )}
@@ -977,23 +1048,16 @@ function Assignment(props) {
                     {item.submission_status === "DONE"
                       ? "COMPLETED"
                       : "NOT COMPLETED"}
+
                   </Typography>
-                )}
-                <Typography
-                  variant="body1"
-                  component="div"
-                  style={{
-                    marginRight: 45,
-                    display: "flex",
-                    alignItems: "center",
-                    textAlign: "right",
-                  }}
-                >
-                  {item.duration} mins
-                </Typography>
-              </React.Fragment>
-            )}
-          />
+                </React.Fragment>
+              )}
+            />
+          </TabPanel>
+
+          <TabPanel value={value} index={1}>
+            <Freestyle {...props} />
+          </TabPanel>
         </React.Fragment>
       )}
       <AttachQuestionnaireDialog
