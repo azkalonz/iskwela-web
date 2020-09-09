@@ -907,45 +907,37 @@ function Assignment(props) {
                           {item.published ? "PUBLISHED" : "UNPUBLISHED"}
                         </Typography>
                       </Typography>
-
-                      TITLE
-                    </Typography>
-                    <Typography variant="body1">{item.title}</Typography>
-                    <Typography variant="body1" color="textSecondary">
-                      {item.instruction}
-                    </Typography>
-                  </Box>
-                )}
-                {isTeacher && (
-                  <Box width="100%" marginBottom={1}>
-
-                    <Typography
-                      style={{
-                        fontWeight: "bold",
-                        color: "#38108d",
-                        fontSize: "1em",
-                      }}
-                    >
-
-                      STATUS
+                    </Box>
+                  )}
+                  {!isTeacher && (
+                    <Box width="100%" marginBottom={1}>
+                      <Typography
+                        style={{
+                          fontWeight: "bold",
+                          color: "#38108d",
+                          fontSize: "1em",
+                        }}
+                      >
+                        STATUS
+                      </Typography>
                       <Typography
                         variant="body1"
                         style={{
                           fontWeight: "bold",
                           fontSize: "0.9em",
                           color:
-                            item.published === true
+                            item.submission_status === "DONE"
                               ? theme.palette.success.main
                               : theme.palette.error.main,
                         }}
                       >
-                        {item.published ? "PUBLISHED" : "UNPUBLISHED"}
+                        {item.submission_status === "DONE"
+                          ? "COMPLETED"
+                          : "NOT COMPLETED"}
                       </Typography>
-                    </Typography>
-                  </Box>
-                )}
-                {!isTeacher && (
-                  <Box width="100%" marginBottom={1}>
+                    </Box>
+                  )}
+                  <Box width="100%">
                     <Typography
                       style={{
                         fontWeight: "bold",
@@ -953,27 +945,13 @@ function Assignment(props) {
                         fontSize: "1em",
                       }}
                     >
-                      STATUS
+                      DURATION
                     </Typography>
-                    <Typography
-                      variant="body1"
-                      style={{
-                        fontWeight: "bold",
-                        fontSize: "0.9em",
-                        color:
-                          item.submission_status === "DONE"
-                            ? theme.palette.success.main
-                            : theme.palette.error.main,
-                      }}
-                    >
-                      {item.submission_status === "DONE"
-                        ? "COMPLETED"
-                        : "NOT COMPLETED"}
-
+                    <Typography variant="body1">
+                      {item.duration} mins
                     </Typography>
                   </Box>
                 </Box>
-
               )}
               rowRender={(item) => (
                 <React.Fragment>
@@ -1012,43 +990,39 @@ function Assignment(props) {
                       {item.published ? "PUBLISHED" : "UNPUBLISHED"}
                     </Typography>
                   )}
+                  {!isTeacher && (
+                    <Typography
+                      variant="body1"
+                      component="div"
+                      style={{
+                        marginRight: 180,
+                        display: "flex",
+                        alignItems: "center",
+                        fontWeight: "bold",
+                        fontSize: "0.9em",
+                        color:
+                          item.submission_status === "DONE"
+                            ? theme.palette.success.main
+                            : theme.palette.error.main,
+                      }}
+                    >
+                      {item.submission_status === "DONE"
+                        ? "COMPLETED"
+                        : "NOT COMPLETED"}
+                    </Typography>
+                  )}
 
                   <Typography
                     variant="body1"
                     component="div"
                     style={{
-
-                      marginRight: 150,
-
+                      marginRight: 45,
                       display: "flex",
                       alignItems: "center",
                       textAlign: "right",
                     }}
                   >
-
-                    {item.published ? "PUBLISHED" : "UNPUBLISHED"}
-                  </Typography>
-                )}
-                {!isTeacher && (
-                  <Typography
-                    variant="body1"
-                    component="div"
-                    style={{
-                      marginRight: 180,
-                      display: "flex",
-                      alignItems: "center",
-                      fontWeight: "bold",
-                      fontSize: "0.9em",
-                      color:
-                        item.submission_status === "DONE"
-                          ? theme.palette.success.main
-                          : theme.palette.error.main,
-                    }}
-                  >
-                    {item.submission_status === "DONE"
-                      ? "COMPLETED"
-                      : "NOT COMPLETED"}
-
+                    {item.duration} mins
                   </Typography>
                 </React.Fragment>
               )}
