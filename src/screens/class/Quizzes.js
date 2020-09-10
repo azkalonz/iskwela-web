@@ -124,7 +124,6 @@ function Quizzes(props) {
     { id: "status", title: "Status", align: "center", width: "25%" },
     { id: "duration", title: "Duration", align: "flex-end", width: "35%" },
   ];
-
   const _handleFileOption = (option, file) => {
     switch (option) {
       case "view":
@@ -136,6 +135,9 @@ function Quizzes(props) {
           ...file,
           category_id: file.category.id,
         });
+        return;
+      case "close":
+        _markActivity(file, "done");
         return;
       case "publish":
         _handleUpdateStatus(file, true);
@@ -363,6 +365,35 @@ function Quizzes(props) {
         },
       });
     }
+  };
+  const _markActivity = async (activity, mark) => {
+    let done = mark === "done" ? true : false;
+    setConfirmed({
+      title: (done ? "Close " : "Open ") + " Activity",
+      message:
+        "Are you sure to " + (done ? "Close" : "Open") + " this activity?",
+      yes: async () => {
+        setErrors(null);
+        setSaving(true);
+        setConfirmed(null);
+        setSavingId([...savingId, activity.id]);
+        let res = await Api.post("/api/quiz/close/" + activity.id);
+        if (res) {
+          let newScheduleDetails = await UserData.updateScheduleDetails(
+            class_id,
+            schedule_id
+          );
+          socket.emit("update schedule details", {
+            id: class_id,
+            details: newScheduleDetails,
+          });
+        }
+
+        setSavingId([]);
+
+        setSaving(false);
+      },
+    });
   };
   const _handleDelete = (item) => {
     setConfirmed({
@@ -613,16 +644,22 @@ function Quizzes(props) {
                       </IconButton>
                     </Box>
                     <Box>
-                      <Button
-                        variant="contained"
-                        color="primary"
-                        disabled={
-                          props.userInfo.user_type === "p" ? true : false
-                        }
-                        onClick={() => handleStart()}
-                      >
-                        Start
-                      </Button>
+                      {!isTeacher && (
+                        <Button
+                          variant="contained"
+                          color="primary"
+                          disabled={
+                            props.userInfo.user_type === "p" ||
+                            currentItem.activity_availability_status ===
+                              "CLOSED"
+                              ? true
+                              : false
+                          }
+                          onClick={() => handleStart()}
+                        >
+                          Start
+                        </Button>
+                      )}
                     </Box>
                   </Toolbar>
                   <Box>
@@ -790,6 +827,7 @@ function Quizzes(props) {
             ]}
             teacherOptions={[
               { name: "Edit", value: "edit" },
+              { name: "Close Quiz", value: "close" },
               { name: "Publish", value: "publish" },
               { name: "Unpublish", value: "unpublish" },
               { name: "Delete", value: "delete" },
