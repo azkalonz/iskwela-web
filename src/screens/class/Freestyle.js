@@ -172,7 +172,7 @@ function Freestyle(props) {
       align: "flex-start",
       width: "50%",
     },
-    { id: "duration", title: "Duration", align: "center", width: "35%" },
+    { id: "date", title: "Date", align: "center", width: "35%" },
   ];
   const _handleFileOption = (option, file) => {
     switch (option) {
