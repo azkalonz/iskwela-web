@@ -144,7 +144,7 @@ function Assignment(props) {
   const formTemplate = {
     title: "",
     instruction: "",
-    duration: 0,
+    duration: 60,
     category_id: props.gradingCategories[0] && props.gradingCategories[0].id,
   };
   const [form, setForm] = useState(formTemplate);
@@ -581,6 +581,7 @@ function Assignment(props) {
       .filter((a) => JSON.stringify(a).toLowerCase().indexOf(search) >= 0)
       .filter((a) => (isTeacher ? true : a.published))
       .reverse();
+
   return (
     <Box width="100%" alignSelf="flex-start" height="100%">
       {props.dataProgress[option_name] && (
