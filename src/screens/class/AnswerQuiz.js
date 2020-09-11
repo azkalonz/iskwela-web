@@ -197,7 +197,16 @@ function AnswerQuiz(props) {
         setQuizScore(res);
 
         let submit = await Api.post(
-          "/api/" + props.endpoint + "/complete/" + props.quiz.id
+          "/api/" + props.endpoint + "/complete/" + props.quiz.id,
+          {
+            student_id,
+            id: props.quiz.id,
+            type: props.type,
+            item: {
+              ...props.quiz,
+              submission_status: "DONE",
+            },
+          }
         );
       } catch (e) {
         alert("Please provide an answer to all questions");
@@ -205,6 +214,7 @@ function AnswerQuiz(props) {
       setSaving(false);
     });
   };
+
   return props.userInfo.user_type !== "p" ? (
     <React.Fragment>
       <Dialog
@@ -246,6 +256,7 @@ function AnswerQuiz(props) {
             variant="contained"
             color="primary"
             onClick={() => {
+              props.quiz.submission_status = "DONE";
               history.push(
                 makeLinkTo([
                   "class",
