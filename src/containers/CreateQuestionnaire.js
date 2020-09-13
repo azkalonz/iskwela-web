@@ -32,6 +32,8 @@ import Scrollbar from "../components/Scrollbar";
 import { SearchInput } from "../components/Selectors";
 import socket from "../components/socket.io";
 import AnswerQuiz from "../screens/class/AnswerQuiz";
+import Questionnaires from "../screens/class/Questionnaires";
+import { fetchData } from "../screens/Admin/Dashboard";
 
 const Transition = React.forwardRef(function Transition(props, ref) {
   return <MuiSlide direction="up" ref={ref} {...props} />;
@@ -73,8 +75,11 @@ function CreateQuestionnaire(props) {
   const [ID, setID] = useState(2);
   const [totalScore, setTotalScore] = useState(0);
   const history = useHistory();
+  const [loading, setLoading] = useState(false);
   const [confirmed, setConfirmed] = useState();
   const [modified, setModified] = useState(false);
+  const [questionnaires, setQuestionnares] = useState([]);
+
   const [viewableSlide, setViewableSlide] = useState([0, 1, 2, 3]);
   const quiz_id = query.id ? parseInt(query.id) : null;
   const slideTemplate = {
@@ -152,6 +157,23 @@ function CreateQuestionnaire(props) {
     document
       .querySelector("#slide-container")
       .addEventListener("scroll", () => setViewableSlide(getViewableSlides()));
+    fetchData({
+      before: () => setLoading(true),
+      send: async () => await Api.get("/api/questionnaire/" + quiz_id),
+      after: (data) => {
+        quiz.id = quiz_id;
+        quiz.total_score = totalScore;
+        quiz.questions = data.questions.map((q) => ({
+          media_url: q.media && q.media.large ? q.media.large : "",
+          weight: q.score,
+          question: q.question,
+          choices: q.choices,
+        }));
+        quiz.subject_id = props.classDetails[class_id].subject.id;
+        quiz.questions = data.questions.filter((q) => !!q.question);
+        setLoading(false);
+      },
+    });
   }, []);
   const getViewableSlides = () => {
     let s = document.querySelector("#slide-container");
