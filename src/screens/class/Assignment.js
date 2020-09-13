@@ -35,7 +35,7 @@ import ArrowDropDownIcon from "@material-ui/icons/ArrowDropDown";
 import CloseIcon from "@material-ui/icons/Close";
 import MuiAlert from "@material-ui/lab/Alert";
 import PopupState, { bindMenu, bindTrigger } from "material-ui-popup-state";
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo, useCallback } from "react";
 import { connect } from "react-redux";
 import { useHistory } from "react-router-dom";
 import Api from "../../api";
@@ -126,7 +126,7 @@ function Assignment(props) {
   const [currentItem, setCurrentItem] = useState();
   const [saving, setSaving] = useState(false);
   const { class_id, room_name, option_name, schedule_id } = props.match.params;
-  const [ITEMS, setITEMS] = useState();
+  const [ITEMS, setITEMS] = useState([]);
   const [search, setSearch] = useState("");
   const [modals, setModals] = React.useState({});
   const isTeacher =
@@ -277,15 +277,22 @@ function Assignment(props) {
   useEffect(() => {
     socket.off("delete items");
     socket.off("add items");
+    socket.off("update activity");
     getCategories();
-    socket.on("delete items", (data) => {
-      if (data.type === "ASSIGNMENT" && !isTeacher) {
-        if (ITEMS) setITEMS(ITEMS.filter((q) => data.items.indexOf(q.id) < 0));
-      }
-    });
-    socket.on("add items", (data) => {
-      if (data.type === "ASSIGNMENT") {
-        if (ITEMS) setITEMS([...ITEMS, data.items]);
+    socket.on("update activity", (dispatch) => {
+      const { action, data, type } = dispatch;
+      if (type !== "ASSIGNMENT") return;
+      if (!data?.id) return;
+      const { id } = data;
+      let assignmentId = ITEMS.findIndex((q) => q.id === id);
+      if (action === "UPDATE" && assignmentId >= 0) {
+        let a = [...ITEMS];
+        a[assignmentId] = dispatch.data;
+        setITEMS(a);
+      } else if (action === "ADD") {
+        setITEMS([data, ...ITEMS]);
+      } else if (action === "DELETE") {
+        setITEMS([...ITEMS].filter((q) => q.id !== data.id));
       }
     });
   }, [ITEMS]);
@@ -362,42 +369,52 @@ function Assignment(props) {
       let res = await Api.post("/api/assignment/save?include=questionnaires", {
         body: {
           ...form,
+          ...(form.id
+            ? {
+                activity_id: form.id,
+              }
+            : {}),
           subject_id: props.classDetails[class_id].subject.id,
           class_id: parseInt(class_id),
           schedule_id: parseInt(schedule_id),
         },
       });
-      setITEMS([...ITEMS, res]);
+      socket.emit("update activity", {
+        type: "ASSIGNMENT",
+        action: form.id ? "UPDATE" : "ADD",
+        data: res,
+      });
       setForm(res);
       setSuccess(true);
     } catch (e) {
-      setErrors(["Oops! Something went wrong. Please try again."]);
+      setErrors([
+        e?.message || "Oops! Something went wrong. Please try again.",
+      ]);
     }
-
     setSaving(false);
   };
 
   const _handleUpdateStatus = async (a, s, confirmation = true) => {
     let stat = s ? "Publish" : "Unpublish";
     const update = async () => {
-      await Api.post("/api/assignment/" + (s ? "publish" : "unpublish"), {
-        body: {
-          id: a.id,
-          schedule_id,
-          class_id,
-        },
-      });
-      if (s) {
-        socket.emit("add items", {
-          type: "ASSIGNMENT",
-          items: { ...a, published: true },
+      try {
+        await Api.post("/api/assignment/" + (s ? "publish" : "unpublish"), {
+          body: {
+            id: a.id,
+            schedule_id,
+            class_id,
+          },
         });
-      } else {
-        socket.emit("delete items", {
-          type: "ASSIGNMENT",
-          items: [a.id],
-        });
+      } catch (e) {
+        setErrors([
+          e?.message || "Oops! Something went wrong. Please try again later.",
+        ]);
       }
+      socket.emit("update activity", {
+        type: "ASSIGNMENT",
+        action: "UPDATE",
+        data: { ...a, published: s ? true : false },
+      });
     };
     if (!confirmation) {
       await update();
@@ -467,11 +484,12 @@ function Assignment(props) {
           return;
         }
         if (res && !res.errors) {
-          setITEMS(ITEMS.filter((q) => item.id !== q.id));
-          socket.emit("delete items", {
+          socket.emit("update activity", {
             type: "ASSIGNMENT",
-            items: [item.id],
+            action: "DELETE",
+            data: item,
           });
+
           setSuccess(true);
         } else if (res.errors) {
           setErrors(["Oops! Something went wrong. Please try again."]);
@@ -529,6 +547,11 @@ function Assignment(props) {
           let res;
           try {
             res = await Api.delete("/api/assignment/delete/" + id);
+            socket.emit("update activity", {
+              type: "ASSIGNMENT",
+              data: items[i],
+              action: "DELETE",
+            });
           } catch (e) {
             setErrors(["Oops! Something went wrong. Please try again later "]);
             setSaving(false);
@@ -540,16 +563,6 @@ function Assignment(props) {
           }
         });
         if (!errors) {
-          setITEMS(
-            ITEMS.filter(
-              (q) =>
-                Object.keys(items).findIndex((qq) => items[qq].id === q.id) < 0
-            )
-          );
-          socket.emit("delete items", {
-            type: "ASSIGNMENT",
-            items: Object.keys(items).map((id) => parseInt(id)),
-          });
           done();
           setSuccess(true);
         }
@@ -576,12 +589,14 @@ function Assignment(props) {
     setQuestionnairesToAnswer(currentItem.questionnaires);
   };
 
-  const getFilteredITEMS = (ac = ITEMS) =>
-    ac
-      .filter((a) => JSON.stringify(a).toLowerCase().indexOf(search) >= 0)
-      .filter((a) => (isTeacher ? true : a.published))
-      .reverse();
-
+  const getFilteredITEMS = useCallback(
+    (ac = ITEMS) =>
+      ac
+        .filter((a) => JSON.stringify(a).toLowerCase().indexOf(search) >= 0)
+        .filter((a) => (isTeacher ? true : a.published))
+        .sort((a, b) => b.id - a.id),
+    [ITEMS, search, isTeacher]
+  );
   return (
     <Box width="100%" alignSelf="flex-start" height="100%">
       {props.dataProgress[option_name] && (
@@ -766,6 +781,14 @@ function Assignment(props) {
                           color="primary"
                           key={i}
                           onClick={() => {
+                            if (
+                              props.userInfo.user_type === "p" ||
+                              currentItem.activity_availability_status ===
+                                "CLOSED"
+                                ? true
+                                : false
+                            )
+                              return;
                             props.userInfo.user_type !== "p" &&
                               history.push(
                                 makeLinkTo([

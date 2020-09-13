@@ -161,16 +161,28 @@ function CreateQuestionnaire(props) {
       before: () => setLoading(true),
       send: async () => await Api.get("/api/questionnaire/" + quiz_id),
       after: (data) => {
-        quiz.id = quiz_id;
-        quiz.total_score = totalScore;
-        quiz.questions = data.questions.map((q) => ({
-          media_url: q.media && q.media.large ? q.media.large : "",
-          weight: q.score,
-          question: q.question,
-          choices: q.choices,
-        }));
-        quiz.subject_id = props.classDetails[class_id].subject.id;
-        quiz.questions = data.questions.filter((q) => !!q.question);
+        // quiz.id = quiz_id;
+        // quiz.total_score = totalScore;
+        // quiz.questions = data.questions.map((q) => ({
+        //   media_url: q.media && q.media.large ? q.media.large : "",
+        //   weight: q.score,
+        //   question: q.question,
+        //   choices: q.choices,
+        // }));
+        // quiz.subject_id = props.classDetails[class_id].subject.id;
+        // quiz.questions = data.questions.filter((q) => !!q.question);
+        if (data?.questions) {
+          let q = data;
+          q.questionnaire_id = data.id;
+          console.log("unmapped questionnaire: ", data);
+          q.slides = data.questions.map((q) => ({
+            score: q.weight,
+            type: 1,
+            ...q,
+          }));
+          console.log("mapped questionnaire: ", q);
+          setQuiz(q);
+        }
         setLoading(false);
       },
     });
@@ -211,6 +223,11 @@ function CreateQuestionnaire(props) {
         weight: q.score,
         question: q.question,
         choices: q.choices,
+        ...(q.id
+          ? {
+              question_id: q.id,
+            }
+          : {}),
       }));
       items.subject_id = props.classDetails[class_id].subject.id;
       items.questions = items.questions.filter((q) => !!q.question);
