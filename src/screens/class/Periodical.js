@@ -123,7 +123,13 @@ function Periodical(props) {
   const [form, setForm] = useState(formTemplate);
   const cellheaders = [
     { id: "title", title: "Title", width: "40%" },
-    { id: "status", title: "Status", align: "center", width: "25%" },
+    { id: "status", title: "Status", align: "flex-start", width: "30%" },
+    {
+      id: "availability",
+      title: "Availability",
+      align: "flex-end",
+      width: "20%",
+    },
     { id: "duration", title: "Duration", align: "flex-end", width: "35%" },
   ];
 
@@ -914,6 +920,32 @@ function Periodical(props) {
                     </Typography>
                   </Box>
                 )}
+                <Box width="100%" marginBottom={1}>
+                  <Typography
+                    style={{
+                      fontWeight: "bold",
+                      color: "#38108d",
+                      fontSize: "1em",
+                    }}
+                  >
+                    AVAILABILITY
+                    <Typography
+                      variant="body1"
+                      style={{
+                        fontWeight: "bold",
+                        fontSize: "0.9em",
+                        color:
+                          item.activity_availability_status === "OPEN"
+                            ? theme.palette.success.main
+                            : theme.palette.error.main,
+                      }}
+                    >
+                      {item.activity_availability_status === "OPEN"
+                        ? "OPEN"
+                        : "CLOSED"}
+                    </Typography>
+                  </Typography>
+                </Box>
                 <Box width="100%">
                   <Typography
                     style={{
@@ -934,7 +966,7 @@ function Periodical(props) {
                 display="flex"
                 onClick={() => !disabled && _handleFileOption("view", item)}
               >
-                <Box flex={1} overflow="hidden" width="50%" maxWidth="50%">
+                <Box overflow="hidden" width="30%" maxWidth="50%">
                   <ListItemText
                     primary={item.title}
                     secondaryTypographyProps={{
@@ -952,21 +984,19 @@ function Periodical(props) {
                   />
                 </Box>
                 <Box
-                  flex={1}
                   overflow="hidden"
-                  width="15%"
-                  maxWidth="45%"
+                  width="29%"
                   display="flex"
                   alignItems="center"
-                  justifyContent="center"
                 >
                   {isTeacher && (
                     <Typography
                       variant="body1"
+                      component="div"
                       style={{
-                        marginLeft: "15%",
-
                         fontWeight: "bold",
+                        alignItems: "center",
+
                         fontSize: "0.9em",
                         color:
                           item.published === true
@@ -982,7 +1012,6 @@ function Periodical(props) {
                       variant="body1"
                       component="div"
                       style={{
-                        marginLeft: "15%",
                         display: "flex",
                         alignItems: "center",
                         fontWeight: "bold",
@@ -998,6 +1027,28 @@ function Periodical(props) {
                         : "NOT COMPLETED"}
                     </Typography>
                   )}
+                </Box>
+                <Box
+                  overflow="hidden"
+                  display="flex"
+                  alignItems="center"
+                  justifyContent="center"
+                >
+                  <Typography
+                    variant="body1"
+                    style={{
+                      fontWeight: "bold",
+                      fontSize: "0.9em",
+                      color:
+                        item.activity_availability_status === "OPEN"
+                          ? theme.palette.success.main
+                          : theme.palette.error.main,
+                    }}
+                  >
+                    {item.activity_availability_status === "OPEN"
+                      ? "OPEN"
+                      : "CLOSED"}
+                  </Typography>
                 </Box>
                 <Box
                   overflow="hidden"
