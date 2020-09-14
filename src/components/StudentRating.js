@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Rating as MuiRating } from "@material-ui/lab";
 import {
   Dialog,
@@ -46,6 +46,15 @@ export default function StudenRating(props) {
 
     props.onClose(true);
   };
+  useEffect(() => {
+    const { answers, student, total_score } = props.activity || {};
+    if (answers && student) {
+      let ans = answers.find((q) => q.student?.id === student.id);
+      if (ans) {
+        setValue(Math.map(ans.score.score, 0, total_score, 0, 5));
+      }
+    }
+  }, [props.activity]);
   return (
     <Dialog
       open={props.open ? props.open : false}

@@ -20,8 +20,8 @@ module.exports = {
       }
     });
 
-    socket.on("update fassignment", (assignment) => {
-      io.emit("update fassignment", assignment);
+    socket.on("update activity", (assignment) => {
+      io.emit("update activity", assignment);
     });
 
     socket.on("new class details", (c) => {

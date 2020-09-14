@@ -129,19 +129,28 @@ function Questionnaires(props) {
     switch (option) {
       case "view":
         setQuestionnairePreview([file]);
-        history.push(makeLinkTo(["?id=" + file.id + "#preview"], {}, true));
+        history.push(makeLinkTo(["?id=" + file.id + " #preview"], {}, true));
         return;
       case "edit":
-        handleOpen("ACTIVITY");
-        setForm({
-          ...file,
-          rating_type: "none",
-          activity_type: file.activity_type === "class activity" ? 1 : 2,
-          published: file.status === "unpublished" ? 0 : 1,
-          subject_id: props.classDetails[class_id].subject.id,
-          id: file.id,
-          class_id,
-        });
+        props.history.push(
+          makeLinkTo([
+            "class",
+            class_id,
+            schedule_id,
+            "questionnaire?id=" + file.id,
+          ])
+        );
+        // _handleOpenFile();
+        // handleOpen("ACTIVITY");
+        // setForm({
+        //   ...file,
+        //   rating_type: "none",
+        //   activity_type: file.activity_type === "class activity" ? 1 : 2,
+        //   published: file.status === "unpublished" ? 0 : 1,
+        //   subject_id: props.classDetails[class_id].subject.id,
+        //   id: file.id,
+        //   class_id,
+        // });
         return;
       case "open-activity":
         _markActivity(file, "not-done");
@@ -158,6 +167,7 @@ function Questionnaires(props) {
       case "delete":
         _handleRemoveActivity(file);
         return;
+
       default:
         return;
     }
@@ -219,6 +229,7 @@ function Questionnaires(props) {
       },
     });
   };
+
   const _handleUpdateActivityStatus = async (a, s) => {
     let stat = s ? "Publish" : "Unpublish";
     setConfirmed({
@@ -621,7 +632,10 @@ function Questionnaires(props) {
               value: "view",
             },
           ]}
-          teacherOptions={[{ name: "Delete", value: "delete" }]}
+          teacherOptions={[
+            { name: "Edit", value: "edit" },
+            { name: "Delete", value: "delete" },
+          ]}
           filtered={(a) => getFilteredActivities(a)}
           rowRenderMobile={(item, { disabled = false }) => (
             <Box

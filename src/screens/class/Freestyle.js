@@ -484,7 +484,8 @@ function Freestyle(props) {
     }
     if (res?.id && !errors) {
       let res2 = await Api.get("/api/assignment/v2/" + res.id);
-      socket.emit("update fassignment", {
+      socket.emit("update activity", {
+        type: "FREESTYLE",
         ...res2,
         action: "UPDATE",
         class_id,
@@ -549,7 +550,8 @@ function Freestyle(props) {
         setConfirmed(null);
         setSavingId([...savingId, a.id]);
         await Api.post("/api/assignment/v2/publish/" + a.id);
-        socket.emit("update fassignment", {
+        socket.emit("update activity", {
+          type: "FREESTYLE",
           ...a,
           status: "published",
           class_id,
@@ -587,7 +589,8 @@ function Freestyle(props) {
         }
         if (res && !res.errors) {
           setSuccess(true);
-          socket.emit("update fassignment", {
+          socket.emit("update activity", {
+            type: "FREESTYLE",
             ...activity,
             action: "DELETE",
             class_id,
@@ -617,7 +620,8 @@ function Freestyle(props) {
         await asyncForEach(Object.keys(a), async (i) => {
           try {
             await Api.post("/api/assignment/v2/publish/" + a[i].id);
-            socket.emit("update fassignment", {
+            socket.emit("update activity", {
+              type: "FREESTYLE",
               ...a[i],
               status: "published",
               class_id,
@@ -659,7 +663,8 @@ function Freestyle(props) {
             res = await Api.post(
               "/api/assignment/v2/remove/" + activities[i].id
             );
-            socket.emit("update fassignment", {
+            socket.emit("update activity", {
+              type: "FREESTYLE",
               ...activities[i],
               class_id,
               action: "DELETE",
@@ -709,7 +714,8 @@ function Freestyle(props) {
         if (!res.errors) {
           setSuccess(true);
           let res2 = await Api.get("/api/assignment/v2/" + form.id);
-          socket.emit("update fassignment", {
+          socket.emit("update activity", {
+            type: "FREESTYLE",
             ...res2,
             action: "UPDATE",
             class_id,
@@ -884,8 +890,9 @@ function Freestyle(props) {
       removeFiles("activity-materials", "#activity-material");
   }, []);
   useEffect(() => {
-    socket.off("update fassignment");
-    socket.on("update fassignment", (assignment) => {
+    socket.off("update activity");
+    socket.on("update activity", (assignment) => {
+      if (!assignment.type === "FREESTYLE") return;
       if (assignment.class_id !== class_id) return;
       let activitiesCopy = [...getFilteredActivities()];
       let activityIndex = activitiesCopy.findIndex(

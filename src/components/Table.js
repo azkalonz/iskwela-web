@@ -68,7 +68,8 @@ function Table(props) {
     newitem[item.id] = item;
     setSelectedItems({ ...selectedItems, ...newitem });
   };
-  const isDisabled = (item) => (isTeacher ? false : item.done === "true");
+  const isDisabled = (item) =>
+    isTeacher ? false : item.activity_availability_status === "CLOSED";
   const _handleSort = (sortBy) => {
     if (sortType.order === "asc") {
       setItems(() => {
