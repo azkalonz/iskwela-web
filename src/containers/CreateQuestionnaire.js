@@ -15,10 +15,12 @@ import {
   Slide as MuiSlide,
   Tab,
   Tabs,
+  Snackbar,
   Typography,
   withStyles,
 } from "@material-ui/core";
 import moment from "moment";
+import MuiAlert from "@material-ui/lab/Alert";
 import PropTypes from "prop-types";
 import React, { useEffect, useState } from "react";
 import { connect } from "react-redux";
@@ -68,6 +70,9 @@ const DialogTitle = withStyles(styles)((props) => {
   );
 });
 
+function Alert(props) {
+  return <MuiAlert elevation={6} variant="filled" {...props} />;
+}
 function CreateQuestionnaire(props) {
   const { class_id, schedule_id, option_name } = props.match.params;
   const query = require("query-string").parse(props.location.search);
@@ -79,6 +84,7 @@ function CreateQuestionnaire(props) {
   const [confirmed, setConfirmed] = useState();
   const [modified, setModified] = useState(false);
   const [questionnaires, setQuestionnares] = useState([]);
+  const [success, setSuccess] = useState(false);
 
   const [viewableSlide, setViewableSlide] = useState([0, 1, 2, 3]);
   const quiz_id = query.id ? parseInt(query.id) : null;
@@ -264,6 +270,7 @@ function CreateQuestionnaire(props) {
         });
         window.close();
       }
+      setSuccess(true);
       setModified(false);
       setQuiz(items);
       callback();
@@ -292,6 +299,16 @@ function CreateQuestionnaire(props) {
         bottom: 0,
       }}
     >
+      <Snackbar
+        open={success}
+        autoHideDuration={6000}
+        onClose={() => setSuccess(false)}
+      >
+        <Alert onClose={() => setSuccess(false)} severity="success">
+          Success
+        </Alert>
+      </Snackbar>
+
       <Dialog
         maxWidth="md"
         fullWidth
