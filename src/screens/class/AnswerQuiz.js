@@ -662,6 +662,7 @@ function Choices(props) {
           return (
             <Box width="44%" key={i} m={2}>
               <Button
+                style={{ textTransform: "none" }}
                 fullWidth
                 variant={
                   props.selected &&
