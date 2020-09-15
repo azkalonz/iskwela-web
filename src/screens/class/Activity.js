@@ -1581,6 +1581,7 @@ function Activity(props) {
                                 <React.Fragment>
                                   <MuiRating
                                     readOnly
+                                    precision="0.5"
                                     value={Math.map(
                                       i.score.score,
                                       0,
