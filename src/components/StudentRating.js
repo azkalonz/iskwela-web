@@ -22,7 +22,6 @@ export default function StudenRating(props) {
   const [hover, setHover] = React.useState(-1);
   const handleSave = async () => {
     if (!props.activity) return;
-
     if (props.endpoint === "assignment/v2") {
       let res = await Api.post("/api/assignment/v2/set-score", {
         body: {
@@ -60,7 +59,7 @@ export default function StudenRating(props) {
       open={props.open ? props.open : false}
       fullWidth
       maxWidth="sm"
-      onClose={() => props.onClose()}
+      onClose={() => props.onClose(true)}
       TransitionComponent={Transition}
     >
       <DialogTitle onClose={() => props.onClose()}>

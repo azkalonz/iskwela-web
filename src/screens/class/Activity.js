@@ -268,7 +268,6 @@ function Activity(props) {
         answers: null,
         rateStudent: null,
       });
-      getAnswers();
     } else {
       setCurrentActivity({
         ...currentActivity,
