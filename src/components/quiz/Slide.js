@@ -170,6 +170,12 @@ export function SlideRenderer(props) {
       uploadedFile = await Api.post("/api/public/upload", {
         body,
       });
+    } else {
+      let body = new FormData();
+      body.append("download_url", mediaResult.selected.largeImageURL);
+      uploadedFile = await Api.post("/api/do/image/url", {
+        body,
+      });
     }
     let r = {
       ...slide,
