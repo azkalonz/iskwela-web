@@ -59,7 +59,7 @@ export default function StudenRating(props) {
       open={props.open ? props.open : false}
       fullWidth
       maxWidth="sm"
-      onClose={() => props.onClose(true)}
+      onClose={() => props.onClose()}
       TransitionComponent={Transition}
     >
       <DialogTitle onClose={() => props.onClose()}>

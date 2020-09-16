@@ -286,7 +286,6 @@ function Freestyle(props) {
         answers: null,
         rateStudent: null,
       });
-      getAnswers();
     } else {
       setCurrentActivity({
         ...currentActivity,
