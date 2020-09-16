@@ -679,7 +679,7 @@ function Choices(props) {
                 }
                 onClick={() => props.onChooseAnwer(c)}
               >
-                {c.option}
+                {String.fromCharCode(65 + i)}. {c.option}
               </Button>
             </Box>
           );
