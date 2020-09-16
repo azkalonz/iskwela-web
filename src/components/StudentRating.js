@@ -51,7 +51,7 @@ export default function StudenRating(props) {
     if (answers && student) {
       let ans = answers.find((q) => q.student?.id === student.id);
       if (ans) {
-        setValue(Math.map(ans.score.score, 0, total_score, 0, 5));
+        setValue(Math.map(ans.score, 0, total_score, 0, 5));
       }
     }
   }, [props.activity]);
