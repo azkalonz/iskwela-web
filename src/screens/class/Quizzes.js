@@ -229,7 +229,19 @@ function Quizzes(props) {
   useEffect(() => {
     socket.off("delete items");
     socket.off("add items");
+    socket.off("update activity");
     getCategories();
+
+    socket.on("update activity", (dispatch) => {
+      const { action, data } = dispatch;
+      const { id } = data;
+      let quizId = ITEMS.findIndex((q) => q.id === id);
+      if (action === "UPDATE" && quizId >= 0) {
+        let a = [...ITEMS];
+        a[quizId] = dispatch.data;
+        setITEMS(a);
+      }
+    });
     socket.on("delete items", (data) => {
       if (data.type === "QUIZ" && !isTeacher) {
         if (ITEMS) setITEMS(ITEMS.filter((q) => data.items.indexOf(q.id) < 0));
@@ -316,18 +328,28 @@ function Quizzes(props) {
       let res = await Api.post("/api/quiz/save?include=questionnaires", {
         body: {
           ...form,
+          ...(form.id
+            ? {
+                activity_id: form.id,
+              }
+            : {}),
           subject_id: props.classDetails[class_id].subject.id,
           schedule_id,
           class_id,
         },
       });
-      setITEMS([...ITEMS, res]);
+      if (!form.id) {
+        setITEMS([...ITEMS, res]);
+      }
+      socket.emit("update activity", {
+        action: form.id ? "UPDATE" : "",
+        data: res,
+      });
       setForm(res);
       setSuccess(true);
     } catch (e) {
       setErrors(["Oops! Something went wrong. Please try again."]);
     }
-
     setSaving(false);
   };
 

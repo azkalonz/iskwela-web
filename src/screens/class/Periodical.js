@@ -236,7 +236,18 @@ function Periodical(props) {
   useEffect(() => {
     socket.off("delete items");
     socket.off("add items");
+    socket.off("update activity");
     getCategories();
+    socket.on("update activity", (dispatch) => {
+      const { action, data } = dispatch;
+      const { id } = data;
+      let periodicalId = ITEMS.findIndex((q) => q.id === id);
+      if (action === "UPDATE" && periodicalId >= 0) {
+        let a = [...ITEMS];
+        a[periodicalId] = dispatch.data;
+        setITEMS(a);
+      }
+    });
     socket.on("delete items", (data) => {
       if (data.type === "PERIODICAL" && !isTeacher) {
         if (ITEMS) setITEMS(ITEMS.filter((q) => data.items.indexOf(q.id) < 0));
@@ -321,12 +332,24 @@ function Periodical(props) {
       let res = await Api.post("/api/periodical/save?include=questionnaires", {
         body: {
           ...form,
+          ...(form.id
+            ? {
+                activity_id: form.id,
+              }
+            : {}),
           subject_id: props.classDetails[class_id].subject.id,
           schedule_id,
           class_id,
         },
       });
-      setITEMS([...ITEMS, res]);
+
+      if (!form.id) {
+        setITEMS([...ITEMS, res]);
+      }
+      socket.emit("update activity", {
+        action: form.id ? "UPDATE" : "",
+        data: res,
+      });
       setForm(res);
       setSuccess(true);
     } catch (e) {
