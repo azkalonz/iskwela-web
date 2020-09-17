@@ -518,6 +518,28 @@ function Class(props) {
           return;
       }
     } else {
+      try {
+        const { id } = props.userInfo;
+        let attendance = await Api.get(
+          "/api/class/my-attendance?class_id=" + class_id + "&user_id=" + id
+        );
+        attendance = attendance.find(
+          (q) => q.schedule_id === parseInt(schedule_id)
+        );
+        if (attendance.status_flag === null) {
+          await Api.post("/api/class/attendance/save", {
+            body: {
+              student_id: id,
+              schedule_id: parseInt(schedule_id),
+              class_id: parseInt(class_id),
+              status: 1,
+              reason: "Time: " + moment().format("hh:mm A"),
+            },
+          });
+        }
+      } catch (e) {
+        alert(e || "Something went wrong. Please try again.");
+      }
       if (
         props.classDetails[class_id].schedules[schedule_id].status === "ONGOING"
       ) {

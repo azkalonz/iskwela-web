@@ -55,7 +55,7 @@ function Calendar(props) {
               className={legend}
               marginRight={1}
             />
-            <Typography>{legend.ucfirst()}</Typography>
+            <Typography>{legend.ucfirst().replace("-", " ")}</Typography>
           </Box>
         ))}
       </Box>
@@ -91,6 +91,7 @@ export function Dates({
   month,
   variant,
   year,
+  selectedDate,
   events = [],
   isLoading,
 }) {
@@ -135,13 +136,17 @@ export function Dates({
         <div className={"week " + "no-" + (index + 1)} key={index}>
           {week.map((day, i) => {
             let event = getEvent(day.date);
+            let isSelected =
+              moment(day.date).format("MMM D, YYYY") === selectedDate;
             return (includeDays ? includeDays.indexOf(i) >= 0 : true) &&
               event ? (
               <div key={i} className={"day"}>
                 <Box
                   width="100%"
                   height="100%"
-                  className={event.status}
+                  className={
+                    event.status + " " + (isSelected ? "selected-date" : "")
+                  }
                   onClick={() => setCurrentEvent({ ...event, opened: true })}
                 >
                   <Tooltip
@@ -157,7 +162,7 @@ export function Dates({
                       {variant === "large" && (
                         <Box p={1} paddingLeft={6} className="reason">
                           <Typography style={{ fontWeight: "bold" }}>
-                            {event.status.ucfirst()}
+                            {event.status.ucfirst().replace("-", " ")}
                           </Typography>
                           {event.excerpt}
                         </Box>
@@ -189,6 +194,7 @@ export function getYears(startYear, currentYear = new Date().getFullYear()) {
 export function CalendarProvider(props) {
   const [month, setMonth] = useState(moment().month());
   const [year, setYear] = useState(moment().year());
+  const selectedDate = props.selectedDate;
   const theme = useTheme().palette.type;
   let scheduleLength = useMemo(() => {
     for (

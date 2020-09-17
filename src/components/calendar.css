@@ -77,6 +77,11 @@
   color: rgb(0, 19, 82);
   border: 1px dashed rgb(0, 47, 255);
 }
+.selected-date {
+  background: rgba(116, 57, 255, 0.685);
+  color: #fff;
+  border: 1px dashed rgb(59, 27, 134);
+}
 .absent {
   background: rgb(255, 220, 220);
   color: rgb(82, 0, 0);
