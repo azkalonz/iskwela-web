@@ -39,7 +39,7 @@ import { Table } from "../../components/Table";
 import SavingButton from "../../components/SavingButton";
 import { SetAttendanceDialog } from "../../components/dialogs";
 import { asyncForEach } from "../../components/UserData";
-
+const qs = require("query-string");
 const useStyles = makeStyles((theme) => ({
   calendar: {
     "& .react-calendar__month-view__days__day--weekend": {
@@ -58,10 +58,13 @@ function Attendance(props) {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const { class_id, schedule_id, option_name, room_name } = props.match.params;
-  const query = require("query-string").parse(window.location.search);
+  const query = qs.parse(window.location.search);
   const styles = useStyles();
   const [saving, setSaving] = useState(false);
   const [savingId, setSavingId] = useState([]);
+  const [selectedSched, setSelectedSched] = useState(
+    parseInt(query.date) || schedule_id
+  );
   const [currentEvent, setCurrentEvent] = useState();
   const [attendance, setAttendance] = useState(
     store.getState().classDetails[class_id]?.students.map((q) => ({
@@ -130,10 +133,12 @@ function Attendance(props) {
       await Api.post("/api/class/attendance/save", {
         body: {
           student_id,
-          schedule_id: parseInt(schedule_id),
+          schedule_id: parseInt(selectedSched),
           class_id: parseInt(class_id),
           status,
-          reason: document.querySelector("#reason")?.value || "--",
+          reason:
+            document.querySelector("#reason")?.value ||
+            "Time: " + moment().format("hh:mm A"),
         },
       });
       if (!multiple) await getAttendance();
@@ -170,6 +175,9 @@ function Attendance(props) {
       }
     } catch (e) {}
   };
+  useEffect(() => {
+    setSelectedSched(parseInt(query.date) || schedule_id);
+  }, [query.date]);
   useEffect(() => {
     if (class_id && !currentStudent) getAttendance();
   }, [class_id, currentStudent]);
@@ -486,8 +494,8 @@ function Attendance(props) {
               </Box>
               <Box display="flex">
                 {(!currentStudent
-                  ? ["schedule"]
-                  : ["unmarked", "present", "absent"]
+                  ? ["schedule", "selected-date"]
+                  : ["unmarked", "present", "absent", "selected-date"]
                 ).map((legend, index) => (
                   <Box
                     key={index}
@@ -502,7 +510,9 @@ function Attendance(props) {
                       className={legend}
                       marginRight={1}
                     />
-                    <Typography>{legend.ucfirst()}</Typography>
+                    <Typography>
+                      {legend.ucfirst().replace("-", " ")}
+                    </Typography>
                   </Box>
                 ))}
               </Box>
@@ -513,6 +523,9 @@ function Attendance(props) {
                 student={currentStudent}
               >
                 <CalendarProvider
+                  selectedDate={moment(
+                    props.classDetails[class_id]?.schedules[selectedSched]?.from
+                  ).format("MMM D, YYYY")}
                   style={{ minWidth: 240 }}
                   variant={!currentStudent || isMobile ? "small" : "large"}
                 >
@@ -547,14 +560,18 @@ function AttendanceProvider(props) {
       await Api.post("/api/class/attendance/save", {
         body: {
           student_id: student.id,
-          schedule_id,
+          schedule_id: parseInt(schedule_id),
           class_id: parseInt(class_id),
           status,
-          reason: document.querySelector("#reason")?.value || "--",
+          reason:
+            document.querySelector("#reason")?.value ||
+            "Time: " + moment().format("hh:mm A"),
         },
       });
       await getAttendanceEvents();
-    } catch (e) {}
+    } catch (e) {
+      alert(e?.message || "Something went wrong.");
+    }
     setIsLoading(false);
   };
   const getAttendanceEvents = async () => {
@@ -616,6 +633,17 @@ function AttendanceProvider(props) {
       schedules.map((q) => ({
         date: moment(q.from).format("MMM DD, YYYY"),
         status: "schedule",
+        actions: (
+          <Button
+            onClick={() => {
+              props.history.push(
+                window.location.search.replaceUrlParam("date", q.id)
+              );
+            }}
+          >
+            Jump to
+          </Button>
+        ),
       }))
     );
     setIsLoading(false);
@@ -643,4 +671,5 @@ export { ConnectedAttendanceProvider as AttendanceProvider };
 export default connect((states) => ({
   userInfo: states.userInfo,
   theme: states.theme,
+  classDetails: states.classDetails,
 }))(Attendance);

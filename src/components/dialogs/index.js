@@ -456,14 +456,14 @@ function SetAttendanceDialog(props) {
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose}>Close</Button>
-        {props.userInfo.user_type === "t" ||
-          (props.userInfo.user_type === "a" &&
-            Children.map(eventSchedule.actions, (child) => {
-              if (isValidElement(child)) {
-                return cloneElement(child, { disabled: isLoading || false });
-              }
-              return child;
-            }))}
+        {(props.userInfo.user_type === "t" ||
+          props.userInfo.user_type === "a") &&
+          Children.map(eventSchedule.actions, (child) => {
+            if (isValidElement(child)) {
+              return cloneElement(child, { disabled: isLoading || false });
+            }
+            return child;
+          })}
       </DialogActions>
     </Dialog>
   ) : null;

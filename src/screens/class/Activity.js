@@ -221,18 +221,33 @@ function Activity(props) {
       setTitle(pageState.subtitles);
     }
   }, [currentActivity]);
-  const _getActivities = () => {
+  const _getActivities = async () => {
     if (!classSched) return;
     try {
-      let a = props.classDetails[class_id].schedules;
       let allActivities = [];
+      let a;
+      if (isTeacher) {
+        a = await Api.get("/api/teacher/class-seatworks/" + class_id);
+      } else {
+        a = await Api.get("/api/student/class-seatworks/" + class_id);
+      }
       a.forEach((s) => {
-        if (s[isTeacher ? "seatworks" : "publishedSeatworks"]) {
-          s[isTeacher ? "seatworks" : "publishedSeatworks"].forEach((ss) => {
-            allActivities.push({ ...ss, schedule_id: s.id });
+        s.publishedSeatworks.map((q) => {
+          allActivities.push({
+            ...q,
+            schedule_id: s.id,
+          });
+        });
+        if (isTeacher) {
+          s.unpublishedSeatworks.map((q) => {
+            allActivities.push({
+              ...q,
+              schedule_id: s.id,
+            });
           });
         }
       });
+      console.log(allActivities);
       setActivities(allActivities.sort((a, b) => a.id - b.id));
       if (currentActivity) {
         let newAct = allActivities.find((act) => act.id === currentActivity.id);
@@ -441,16 +456,16 @@ function Activity(props) {
           }
         );
       }
-      if (!noupdate) {
-        newScheduleDetails = await UserData.updateScheduleDetails(
-          class_id,
-          selectedSched >= 0 ? selectedSched : schedule_id
-        );
-        socket.emit("update schedule details", {
-          id: class_id,
-          details: newScheduleDetails,
-        });
-      }
+      // if (!noupdate) {
+      //   newScheduleDetails = await UserData.updateScheduleDetails(
+      //     class_id,
+      //     selectedSched >= 0 ? selectedSched : schedule_id
+      //   );
+      //   socket.emit("update schedule details", {
+      //     id: class_id,
+      //     details: newScheduleDetails,
+      //   });
+      // }
     } else {
       setErrors(["Oops! Something went wrong. Please try again."]);
     }
@@ -468,6 +483,15 @@ function Activity(props) {
           ];
         newform = newform[newform.length - 1];
       }
+      console.log(form, newform);
+      socket.emit("update activity", {
+        type: "ACTIVITY",
+        action: form.id ? "UPDATE" : "ADD",
+        data: {
+          ...form,
+          ...(newform ? newform : {}),
+        },
+      });
       if (newform) setForm(newform);
       removeFiles("activity-materials", "#activity-material");
       setNewMaterial({});
@@ -920,8 +944,28 @@ function Activity(props) {
       removeFiles("activity-materials", "#activity-material");
   }, []);
   useEffect(() => {
-    _getActivities();
-  }, [props.classDetails]);
+    if (activities) {
+      socket.off("update activity");
+      socket.on("update activity", (dispatch) => {
+        console.log("update");
+        const { action, data, type } = dispatch;
+        if (type !== "ACTIVITY") return;
+        if (!data?.id) return;
+        console.log(dispatch);
+        const { id } = data;
+        let assignmentId = activities.findIndex((q) => q.id === id);
+        if (action === "UPDATE" && assignmentId >= 0) {
+          let a = [...activities];
+          a[assignmentId] = dispatch.data;
+          setActivities(a);
+        } else if (action === "ADD") {
+          setActivities([data, ...activities]);
+        } else if (action === "DELETE") {
+          setActivities([...activities].filter((q) => q.id !== data.id));
+        }
+      });
+    }
+  }, [activities]);
   const getFiles = (id) => {
     if (!filesForm[id]) filesForm[id] = new FormData();
     return filesForm[id];
