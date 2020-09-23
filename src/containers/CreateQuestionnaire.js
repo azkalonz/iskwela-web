@@ -180,13 +180,15 @@ function CreateQuestionnaire(props) {
         if (data?.questions) {
           let q = data;
           q.questionnaire_id = data.id;
-          console.log("unmapped questionnaire: ", data);
           q.slides = data.questions.map((q) => ({
             score: q.weight,
+            media: {
+              thumb: q.media_url,
+              large: q.media_url,
+            },
             type: 1,
             ...q,
           }));
-          console.log("mapped questionnaire: ", q);
           setQuiz(q);
         }
         setLoading(false);
