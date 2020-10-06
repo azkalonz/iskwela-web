@@ -89,6 +89,12 @@ function FV(props) {
   ].concat(viewableLinks.map((l) => l.type));
 
   const customFileLoader = {
+    answer_text: {
+      load: () => {
+        setStatus("CUSTOM_LOADED");
+        setCustomLoader(<div>{props.file.url}</div>);
+      },
+    },
     iskwela_file: {
       load: () => {
         setStatus("CUSTOM_LOADED");

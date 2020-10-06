@@ -752,23 +752,32 @@ function Freestyle(props) {
       onCancel: () => controller.abort(),
     };
     props.openFile(filetoopen);
-    let res = await Api.postBlob("/api/download/activity/answer/" + f.id, {
-      config: {
-        signal,
-      },
-    }).then((resp) => (resp.ok ? resp.blob() : null));
-    if (res)
+    let res;
+    if (!f?.answer_text) {
+      res = await Api.postBlob("/api/download/activity/answer/" + f.id, {
+        config: {
+          signal,
+        },
+      }).then((resp) => (resp.ok ? resp.blob() : null));
+      if (res)
+        filetoopen = {
+          ...filetoopen,
+          title: f.name,
+          url: URL.createObjectURL(
+            new File([res], f.name + "'s Activity Answer", { type: res.type })
+          ),
+          type: res.type,
+        };
+      else setErrors(["Cannot open file."]);
+    } else {
       filetoopen = {
         ...filetoopen,
         title: f.name,
-        url: URL.createObjectURL(
-          new File([res], f.name + "'s Activity Answer", { type: res.type })
-        ),
-        type: res.type,
+        url: f.answer_text,
+        type: "answer_text",
       };
-    else setErrors(["Cannot open file."]);
+    }
     props.openFile(filetoopen);
-    alert(res);
   };
   const _handleOpenFile = async (f) => {
     const controller = new AbortController();
@@ -1613,6 +1622,9 @@ function Freestyle(props) {
                                     i.student.first_name +
                                     " " +
                                     i.student.last_name,
+                                  answer_text: i.answers.sort(
+                                    (a, b) => b.id - a.id
+                                  )[0]?.answer_text,
                                 })
                               }
                             />
@@ -1678,6 +1690,7 @@ function Freestyle(props) {
                                                     i.student.first_name +
                                                     " " +
                                                     i.student.last_name,
+                                                    answer_text: a?.answer_text
                                                 })
                                               }
                                             >
