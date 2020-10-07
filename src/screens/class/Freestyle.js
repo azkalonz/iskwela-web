@@ -124,6 +124,7 @@ function Freestyle(props) {
   });
   const { class_id, option_name, schedule_id, room_name } = props.match.params;
   const [activities, setActivities] = useState([]);
+  const [answerText, setAnswerText] = useState();
   const [dragover, setDragover] = useState(false);
   const [search, setSearch] = useState("");
   const [modals, setModals] = React.useState({});
@@ -149,6 +150,7 @@ function Freestyle(props) {
   );
   const [page, setPage] = useState(query.page ? parseInt(query.page) : 1);
   const [answerPage, setAnswerPage] = useState(1);
+  const [state, setState] = React.useState({ answertxt: "" });
   const [selectedSched, setSelectedSched] = useState(
     query.date && query.date !== -1 ? parseInt(query.date) : -1
   );
@@ -736,6 +738,11 @@ function Freestyle(props) {
       },
     });
   };
+  const handleAnswerText = (event) => {
+    const value = event.target.value;
+    setState({ ...state, answertxt: value });
+  };
+
   const _handleOpenAnswer = async (f) => {
     const controller = new AbortController();
     const signal = controller.signal;
@@ -761,6 +768,7 @@ function Freestyle(props) {
       };
     else setErrors(["Cannot open file."]);
     props.openFile(filetoopen);
+    alert(res);
   };
   const _handleOpenFile = async (f) => {
     const controller = new AbortController();
@@ -811,12 +819,13 @@ function Freestyle(props) {
     setErrors(null);
     setSaving(true);
     let answers = getFiles("activity-answer").getAll("files[]");
-    if (answers.length) {
+    if (answers.length && state.answertxt !== "") {
       try {
         await asyncForEach(answers, async (file) => {
           let body = new FormData();
           body.append("file", file);
           body.append("assignment_id", currentActivity.id);
+          body.append("answer_text", state.answertxt);
           let a = await FileUpload.upload("/api/assignment/v2/upload/answer", {
             body,
             onUploadProgress: (event, source) =>
@@ -836,6 +845,47 @@ function Freestyle(props) {
         removeFiles("activity-answer", "#activity-answer");
       } catch (e) {}
       getAnswers();
+    } else if (answers.length || state.answertxt !== "") {
+      if (answers.length) {
+        try {
+          await asyncForEach(answers, async (file) => {
+            let body = new FormData();
+            body.append("file", file);
+            body.append("assignment_id", currentActivity.id);
+            let a = await FileUpload.upload(
+              "/api/assignment/v2/upload/answer",
+              {
+                body,
+                onUploadProgress: (event, source) =>
+                  store.dispatch({
+                    type: "SET_PROGRESS",
+                    id: option_name,
+                    data: {
+                      title: file.name,
+                      loaded: event.loaded,
+                      total: event.total,
+                      onCancel: source,
+                    },
+                  }),
+              }
+            );
+          });
+          setDragover(false);
+          removeFiles("activity-answer", "#activity-answer");
+        } catch (e) {}
+        getAnswers();
+      } else {
+        try {
+          await Api.post("/api/assignment/v2/upload/answer", {
+            body: {
+              assignment_id: currentActivity.id,
+              answer_text: state.answertxt,
+            },
+          });
+          setDragover(false);
+        } catch (e) {}
+        getAnswers();
+      }
     }
     setSavingId([]);
     setSaving(false);
@@ -1247,6 +1297,22 @@ function Freestyle(props) {
                       style={{ fontWeight: "bold", marginBottom: 7 }}
                       color="textSecondary"
                     >
+                      Text Area
+                    </Typography>
+                    <Paper>
+                      <Box>
+                        <TextField
+                          multiline
+                          onChange={handleAnswerText}
+                          style={{ padding: 10, width: "100%" }}
+                        />
+                      </Box>
+                    </Paper>
+
+                    <Typography
+                      style={{ fontWeight: "bold", marginBottom: 7 }}
+                      color="textSecondary"
+                    >
                       Upload your Answer
                     </Typography>
 
@@ -1423,32 +1489,20 @@ function Freestyle(props) {
                                     )
                                   )}
                                 </div>
-                                <div>
-                                  <Button onClick={_handleAnswerUpload}>
-                                    Upload
-                                  </Button>
-                                  <Button
-                                    onClick={() => {
-                                      removeFiles(
-                                        "activity-answer",
-                                        "#activity-answer"
-                                      );
-                                      setDragover(false);
-                                      setFilesToUpload({
-                                        ...filesToUpload,
-                                        ACTIVITY_ANSWER: false,
-                                      });
-                                    }}
-                                  >
-                                    Remove
-                                  </Button>
-                                </div>
                               </Box>
                             </div>
                           )}
                         </Box>
                       </Box>
                     </Paper>
+                    <div>
+                      <Button
+                        onClick={_handleAnswerUpload}
+                        style={{ float: "right" }}
+                      >
+                        Upload
+                      </Button>
+                    </div>
                   </Box>
                 )}
               </Box>
@@ -2496,7 +2550,7 @@ const useStyles = makeStyles((theme) => ({
     "& > div": {
       position: "relative",
       zIndex: 1,
-      height: 170,
+      height: 40,
       width: "100%",
       display: "flex",
       alignItems: "center",
