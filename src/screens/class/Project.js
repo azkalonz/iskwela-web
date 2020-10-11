@@ -136,6 +136,7 @@ function Project(props) {
   const [confirmed, setConfirmed] = useState(false);
   const [savingId, setSavingId] = useState([]);
   const [answersSearch, setAnswersSearch] = useState("");
+  const [state, setState] = React.useState({ answertxt: "" });
   const [selectedStatus, setSelectedStatus] = useState(
     isTeacher
       ? query.status && query.status !== "all"
@@ -779,21 +780,50 @@ function Project(props) {
       onCancel: () => controller.abort(),
     };
     props.openFile(filetoopen);
-    let res = await Api.postBlob("/api/download/activity/answer/" + f.id, {
-      config: {
-        signal,
-      },
-    }).then((resp) => (resp.ok ? resp.blob() : null));
-    if (res)
-      filetoopen = {
-        ...filetoopen,
-        title: f.name,
-        url: URL.createObjectURL(
-          new File([res], f.name + "'s Activity Answer", { type: res.type })
-        ),
-        type: res.type,
-      };
-    else setErrors(["Cannot open file."]);
+    let res;
+    if (!f?.answer_text) {
+      res = await Api.postBlob("/api/download/activity/answer/" + f.id, {
+        config: {
+          signal,
+        },
+      }).then((resp) => (resp.ok ? resp.blob() : null));
+      if (res)
+        filetoopen = {
+          ...filetoopen,
+          title: f.name,
+          url: URL.createObjectURL(
+            new File([res], f.name + "'s Activity Answer", { type: res.type })
+          ),
+          type: res.type,
+        };
+      else setErrors(["Cannot open file."]);
+    } else {
+      if (f?.answer_text && f?.answer_media) {
+        let res = await Api.postBlob("/api/download/activity/answer/" + f.id, {
+          config: {
+            signal,
+          },
+        }).then((resp) => (resp.ok ? resp.blob() : null));
+        filetoopen = {
+          ...filetoopen,
+          title: f.name,
+          url: URL.createObjectURL(
+            new File([res], f.name + "'s Activity Answer", {
+              type: "answertxtfile",
+            })
+          ),
+          text: f.answer_text,
+          type: "answertxtfile",
+        };
+      } else {
+        filetoopen = {
+          ...filetoopen,
+          title: f.name,
+          url: f.answer_text,
+          type: "answer_text",
+        };
+      }
+    }
     props.openFile(filetoopen);
   };
   const _handleOpenFile = async (f) => {
@@ -840,17 +870,21 @@ function Project(props) {
     }
     props.openFile(filetoopen);
   };
-
+  const handleAnswerText = (event) => {
+    const value = event.target.value;
+    setState({ ...state, answertxt: value });
+  };
   const _handleAnswerUpload = async () => {
     setErrors(null);
     setSaving(true);
     let answers = getFiles("activity-answer").getAll("files[]");
-    if (answers.length) {
+    if (answers.length && state.answertxt !== "") {
       try {
         await asyncForEach(answers, async (file) => {
           let body = new FormData();
           body.append("file", file);
           body.append("assignment_id", currentActivity.id);
+          body.append("answer_text", state.answertxt);
           let a = await FileUpload.upload("/api/upload/project/answer", {
             body,
             onUploadProgress: (event, source) =>
@@ -870,6 +904,44 @@ function Project(props) {
         removeFiles("activity-answer", "#activity-answer");
       } catch (e) {}
       getAnswers();
+    } else if (answers.length || state.answertxt !== "") {
+      if (answers.length) {
+        try {
+          await asyncForEach(answers, async (file) => {
+            let body = new FormData();
+            body.append("file", file);
+            body.append("assignment_id", currentActivity.id);
+            let a = await FileUpload.upload("/api/upload/project/answer", {
+              body,
+              onUploadProgress: (event, source) =>
+                store.dispatch({
+                  type: "SET_PROGRESS",
+                  id: option_name,
+                  data: {
+                    title: file.name,
+                    loaded: event.loaded,
+                    total: event.total,
+                    onCancel: source,
+                  },
+                }),
+            });
+          });
+          setDragover(false);
+          removeFiles("activity-answer", "#activity-answer");
+        } catch (e) {}
+        getAnswers();
+      } else {
+        try {
+          await Api.post("/api/upload/project/answer", {
+            body: {
+              assignment_id: currentActivity.id,
+              answer_text: state.answertxt,
+            },
+          });
+          setDragover(false);
+        } catch (e) {}
+        getAnswers();
+      }
     }
     setSavingId([]);
     setSaving(false);
@@ -1257,6 +1329,21 @@ function Project(props) {
                       style={{ fontWeight: "bold", marginBottom: 7 }}
                       color="textSecondary"
                     >
+                      Text Area
+                    </Typography>
+                    <Paper>
+                      <Box>
+                        <TextField
+                          multiline
+                          onChange={handleAnswerText}
+                          style={{ padding: 10, width: "100%" }}
+                        />
+                      </Box>
+                    </Paper>
+                    <Typography
+                      style={{ fontWeight: "bold", marginBottom: 7 }}
+                      color="textSecondary"
+                    >
                       Upload your Answer
                     </Typography>
 
@@ -1432,32 +1519,20 @@ function Project(props) {
                                     )
                                   )}
                                 </div>
-                                <div>
-                                  <Button onClick={_handleAnswerUpload}>
-                                    Upload
-                                  </Button>
-                                  <Button
-                                    onClick={() => {
-                                      removeFiles(
-                                        "activity-answer",
-                                        "#activity-answer"
-                                      );
-                                      setDragover(false);
-                                      setFilesToUpload({
-                                        ...filesToUpload,
-                                        ACTIVITY_ANSWER: false,
-                                      });
-                                    }}
-                                  >
-                                    Remove
-                                  </Button>
-                                </div>
                               </Box>
                             </div>
                           )}
                         </Box>
                       </Box>
                     </Paper>
+                    <div>
+                      <Button
+                        onClick={_handleAnswerUpload}
+                        style={{ float: "right" }}
+                      >
+                        Upload
+                      </Button>
+                    </div>
                   </Box>
                 )}
               </Box>
@@ -1568,6 +1643,13 @@ function Project(props) {
                                     i.student.first_name +
                                     " " +
                                     i.student.last_name,
+
+                                  answer_text: i.answers.sort(
+                                    (a, b) => b.id - a.id
+                                  )[0]?.answer_text,
+                                  answer_media: i.answers.sort(
+                                    (a, b) => b.id - a.id
+                                  )[0]?.answer_media,
                                 })
                               }
                             />
@@ -1634,6 +1716,8 @@ function Project(props) {
                                                     i.student.first_name +
                                                     " " +
                                                     i.student.last_name,
+                                                  answer_text: a?.answer_text,
+                                                  answer_media: a?.answer_media,
                                                 })
                                               }
                                             >
@@ -2516,7 +2600,7 @@ const useStyles = makeStyles((theme) => ({
     "& > div": {
       position: "relative",
       zIndex: 1,
-      height: 170,
+      height: 40,
       width: "100%",
       display: "flex",
       alignItems: "center",

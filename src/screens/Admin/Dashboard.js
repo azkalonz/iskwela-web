@@ -98,7 +98,7 @@ function Dashboard(props) {
 
     fetchData({
       send: async () =>
-        await Api.post("/api/admin/user/update/" + window.currentItem.id, {
+        await  ("/api/admin/user/update/" + window.currentItem.id, {
           body: {
             username: state.username,
             first_name: state.fname,
