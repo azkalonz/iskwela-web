@@ -770,12 +770,31 @@ function Freestyle(props) {
         };
       else setErrors(["Cannot open file."]);
     } else {
-      filetoopen = {
-        ...filetoopen,
-        title: f.name,
-        url: f.answer_text,
-        type: "answer_text",
-      };
+      if (f?.answer_text && f?.answer_media) {
+        let res = await Api.postBlob("/api/download/activity/answer/" + f.id, {
+          config: {
+            signal,
+          },
+        }).then((resp) => (resp.ok ? resp.blob() : null));
+        filetoopen = {
+          ...filetoopen,
+          title: f.name,
+          url: URL.createObjectURL(
+            new File([res], f.name + "'s Activity Answer", {
+              type: "answertxtfile",
+            })
+          ),
+          text: f.answer_text,
+          type: "answertxtfile",
+        };
+      } else {
+        filetoopen = {
+          ...filetoopen,
+          title: f.name,
+          url: f.answer_text,
+          type: "answer_text",
+        };
+      }
     }
     props.openFile(filetoopen);
   };
@@ -1625,6 +1644,9 @@ function Freestyle(props) {
                                   answer_text: i.answers.sort(
                                     (a, b) => b.id - a.id
                                   )[0]?.answer_text,
+                                  answer_media: i.answers.sort(
+                                    (a, b) => b.id - a.id
+                                  )[0]?.answer_media,
                                 })
                               }
                             />
@@ -1690,7 +1712,8 @@ function Freestyle(props) {
                                                     i.student.first_name +
                                                     " " +
                                                     i.student.last_name,
-                                                    answer_text: a?.answer_text
+                                                  answer_text: a?.answer_text,
+                                                  answer_media: a?.answer_media,
                                                 })
                                               }
                                             >

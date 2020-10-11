@@ -12,6 +12,7 @@ import {
   useTheme,
   useMediaQuery,
   CircularProgress,
+  Paper,
 } from "@material-ui/core";
 import LaunchIcon from "@material-ui/icons/Launch";
 import Draggable from "react-draggable";
@@ -92,7 +93,75 @@ function FV(props) {
     answer_text: {
       load: () => {
         setStatus("CUSTOM_LOADED");
-        setCustomLoader(<div>{props.file.url}</div>);
+        setCustomLoader(
+          <div>
+            <Paper
+              style={{
+                margin: "20px",
+                padding: "10px",
+                overflowY: "scroll",
+                height: "70vh",
+              }}
+            >
+              {props.file.url}
+            </Paper>
+          </div>
+        );
+      },
+    },
+    answertxtfile: {
+      load: () => {
+        setStatus("CUSTOM_LOADED");
+        setCustomLoader(
+          <Box
+            bgcolor={mode === "dark" ? "#282828" : "#ebebeb"}
+            width="100%"
+            height="100%"
+            justifyContent="center"
+            alignItems="flex-start"
+            overflow="auto"
+            display="flex"
+            position="relative"
+          >
+            <Box
+              justifyContent="center"
+              alignItems="center"
+              display="flex"
+              id="file-viewer-spinner"
+              style={{
+                position: "absolute",
+                left: 0,
+                right: 0,
+                bottom: 0,
+                top: 0,
+                background: "#fff",
+              }}
+            >
+              <CircularProgress />
+            </Box>
+            <Scrollbar autoHide style={{ textAlign: "center" }}>
+              <img
+                id="iskwela-img"
+                src={props.file.url}
+                onLoad={() => {
+                  zoomable(document.querySelector("#iskwela-img"));
+                  let s = document.querySelector("#file-viewer-spinner");
+                  if (s) s.parentNode.removeChild(s);
+                }}
+              />
+              <Paper
+                style={{
+                  margin: "20px",
+                  padding: "10px",
+                  maxHeight: "100%",
+                  overflowY: "scroll",
+                }}
+              >
+                {props.file.text}
+              </Paper>
+            </Scrollbar>
+          </Box>
+        );
       },
     },
     iskwela_file: {
