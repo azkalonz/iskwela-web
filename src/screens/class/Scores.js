@@ -307,7 +307,7 @@ function Scores(props) {
           </Grow>
         )
       )}
-      {currentData && (
+      {currentData && !query.activity_id && (
         <Grow in={true}>
           <Paper style={{ margin: isMobile ? 0 : 40 }}>
             <Box p={2}>
@@ -493,7 +493,9 @@ function ScoreDetails(props) {
       getActivityScores();
     }
   }, [activity]);
-  return (
+  return query.q && query.activity_id ? (
+    <ActivityDetails student={student} />
+  ) : (
     <React.Fragment>
       <Box
         width="100%"
@@ -608,18 +610,8 @@ function ScoreDetails(props) {
         isLoading={loading}
         options={tableOptions}
         onRowClick={(e, row) => {
-          // props.history.push(
-          //   window.location.search.replaceUrlParam("activityID", row.id)
-          // );
           props.history.push(
-            makeLinkTo([
-              "class",
-              class_id,
-              schedule_id,
-              option_name,
-              room_name || "",
-              "?activity_id=" + row.id,
-            ])
+            window.location.search.replaceUrlParam("activity_id", row.id)
           );
         }}
       />
@@ -644,7 +636,7 @@ function ActivityDetails(props) {
   };
   useEffect(() => {
     getActivityDetails();
-  }, [query]);
+  }, [query.activity_id]);
   return (
     <React.Fragment>
       <Box>
