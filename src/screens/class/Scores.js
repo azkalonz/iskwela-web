@@ -7,6 +7,7 @@ import {
   DialogTitle,
   Icon,
   List,
+  Divider,
   ListItem,
   ListItemAvatar,
   ListItemText,
@@ -620,27 +621,85 @@ function ScoreDetails(props) {
 }
 function ActivityDetails(props) {
   const query = require("query-string").parse(window.location.search);
-  const { class_id, schedule_id, option_name, room_name } = props.match.params;
+  const { student } = props;
   const theme = useTheme();
   const [activity, setActivity] = useState([]);
+  const [attempt, setAttempt] = useState([]);
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+
   const getActivityDetails = async () => {
     try {
-      let res = Api.post(
+      let res = await Api.get(
         "/api/activity/attempts?activity_id=" +
           query.activity_id +
           "&student_id=" +
-          props.userInfo.id
+          student.id
       );
       setActivity(...res);
-    } catch {}
+    } catch {
+      alert(console.error());
+      setActivity([]);
+    }
+  };
+  const getAttemptDetails = async () => {
+    try {
+      let res2 = await Api.get(
+        "/api/activity/attempt/show?attempt_id=" +
+          activity.attempt_id +
+          "&activity_id=" +
+          query.activity_id
+      );
+      setAttempt(res2);
+    } catch {
+      setAttempt([]);
+    }
   };
   useEffect(() => {
+    getAttemptDetails();
     getActivityDetails();
-  }, [query.activity_id]);
+  }, [query?.activity_id]);
+  console.log(attempt);
   return (
     <React.Fragment>
       <Box>
-        <Typography>Answer Details</Typography>
+        <Paper
+          style={{ padding: "20px", display: "flex", flexDirection: "column" }}
+        >
+          <Box
+            width="100%"
+            display="flex"
+            justifyContent="space-between"
+            flexWrap="wrap"
+          >
+            <IconButton>
+              <Icon color="primary" fontSize="small">
+                arrow_back
+              </Icon>
+            </IconButton>
+          </Box>
+          <Box width={isMobile ? "100%" : "auto"}>
+            <Typography
+              style={{ whiteSpace: "pre-wrap", fontWeight: "bold" }}
+              variant="h6"
+            >
+              {attempt.title}
+            </Typography>
+          </Box>
+          <Box width="100%">
+            <Divider />
+          </Box>
+          <Box p={2}>
+            <Typography color="textSecondary" style={{ fontWeight: "bold" }}>
+              Duration: {attempt.duration}
+            </Typography>
+            <Typography color="textSecondary" style={{ fontWeight: "bold" }}>
+              Instructions:
+            </Typography>
+            <Typography color="textSecondary" style={{ fontWeight: "normal" }}>
+              {attempt.instruction}
+            </Typography>
+          </Box>
+        </Paper>
       </Box>
     </React.Fragment>
   );
