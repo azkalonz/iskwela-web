@@ -441,12 +441,46 @@ function CompareList(props) {
     </React.Fragment>
   );
 }
+
+const qs = require("query-string");
+
+export function AnswerDetails(props) {
+  const query = qs.parse(window.location.search);
+  const [content, setContent] = useState();
+
+  const getContent = async () => {
+    setContent({
+      id: query.id,
+      title: "Sample Title",
+      description: "Sample Description",
+    });
+  };
+  useEffect(() => {
+    if (query.id && !content) {
+      getContent();
+    } else {
+      setContent(null);
+    }
+  }, [query.id]);
+
+  return (
+    <Box>
+      {content && (
+        <Box>
+          smaple text
+        </Box>
+      )}
+      {!content && <Box>No content</Box>}
+      <Button onClick={() => props.history.push("?id=2")}>Sample</Button>
+    </Box>
+  );
+}
+
 function ScoreDetails(props) {
-  const query = require("query-string").parse(window.location.search);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const { student } = props;
-  const { class_id, schedule_id, option_name, room_name } = props.match.params;
+  const { class_id } = props.match.params;
   const [activity, setActivity] = useState(columnKeys[0]);
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -476,7 +510,6 @@ function ScoreDetails(props) {
       );
       setData(
         res.map((r) => ({
-          id: r.id,
           date: moment(r.published_at).format("MMM DD, YYYY"),
           title: r.title,
           perfect_score: parseFloat(r.perfect_score),
@@ -607,49 +640,7 @@ function ScoreDetails(props) {
         data={data}
         isLoading={loading}
         options={tableOptions}
-        onRowClick={(e, row) => {
-          // props.history.push(
-          //   window.location.search.replaceUrlParam("activityID", row.id)
-          // );
-          props.history.push(
-            makeLinkTo([
-              "class",
-              class_id,
-              schedule_id,
-              option_name,
-              room_name || "",
-              "?activity_id=" + row.id,
-            ])
-          );
-        }}
       />
-    </React.Fragment>
-  );
-}
-function ActivityDetails(props) {
-  const query = require("query-string").parse(window.location.search);
-  const { class_id, schedule_id, option_name, room_name } = props.match.params;
-  const theme = useTheme();
-  const [activity, setActivity] = useState([]);
-  const getActivityDetails = async () => {
-    try {
-      let res = Api.post(
-        "/api/activity/attempts?activity_id=" +
-          query.activity_id +
-          "&student_id=" +
-          props.userInfo.id
-      );
-      setActivity(...res);
-    } catch {}
-  };
-  useEffect(() => {
-    getActivityDetails();
-  }, [query]);
-  return (
-    <React.Fragment>
-      <Box>
-        <Typography>Answer Details</Typography>
-      </Box>
     </React.Fragment>
   );
 }
@@ -672,7 +663,6 @@ const tableCells = [
   { title: "Seatworks", field: "seatworks" },
 ].map((q) => ({ ...q, cellStyle }));
 const table2cells = [
-  { title: "Activity ID", field: "id" },
   { title: "Quiz Date", field: "date" },
   { title: "Title", field: "title" },
   {
