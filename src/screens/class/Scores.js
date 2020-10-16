@@ -7,6 +7,7 @@ import {
   DialogTitle,
   Icon,
   List,
+  Divider,
   ListItem,
   ListItemAvatar,
   ListItemText,
@@ -39,6 +40,7 @@ import {
   KeyboardDatePicker,
 } from "@material-ui/pickers";
 import MomentUtils from "@date-io/moment";
+import { fetchData } from "../../screens/Admin/Dashboard";
 
 function Scores(props) {
   const query = require("query-string").parse(window.location.search);
@@ -307,7 +309,7 @@ function Scores(props) {
           </Grow>
         )
       )}
-      {currentData && (
+      {currentData && !query.activity_id && (
         <Grow in={true}>
           <Paper style={{ margin: isMobile ? 0 : 40 }}>
             <Box p={2}>
@@ -442,10 +444,11 @@ function CompareList(props) {
   );
 }
 function ScoreDetails(props) {
+  const query = require("query-string").parse(window.location.search);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const { student } = props;
-  const { class_id } = props.match.params;
+  const { class_id, schedule_id, option_name, room_name } = props.match.params;
   const [activity, setActivity] = useState(columnKeys[0]);
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -475,6 +478,7 @@ function ScoreDetails(props) {
       );
       setData(
         res.map((r) => ({
+          id: r.id,
           date: moment(r.published_at).format("MMM DD, YYYY"),
           title: r.title,
           perfect_score: parseFloat(r.perfect_score),
@@ -491,7 +495,24 @@ function ScoreDetails(props) {
       getActivityScores();
     }
   }, [activity]);
-  return (
+  return query.q && query.activity_id ? (
+    <ActivityDetails
+      onClose={() => {
+        props.history.push(
+          makeLinkTo([
+            "class",
+            class_id,
+            schedule_id,
+            option_name,
+            room_name || "",
+            "?q=" + student.id,
+          ])
+        );
+      }}
+      {...props}
+      student={student}
+    />
+  ) : (
     <React.Fragment>
       <Box
         width="100%"
@@ -605,7 +626,265 @@ function ScoreDetails(props) {
         data={data}
         isLoading={loading}
         options={tableOptions}
+        onRowClick={(e, row) => {
+          props.history.push(
+            window.location.search.replaceUrlParam("activity_id", row.id)
+          );
+        }}
       />
+    </React.Fragment>
+  );
+}
+
+function ActivityDetails(props) {
+  const query = require("query-string").parse(window.location.search);
+  const [errors, setErrors] = useState();
+  const [loading, setLoading] = useState(true);
+  const { student } = props;
+  const theme = useTheme();
+  const [no, setNo] = useState(0);
+  const [activity, setActivity] = useState([]);
+  const [attempt, setAttempt] = useState([]);
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+
+  const getActivityDetails = async () => {
+    setLoading(true);
+    let res, res2;
+    fetchData({
+      before: () => setLoading(true),
+      send: async () => {
+        try {
+          res = await Api.get(
+            "/api/activity/attempts?activity_id=" +
+              query.activity_id +
+              "&student_id=" +
+              student.id
+          );
+          res2 = await Api.get(
+            "/api/activity/attempt/show?attempt_id=" +
+              res[no].attempt_id +
+              "&activity_id=" +
+              query.activity_id
+          );
+        } catch {
+          alert(console.error());
+          setErrors(true);
+          setAttempt([]);
+          setActivity([]);
+        }
+      },
+      after: (data) => {
+        setActivity(res);
+        setAttempt(res2);
+        setLoading(false);
+      },
+    });
+  };
+  useEffect(() => {
+    getActivityDetails();
+  }, [query?.activity_id, no]);
+  return (
+    <React.Fragment>
+      {loading && (
+        <Box
+          fullWidth
+          height="100%"
+          display="flex"
+          alignItems="center"
+          justifyContent="center"
+        >
+          <CircularProgress />
+        </Box>
+      )}
+      {
+        (!loading,
+        !errors && (
+          <Box>
+            <Paper
+              style={{
+                padding: "10px",
+                display: "flex",
+                flexDirection: "column",
+              }}
+            >
+              <Box
+                width="100%"
+                display="flex"
+                justifyContent="space-between"
+                flexWrap="wrap"
+              >
+                <IconButton onClick={props.onClose}>
+                  <Icon color="primary" fontSize="small">
+                    arrow_back
+                  </Icon>
+                </IconButton>
+                <FormControl
+                  variant="outlined"
+                  className={
+                    "themed-input " +
+                    (theme.palette.type === "dark" ? "light" : "dark")
+                  }
+                  style={
+                    isMobile
+                      ? {
+                          paddingRight: theme.spacing(2),
+                          marginTop: 32,
+                          width: "100%",
+                        }
+                      : {
+                          marginTop: 32,
+                          width: "10%",
+                        }
+                  }
+                >
+                  <InputLabel>Attempt</InputLabel>
+                  <Select
+                    label="Attempt"
+                    color="primary"
+                    defaultValue={no}
+                    onChange={(e) => {
+                      let val = e.target.value;
+                      setNo(val);
+                    }}
+                  >
+                    {activity.map((key, i) => (
+                      <MenuItem value={i} key={i}>
+                        <Typography>{(i = i + 1)}</Typography>
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Box>
+              <Box width="100%" style={{ marginTop: "10px" }}>
+                <Divider />
+              </Box>
+              <Box width={isMobile ? "100%" : "auto"}>
+                <Typography variant="h6">{attempt.title}</Typography>
+              </Box>
+              <Box p={2}>
+                <Typography
+                  color="textSecondary"
+                  style={{ fontWeight: "bold" }}
+                >
+                  Duration: {attempt.duration}
+                </Typography>
+                <Typography
+                  color="textSecondary"
+                  style={{ fontWeight: "bold" }}
+                >
+                  Instructions:
+                </Typography>
+                <Typography
+                  color="textSecondary"
+                  style={{ fontWeight: "normal" }}
+                >
+                  {attempt.instruction}
+                </Typography>
+              </Box>
+            </Paper>
+            <Box>
+              {attempt?.questionnaires &&
+                attempt.questionnaires.map((data) => {
+                  return (
+                    <Typography key={data.id}>
+                      {" "}
+                      {data?.questions &&
+                        data.questions.map((data, i) => {
+                          return (
+                            <Paper
+                              elevation={3}
+                              style={{
+                                marginTop: 30,
+                                padding: 20,
+                                // borderTopLeftRadius: "5.5%",
+                                // borderBottomLeftRadius: "5.5%",
+                                borderLeft: "20px solid",
+                                borderLeftColor: "#5DD583",
+                              }}
+                            >
+                              <Typography key={data.id}>
+                                {i + 1}. {data.question}
+                                <br />
+                                {data.media_url ? (
+                                  <Box textAlign="center">
+                                    <img
+                                      src={data.media_url}
+                                      style={{
+                                        maxHeight: isMobile ? 200 : 400,
+                                        maxWidth: isMobile ? 200 : 400,
+                                      }}
+                                    />
+                                  </Box>
+                                ) : (
+                                  ""
+                                )}
+                                <br />
+                                {data.choices.map((data, i) => {
+                                  return (
+                                    <ul>
+                                      {String.fromCharCode(65 + i)}.{" "}
+                                      {data.option}
+                                    </ul>
+                                  );
+                                })}
+                                <Typography
+                                  color="textSecondary"
+                                  style={{ fontWeight: "bold" }}
+                                >
+                                  Correct Answer:
+                                  {data.choices.map((data, i) => {
+                                    return (
+                                      <div>
+                                        {data.is_correct === 1 && (
+                                          <ul
+                                            style={{
+                                              color: "green",
+                                              fontWeight: "bold",
+                                            }}
+                                          >
+                                            {data.option}
+                                          </ul>
+                                        )}
+                                      </div>
+                                    );
+                                  })}
+                                </Typography>
+                                {data.student_answer && (
+                                  <Typography
+                                    color="textSecondary"
+                                    style={{
+                                      //  color:
+                                      //    data.student_answer.is_correct === 1
+                                      //      ? setBorder(["green"])
+                                      //     : setBorder("red"),
+                                      fontWeight: "bold",
+                                    }}
+                                  >
+                                    Student's Answer:
+                                    <ul
+                                      style={{
+                                        color:
+                                          data.student_answer.is_correct === 1
+                                            ? "green"
+                                            : "red",
+                                        fontWeight: "bold",
+                                      }}
+                                    >
+                                      {data.student_answer.answer}
+                                    </ul>
+                                  </Typography>
+                                )}
+                              </Typography>
+                            </Paper>
+                          );
+                        })}
+                    </Typography>
+                  );
+                })}
+            </Box>
+          </Box>
+        ))
+      }
     </React.Fragment>
   );
 }
@@ -628,6 +907,7 @@ const tableCells = [
   { title: "Seatworks", field: "seatworks" },
 ].map((q) => ({ ...q, cellStyle }));
 const table2cells = [
+  { title: "Activity ID", field: "id" },
   { title: "Quiz Date", field: "date" },
   { title: "Title", field: "title" },
   {
