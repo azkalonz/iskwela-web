@@ -674,19 +674,19 @@ function ActivityDetails(props) {
             <IconButton>
               <Icon color="primary" fontSize="small">
                 arrow_back
-              </Icon>
-            </IconButton>
+              </Icon></IconButton>
+              
+              <Box width={isMobile ? "100%" : "auto"}>
+          <Typography variant="h6" >Answer Details</Typography>
           </Box>
-          <Box width={isMobile ? "100%" : "auto"}>
-            <Typography
-              style={{ whiteSpace: "pre-wrap", fontWeight: "bold" }}
-              variant="h6"
-            >
-              {attempt.title}
-            </Typography>
+            
           </Box>
+         
           <Box width="100%">
             <Divider />
+          </Box>
+           <Box width={isMobile ? "100%" : "auto"}>
+  <Typography variant="h6" >{attempt.title}</Typography>
           </Box>
           <Box p={2}>
             <Typography color="textSecondary" style={{ fontWeight: "bold" }}>
@@ -698,6 +698,38 @@ function ActivityDetails(props) {
             <Typography color="textSecondary" style={{ fontWeight: "normal" }}>
               {attempt.instruction}
             </Typography>
+          </Box>
+
+    
+          <Box 
+          >
+          <Paper style={{padding:20}}> {attempt?.questionnaires && attempt.questionnaires.map((data)=>{
+            return(
+            <Typography key={data.id}> {data?.questions && data.questions.map((data, i)=>{
+              return(
+                <Typography key={data.id}>
+              {i+1}. {data.question}
+               {data.choices.map((data, i)=>{
+                return( <ul>{String.fromCharCode(65 + i)}. {data.option}</ul> )
+               }
+               )}
+               {data.choices.map((data, i)=>{
+                return(
+                  <div>
+                  {data.is_correct === 1 && <Typography>Correct Answer: {data.option}</Typography>}
+                </div>
+                )
+              })}
+              {data.student_answer && <Typography>Student's Answer: {data.student_answer.answer}</Typography>}
+            <hr/>
+              
+              </Typography>
+              )
+            })}
+            
+            </Typography>
+          )})}
+            </Paper>
           </Box>
         </Paper>
       </Box>
