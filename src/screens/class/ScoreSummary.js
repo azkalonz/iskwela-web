@@ -8,6 +8,7 @@ import {
   Grid,
   CircularProgress,
   ListItemText,
+  InputLabel,
   ListItemSecondaryAction,
   useTheme,
   Icon,
@@ -626,26 +627,27 @@ function ActivityDetails(props) {
   }, [query?.activity_id, no]);
   return (
     <React.Fragment>
-      {loading && (
-        <Box
-          fullWidth
-          height="100%"
-          display="flex"
-          alignItems="center"
-          justifyContent="center"
-        >
-          <CircularProgress />
-        </Box>
-      )}
       {
         (!loading,
         !errors && (
           <Box>
+            {loading && (
+              <Box
+                fullWidth
+                height="100%"
+                display="flex"
+                alignItems="center"
+                justifyContent="center"
+              >
+                <CircularProgress />
+              </Box>
+            )}
             <Paper
               style={{
                 padding: "10px",
                 display: "flex",
                 flexDirection: "column",
+                margin: 32,
               }}
             >
               <Box
@@ -673,18 +675,16 @@ function ActivityDetails(props) {
                           width: "100%",
                         }
                       : {
+                          marginTop: 32,
                           width: "10%",
                         }
                   }
                 >
-                  <Typography
-                    style={{ textAlign: "center", fontWeight: "bold" }}
-                  >
-                    Attempt
-                  </Typography>
+                  <InputLabel>Attempt</InputLabel>
                   <Select
                     label="Attempt"
                     color="primary"
+                    defaultValue={no}
                     onChange={(e) => {
                       let val = e.target.value;
                       setNo(val);
@@ -725,17 +725,26 @@ function ActivityDetails(props) {
                 </Typography>
               </Box>
             </Paper>
-            <Box>
-              <Paper style={{ padding: 20, marginTop: 30 }}>
-                {" "}
-                {attempt?.questionnaires &&
-                  attempt.questionnaires.map((data) => {
-                    return (
-                      <Typography key={data.id}>
-                        {" "}
-                        {data?.questions &&
-                          data.questions.map((data, i) => {
-                            return (
+            <Box style={{ margin: 32 }}>
+              {attempt?.questionnaires &&
+                attempt.questionnaires.map((data) => {
+                  return (
+                    <Typography key={data.id}>
+                      {" "}
+                      {data?.questions &&
+                        data.questions.map((data, i) => {
+                          return (
+                            <Paper
+                              elevation={3}
+                              style={{
+                                marginTop: 30,
+                                padding: 20,
+                                // borderTopLeftRadius: "5.5%",
+                                // borderBottomLeftRadius: "5.5%",
+                                borderLeft: "20px solid",
+                                borderLeftColor: "#5DD583",
+                              }}
+                            >
                               <Typography key={data.id}>
                                 {i + 1}. {data.question}
                                 <br />
@@ -786,9 +795,15 @@ function ActivityDetails(props) {
                                 {data.student_answer && (
                                   <Typography
                                     color="textSecondary"
-                                    style={{ fontWeight: "bold" }}
+                                    style={{
+                                      //  color:
+                                      //    data.student_answer.is_correct === 1
+                                      //      ? setBorder(["green"])
+                                      //     : setBorder("red"),
+                                      fontWeight: "bold",
+                                    }}
                                   >
-                                    Student's Answer:{" "}
+                                    Student's Answer:
                                     <ul
                                       style={{
                                         color:
@@ -802,14 +817,13 @@ function ActivityDetails(props) {
                                     </ul>
                                   </Typography>
                                 )}
-                                <hr />
                               </Typography>
-                            );
-                          })}
-                      </Typography>
-                    );
-                  })}
-              </Paper>
+                            </Paper>
+                          );
+                        })}
+                    </Typography>
+                  );
+                })}
             </Box>
           </Box>
         ))
