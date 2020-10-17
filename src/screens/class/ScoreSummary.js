@@ -589,7 +589,6 @@ function ActivityDetails(props) {
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
   const getActivityDetails = async () => {
-    setLoading(true);
     let res, res2;
     fetchData({
       before: () => setLoading(true),
@@ -627,171 +626,194 @@ function ActivityDetails(props) {
   }, [query?.activity_id, no]);
   return (
     <React.Fragment>
-      {!loading && (
-        <Box>
-          <Paper
-            style={{
-              padding: "10px",
-              display: "flex",
-              flexDirection: "column",
-            }}
-          >
-            <Box
-              width="100%"
-              display="flex"
-              justifyContent="space-between"
-              flexWrap="wrap"
-            >
-              <IconButton onClick={props.onClose}>
-                <Icon color="primary" fontSize="small">
-                  arrow_back
-                </Icon>
-              </IconButton>
-              <FormControl
-                variant="outlined"
-                className={
-                  "themed-input " +
-                  (theme.palette.type === "dark" ? "light" : "dark")
-                }
-                style={
-                  isMobile
-                    ? {
-                        paddingRight: theme.spacing(2),
-                        marginTop: 32,
-                        width: "100%",
-                      }
-                    : {
-                        width: "10%",
-                      }
-                }
-              >
-                <Typography style={{ textAlign: "center", fontWeight: "bold" }}>
-                  Attempt
-                </Typography>
-                <Select
-                  label="Attempt"
-                  color="primary"
-                  onChange={(e) => {
-                    let val = e.target.value;
-                    setNo(val);
-                  }}
-                >
-                  {activity.map((key, i) => (
-                    <MenuItem value={i} key={i}>
-                      <Typography>{(i = i + 1)}</Typography>
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Box>
-            <Box width="100%" style={{ marginTop: "10px" }}>
-              <Divider />
-            </Box>
-            <Box width={isMobile ? "100%" : "auto"}>
-              <Typography variant="h6">{attempt.title}</Typography>
-            </Box>
-            <Box p={2}>
-              <Typography color="textSecondary" style={{ fontWeight: "bold" }}>
-                Duration: {attempt.duration}
-              </Typography>
-              <Typography color="textSecondary" style={{ fontWeight: "bold" }}>
-                Instructions:
-              </Typography>
-              <Typography
-                color="textSecondary"
-                style={{ fontWeight: "normal" }}
-              >
-                {attempt.instruction}
-              </Typography>
-            </Box>
-          </Paper>
+      {loading && (
+        <Box
+          fullWidth
+          height="100%"
+          display="flex"
+          alignItems="center"
+          justifyContent="center"
+        >
+          <CircularProgress />
+        </Box>
+      )}
+      {
+        (!loading,
+        !errors && (
           <Box>
-            <Paper style={{ padding: 20, marginTop: 30 }}>
-              {" "}
-              {attempt?.questionnaires &&
-                attempt.questionnaires.map((data) => {
-                  return (
-                    <Typography key={data.id}>
-                      {" "}
-                      {data?.questions &&
-                        data.questions.map((data, i) => {
-                          return (
-                            <Typography key={data.id}>
-                              {i + 1}. {data.question}
-                              <br />
-                              {data.media_url ? (
-                                <Box textAlign="center">
-                                  <img
-                                    src={data.media_url}
-                                    style={{
-                                      maxHeight: isMobile ? 200 : 400,
-                                      maxWidth: isMobile ? 200 : 400,
-                                    }}
-                                  />
-                                </Box>
-                              ) : (
-                                ""
-                              )}
-                              <br />
-                              {data.choices.map((data, i) => {
-                                return (
-                                  <ul>
-                                    {String.fromCharCode(65 + i)}. {data.option}
-                                  </ul>
-                                );
-                              })}
-                              <Typography
-                                color="textSecondary"
-                                style={{ fontWeight: "bold" }}
-                              >
-                                Correct Answer:
+            <Paper
+              style={{
+                padding: "10px",
+                display: "flex",
+                flexDirection: "column",
+              }}
+            >
+              <Box
+                width="100%"
+                display="flex"
+                justifyContent="space-between"
+                flexWrap="wrap"
+              >
+                <IconButton onClick={props.onClose}>
+                  <Icon color="primary" fontSize="small">
+                    arrow_back
+                  </Icon>
+                </IconButton>
+                <FormControl
+                  variant="outlined"
+                  className={
+                    "themed-input " +
+                    (theme.palette.type === "dark" ? "light" : "dark")
+                  }
+                  style={
+                    isMobile
+                      ? {
+                          paddingRight: theme.spacing(2),
+                          marginTop: 32,
+                          width: "100%",
+                        }
+                      : {
+                          width: "10%",
+                        }
+                  }
+                >
+                  <Typography
+                    style={{ textAlign: "center", fontWeight: "bold" }}
+                  >
+                    Attempt
+                  </Typography>
+                  <Select
+                    label="Attempt"
+                    color="primary"
+                    onChange={(e) => {
+                      let val = e.target.value;
+                      setNo(val);
+                    }}
+                  >
+                    {activity.map((key, i) => (
+                      <MenuItem value={i} key={i}>
+                        <Typography>{(i = i + 1)}</Typography>
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Box>
+              <Box width="100%" style={{ marginTop: "10px" }}>
+                <Divider />
+              </Box>
+              <Box width={isMobile ? "100%" : "auto"}>
+                <Typography variant="h6">{attempt.title}</Typography>
+              </Box>
+              <Box p={2}>
+                <Typography
+                  color="textSecondary"
+                  style={{ fontWeight: "bold" }}
+                >
+                  Duration: {attempt.duration}
+                </Typography>
+                <Typography
+                  color="textSecondary"
+                  style={{ fontWeight: "bold" }}
+                >
+                  Instructions:
+                </Typography>
+                <Typography
+                  color="textSecondary"
+                  style={{ fontWeight: "normal" }}
+                >
+                  {attempt.instruction}
+                </Typography>
+              </Box>
+            </Paper>
+            <Box>
+              <Paper style={{ padding: 20, marginTop: 30 }}>
+                {" "}
+                {attempt?.questionnaires &&
+                  attempt.questionnaires.map((data) => {
+                    return (
+                      <Typography key={data.id}>
+                        {" "}
+                        {data?.questions &&
+                          data.questions.map((data, i) => {
+                            return (
+                              <Typography key={data.id}>
+                                {i + 1}. {data.question}
+                                <br />
+                                {data.media_url ? (
+                                  <Box textAlign="center">
+                                    <img
+                                      src={data.media_url}
+                                      style={{
+                                        maxHeight: isMobile ? 200 : 400,
+                                        maxWidth: isMobile ? 200 : 400,
+                                      }}
+                                    />
+                                  </Box>
+                                ) : (
+                                  ""
+                                )}
+                                <br />
                                 {data.choices.map((data, i) => {
                                   return (
-                                    <div>
-                                      {data.is_correct === 1 && (
-                                        <ul
-                                          style={{
-                                            color: "green",
-                                            fontWeight: "bold",
-                                          }}
-                                        >
-                                          {data.option}
-                                        </ul>
-                                      )}
-                                    </div>
+                                    <ul>
+                                      {String.fromCharCode(65 + i)}.{" "}
+                                      {data.option}
+                                    </ul>
                                   );
                                 })}
-                              </Typography>
-                              {data.student_answer && (
                                 <Typography
                                   color="textSecondary"
                                   style={{ fontWeight: "bold" }}
                                 >
-                                  Student's Answer:{" "}
-                                  <ul
-                                    style={{
-                                      color:
-                                        data.student_answer.is_correct === 1
-                                          ? "green"
-                                          : "red",
-                                      fontWeight: "bold",
-                                    }}
-                                  >
-                                    {data.student_answer.answer}
-                                  </ul>
+                                  Correct Answer:
+                                  {data.choices.map((data, i) => {
+                                    return (
+                                      <div>
+                                        {data.is_correct === 1 && (
+                                          <ul
+                                            style={{
+                                              color: "green",
+                                              fontWeight: "bold",
+                                            }}
+                                          >
+                                            {data.option}
+                                          </ul>
+                                        )}
+                                      </div>
+                                    );
+                                  })}
                                 </Typography>
-                              )}
-                              <hr />
-                            </Typography>
-                          );
-                        })}
-                    </Typography>
-                  );
-                })}
-            </Paper>
+                                {data.student_answer && (
+                                  <Typography
+                                    color="textSecondary"
+                                    style={{ fontWeight: "bold" }}
+                                  >
+                                    Student's Answer:{" "}
+                                    <ul
+                                      style={{
+                                        color:
+                                          data.student_answer.is_correct === 1
+                                            ? "green"
+                                            : "red",
+                                        fontWeight: "bold",
+                                      }}
+                                    >
+                                      {data.student_answer.answer}
+                                    </ul>
+                                  </Typography>
+                                )}
+                                <hr />
+                              </Typography>
+                            );
+                          })}
+                      </Typography>
+                    );
+                  })}
+              </Paper>
+            </Box>
           </Box>
-        </Box>
-      )}
+        ))
+      }
     </React.Fragment>
   );
 }
