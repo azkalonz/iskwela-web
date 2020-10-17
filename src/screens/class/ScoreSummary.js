@@ -19,8 +19,9 @@ import {
   useMediaQuery,
   FormControl,
   Select,
-  Divider
+  Divider,
 } from "@material-ui/core";
+import { fetchData } from "../../screens/Admin/Dashboard";
 import Rating from "@material-ui/lab/Rating";
 import MoreHorizIcon from "@material-ui/icons/MoreHoriz";
 import PopupState, {
@@ -50,7 +51,7 @@ const ScoreSummary = (props) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const query = qs.parse(window.location.search);
-  const { class_id, } = props.match.params;
+  const { class_id } = props.match.params;
   const [currentActivity, setCurrentActivity] = useState(query.activity);
   const [scores, setScores] = useState();
   const { userInfo, parentData } = props;
@@ -337,7 +338,6 @@ function DetailedScores(props) {
         );
       }}
       {...props}
-    
     />
   ) : (
     <Box>
@@ -381,6 +381,12 @@ function DetailedScores(props) {
               title: "Score",
               align: "flex-end",
               width: "33%",
+            },
+          ]}
+          options={[
+            {
+              name: "View",
+              value: "view",
             },
           ]}
           data={scores}
@@ -437,9 +443,22 @@ function DetailedScores(props) {
               flexDirection="column"
               justifyContent="space-between"
               style={{ padding: "30px 0" }}
+              onClick={(e) => {
+                props.history.push(
+                  makeLinkTo([
+                    "class",
+                    class_id,
+                    schedule_id,
+                    option_name,
+                    room_name || "",
+                    "?q=" + props.userInfo.id,
+                    "&activity_id=" + item.id,
+                  ])
+                );
+              }}
             >
               <Box width="100%" marginBottom={1}>
-              <Typography
+                <Typography
                   style={{
                     fontWeight: "bold",
                     color: "#38108d",
@@ -511,19 +530,26 @@ function DetailedScores(props) {
             </Box>
           )}
           rowRender={(item, { disabled = true }) => (
-            <Box style={{display:"flex", flexDirection:"row"}} onClick={(e) => {
-              props.history.push(
-                makeLinkTo([
-                  "class",
-                  class_id,
-                  schedule_id,
-                  option_name,
-                  room_name || "",
-                  "?q=" + props.userInfo.id,
-                  "&activity_id="+item.id,
-                ])
-              );}}>
-              
+            <Box
+              display="flex"
+              width="100%"
+              flexDirection="row"
+              justifyContent="space-between"
+              style={{ padding: "10px 0" }}
+              onClick={(e) => {
+                props.history.push(
+                  makeLinkTo([
+                    "class",
+                    class_id,
+                    schedule_id,
+                    option_name,
+                    room_name || "",
+                    "?q=" + props.userInfo.id,
+                    "&activity_id=" + item.id,
+                  ])
+                );
+              }}
+            >
               <Box width="33%">{item.id}</Box>
               <Box width="33%">{item.title}</Box>
               <Box width="33%" textAlign="center">
@@ -544,8 +570,7 @@ function DetailedScores(props) {
                   precision={0.1}
                 />
               </Box>
-              
-            </Box >
+            </Box>
           )}
         />
       )}
@@ -558,34 +583,43 @@ function ActivityDetails(props) {
   const [loading, setLoading] = useState(true);
   const theme = useTheme();
   const [no, setNo] = useState(0);
+  const [errors, setErrors] = useState();
   const [activity, setActivity] = useState([]);
   const [attempt, setAttempt] = useState([]);
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
   const getActivityDetails = async () => {
-   
     setLoading(true);
-    try {
-      let res = await Api.get(
-        "/api/activity/attempts?activity_id=" +
-          query.activity_id +
-          "&student_id=" +
-          props.userInfo.id
-      );
-      let res2 = await Api.get(
-        "/api/activity/attempt/show?attempt_id=" +
-          res[no].attempt_id +
-          "&activity_id=" +
-          query.activity_id
-      );
-      setActivity(res);
-      setAttempt(res2);
-    } catch {
-      alert(console.error());
-      setAttempt([]);
-      setActivity([]);
-    }
-    setLoading(false);
+    let res, res2;
+    fetchData({
+      before: () => setLoading(true),
+      send: async () => {
+        try {
+          res = await Api.get(
+            "/api/activity/attempts?activity_id=" +
+              query.activity_id +
+              "&student_id=" +
+              props.userInfo.id
+          );
+          res2 = await Api.get(
+            "/api/activity/attempt/show?attempt_id=" +
+              res[no].attempt_id +
+              "&activity_id=" +
+              query.activity_id
+          );
+        } catch {
+          alert(console.error());
+          setErrors(true);
+          setAttempt([]);
+          setActivity([]);
+        }
+      },
+      after: (data) => {
+        setActivity(res);
+        setAttempt(res2);
+        setLoading(false);
+      },
+    });
   };
 
   useEffect(() => {
@@ -733,9 +767,18 @@ function ActivityDetails(props) {
                                   color="textSecondary"
                                   style={{ fontWeight: "bold" }}
                                 >
-                                  Student's Answer: <ul  style={{
-                                            color:data.student_answer.is_correct === 1? "green":"red",
-                                            fontWeight: "bold"}}>{data.student_answer.answer}</ul>
+                                  Student's Answer:{" "}
+                                  <ul
+                                    style={{
+                                      color:
+                                        data.student_answer.is_correct === 1
+                                          ? "green"
+                                          : "red",
+                                      fontWeight: "bold",
+                                    }}
+                                  >
+                                    {data.student_answer.answer}
+                                  </ul>
                                 </Typography>
                               )}
                               <hr />
