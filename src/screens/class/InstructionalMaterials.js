@@ -788,7 +788,7 @@ function InstructionalMaterials(props) {
                 <ListItemIcon>
                   <Icon>create</Icon>
                 </ListItemIcon>
-                <ListItemText primary="Content Creator" />
+                <ListItemText primary="Content Maker" />
               </StyledMenuItem>
               <StyledMenuItem onClick={() => handleClickOpen("WEB_LINK")}>
                 <ListItemIcon>
