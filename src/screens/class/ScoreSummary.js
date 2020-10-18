@@ -324,7 +324,7 @@ function DetailedScores(props) {
   useEffect(() => {
     getDetailedScores();
   }, []);
-  return query.q && query.activity_id ? (
+  return query.activity_id ? (
     <ActivityDetails
       onClose={() => {
         props.history.push(
@@ -334,7 +334,6 @@ function DetailedScores(props) {
             schedule_id,
             option_name,
             room_name || "",
-            "?q=" + props.userInfo.id,
           ])
         );
       }}
@@ -581,6 +580,7 @@ function DetailedScores(props) {
 
 function ActivityDetails(props) {
   const query = require("query-string").parse(window.location.search);
+  const { class_id, schedule_id, option_name, room_name } = props.match.params;
   const [loading, setLoading] = useState(true);
   const theme = useTheme();
   const [no, setNo] = useState(0);
@@ -609,6 +609,15 @@ function ActivityDetails(props) {
           );
         } catch {
           alert(console.error());
+          props.history.push(
+            makeLinkTo([
+              "class",
+              class_id,
+              schedule_id,
+              option_name,
+              room_name || "",
+            ])
+          );
           setErrors(true);
           setAttempt([]);
           setActivity([]);
@@ -631,17 +640,7 @@ function ActivityDetails(props) {
         (!loading,
         !errors && (
           <Box>
-            {loading && (
-              <Box
-                fullWidth
-                height="100%"
-                display="flex"
-                alignItems="center"
-                justifyContent="center"
-              >
-                <CircularProgress />
-              </Box>
-            )}
+            
             <Paper
               style={{
                 padding: "10px",
@@ -828,6 +827,17 @@ function ActivityDetails(props) {
           </Box>
         ))
       }
+      {loading && (
+              <Box
+                fullWidth
+                height="100%"
+                display="flex"
+                alignItems="center"
+                justifyContent="center"
+              >
+                <CircularProgress />
+              </Box>
+            )}
     </React.Fragment>
   );
 }

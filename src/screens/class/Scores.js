@@ -638,6 +638,7 @@ function ScoreDetails(props) {
 
 function ActivityDetails(props) {
   const query = require("query-string").parse(window.location.search);
+  const { class_id, schedule_id, option_name, room_name } = props.match.params;
   const [errors, setErrors] = useState();
   const [loading, setLoading] = useState(true);
   const { student } = props;
@@ -668,6 +669,16 @@ function ActivityDetails(props) {
           );
         } catch {
           alert(console.error());
+          props.history.push(
+            makeLinkTo([
+              "class",
+              class_id,
+              schedule_id,
+              option_name,
+              room_name || "",
+              "?q=" + student.id,
+            ])
+          );
           setErrors(true);
           setAttempt([]);
           setActivity([]);
@@ -685,17 +696,7 @@ function ActivityDetails(props) {
   }, [query?.activity_id, no]);
   return (
     <React.Fragment>
-      {loading && (
-        <Box
-          fullWidth
-          height="100%"
-          display="flex"
-          alignItems="center"
-          justifyContent="center"
-        >
-          <CircularProgress />
-        </Box>
-      )}
+     
       {
         (!loading,
         !errors && (
@@ -885,6 +886,17 @@ function ActivityDetails(props) {
           </Box>
         ))
       }
+       {loading && (
+        <Box
+          fullWidth
+          height="100%"
+          display="flex"
+          alignItems="center"
+          justifyContent="center"
+        >
+          <CircularProgress />
+        </Box>
+      )}
     </React.Fragment>
   );
 }
