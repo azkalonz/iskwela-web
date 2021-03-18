@@ -14,6 +14,7 @@ import {
   ListItem,
   ListItemText,
   Paper,
+  Snackbar,
   TextField,
   Typography,
   useMediaQuery,
@@ -24,6 +25,7 @@ import React, { useEffect, useState } from "react";
 import { connect } from "react-redux";
 import { useHistory } from "react-router-dom";
 import Api from "../../api";
+import { Alert } from "../../components/dialogs";
 import store from "../../components/redux/store";
 import { makeLinkTo } from "../../components/router-dom";
 import socket from "../../components/socket.io";
@@ -39,6 +41,7 @@ function AnswerQuiz(props) {
   const [answers, setAnswers] = useState({});
   const [quizScore, setQuizScore] = useState();
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState(false);
   const [quizState, setQuizState] = useState({});
   const [currentSlide, setCurrentSlide] = useState();
   const [flaggedQuestions, setFlagged] = useState([]);
@@ -217,6 +220,15 @@ function AnswerQuiz(props) {
 
   return props.userInfo.user_type !== "p" ? (
     <React.Fragment>
+      <Snackbar
+        open={error}
+        autoHideDuration={6000}
+        onClose={() => setError(false)}
+      >
+        <Alert onClose={() => setError(false)} severity="error">
+          Cannot load the image. Please contact your system administrator.
+        </Alert>
+      </Snackbar>
       <Dialog
         open={quizScore ? true : false}
         onClose={() => setQuizScore(null)}
@@ -375,11 +387,12 @@ function AnswerQuiz(props) {
                     >
                       <img
                         id="question-image"
-                        onError={() =>
-                          (document.querySelector(
+                        onError={() => {
+                          setError(true);
+                          document.querySelector(
                             "#question-image"
-                          ).parentElement.style.display = "none")
-                        }
+                          ).parentElement.style.display = "none";
+                        }}
                         onLoad={() =>
                           (document.querySelector(
                             "#question-image"
