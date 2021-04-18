@@ -1428,6 +1428,25 @@ const useStyles = makeStyles((theme) => ({
     justifyContent: "flex-start",
   },
 }));
+
+export function getMainContainerElement() {
+  return document.querySelector("#nav-bar").parentElement;
+}
+
+export function isBottomScroll(ele) {
+  var sh = ele.scrollHeight;
+  var st = ele.scrollTop;
+  var ht = ele.offsetHeight;
+  if (ht == 0) {
+    return true;
+  }
+  if (st >= sh - ht) {
+    return true;
+  } else {
+    return false;
+  }
+}
+
 export default connect((states) => ({
   parentData: states.parentData,
   userInfo: states.userInfo,

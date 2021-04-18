@@ -48,6 +48,7 @@ import { Link } from "react-router-dom";
 import Drawer from "../components/Drawer";
 import NavBar from "../components/NavBar";
 import Scrollbar from "../components/Scrollbar";
+import { isBottomScroll } from "../containers/Class";
 
 const key = {};
 function keyPress(e) {
@@ -961,7 +962,8 @@ function Bulletin(props) {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState();
   const styles = useStyles();
-  const [totalItems, setTotalItems] = useState(0);
+  const [posts, setPosts] = useState([]);
+  const [totalItems, setTotalItems] = useState(null);
   const isTablet = useMediaQuery(theme.breakpoints.down("md"));
   const [discussionPage, setDiscussionPage] = useState(
     (!isNaN(parseInt(query.page)) && parseInt(query.page)) || 1
@@ -971,23 +973,29 @@ function Bulletin(props) {
   };
   const getPosts = async () => {
     if (!school_id) return;
+    window.isFetching = true;
     isLoading(true);
     try {
       let p = await Api.get(
-        "/api/post/school/" + school_id + "?include=comments&page=" + query.page
+        "/api/post/school/" +
+          school_id +
+          "?include=comments&page=" +
+          window.currentPage
       );
-      UserData.setPosts(school_id, p.posts);
+      setPosts(posts.concat(p.posts));
       setTotalItems(p.total_count);
       isLoading(false);
+      window.isFetching = false;
+      window.currentPage++;
     } catch (e) {}
   };
   useEffect(() => {
-    UserData.setPosts(school_id, []);
     getPosts();
   }, [query.page]);
   useEffect(() => {
     window.removeEventListener("keydown", keyPress);
     window.addEventListener("keydown", keyPress);
+    window.currentPage = 1;
   }, []);
   return (
     <Drawer {...props}>
@@ -1020,7 +1028,15 @@ function Bulletin(props) {
             width: "100%",
           }}
         >
-          <Scrollbar autoHide>
+          <Scrollbar
+            autoHide
+            onScroll={({ target }) => {
+              if (totalItems !== null && posts.length >= totalItems) return;
+              if (!!!window.isFetching && isBottomScroll(target)) {
+                getPosts();
+              }
+            }}
+          >
             <Box display="flex" justifyContent="center" alignItems="flex-start">
               <Box width="100%" maxWidth={765}>
                 <ConnectedStartADiscussion
@@ -1042,7 +1058,7 @@ function Bulletin(props) {
                     disabledComment={true}
                   />
                 )}
-                {props.posts.current.map((p, index) => (
+                {posts.map((p, index) => (
                   <Discussion
                     key={index}
                     {...props}
@@ -1051,54 +1067,7 @@ function Bulletin(props) {
                   />
                 ))}
                 <Box marginTop={2} marginBottom={2}>
-                  {!loading ? (
-                    <Pagination
-                      count={totalItems}
-                      itemsPerPage={10}
-                      icon={
-                        <img
-                          src="/hero-img/no-posts.svg"
-                          width={180}
-                          style={{ padding: "50px 0" }}
-                        />
-                      }
-                      emptyTitle="No discussions yet"
-                      emptyMessage={
-                        <Button
-                          onClick={() => {
-                            document.querySelector(
-                              "#right-panel"
-                            ).scrollTop = 0;
-                            document
-                              .querySelector("#start-a-discussion")
-                              .click();
-                          }}
-                        >
-                          Start one
-                        </Button>
-                      }
-                      nolink
-                      page={discussionPage}
-                      onChange={(p) => {
-                        setDiscussionPage(p);
-                        props.history.push(
-                          makeLinkTo([
-                            "bulletin",
-                            schedule_id,
-                            "",
-                            "?page=" + p,
-                          ])
-                        );
-                        let r = document.querySelector("#right-panel");
-                        if (r) {
-                          r =
-                            r.firstElementChild.firstElementChild
-                              .firstElementChild;
-                          r.scrollTop = 0;
-                        }
-                      }}
-                    />
-                  ) : (
+                  {loading && (
                     <Box width="100%" display="flex" justifyContent="center">
                       <CircularProgress />
                     </Box>
