@@ -961,6 +961,7 @@ function Bulletin(props) {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState();
   const styles = useStyles();
+  const [totalItems, setTotalItems] = useState(0);
   const isTablet = useMediaQuery(theme.breakpoints.down("md"));
   const [discussionPage, setDiscussionPage] = useState(
     (!isNaN(parseInt(query.page)) && parseInt(query.page)) || 1
@@ -973,16 +974,17 @@ function Bulletin(props) {
     isLoading(true);
     try {
       let p = await Api.get(
-        "/api/post/school/" + school_id + "?include=comments"
+        "/api/post/school/" + school_id + "?include=comments&page=" + query.page
       );
-      UserData.setPosts(school_id, p);
+      UserData.setPosts(school_id, p.posts);
+      setTotalItems(p.total_count);
       isLoading(false);
     } catch (e) {}
   };
   useEffect(() => {
     UserData.setPosts(school_id, []);
     getPosts();
-  }, [school_id]);
+  }, [query.page]);
   useEffect(() => {
     window.removeEventListener("keydown", keyPress);
     window.addEventListener("keydown", keyPress);
@@ -1040,26 +1042,18 @@ function Bulletin(props) {
                     disabledComment={true}
                   />
                 )}
-                {getPageItems(
-                  props.posts.current
-                    .sort(
-                      (a, b) => new Date(b.created_at) - new Date(a.created_at)
-                    )
-                    .map((p, index) => (
-                      <Discussion
-                        key={index}
-                        {...props}
-                        class={props.classes[school_id]}
-                        post={p}
-                      />
-                    )),
-                  discussionPage,
-                  10
-                )}
+                {props.posts.current.map((p, index) => (
+                  <Discussion
+                    key={index}
+                    {...props}
+                    class={props.classes[school_id]}
+                    post={p}
+                  />
+                ))}
                 <Box marginTop={2} marginBottom={2}>
                   {!loading ? (
                     <Pagination
-                      count={props.posts.current.length}
+                      count={totalItems}
                       itemsPerPage={10}
                       icon={
                         <img

@@ -1049,6 +1049,7 @@ function Posts(props) {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState();
   const styles = useStyles();
+  const [totalItems, setTotalItems] = useState(0);
   const isTablet = useMediaQuery(theme.breakpoints.down("md"));
   const [discussionPage, setDiscussionPage] = useState(
     (!isNaN(parseInt(query.page)) && parseInt(query.page)) || 1
@@ -1062,9 +1063,10 @@ function Posts(props) {
     props.onLoad(false);
     try {
       let p = await Api.get(
-        "/api/post/class/" + class_id + "?include=comments"
+        "/api/post/class/" + class_id + "?include=comments&page=" + query.page
       );
-      UserData.setPosts(class_id, p);
+      UserData.setPosts(class_id, p.posts);
+      setTotalItems(p.total_count);
       isLoading(false);
     } catch (e) {}
   };
@@ -1072,7 +1074,7 @@ function Posts(props) {
     UserData.setPosts(class_id, []);
     isLoading(true);
     getPosts();
-  }, [class_id]);
+  }, [query.page]);
   useEffect(() => {
     window.removeEventListener("keydown", keyPress);
     window.addEventListener("keydown", keyPress);
@@ -1111,26 +1113,18 @@ function Posts(props) {
                   disabledComment={true}
                 />
               )}
-              {getPageItems(
-                props.posts.current
-                  .sort(
-                    (a, b) => new Date(b.created_at) - new Date(a.created_at)
-                  )
-                  .map((p, index) => (
-                    <Discussion
-                      key={index}
-                      {...props}
-                      class={props.classes[class_id]}
-                      post={p}
-                    />
-                  )),
-                discussionPage,
-                10
-              )}
+              {props.posts.current.map((p, index) => (
+                <Discussion
+                  key={index}
+                  {...props}
+                  class={props.classes[class_id]}
+                  post={p}
+                />
+              ))}
               <Box marginTop={2} marginBottom={2}>
                 {!loading ? (
                   <Pagination
-                    count={props.posts.current.length}
+                    count={totalItems}
                     itemsPerPage={10}
                     icon={
                       <img
@@ -1277,7 +1271,7 @@ export const createImagePost = (url, description = null) => {
       },
     ],
     entityMap: {
-      "0": {
+      0: {
         type: "IMAGE",
         mutability: "IMMUTABLE",
         data: {
