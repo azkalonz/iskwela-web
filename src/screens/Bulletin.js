@@ -1066,6 +1066,7 @@ function Bulletin(props) {
                   <Discussion
                     key={index}
                     {...props}
+                    school_id={school_id}
                     class={props.classes[school_id]}
                     post={p}
                   />

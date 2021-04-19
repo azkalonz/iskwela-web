@@ -144,7 +144,7 @@ const posts = (state = { current: [] }, payload) => {
     case "SET_POSTS":
       return { ...state, current: payload.posts, class_id: payload.class_id };
     case "ADD_POST":
-      return { ...state, current: [...state.current, payload.post] };
+      return { ...state, current: [payload.post, ...state.current] };
     case "UPDATE_POST":
       if (postIndex >= 0) {
         let posts = [...state.current];
@@ -155,7 +155,7 @@ const posts = (state = { current: [] }, payload) => {
       if (postIndex >= 0) {
         let posts = [...state.current];
         if (typeof posts[postIndex].comments === "object")
-          posts[postIndex].comments.push(payload.comment);
+          posts[postIndex].comments.unshift(payload.comment);
         else posts[postIndex].comments = [payload.comment];
         return { ...state, current: posts };
       }
