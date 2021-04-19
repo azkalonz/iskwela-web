@@ -141,6 +141,8 @@ const posts = (state = { current: [] }, payload) => {
     postIndex = state.current.findIndex((q) => q.id === payload.post.id);
   }
   switch (payload.type) {
+    case "CLEAR_POSTS":
+      return { current: [] };
     case "SET_POSTS":
       return { ...state, current: payload.posts, class_id: payload.class_id };
     case "ADD_POST":

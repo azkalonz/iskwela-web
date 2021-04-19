@@ -1058,9 +1058,16 @@ function Posts(props) {
     props.onLoad(l);
     setLoading(l);
   };
-  const getPosts = async () => {
+  const getPosts = async (previousPosts = []) => {
     if (!class_id) return;
-    if (totalItems !== null && props.posts.current.length >= totalItems) return;
+    if (
+      totalItems !== null &&
+      totalItems !== 0 &&
+      previousPosts.length >= totalItems
+    ) {
+      return;
+    }
+    setLoading(true);
     window.isFetching = true;
     props.onLoad(false);
     try {
@@ -1070,23 +1077,32 @@ function Posts(props) {
           "?include=comments&page=" +
           window.currentPage
       );
-      UserData.setPosts(class_id, props.posts.current.concat(p.posts));
+      UserData.setPosts(class_id, previousPosts.concat(p.posts));
       setTotalItems(p.total_count);
       isLoading(false);
-      window.isFetching = false;
       window.currentPage++;
     } catch (e) {}
+    window.isFetching = false;
   };
 
   useEffect(() => {
+    setTotalItems(null);
+    UserData.clearPosts();
+    window.currentPage = 1;
+    window.isFetching = false;
+    delete window.getPosts;
     isLoading(true);
     getPosts();
-    UserData.setPosts(class_id, []);
+  }, [class_id]);
+
+  useEffect(() => {
     window.removeEventListener("keydown", keyPress);
     window.addEventListener("keydown", keyPress);
     window.currentPage = 1;
   }, []);
-  window.getPosts = getPosts;
+  window.getPosts = () => {
+    getPosts(props.posts.current);
+  };
   return (
     <React.Fragment>
       {props.classes[class_id] && props.classes[class_id].students && (

@@ -11,6 +11,11 @@ export async function asyncForEach(array, callback) {
   }
 }
 const UserData = {
+  clearPosts: () => {
+    store.dispatch({
+      type: "CLEAR_POSTS",
+    });
+  },
   setPosts: (id, posts, isSchool = false) => {
     store.dispatch({
       type: "SET_POSTS",

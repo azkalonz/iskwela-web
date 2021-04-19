@@ -970,7 +970,7 @@ function Bulletin(props) {
   const isLoading = (l) => {
     setLoading(l);
   };
-  const getPosts = async () => {
+  const getPosts = async (previousPosts = []) => {
     if (!school_id) return;
     window.isFetching = true;
     isLoading(true);
@@ -981,7 +981,7 @@ function Bulletin(props) {
           "?include=comments&page=" +
           window.currentPage
       );
-      UserData.setPosts(school_id, props.posts.current.concat(p.posts));
+      UserData.setPosts(school_id, previousPosts.concat(p.posts));
       setTotalItems(p.total_count);
       isLoading(false);
       window.isFetching = false;
@@ -990,11 +990,17 @@ function Bulletin(props) {
   };
 
   useEffect(() => {
+    window.currentPage = 1;
     getPosts();
     UserData.setPosts(school_id, []);
     window.removeEventListener("keydown", keyPress);
     window.addEventListener("keydown", keyPress);
     window.currentPage = 1;
+
+    return () => {
+      window.currentPage = 1;
+      window.isFetching = false;
+    };
   }, []);
   return (
     <Drawer {...props}>
@@ -1036,7 +1042,7 @@ function Bulletin(props) {
               )
                 return;
               if (!!!window.isFetching && isBottomScroll(target)) {
-                getPosts();
+                getPosts(props.posts.current);
               }
             }}
           >
