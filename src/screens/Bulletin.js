@@ -988,10 +988,9 @@ function Bulletin(props) {
       window.currentPage++;
     } catch (e) {}
   };
+
   useEffect(() => {
     getPosts();
-  }, [query.page]);
-  useEffect(() => {
     UserData.setPosts(school_id, []);
     window.removeEventListener("keydown", keyPress);
     window.addEventListener("keydown", keyPress);

@@ -1049,7 +1049,7 @@ function Posts(props) {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState();
   const styles = useStyles();
-  const [totalItems, setTotalItems] = useState(0);
+  const [totalItems, setTotalItems] = useState(null);
   const isTablet = useMediaQuery(theme.breakpoints.down("md"));
   const [discussionPage, setDiscussionPage] = useState(
     (!isNaN(parseInt(query.page)) && parseInt(query.page)) || 1
@@ -1060,25 +1060,33 @@ function Posts(props) {
   };
   const getPosts = async () => {
     if (!class_id) return;
+    if (totalItems !== null && props.posts.current.length >= totalItems) return;
+    window.isFetching = true;
     props.onLoad(false);
     try {
       let p = await Api.get(
-        "/api/post/class/" + class_id + "?include=comments&page=" + query.page
+        "/api/post/class/" +
+          class_id +
+          "?include=comments&page=" +
+          window.currentPage
       );
-      UserData.setPosts(class_id, p.posts);
+      UserData.setPosts(class_id, props.posts.current.concat(p.posts));
       setTotalItems(p.total_count);
       isLoading(false);
+      window.isFetching = false;
+      window.currentPage++;
     } catch (e) {}
   };
+
   useEffect(() => {
-    UserData.setPosts(class_id, []);
     isLoading(true);
     getPosts();
-  }, [query.page]);
-  useEffect(() => {
+    UserData.setPosts(class_id, []);
     window.removeEventListener("keydown", keyPress);
     window.addEventListener("keydown", keyPress);
+    window.currentPage = 1;
   }, []);
+  window.getPosts = getPosts;
   return (
     <React.Fragment>
       {props.classes[class_id] && props.classes[class_id].students && (
@@ -1122,52 +1130,7 @@ function Posts(props) {
                 />
               ))}
               <Box marginTop={2} marginBottom={2}>
-                {!loading ? (
-                  <Pagination
-                    count={totalItems}
-                    itemsPerPage={10}
-                    icon={
-                      <img
-                        src="/hero-img/no-posts.svg"
-                        width={180}
-                        style={{ padding: "50px 0" }}
-                      />
-                    }
-                    emptyTitle="No discussions yet"
-                    emptyMessage={
-                      <Button
-                        onClick={() => {
-                          document.querySelector("#right-panel").scrollTop = 0;
-                          document.querySelector("#start-a-discussion").click();
-                        }}
-                      >
-                        Start one
-                      </Button>
-                    }
-                    nolink
-                    page={discussionPage}
-                    onChange={(p) => {
-                      setDiscussionPage(p);
-                      props.history.push(
-                        makeLinkTo([
-                          "class",
-                          class_id,
-                          schedule_id,
-                          "posts",
-                          room_name || "",
-                          "?page=" + p,
-                        ])
-                      );
-                      let r = document.querySelector("#right-panel");
-                      if (r) {
-                        r =
-                          r.firstElementChild.firstElementChild
-                            .firstElementChild;
-                        r.scrollTop = 0;
-                      }
-                    }}
-                  />
-                ) : (
+                {loading && (
                   <Box width="100%" display="flex" justifyContent="center">
                     <CircularProgress />
                   </Box>

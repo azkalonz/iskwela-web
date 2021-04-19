@@ -1171,6 +1171,13 @@ function Class(props) {
               <Scrollbar
                 autoHide
                 onScroll={(e) => {
+                  if (
+                    !!!window.isFetching &&
+                    isBottomScroll(getMainContainerElement()) &&
+                    typeof window.getPosts === "function"
+                  ) {
+                    window.getPosts();
+                  }
                   let d = document.querySelector("#react-jitsi-container");
                   if (!d || isMobile) return;
                   if (!d.getAttribute("data-initial-height"))
