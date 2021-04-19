@@ -962,7 +962,6 @@ function Bulletin(props) {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState();
   const styles = useStyles();
-  const [posts, setPosts] = useState([]);
   const [totalItems, setTotalItems] = useState(null);
   const isTablet = useMediaQuery(theme.breakpoints.down("md"));
   const [discussionPage, setDiscussionPage] = useState(
@@ -982,7 +981,7 @@ function Bulletin(props) {
           "?include=comments&page=" +
           window.currentPage
       );
-      setPosts(posts.concat(p.posts));
+      UserData.setPosts(school_id, props.posts.current.concat(p.posts));
       setTotalItems(p.total_count);
       isLoading(false);
       window.isFetching = false;
@@ -993,6 +992,7 @@ function Bulletin(props) {
     getPosts();
   }, [query.page]);
   useEffect(() => {
+    UserData.setPosts(school_id, []);
     window.removeEventListener("keydown", keyPress);
     window.addEventListener("keydown", keyPress);
     window.currentPage = 1;
@@ -1031,7 +1031,11 @@ function Bulletin(props) {
           <Scrollbar
             autoHide
             onScroll={({ target }) => {
-              if (totalItems !== null && posts.length >= totalItems) return;
+              if (
+                totalItems !== null &&
+                props.posts.current.length >= totalItems
+              )
+                return;
               if (!!!window.isFetching && isBottomScroll(target)) {
                 getPosts();
               }
@@ -1058,7 +1062,7 @@ function Bulletin(props) {
                     disabledComment={true}
                   />
                 )}
-                {posts.map((p, index) => (
+                {props.posts.current.map((p, index) => (
                   <Discussion
                     key={index}
                     {...props}

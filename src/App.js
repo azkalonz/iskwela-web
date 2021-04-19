@@ -70,6 +70,7 @@ function App(props) {
             const { class_id, payload, action, school_id } = res;
             let id = class_id || school_id;
             if (!id) return;
+            console.log("p", payload);
             UserData.updatePosts(id, payload, action);
           });
           socket.on("videocall", ({ caller, receiver, status }) => {
