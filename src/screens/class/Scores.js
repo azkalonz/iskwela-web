@@ -236,6 +236,38 @@ function Scores(props) {
               width="100%"
               style={isMobile ? { padding: 0 } : { padding: "0 40px 0 40px" }}
             >
+              <Button
+                onClick={() => {
+                  const rows = [
+                    [
+                      "First Name",
+                      "Last Name",
+                      "Assignments",
+                      "Quizzes",
+                      "Periodicals",
+                      "Projects",
+                      "Seatworks",
+                    ],
+                    ...table.data?.map((q) => [
+                      q.first_name,
+                      q.last_name,
+                      q.scores.assignments,
+                      q.scores.quizzes,
+                      q.scores.periodicals,
+                      q.scores.projects,
+                      q.scores.seatworks,
+                    ]),
+                  ];
+
+                  let csvContent =
+                    "data:text/csv;charset=utf-8," +
+                    rows.map((e) => e.join(",")).join("\n");
+                  var encodedUri = encodeURI(csvContent);
+                  window.open(encodedUri);
+                }}
+              >
+                Export
+              </Button>
               <MaterialTable
                 isLoading={loading}
                 title={
@@ -620,6 +652,36 @@ function ScoreDetails(props) {
           </FormControl>
         </Box>
       </Box>
+      <Button
+        onClick={() => {
+          const rows = [
+            [
+              "First Name",
+              "Last Name",
+              "Quiz Date",
+              "Title",
+              "Perfect Score",
+              "Achieved Score",
+            ],
+            ...data?.map((q) => [
+              student.first_name,
+              student.last_name,
+              moment(q.published_at).format("l"),
+              q.title,
+              q.perfect_score,
+              q.achieved_score,
+            ]),
+          ];
+
+          let csvContent =
+            "data:text/csv;charset=utf-8," +
+            rows.map((e) => e.join(",")).join("\n");
+          var encodedUri = encodeURI(csvContent);
+          window.open(encodedUri);
+        }}
+      >
+        Export
+      </Button>
       <MaterialTable
         title={title}
         columns={table2cells}
@@ -696,7 +758,6 @@ function ActivityDetails(props) {
   }, [query?.activity_id, no]);
   return (
     <React.Fragment>
-     
       {
         (!loading,
         !errors && (
@@ -886,7 +947,7 @@ function ActivityDetails(props) {
           </Box>
         ))
       }
-       {loading && (
+      {loading && (
         <Box
           fullWidth
           height="100%"

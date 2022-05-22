@@ -2,7 +2,7 @@ import axios from "axios";
 import { makeLinkTo } from "../components/router-dom";
 function Api() {}
 
-const domain = "https://dev-middleware.iskwela.net";
+const domain = "https://api.iskwela.net";
 Api.domain = domain;
 
 Api.get = (endpoint, params = {}) =>

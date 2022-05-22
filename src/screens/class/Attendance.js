@@ -229,6 +229,27 @@ function Attendance(props) {
       <Box width="100%" display="flex" flexWrap={isMobile ? "wrap" : "nowrap"}>
         {!currentStudent && (
           <Box width="100%" alignSelf="flex-start" order={isMobile ? 2 : 0}>
+            <Button
+              onClick={() => {
+                const rows = [
+                  ["First Name", "Last Name", "Present", "Absent"],
+                  ...attendance?.map((q) => [
+                    q.first_name,
+                    q.last_name,
+                    q.attendance.attendance,
+                    q.attendance.absence,
+                  ]),
+                ];
+
+                let csvContent =
+                  "data:text/csv;charset=utf-8," +
+                  rows.map((e) => e.join(",")).join("\n");
+                var encodedUri = encodeURI(csvContent);
+                window.open(encodedUri);
+              }}
+            >
+              Export
+            </Button>
             <Table
               headers={[
                 { id: "name", title: "Name", width: "50%" },
@@ -289,9 +310,8 @@ function Attendance(props) {
                     setSavingId([id]);
                     setCurrentEvent({
                       opened: true,
-                      date:
-                        props.classDetails[class_id]?.schedules[schedule_id]
-                          ?.from,
+                      date: props.classDetails[class_id]?.schedules[schedule_id]
+                        ?.from,
                       reason: (
                         <React.Fragment>
                           <TextField

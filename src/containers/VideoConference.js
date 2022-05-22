@@ -76,6 +76,25 @@ function VideoConference(props) {
     );
     if (!jApi) setjApi(JitsiApi);
   };
+  const jitsiOptions = {
+    configOverwrite: {
+      desktopSharingChromeDisabled: isTeacher ? false : true,
+      desktopSharingFirefoxDisabled: isTeacher ? false : true,
+      startWithVideoMuted: isTeacher ? false : true,
+      startWithAudioMuted: isTeacher ? false : true,
+      disableRemoteMute: isTeacher ? false : true, //DISABLE THIS ALSO IF YOU ARE DISABLING MUTE EVERYONE FEATURE
+      requireDisplayName: true,
+      remoteVideoMenu: {
+        // If set to true the 'Kick out' button will be disabled.
+        disableKick: isTeacher ? false : true,
+      },
+    },
+    disableSimulcast: false,
+    liveStreamingEnabled: false,
+    userInfo: {
+      displayName: props.userInfo.first_name + " " + props.userInfo.last_name,
+    },
+  };
   const doneResizing = () => {
     document.body.style.userSelect = "initial";
     noLightVresize();
@@ -138,7 +157,7 @@ function VideoConference(props) {
     });
   };
   const openNewTab = () => {
-    window.open("https://jts.iskwela.net/" + room.name + "?jwt=" + jwt);
+    window.open("https://jitsi.member.fsf.org/" + room.name);
     props.history.push(
       makeLinkTo(["class", class_id, schedule_id, option_name])
     );
@@ -328,10 +347,10 @@ function VideoConference(props) {
                     </Box>
                   )}
                   <Jitsi
-                    domain="jts.iskwela.net"
-                    jwt={jwt}
+                    domain="jitsi.member.fsf.org"
                     displayName={room.displayName}
                     roomName={room.name}
+                    {...jitsiOptions}
                     onAPILoad={handleAPI}
                     containerStyle={{
                       margin: "0 auto",
